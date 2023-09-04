@@ -63,5 +63,6 @@ To load the NFT addresses stored in MetaMask to the gallery, click the `Load Add
 
 To see your NFT collection, click the `Gallery` button. This will take you to the gallery page where you can click on any of your NFTs to see its image or play its video in the panel on the right.
 
-Details about the selected NFT appear below in the panel on the right. To see full details,
-click on the chevron icon.
+In the video player, can select different playback speeds and resolutions, plus support for full-screen.
+
+Details about the selected NFT appear below in the panel on the right. To see full details, click on the chevron icon.
