@@ -3,15 +3,24 @@ import videojs from 'video.js';
 import '../../../../node_modules/video.js/dist/video-js.css';
 
 /**
- * Renders a video player using Video.js.
- * Receives the player options, onReady handler, and isAudio flag as props.
- * Initializes the player on mount, and disposes it on unmount.
- * Updates the player options when the options prop changes.
+ * VideoJS component is a wrapper around the video.js library that renders a video player on the page.
+ * It accepts player options, an onReady callback, and a flag indicating if the source is audio as props.
+ *
+ * @component
+ * @param {Object} props - The properties object.
+ * @param {Object} props.options - The options for the video player.
+ * @param {Function} props.onReady - Callback function to be called when the player is ready.
+ * @param {boolean} props.isAudio - Flag indicating if the source is audio.
+ *
+ * @returns {JSX.Element} The VideoJS component.
  */
 export const VideoJS = ({ options, onReady, isAudio }) => {
   const videoRef = useRef(null);
   const playerRef = useRef(null);
 
+  /**
+   * Updates the player options based on the options prop.
+   */
   const updatePlayerOptions = () => {
     const player = playerRef.current;
     if (!player || player.isDisposed()) return;
@@ -24,7 +33,9 @@ export const VideoJS = ({ options, onReady, isAudio }) => {
     console.log('VideoJS: player updated', player);
   };
 
-  // Initialize the player
+  /**
+   * Initializes the video player.
+   */
   const initializePlayer = () => {
     console.log('VideoJS: initializePlayer called');
 
@@ -34,8 +45,6 @@ export const VideoJS = ({ options, onReady, isAudio }) => {
     if (!videoElement) return;
 
     disposePlayer();
-
-    //videojs.Hls.xhr.beforeRequest = '';
 
     console.log('VideoJS: Initializing new player');
     window.videojs = videojs;
@@ -59,8 +68,8 @@ export const VideoJS = ({ options, onReady, isAudio }) => {
       // Initialize the videojs-resolution-switcher plugin
       if (player.videoJsResolutionSwitcher) {
         player.videoJsResolutionSwitcher({
-          default: 'high', // Default resolution [{Number}, 'low', 'high'],
-          dynamicLabel: true, // Display dynamic labels or gear symbol
+          default: 'high',
+          dynamicLabel: true,
         });
       } else {
         console.error('VideoJS: Plugin has not been registered to the player');
@@ -76,7 +85,9 @@ export const VideoJS = ({ options, onReady, isAudio }) => {
     if (isAudio) player.audioOnlyMode(isAudio);
   };
 
-  // Dispose the player
+  /**
+   * Disposes the video player to free up resources.
+   */
   const disposePlayer = () => {
     const player = playerRef.current;
 

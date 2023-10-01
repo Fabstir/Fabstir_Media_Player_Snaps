@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "module": "ESNext",
+    "allowSyntheticDefaultImports": true,
+    "checkJs": true
+  },
+  "include": ["src/**/*.js"],
+  "exclude": ["node_modules"]
+}

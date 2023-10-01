@@ -6,16 +6,31 @@ import { forwardRef } from 'react';
 import { useRecoilState } from 'recoil';
 import { currentnftmetadata } from '../atoms/nftMetaDataAtom';
 
+/**
+ * A utility function to concatenate class names.
+ * @param {...string} classes - The class names to concatenate.
+ * @returns {string} - The concatenated class names.
+ */
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
 }
 
 /**
- * Renders a thumbnail view of a video NFT.
- * Receives the NFT metadata, poster image, styles, and handlers as props.
- * Uses the useRecoilState hook to store the current NFT metadata.
- * Renders the thumbnail view with the NFT poster image, title, overview, and release date.
- * Renders the add/remove buttons if the handlers are provided.
+ * ThumbnailFilm component renders a thumbnail view of a video NFT.
+ * It receives the NFT metadata, poster image, styles, and handlers as props, uses the useRecoilState hook to store the current NFT metadata,
+ * and renders the thumbnail view with the NFT poster image, title, overview, and release date.
+ * It also renders the add/remove buttons if the handlers are provided.
+ *
+ * @component
+ * @param {Object} props - The properties passed to the component.
+ * @param {Object} props.nft - The NFT metadata.
+ * @param {string} props.posterImage - The URL of the poster image.
+ * @param {string} props.twTitleStyle - Tailwind CSS style for the title.
+ * @param {string} props.twTextStyle - Tailwind CSS style for the text.
+ * @param {Function} props.handleSubmit_AddEntityToList - Function to handle adding entity to the list.
+ * @param {Function} props.handleSubmit_RemoveEntityFromList - Function to handle removing entity from the list.
+ * @param {React.Ref} ref - The ref passed to the component.
+ * @returns {React.Element} The rendered ThumbnailFilm component.
  */
 const ThumbnailFilm = forwardRef(
   (
@@ -29,9 +44,12 @@ const ThumbnailFilm = forwardRef(
     },
     ref,
   ) => {
+    /**
+     * State to hold the current NFT metadata.
+     * @type {[Object, Function]}
+     */
     const [currentNFT, setCurrentNFT] = useRecoilState(currentnftmetadata);
 
-    // Render the thumbnail view with the NFT poster image, title, overview, and release date
     return (
       <div ref={ref} className="group transform cursor-pointer p-2">
         <div className="shadow-lg shadow-fabstir-dark-purple md:shadow-lg lg:shadow-xl xl:shadow-xl 2xl:shadow-xl 3xl:shadow-2xl">

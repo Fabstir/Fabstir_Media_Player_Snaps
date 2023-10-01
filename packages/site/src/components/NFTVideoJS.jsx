@@ -9,6 +9,7 @@ import { combineKeytoEncryptedCid } from '../utils/s5EncryptCIDHelper';
 /**
  * A React component that renders a Video.js player for an NFT video.
  *
+ * @component
  * @param {Object} props - The component props.
  * @param {Object} props.nft - The NFT object containing video information.
  * @param {Function} props.onReady - The callback function to be called when the video is ready to play.
@@ -24,11 +25,31 @@ export const NFTVideoJS = ({ nft, onReady, setIsPlay }) => {
   const getVideoLinkS5 = useVideoLinkS5();
 
   const { getBlobUrl, getPortalType } = usePortal();
+
+  /**
+   * The options for the video player.
+   * @type {Object}
+   */
   const [options, setOptions] = useState();
+
+  /**
+   * The URL of the video to be played.
+   * @type {string}
+   */
   const [videoUrl, setVideoUrl] = useState();
 
+  /**
+   * The current time of the video player.
+   * @type {number}
+   */
   const [playerCurrentTime, setPlayerCurrentTime] = useState(0);
 
+  /**
+   * The function to handle the readiness of the video player.
+   * It sets up various event listeners on the player.
+   *
+   * @param {Object} player - The video player object.
+   */
   const handlePlayerReady = (player) => {
     console.log('test: ScreenView handlePlayerReady');
 

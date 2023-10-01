@@ -1,20 +1,31 @@
 import useS5net from './useS5';
 
+/**
+ * Custom hook that provides a function to transcode a video using the S5net transcoder service.
+ *
+ * @function
+ * @returns {Object} - An object containing a function to transcode a video.
+ */
 export default function useTranscodeVideoS5() {
   const { setTranscodePending } = useS5net();
 
   /**
-   * Transcodes a video using the S5net transcoder service.
-   * Receives the NFT object, encryption key, and isGPU flag as parameters.
-   * Initializes an array of video formats to transcode to.
-   * Constructs the transcoder service URL with the NFT video CID, video formats, encryption key, and flags.
-   * Sends a POST request to the transcoder service to queue the transcoding job.
-   * Logs the response data and throws an error if the response status code is not 200.
+   * Asynchronously transcodes a video using the Fabstir transcoder service.
+   * Initializes an array of video formats to transcode to and constructs the transcoder service URL with the necessary parameters.
+   * Sends a POST request to the transcoder service to queue the transcoding job and logs the response data.
+   * Throws an error if the response status code is not 200.
+   *
+   * @async
+   * @function
+   * @param {string} cid - The CID of the video to transcode.
+   * @param {boolean} isEncrypted - Flag indicating whether the video is encrypted.
+   * @param {boolean} isGPU - Flag indicating whether to use GPU for transcoding.
+   * @returns {Promise<void>} - A promise that resolves when the transcoding job is queued successfully.
    */
-  async function transcodeVideo(nft, encryptionKey, isGPU) {
-    if (!nft) return nft;
+  async function transcodeVideo(cid, isEncrypted, isGPU) {
+    if (!cid) return cid;
 
-    console.log('useTranscodeVideoS5: nft = ', nft);
+    console.log('useTranscodeVideoS5: cid = ', cid);
 
     const videoFormats = [
       // {
@@ -61,13 +72,6 @@ export default function useTranscodeVideoS5() {
       },
     ];
 
-    let cid;
-    if (encryptionKey?.length > 0) {
-      cid = combineKeytoEncryptedCid(encryptionKey, nft.video);
-    } else cid = nft.video;
-
-    const isEncrypted = encryptionKey ? true : false;
-    // Construct the transcoder service URL with the NFT video CID, video formats, and flags
     const url = `${
       process.env.NEXT_PUBLIC_TRANSCODER_CLIENT_URL
     }/transcode?source_cid=${cid}&video_formats=${JSON.stringify(
@@ -76,7 +80,6 @@ export default function useTranscodeVideoS5() {
     console.log('useTranscodeVideoS5: url = ', url);
 
     try {
-      // Send a POST request to the transcoder service to queue the transcoding job
       const response = await fetch(url, { method: 'POST' });
       const data = await response.json();
       console.log('useTranscodeVideoS5: data =', data);

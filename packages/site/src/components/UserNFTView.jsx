@@ -2,7 +2,9 @@ import React, { useEffect, useState } from 'react';
 import usePortal from '../hooks/usePortal';
 import ThumbnailArt from './ThumbnailArt';
 import ThumbnailFilm from './ThumbnailFilm';
-// import ThumbnailMusic from './ThumbnailMusic';
+import { DocumentDuplicateIcon } from '@heroicons/react/24/outline';
+import { useRecoilState } from 'recoil';
+import { selectedparentnftaddressid } from '../atoms/nestableNFTAtom';
 
 const tabs = [
   { name: 'Recently Added', href: '#', current: true },
@@ -10,15 +12,28 @@ const tabs = [
   { name: 'Favourited', href: '#', current: false },
 ];
 
+/**
+ * A utility function to concatenate class names.
+ * @param {...string} classes - The class names to concatenate.
+ * @returns {string} - The concatenated class names.
+ */
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
 }
 
 /**
- * Renders a thumbnail view of the user's NFT.
- * Receives the NFT metadata and styles as props.
- * Uses the usePortal hook to fetch the NFT image and poster/backdrop images.
- * Renders the appropriate thumbnail component based on the NFT type.
+ * UserNFTView component renders a thumbnail view of the user's NFT.
+ * It receives the NFT metadata and styles as props, uses the usePortal hook to fetch the NFT image and poster/backdrop images,
+ * and renders the appropriate thumbnail component based on the NFT type.
+ *
+ * @component
+ * @param {Object} props - The properties passed to the component.
+ * @param {Object} props.nft - The NFT metadata.
+ * @param {string} props.twTitleStyle - Tailwind CSS style for the title.
+ * @param {string} props.twTextStyle - Tailwind CSS style for the text.
+ * @param {Function} props.handleSubmit_AddEntityToList - Function to handle adding entity to the list.
+ * @param {Function} props.handleSubmit_RemoveEntityFromList - Function to handle removing entity from the list.
+ * @returns {React.Element} The rendered UserNFTView component.
  */
 export default function UserNFTView({
   nft,
@@ -28,9 +43,32 @@ export default function UserNFTView({
   handleSubmit_RemoveEntityFromList,
 }) {
   console.log('UserNFTView: inside');
+
+  const [selectedParentNFTAddressId, setSelectedParentNFTAddressId] =
+    useRecoilState(selectedparentnftaddressid);
+
+  /**
+   * State to hold the NFT image URL.
+   * @type {[string, Function]}
+   */
   const [nftImage, setNFTImage] = useState();
+
+  /**
+   * State to hold the NFT backdrop image URL.
+   * @type {[string, Function]}
+   */
   const [nftBackDropImage, setNFTBackDropImage] = useState();
+
+  /**
+   * State to hold the NFT poster image URL.
+   * @type {[string, Function]}
+   */
   const [nftPosterImage, setNFTPosterImage] = useState();
+
+  /**
+   * Object containing the getBlobUrl function from the usePortal hook.
+   * @type {Object}
+   */
   const { getBlobUrl } = usePortal();
 
   useEffect(() => {
@@ -54,39 +92,48 @@ export default function UserNFTView({
     })();
   }, [nft]);
 
-  // Render the appropriate thumbnail component based on the NFT type
+  function handleDoubleClick() {
+    const parentAddressId = `${nft?.parentAddress}_${nft?.parentId}`;
+    setSelectedParentNFTAddressId(parentAddressId);
+    console.log('UserNFTView: selectedParentNFTAddressId = ', parentAddressId);
+  }
+
   return (
-    <div className="transform transition duration-100 ease-in hover:scale-115">
-      {nft.type === 'video' && nftPosterImage ? (
-        <ThumbnailFilm
-          nft={nft}
-          posterImage={nftPosterImage}
-          twTitleStyle={twTitleStyle}
-          twTextStyle={twTextStyle}
-          handleSubmit_AddEntityToList={handleSubmit_AddEntityToList}
-          handleSubmit_RemoveEntityFromList={handleSubmit_RemoveEntityFromList}
-        />
-      ) : // ) : nft.type === 'audio' && nftBackDropImage ? (
-      //   <ThumbnailMusic
-      //     nft={nft}
-      //     nftImage={nftBackDropImage}
-      //     twTitleStyle={twTitleStyle}
-      //     twTextStyle={twTextStyle}
-      //     handleSubmit_AddEntityToList={handleSubmit_AddEntityToList}
-      //     handleSubmit_RemoveEntityFromList={handleSubmit_RemoveEntityFromList}
-      //     disableNavigation={disableNavigation}
-      //   />
-      nft.type !== 'video' && nft.type !== 'audio' && nftImage ? (
-        <ThumbnailArt
-          nft={nft}
-          nftImage={nftImage}
-          twTitleStyle={twTitleStyle}
-          twTextStyle={twTextStyle}
-          handleSubmit_AddEntityToList={handleSubmit_AddEntityToList}
-          handleSubmit_RemoveEntityFromList={handleSubmit_RemoveEntityFromList}
-        />
-      ) : (
-        <></>
+    <div
+      className="transform transition duration-100 ease-in hover:scale-115 relative"
+      onDoubleClick={handleDoubleClick}
+    >
+      <div>
+        {nft.type === 'video' && nftPosterImage ? (
+          <ThumbnailFilm
+            nft={nft}
+            posterImage={nftPosterImage}
+            twTitleStyle={twTitleStyle}
+            twTextStyle={twTextStyle}
+            handleSubmit_AddEntityToList={handleSubmit_AddEntityToList}
+            handleSubmit_RemoveEntityFromList={
+              handleSubmit_RemoveEntityFromList
+            }
+          />
+        ) : nft.type !== 'video' && nft.type !== 'audio' && nftImage ? (
+          <ThumbnailArt
+            nft={nft}
+            nftImage={nftImage}
+            twTitleStyle={twTitleStyle}
+            twTextStyle={twTextStyle}
+            handleSubmit_AddEntityToList={handleSubmit_AddEntityToList}
+            handleSubmit_RemoveEntityFromList={
+              handleSubmit_RemoveEntityFromList
+            }
+          />
+        ) : (
+          <></>
+        )}
+      </div>
+      {nft?.parentId && (
+        <div className="absolute top-0 right-0 p-1">
+          <DocumentDuplicateIcon className="h-6 w-6 text-gray-700" />
+        </div>
       )}
     </div>
   );

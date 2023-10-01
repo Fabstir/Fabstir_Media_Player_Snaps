@@ -4,8 +4,18 @@ import { queryClient } from '../../pages/_app.tsx';
 import TipERC721 from '../../contracts/TipERC721.json';
 import { S5Client } from '../../../../node_modules/s5client-js/dist/mjs/index';
 import BlockchainContext from '../../state/BlockchainContext';
-import { ethers } from 'ethers';
+import { Contract } from '@ethersproject/contracts';
+import { useContext } from 'react';
 
+/**
+ * Asynchronously retrieves metadata from a given URI.
+ *
+ * @async
+ * @function
+ * @param {string} uri - The URI to fetch metadata from.
+ * @param {function} downloadFile - The function to use for downloading the file from the URI.
+ * @returns {Promise<Object|null>} - A promise that resolves to the metadata object or null if the metadata could not be retrieved.
+ */
 const getMetadata = async (uri, downloadFile) => {
   const json = await downloadFile(uri, {});
 
@@ -15,28 +25,33 @@ const getMetadata = async (uri, downloadFile) => {
 };
 
 /**
- * Fetches NFT metadata from the blockchain and downloads the NFT image.
- * Receives the NFT address, provider, and downloadFile function as parameters.
- * Initializes a new ethers Contract instance with the NFT address and provider.
- * Calls the name, symbol, and tokenURI methods to get the NFT metadata.
- * Calls the getMetadata function to download the NFT image and get the metadata.
- * Returns an NFT object.
+ * Asynchronously fetches NFT metadata from the blockchain and downloads the NFT image.
+ *
+ * @async
+ * @function
+ * @param {string} address_id - The address of the NFT.
+ * @param {Object} provider - The blockchain provider.
+ * @param {function} downloadFile - The function to use for downloading files.
+ * @returns {Promise<Object|null>} - A promise that resolves to an NFT object containing the metadata or null if the NFT address is not provided.
  */
-export const fetchNFT = async (nftAddress, provider, downloadFile) => {
-  if (!nftAddress) return null;
+export const fetchNFT = async (address_id, provider, downloadFile) => {
+  if (!address_id) return null;
 
-  // Initialize a new ethers Contract instance with the NFT address and provider
-  const contract = new ethers.Contract(nftAddress, TipERC721.abi, provider);
+  const [address, id] = address_id.split('_');
+  const parsedId = parseInt(id, 10);
+
+  // Initialize a new Contract instance with the NFT address and provider
+  const contract = new Contract(address, TipERC721.abi, provider);
   const name = await contract.name();
   const symbol = await contract.symbol();
-  const uri = await contract.tokenURI(1);
+  const uri = await contract.tokenURI(parsedId);
 
   // Call the getMetadata function to download the NFT metadata
   const metadata = await getMetadata(uri, downloadFile);
 
   // Create an NFT object with the metadata
   const nft = {
-    address: nftAddress,
+    address: address,
     name,
     symbol,
     ...metadata,
@@ -48,14 +63,12 @@ export const fetchNFT = async (nftAddress, provider, downloadFile) => {
 
 /**
  * Custom hook that fetches NFT metadata from the blockchain and downloads the NFT image.
- * Receives an NFT address as a parameter.
- * Initializes a new S5Client instance with the portal URL and custom options.
- * Uses the usePortal hook to download the NFT image.
- * Uses the useContext hook to get the blockchain provider from the BlockchainContext.
- * Uses the useQuery hook from react-query to fetch the NFT metadata.
- * Returns the query result.
+ *
+ * @function
+ * @param {string} address_id - The address of the NFT.
+ * @returns {Object} - The query result containing the NFT metadata and other query information.
  */
-export default function useNFT(nftAddress) {
+export default function useNFT(address_id) {
   const customClientOptions = {};
   const client = new S5Client(
     process.env.NEXT_PUBLIC_PORTAL_URL,
@@ -69,13 +82,13 @@ export default function useNFT(nftAddress) {
 
   // Use the useQuery hook from react-query to fetch the NFT metadata
   return useQuery(
-    ['nft', nftAddress],
-    () => fetchNFT(nftAddress, provider, downloadFile),
+    ['nft', address_id],
+    () => fetchNFT(address_id, provider, downloadFile),
     {
       placeholderData: () =>
         queryClient
           .getQueryData(['nfts'])
-          ?.find((d) => d.nftAddress == nftAddress),
+          ?.find((d) => d.nftAddress == address_id),
       staleTime: 10000,
     },
   );

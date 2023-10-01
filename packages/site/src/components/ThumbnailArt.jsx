@@ -3,16 +3,30 @@ import React, { useEffect, useRef } from 'react';
 import { useRecoilState } from 'recoil';
 import { currentnftmetadata } from '../atoms/nftMetaDataAtom';
 
+/**
+ * A utility function to concatenate class names.
+ * @param {...string} classes - The class names to concatenate.
+ * @returns {string} - The concatenated class names.
+ */
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
 }
 
 /**
- * Renders a thumbnail view of an art NFT.
- * Receives the NFT metadata, image, styles, and handlers as props.
- * Uses the useRecoilState hook to store the current NFT metadata.
- * Renders the thumbnail view with the NFT image, title, and summary.
- * Renders the add/remove buttons if the handlers are provided.
+ * ThumbnailArt component renders a thumbnail view of an art NFT.
+ * It receives the NFT metadata, image, styles, and handlers as props, uses the useRecoilState hook to store the current NFT metadata,
+ * and renders the thumbnail view with the NFT image, title, and summary.
+ * It also renders the add/remove buttons if the handlers are provided.
+ *
+ * @component
+ * @param {Object} props - The properties passed to the component.
+ * @param {Object} props.nft - The NFT metadata.
+ * @param {string} props.nftImage - The URL of the NFT image.
+ * @param {string} props.twTitleStyle - Tailwind CSS style for the title.
+ * @param {string} props.twTextStyle - Tailwind CSS style for the text.
+ * @param {Function} props.handleSubmit_AddEntityToList - Function to handle adding entity to the list.
+ * @param {Function} props.handleSubmit_RemoveEntityFromList - Function to handle removing entity from the list.
+ * @returns {React.Element} The rendered ThumbnailArt component.
  */
 export default function ThumbnailArt({
   nft,
@@ -22,9 +36,12 @@ export default function ThumbnailArt({
   handleSubmit_AddEntityToList,
   handleSubmit_RemoveEntityFromList,
 }) {
+  /**
+   * State to hold the current NFT metadata.
+   * @type {[Object, Function]}
+   */
   const [currentNFT, setCurrentNFT] = useRecoilState(currentnftmetadata);
 
-  // Render the thumbnail view with the NFT image, title, and summary
   return (
     <div className="w-full">
       <div

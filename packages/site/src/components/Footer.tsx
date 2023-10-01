@@ -2,6 +2,12 @@ import MetaMaskFox from '../assets/metamask_fox.svg';
 import { MetaMask } from './MetaMask';
 import { PoweredBy } from './PoweredBy';
 
+/**
+ * Footer component to render the app footer.
+ *
+ * @component
+ * @returns {React.Element} The rendered Footer component.
+ */
 export const Footer = () => {
   return (
     <footer className="flex items-center justify-center pt-6 pb-6 border-t border-gray-300">

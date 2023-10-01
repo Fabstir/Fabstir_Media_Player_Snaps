@@ -4,14 +4,19 @@ import { saveState, loadState } from '../utils';
 /**
  * A custom React hook that returns the video link for a given video cid to S5.
  *
- * @param {String} videoId - The ID of the video.
- * @returns {String} - The video link.
+ * @param {string} videoId - The ID of the video.
+ * @returns {string} - The video link.
  */
 export default function useVideoLinkS5() {
   const portNumber = parseInt(window.location.port, 10);
-
   const { getMetadata, getTranscodedMetadata, putMetadata } = useS5net();
 
+  /**
+   * Generates player sources from metadata.
+   *
+   * @param {Array} metadata - The metadata containing video formats.
+   * @returns {Array} - An array of sources for the video player.
+   */
   const getPlayerSources = (metadata) => {
     const sources = [];
     metadata.forEach((videoFormat) => {
@@ -26,11 +31,19 @@ export default function useVideoLinkS5() {
     return sources;
   };
 
-  // For unencrypted video, cid and cidWithoutKey will be the same
+  /**
+   * The main function to get the video URL.
+   *
+   * @param {Object} params - The parameters object.
+   * @param {Object} params.nft - The NFT object containing video details.
+   * @returns {Promise<string>} - A promise that resolves to the video URL.
+   */
   return async ({ nft }) => {
     let videoUrl;
     const state = await loadState();
-    const address = nft.address;
+    const address = `${nft.address}_${nft.id}`;
+
+    if (!state.addresses.state[address]) return {};
 
     console.log('useVideoLinkS5: address = ', address);
     console.log('useVideoLinkS5: state = ', state);
@@ -58,7 +71,9 @@ export default function useVideoLinkS5() {
         console.log('useVideoLinkS5: addresses = ', addresses);
         await saveState(addresses);
       }
-    } else metadata = state.addresses.state[address];
+    } else {
+      metadata = state.addresses.state[address];
+    }
 
     if (metadata) {
       videoUrl = getPlayerSources(metadata);

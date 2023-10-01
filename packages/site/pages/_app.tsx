@@ -1,12 +1,11 @@
 import React, { useEffect } from 'react';
 
 import type { AppProps } from 'next/app';
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { Header } from '../src/components/Header';
 import { Footer } from '../src/components/Footer';
 import '../styles/globals.css';
-import { ethers } from 'ethers';
-//import { JsonRpcProvider } from 'ethers/providers';
+import { JsonRpcProvider } from '@ethersproject/providers';
 import BlockchainContext from '../state/BlockchainContext';
 
 import { ToggleThemeContext } from '../src/Root';
@@ -14,32 +13,17 @@ import { RecoilRoot } from 'recoil';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
+const provider = new JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_PROVIDER);
+const signerAdmin = provider.getSigner(0);
+
 // Create a client
 export const queryClient = new QueryClient();
 
 function MyApp({ Component, pageProps }: AppProps) {
-  const toggleTheme = useContext(ToggleThemeContext);
-  const provider = new ethers.JsonRpcProvider('http://localhost:8545');
+  const [smartAccount, setSmartAccount] = useState(null);
+  const [smartAccountProvider, setSmartAccountProvider] = useState(null);
 
-  // useEffect(() => {
-  //   if ('serviceWorker' in navigator) {
-  //     console.log('MyApp: userEffect');
-  //     window.addEventListener('load', function () {
-  //       console.log('MyApp: before navigator.serviceWorker.register');
-  //       navigator.serviceWorker.register('/sw.js').then(
-  //         function (registration) {
-  //           console.log(
-  //             'MyApp: ServiceWorker registration successful with scope: ',
-  //             registration.scope,
-  //           );
-  //         },
-  //         function (err) {
-  //           console.log('MyApp: ServiceWorker registration failed: ', err);
-  //         },
-  //       );
-  //     });
-  //   }
-  // }, []);
+  const toggleTheme = useContext(ToggleThemeContext);
 
   useEffect(() => {
     navigator.serviceWorker
@@ -56,7 +40,16 @@ function MyApp({ Component, pageProps }: AppProps) {
   }, []);
 
   return (
-    <BlockchainContext.Provider value={{ provider }}>
+    <BlockchainContext.Provider
+      value={{
+        provider,
+        signerAdmin,
+        smartAccount,
+        setSmartAccount,
+        smartAccountProvider,
+        setSmartAccountProvider,
+      }}
+    >
       <RecoilRoot>
         <QueryClientProvider client={queryClient}>
           <div className="flex flex-col w-full min-h-screen max-w-full">

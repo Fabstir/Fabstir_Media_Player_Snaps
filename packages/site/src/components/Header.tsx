@@ -3,8 +3,15 @@ import { MetamaskActions, MetaMaskContext } from '../hooks';
 import { connectSnap, getThemePreference, getSnap } from '../utils';
 import { HeaderButtons } from './Buttons';
 import { SnapLogo } from './SnapLogo';
-//import { Toggle } from './Toggle';
 
+/**
+ * Header component to render the app header.
+ *
+ * @component
+ * @param {Object} props - The properties passed to the component.
+ * @param {Function} props.handleToggleClick - The function to handle the toggle click event.
+ * @returns {React.Element} The rendered Header component.
+ */
 export const Header = ({
   handleToggleClick,
 }: {
@@ -12,6 +19,13 @@ export const Header = ({
 }) => {
   const [state, dispatch] = useContext(MetaMaskContext);
 
+  /**
+   * Function to handle the connect click event.
+   * It connects to the Snap API and sets the installed Snap in the MetaMask context.
+   *
+   * @async
+   * @function
+   */
   const handleConnectClick = async () => {
     try {
       await connectSnap();
@@ -34,10 +48,6 @@ export const Header = ({
         <p className="font-bold ml-3 hidden sm:block">template-snap</p>
       </div>
       <div className="flex items-center">
-        {/* <Toggle
-          onToggle={handleToggleClick}
-          defaultChecked={getThemePreference()}
-        /> */}
         <HeaderButtons state={state} onConnectClick={handleConnectClick} />
       </div>
     </header>

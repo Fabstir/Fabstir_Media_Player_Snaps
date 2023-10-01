@@ -5,20 +5,43 @@ import React, { useEffect, useRef, useState } from 'react';
 import { saveAs } from 'file-saver';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { nftattributesexpandstate } from '../atoms/nftAttrributesExpand';
-import { nftmetadataexpandstate } from '../atoms/nftMetaDataExpand';
+import {
+  nftmetadataexpandstate,
+  nftsselectedaschild,
+} from '../atoms/nftMetaDataExpand';
 import usePortal from '../hooks/usePortal';
+import { removeAddress, addAddress, replaceAddress } from '../utils/snapsState';
+
 //import NFTAudioJS from './NFTAudioJS';
 import NFTFileUrls from './NFTFileUrls';
 import NFTVideoJS from './NFTVideoJS';
+import useMintNestableNFT from '../blockchain/useMintNestableNFT';
 
+/**
+ * A utility function to join classes.
+ * @param {...string} classes - The classes to join.
+ * @returns {string} - The joined classes.
+ */
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
 }
 
 const userViewStyle = 'relative mx-auto grid gap-x-4 gap-y-8 grid-cols-6';
 
+/**
+ * A utility function to append a field to an object.
+ * @param {Object} old - The original object.
+ * @param {string} field - The field to append.
+ * @param {any} value - The value to set for the field.
+ * @returns {Object} - The new object with the appended field.
+ */
 const appendNFTField = (old, field, value) => ({ ...old, [field]: value });
 
+/**
+ * A utility function to decorate NFT information.
+ * @param {Object} information - The NFT information to decorate.
+ * @returns {Object|null} - The decorated information or null if the input is falsy.
+ */
 const nftInformationDecorator = (information) => {
   if (!information) return null;
 
@@ -58,6 +81,17 @@ const twStyle = 'ml-8 grid gap-y-6 grid-cols-6 gap-x-5';
 const twTitleStyle = 'text-xs';
 const twTextStyle = 'invisible';
 
+/**
+ * The DetailsSidebar component.
+ * @param {Object} props - The props for the component.
+ * @param {Object} props.currentNFT - The current NFT.
+ * @param {string} props.width1 - The width property.
+ * @param {boolean} props.isTheatreMode - The theatre mode state.
+ * @param {Function} props.setIsTheatreMode - The setter for the theatre mode state.
+ * @param {boolean} props.isScreenViewClosed - The screen view closed state.
+ * @param {Function} props.setIsScreenViewClosed - The setter for the screen view closed state.
+ * @returns {JSX.Element} - The JSX element.
+ */
 export default function DetailsSidebar({
   currentNFT,
   width1,
@@ -88,13 +122,14 @@ export default function DetailsSidebar({
   const [nftImage, setNFTImage] = useState();
   const { getPortalLinkUrl, getBlobUrl } = usePortal();
 
-  const [isPlay, setIsPlay] = useState(false);
+  const {
+    getChildrenOfNestableNFT,
+    addChildToNestableNFT,
+    removeChildFromNestableNFT,
+    upgradeToNestableNFT,
+  } = useMintNestableNFT();
 
-  //  const [playerCurrentTime, setPlayerCurrentTime] = useState(0);
-  const [nftToPlay, setNFTToPlay] = useState();
-
-  const [isPublic, setIsPublic] = useState(false);
-  const [isMember, setIsMember] = useState(false);
+  const [selectedNFTs, setSelectedNFTs] = useRecoilState(nftsselectedaschild);
 
   useEffect(() => {
     console.log('DetailsSidebar: currentNFT = ', currentNFT);
@@ -103,6 +138,8 @@ export default function DetailsSidebar({
   }, [currentNFT, currentNFT?.image]);
 
   useEffect(() => {
+    if (!nft) return;
+
     console.log('DetailsSidebar: nft.image = ', nft?.image);
     (async () => {
       if (nft?.image) {
@@ -112,6 +149,18 @@ export default function DetailsSidebar({
     })();
   }, [nft]);
 
+  /**
+   * Function to handle downloading a file from a given URI.
+   * It determines the file name based on the key parameter and the URI.
+   * If the key parameter is 'uri', it sets the file name to the NFT symbol followed by '_metadata.json'.
+   * Otherwise, it extracts the file name from the URI and removes the '<<' and '>>' characters.
+   * It then gets the portal link URL for the given URI and downloads the file using the file name.
+   *
+   * @function
+   * @param {string} key - The key parameter to determine the file name.
+   * @param {string} uri - The URI of the file to download.
+   * @returns {void}
+   */
   async function handle_DownloadFile(key, uri) {
     let fileName;
     if (key === 'uri') fileName = `${nft.symbol}_metadata.json`;
@@ -128,10 +177,156 @@ export default function DetailsSidebar({
     console.log('DetailSidebar: handle_DownloadFile: linkUrl = ', linkUrl);
   }
 
+  /**
+   * Function to handle upgrading an NFT to a nestable NFT.
+   * It checks if the parent NFT is defined and if the selectedNFTs array is not empty.
+   * If the parent NFT is not defined or the selectedNFTs array is empty, it returns.
+   * Otherwise, it creates a new nestable NFT with the selected NFTs as children and updates the parent NFT's metadata.
+   *
+   * @function
+   * @returns {void}
+   */
+  async function handleUpgradeToNestableNFT() {
+    if (!nft) return;
+
+    const { address, id } = await upgradeToNestableNFT(nft);
+
+    console.log(
+      'DetailsSidebar: handleUpgradeToNestableNFT: address = ',
+      address,
+    );
+    console.log('DetailsSidebar: handleUpgradeToNestableNFT: token id = ', id);
+
+    // now need to swap NFT address with nestable NFT address in Snaps state
+    await replaceAddress(`${nft.address}_${nft.id}`, `${address}_${id}`);
+  }
+
+  /**
+   * Function to handle adding an NFT to the selectedNFTs array.
+   * It checks if the NFT is defined and if the selectedNFTs array already contains the NFT.
+   * If the NFT is not defined or already exists in the selectedNFTs array, it returns.
+   * Otherwise, it adds the NFT to the selectedNFTs array.
+   *
+   * @function
+   * @returns {void}
+   */
+  function handleAddToNestableNFT() {
+    if (!nft) return;
+
+    if (
+      selectedNFTs?.find((nftElement) => nftElement.address === nft.address)
+    ) {
+      return;
+    }
+
+    setSelectedNFTs((prev) => [...prev, nft]);
+  }
+
+  /**
+   * Function to handle removing an NFT from the selectedNFTs array.
+   * It checks if the NFT is defined and if the selectedNFTs array contains the NFT.
+   * If the NFT is not defined or does not exist in the selectedNFTs array, it returns.
+   * Otherwise, it removes the NFT from the selectedNFTs array.
+   *
+   * @function
+   * @param {Object} nft - The NFT object to remove from the selectedNFTs array.
+   * @returns {void}
+   */
+  function removeFromNestableNFT(nft) {
+    if (!nft) return;
+
+    const index = selectedNFTs.findIndex(
+      (selectedNFT) => selectedNFT.address === nft.address,
+    );
+
+    if (index !== -1) {
+      setSelectedNFTs((prev) => {
+        const newSelectedNFTs = [...prev];
+        newSelectedNFTs.splice(index, 1);
+        return newSelectedNFTs;
+      });
+    }
+  }
+
+  /**
+   * Function to handle removing an NFT from the selectedNFTs array.
+   * It checks if the NFT is defined and if the selectedNFTs array contains the NFT.
+   * If the NFT is not defined or does not exist in the selectedNFTs array, it returns.
+   * Otherwise, it removes the NFT from the selectedNFTs array.
+   *
+   * @function
+   * @param {Object} nft - The NFT object to remove from the selectedNFTs array.
+   * @returns {void}
+   */
+  async function handleRemoveFromNestableNFT() {
+    if (!nft) return;
+
+    const { address, id } = await removeChildFromNestableNFT(
+      nft.parentId,
+      nft.address,
+      nft.id,
+    );
+
+    await addAddress(`${address}_${id}`);
+  }
+
+  /**
+   * Function to handle adding the selected NFTs to the parent NFT.
+   * It checks if the parent NFT is defined and if the selectedNFTs array is not empty.
+   * If the parent NFT is not defined or the selectedNFTs array is empty, it returns.
+   * Otherwise, it adds the selected NFTs to the parent NFT and updates the parent NFT's metadata.
+   *
+   * @function
+   * @returns {void}
+   */
+  async function handleSelectedToParent() {
+    if (!selectedNFTs?.length > 0 || !nft?.parentId) return;
+
+    const children = await getChildrenOfNestableNFT(nft.parentId);
+    console.log(
+      'DetailsSidebar: handleSelectedToParent: children = ',
+      children,
+    );
+
+    let numberOfChildren = children?.length > 0 ? children.length : 0;
+    console.log(
+      'DetailsSidebar: handleSelectedToParent: numberOfChildren = ',
+      numberOfChildren,
+    );
+
+    const theSelectedNFTs = [...selectedNFTs];
+
+    for (const selectedNFT of theSelectedNFTs) {
+      const nestableNFT = await addChildToNestableNFT(
+        nft.parentId,
+        0,
+        selectedNFT,
+      );
+
+      numberOfChildren++;
+
+      const addressId = `${selectedNFT.address}_${selectedNFT.id}`;
+      await removeAddress(addressId);
+      console.log(
+        `DetailsSidebar: handleSelectedToParent: removed address ${addressId} from Snaps state`,
+      );
+
+      removeFromNestableNFT(selectedNFT);
+
+      console.log(
+        `DetailsSidebar: handleSelectedToParent: added nft address ${selectedNFT.address} with token id ${selectedNFT.id} to nestableNFT = ${nestableNFT}`,
+      );
+    }
+  }
+
+  const isNFTSelected = selectedNFTs.some(
+    (selectedNFT) => selectedNFT.address === nft?.address,
+  );
+
   return (
     <aside
       className={classNames(
-        'mx-auto flex-1 rounded-sm border-l border-fabstir-dark-gray bg-fabstir-black px-8 pb-8 pt-2 shadow-lg lg:block',
+        'mx-auto flex-1 rounded-sm border-l border-fabstir-dark-gray bg-fabstir-white px-8 pb-8 pt-2 shadow-lg lg:block',
         width1,
       )}
     >
@@ -166,7 +361,7 @@ export default function DetailsSidebar({
               <div className="mt-4 flex items-start justify-between">
                 <div>
                   <div className="flex justify-between">
-                    <h2 className="text-lg font-medium text-fabstir-white">
+                    <h2 className="text-lg font-medium text-fabstir-black">
                       <span className="sr-only">Details for </span>
                       {nft?.name}
                     </h2>
@@ -206,7 +401,7 @@ export default function DetailsSidebar({
               <div className="mt-4 flex items-start justify-between">
                 <div>
                   <div className="flex justify-between">
-                    <h2 className="text-lg font-medium text-fabstir-white">
+                    <h2 className="text-lg font-medium text-fabstir-black">
                       <span className="sr-only">Details for </span>
                       {nft?.name}
                     </h2>
@@ -221,43 +416,6 @@ export default function DetailsSidebar({
               </div>
             </div>
           )}
-
-          {/* {nft?.audio && (
-            <div>
-              <div className="w-full overflow-hidden rounded-lg shadow-2xl shadow-fabstir-black/50">
-                {nftToPlay ? (
-                  <NFTAudioJS
-                    nft={nft}
-                    playerCurrentTime={playerCurrentTime}
-                    className="min-w-[256px] rounded-2xl bg-fabstir-dark-gray shadow-lg shadow-fabstir-black md:shadow-lg lg:shadow-xl xl:shadow-xl 2xl:shadow-xl 3xl:shadow-2xl"
-                  />
-                ) : (
-                  <img
-                    src={nftImage}
-                    alt=""
-                    className="mx-auto object-cover"
-                    crossOrigin="anonymous"
-                  />
-                )}
-              </div>
-              <div className="mt-4 flex items-start justify-between">
-                <div>
-                  <div className="flex justify-between">
-                    <h2 className="text-lg font-medium text-fabstir-white">
-                      <span className="sr-only">Details for </span>
-                      {nft?.name}
-                    </h2>
-                    <p className="text-sm font-medium text-fabstir-light-gray">
-                      {nft?.price}
-                    </p>
-                  </div>
-                  <p className="mt-2 text-sm font-medium text-fabstir-light-gray/80">
-                    {nft?.summary}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )} */}
         </div>
       )}
 
@@ -282,6 +440,51 @@ export default function DetailsSidebar({
             openNFTMetaData === false && 'hidden'
           }`}
         >
+          {!nft?.parentId ? (
+            <div className="mt-2 flex flex-1 flex-row justify-between">
+              <button
+                className="bg-blue-100 p-1 text-sm"
+                onClick={handleUpgradeToNestableNFT}
+              >
+                Upgrade to Nestable
+              </button>
+
+              {isNFTSelected ? (
+                <button
+                  className="bg-blue-100 p-1 text-sm"
+                  onClick={handleRemoveFromNestableNFT}
+                >
+                  Remove from select
+                </button>
+              ) : (
+                <button
+                  className="bg-blue-100 p-1 text-sm"
+                  onClick={handleAddToNestableNFT}
+                >
+                  Add to select
+                </button>
+              )}
+            </div>
+          ) : selectedNFTs?.length > 0 ? (
+            <div className="mt-2 flex flex-1 flex-row justify-between">
+              <button
+                className="bg-blue-100 p-1 text-sm"
+                onClick={handleSelectedToParent}
+              >
+                Add selected to Parent
+              </button>
+            </div>
+          ) : (
+            <div className="mt-2 flex flex-1 flex-row justify-between">
+              <button
+                className="bg-blue-100 p-1 text-sm"
+                onClick={handleRemoveFromNestableNFT}
+              >
+                Remove from Parent
+              </button>
+            </div>
+          )}
+
           <div className="mt-2">
             <dl className="mt-2 divide-y divide-fabstir-divide-color1 border-b border-t border-fabstir-medium-light-gray">
               {nftInfoDecorated &&
@@ -314,96 +517,6 @@ export default function DetailsSidebar({
           </div>
 
           <div className="divide-y divide-fabstir-divide-color1">
-            <div className="flex-row-1 mt-4 flex justify-between">
-              <div className="flex items-center">
-                <div className="rounded border-2 border-fabstir-gray">
-                  <input
-                    id="same-as-shipping"
-                    name="same-as-shipping"
-                    type="checkbox"
-                    checked={nft?.multiToken}
-                    disabled={true}
-                    className="fabstir-light-gray h-4 w-4 rounded bg-fabstir-dark-gray text-indigo-600 focus:ring-indigo-500"
-                  />
-                </div>
-                <div className="ml-2">
-                  <label
-                    htmlFor="same-as-shipping"
-                    className="text-sm font-medium text-fabstir-medium-light-gray"
-                  >
-                    Multi Token
-                  </label>
-                </div>
-              </div>
-
-              <div className="flex items-center">
-                <div className="rounded border-2 border-fabstir-gray">
-                  <input
-                    id="same-as-shipping"
-                    name="same-as-shipping"
-                    type="checkbox"
-                    checked={nft?.tokenise}
-                    disabled={true}
-                    className="h-4 w-4 rounded border-fabstir-light-gray bg-fabstir-dark-gray text-indigo-600 focus:ring-indigo-500"
-                  />
-                </div>
-                <div className="ml-2">
-                  <label
-                    htmlFor="same-as-shipping"
-                    className="text-sm font-medium text-fabstir-medium-light-gray"
-                  >
-                    Tokenise
-                  </label>
-                </div>
-              </div>
-
-              <div className="flex items-center">
-                <div className="rounded border-2 border-fabstir-gray">
-                  <input
-                    id="same-as-shipping"
-                    name="same-as-shipping"
-                    type="checkbox"
-                    checked={nft?.membership}
-                    disabled={true}
-                    className="fabstir-light-gray h-4 w-4 rounded bg-fabstir-dark-gray text-indigo-600 focus:ring-indigo-500"
-                  />
-                </div>
-                <div className="ml-2">
-                  <label
-                    htmlFor="same-as-shipping"
-                    className="text-sm font-medium text-fabstir-medium-light-gray"
-                  >
-                    Membership
-                  </label>
-                </div>
-              </div>
-
-              <div className="flex items-center">
-                <div className="rounded border-2 border-fabstir-gray">
-                  <input
-                    id="same-as-shipping"
-                    name="same-as-shipping"
-                    type="checkbox"
-                    checked={nft?.playlist}
-                    disabled={true}
-                    className="fabstir-light-gray h-4 w-4 rounded bg-fabstir-dark-gray text-indigo-600 focus:ring-indigo-500"
-                  />
-                </div>
-                <div className="ml-2">
-                  <label
-                    htmlFor="same-as-shipping"
-                    className="text-sm font-medium text-fabstir-medium-light-gray"
-                  >
-                    Playlists
-                  </label>
-                </div>
-              </div>
-            </div>
-            <section
-              aria-labelledby="billing-heading"
-              className="mt-4 border-t border-fabstir-gray"
-            ></section>
-
             <div className="group my-4">
               <div className="mt-4 flex justify-between">
                 <h3 className="font-medium text-fabstir-light-gray">
