@@ -177,5 +177,24 @@ export default function useBiconomyPayment(
     return userOpResponse;
   };
 
-  return { handleBiconomyPayment, handleBiconomyPaymentSponsor };
+  function createTransaction() {
+    return {
+      to: (address: string) => {
+        return {
+          data: (data: any) => {
+            return {
+              to: address,
+              data: data,
+            };
+          },
+        };
+      },
+    };
+  }
+
+  return {
+    handleBiconomyPayment,
+    handleBiconomyPaymentSponsor,
+    createTransaction,
+  };
 }

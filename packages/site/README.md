@@ -2,7 +2,7 @@
 
 ## Overview
 
-Fabstir Media Player uses MetaMask Snaps to securely keep references to your NFTs and any encryption keys and CIDs. The players has gallery features to give easy viewing of your NFTs and to add longer video capabilities to them. New feature allows them to be composed and packaged together with any of your other NFTs to be owned and transfered as a collection. You are also able to mint NFTs directly within the player and add your own images, short/long videos and metadata.
+Fabstir Media Player uses MetaMask Snaps to securely keep references to your NFTs and any encryption keys and CIDs. The players has gallery features to give easy viewing of your NFTs and to add longer video capabilities to them. New feature allows them to be composed and packaged together with any of your other NFTs to be owned and transferred as a collection. You are also able to mint NFTs directly within the player and add your own images, short/long videos and metadata.
 
 ## Front page
 
@@ -48,9 +48,9 @@ The smart contract wallet account is then used to pay for transactions using acc
 
 ## Extended NFT features
 
-Fabstir Media Player is not only able to mint ERC721 NFT tokens but ERC6059 nestable NFT tokens.The latter is part of the new NFT2.0 standard developed by [RMRK](https://singular.app/)
+Fabstir Media Player is not only able to mint ERC721 NFT tokens but ERC7401 nestable NFT tokens.The latter is part of the new NFT2.0 standard developed by [RMRK](https://singular.app/)
 Any video NFT from OpenSea, Rariable or from any other NFT marketplace, that all have severe limitations; the video can usually be to a maximum length of 2-3 minutes. Importing NFTs into Fabstir Media Player allows them to have video lengths of many gigabytes in size, including 4k videos.
-By upgrading a standard ERC721 NFT to an ERC6059 nestable NFT then Fabstir Media Players allows for video NFTs, without those video length limitations, to be minted and added to the same ERC6059 as a child NFT. A use case for this is to perhaps have the NFT on whatever marketplace that shows the first NFT's video as the film trailer and then come to Fabstir Media Player to watch the full video from the second child video NFT. Another use case is to use the nestable NFT as a structure that houses a TV series where all the child video NFTs are individual video NFT episodes. Nestable NFTs are much cheaper to transfer too as only the parent ERC6059 token need to be transfered to the new owner; as references to the child NFTs are not affected, and whoever owns the parent nestable NFT automatically owns its children as specified by the ERC6059 smart contract.
+By upgrading a standard ERC721 NFT to an ERC7401 nestable NFT then Fabstir Media Players allows for video NFTs, without those video length limitations, to be minted and added to the same ERC7401 as a child NFT. A use case for this is to perhaps have the NFT on whatever marketplace that shows the first NFT's video as the film trailer and then come to Fabstir Media Player to watch the full video from the second child video NFT. Another use case is to use the nestable NFT as a structure that houses a TV series where all the child video NFTs are individual video NFT episodes. Nestable NFTs are much cheaper to transfer too as only the parent ERC7401 token need to be transferred to the new owner; as references to the child NFTs are not affected, and whoever owns the parent nestable NFT automatically owns its children as specified by the ERC7401 smart contract.
 
 This project was uses [Next.js](https://nextjs.org/).
 

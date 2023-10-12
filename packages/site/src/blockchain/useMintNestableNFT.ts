@@ -65,7 +65,7 @@ export default function useMintNestableNFT() {
     smartAccountProvider,
   );
 
-  const { handleBiconomyPayment } = useBiconomyPayment(
+  const { handleBiconomyPayment, createTransaction } = useBiconomyPayment(
     provider,
     smartAccountProvider,
     smartAccount,
@@ -90,8 +90,8 @@ export default function useMintNestableNFT() {
 
     const iERC165 = new Contract(tokenAddress, IERC165.abi, provider);
 
-    const iERC6059InterfaceId = 0x42b0e56f;
-    const result = await iERC165.supportsInterface(iERC6059InterfaceId);
+    const iERC7401InterfaceId = 0x42b0e56f;
+    const result = await iERC165.supportsInterface(iERC7401InterfaceId);
 
     console.log('useMintNestableNFT: getIsNestableNFTToken = ', result);
     return result;
@@ -163,15 +163,6 @@ export default function useMintNestableNFT() {
       config.accountIndex,
     );
 
-    const nestableNFT = await mintNestableNFT(smartAccountAddress);
-
-    // const nestableNFT = {
-    //   address: process.env.NEXT_PUBLIC_NESTABLENFT_ADDRESS as string,
-    //   id: '2',
-    // };
-
-    console.log('useMintNestableNFT: nestableNFT = ', nestableNFT);
-
     const nftAddress = nft.address;
 
     // get EOA address from wallet provider
@@ -187,24 +178,21 @@ export default function useMintNestableNFT() {
 
     const userOps: Transaction[] = [];
 
-    // 3. transfer ownership of NFT to ERC6059 contract
+    // 3. transfer ownership of NFT to ERC7401 contract
     const nftContract = new Contract(
       nftAddress as string,
       TipERC721.abi,
       smartAccountProvider,
     );
 
-    const minTxNFTApprove = await nftContract.populateTransaction.approve(
-      process.env.NEXT_PUBLIC_NESTABLENFT_ADDRESS as string,
-      nft.id,
-    );
-
-    const transactionNFTApprove = {
-      to: nftAddress,
-      data: minTxNFTApprove.data,
-    };
-
-    userOps.push(transactionNFTApprove);
+    const transactionNFTApprove = createTransaction()
+      .to(nftAddress)
+      .data(
+        await nftContract.populateTransaction.approve(
+          process.env.NEXT_PUBLIC_NESTABLENFT_ADDRESS as string,
+          nft.id,
+        ),
+      );
 
     console.log(
       'useMintNestableNFT: transactionNFTTransferFrom = ',
@@ -221,59 +209,46 @@ export default function useMintNestableNFT() {
       nestableNFTContract,
     );
 
-    // 4. ERC6059 owner proposes child
-    const minTxNestableNFTAddChildNFT =
-      await nestableNFTContract.populateTransaction.addChildNFT(
-        parentId,
-        nftAddress,
-        nft.id,
-        [],
+    // 4. ERC7401 owner proposes child
+    const transactionNestableNFTAddChild = createTransaction()
+      .to(nestableNFTContract.address)
+      .data(
+        await nestableNFTContract.populateTransaction.addChild(
+          parentId,
+          nftAddress,
+          nft.id,
+          [],
+        ),
       );
 
     console.log(
-      'useMintNestableNFT: minTxNestableNFTAddChild = ',
-      minTxNestableNFTAddChildNFT,
+      'useMintNestableNFT: transactionNestableNFTAddChild = ',
+      transactionNestableNFTAddChild,
     );
 
-    const transactionNestableNFTAddChildNFT = {
-      to: nestableNFTContract.address,
-      data: minTxNestableNFTAddChildNFT.data,
-    };
-
-    userOps.push(transactionNestableNFTAddChildNFT);
-
-    // 3. ERC6059 owner proposes child
-    const minTxNestableNFTAcceptChild =
-      await nestableNFTContract.populateTransaction.acceptChild(
-        parentId,
-        childIndex,
-        nftAddress,
-        nft.id,
+    // 3. ERC7401 owner proposes child
+    const transactionNestableNFTAcceptChild = createTransaction()
+      .to(nestableNFTContract.address)
+      .data(
+        await nestableNFTContract.populateTransaction.acceptChild(
+          parentId,
+          childIndex,
+          nftAddress,
+          nft.id,
+        ),
       );
-    console.log(
-      'useMintNestableNFT: minTxNestableNFTAcceptChild = ',
-      minTxNestableNFTAcceptChild,
-    );
-
-    const transactionNestableNFTAcceptChild = {
-      to: nestableNFTContract.address,
-      data: minTxNestableNFTAcceptChild.data,
-    };
-
-    userOps.push(transactionNestableNFTAcceptChild);
 
     console.log(
       'useMintNestableNFT: transactionNestableNFTAcceptChild = ',
       transactionNestableNFTAcceptChild,
     );
 
-    console.log(
-      'useMintNestableNFT: transactionNestableNFTAddChild = ',
-      transactionNestableNFTAddChildNFT,
-    );
-
     // build partial userOp
-    let partialUserOp = await smartAccount.buildUserOp(userOps);
+    let partialUserOp = await smartAccount.buildUserOp([
+      transactionNFTApprove,
+      transactionNestableNFTAddChild,
+      transactionNestableNFTAcceptChild,
+    ]);
     console.log(
       `useMintNestableNFT: useMintNestableNFT: partialUserOp: ${JSON.stringify(
         partialUserOp,
@@ -533,7 +508,7 @@ export default function useMintNestableNFT() {
       nestableNFTContract,
     );
 
-    // 4. ERC6059 owner proposes child
+    // 4. ERC7401 owner proposes child
     const minTxRemoveChildFromParent =
       await nestableNFTContract.populateTransaction.transferChild(
         parentId,

@@ -64,8 +64,11 @@ export default function useMintNFT() {
   console.log('useMintNFT: provider = ', provider);
   console.log('useMintNFT: smartAccountProvider = ', smartAccountProvider);
 
-  const { handleBiconomyPayment, handleBiconomyPaymentSponsor } =
-    useBiconomyPayment(provider, smartAccountProvider, smartAccount);
+  const {
+    handleBiconomyPayment,
+    handleBiconomyPaymentSponsor,
+    createTransaction,
+  } = useBiconomyPayment(provider, smartAccountProvider, smartAccount);
 
   const { uploadFile } = usePortal();
 
@@ -239,18 +242,13 @@ export default function useMintNFT() {
     console.log('useMintNFT: cid = ', cid);
 
     // Here we are minting NFT to smart account address itself
-    const data = nftInterface.encodeFunctionData('safeMint', [
-      smartAccountAddress,
-      cid,
-    ]);
-    console.log(`useMintNFT: data: ${data}`);
-
     const nftAddress = process.env.NEXT_PUBLIC_TIPERC721_ADDRESS;
 
-    const transaction = {
-      to: nftAddress,
-      data: data,
-    };
+    const transaction = createTransaction()
+      .to(nftAddress as string)
+      .data(
+        nftInterface.encodeFunctionData('safeMint', [smartAccountAddress, cid]),
+      );
 
     console.log(`useMintNFT: transaction: ${transaction}`);
 
