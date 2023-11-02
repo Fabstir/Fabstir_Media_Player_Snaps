@@ -16,6 +16,7 @@ import { removeAddress, addAddress, replaceAddress } from '../utils/snapsState';
 import NFTFileUrls from './NFTFileUrls';
 import NFTVideoJS from './NFTVideoJS';
 import useMintNestableNFT from '../blockchain/useMintNestableNFT';
+import RenderModel from './RenderModel';
 
 /**
  * A utility function to join classes.
@@ -101,6 +102,8 @@ export default function DetailsSidebar({
   setIsScreenViewClosed,
 }) {
   const [nft, setNFT] = useState();
+  const [isWasmReady, setIsWasmReady] = useState(false);
+  const [fileUrls, setFileUrls] = useState(null);
 
   console.log('UserNFTView: inside DetailsSidebar');
   console.log('DetailsSidebar: nft = ', nft);
@@ -118,8 +121,10 @@ export default function DetailsSidebar({
   );
 
   const nftInfoDecorated = nftInformationDecorator(nft ? nft : null);
+  console.log('DetailsSidebar: nftInfoDecorated1 = ', nftInfoDecorated);
 
   const [nftImage, setNFTImage] = useState();
+  const [is3dModel, setIs3dModel] = useState(true);
   const { getPortalLinkUrl, getBlobUrl } = usePortal();
 
   const {
@@ -350,13 +355,27 @@ export default function DetailsSidebar({
         >
           {nft && nftImage && !nft.video && !nft.audio && (
             <div>
-              <div className="aspect-h-7 aspect-w-10 block w-full rounded-lg shadow-2xl shadow-fabstir-black/50">
-                <img
-                  src={nftImage}
-                  alt=""
-                  className="mx-auto object-cover"
-                  crossOrigin="anonymous"
-                />
+              <div
+                id="nftFrame"
+                className="aspect-h-7 aspect-w-10 block w-full rounded-lg shadow-2xl shadow-fabstir-black/50"
+              >
+                <div className="relative">
+                  <RenderModel
+                    nft={nft}
+                    is3dModel={is3dModel}
+                    setIs3dModel={setIs3dModel}
+                    isWasmReady={isWasmReady}
+                    setIsWasmReady={setIsWasmReady}
+                    nftInformationDecorator={nftInformationDecorator}
+                  />
+                  <img
+                    src={nftImage}
+                    alt=""
+                    className="mx-auto object-cover relative z-10"
+                    crossOrigin="anonymous"
+                    style={{ visibility: is3dModel ? 'hidden' : 'visible' }}
+                  />
+                </div>{' '}
               </div>
               <div className="mt-4 flex items-start justify-between">
                 <div>

@@ -1,9 +1,4 @@
 import { Contract, ContractFactory } from '@ethersproject/contracts';
-import {
-  JsonRpcProvider,
-  JsonRpcSigner,
-  Provider,
-} from '@ethersproject/providers';
 import { Interface } from '@ethersproject/abi';
 import { BigNumber } from '@ethersproject/bignumber';
 import { parseUnits } from '@ethersproject/units';
@@ -11,7 +6,6 @@ import { parseUnits } from '@ethersproject/units';
 import { useContext } from 'react';
 import IERC165 from '../../contracts/IERC165.json';
 import TipERC721 from '../../contracts/TipERC721.json';
-import inquirer from 'inquirer';
 
 import { useRecoilValue } from 'recoil';
 import BlockchainContext, {
@@ -25,12 +19,6 @@ import usePortal from '../hooks/usePortal';
 import { connectToWallet } from '../utils/connectToWallet';
 import { currencycontractaddressesstate } from '../atoms/currenciesAtom';
 import { Transaction } from '@biconomy/core-types';
-import {
-  IHybridPaymaster,
-  PaymasterMode,
-  SponsorUserOperationDto,
-  PaymasterFeeQuote,
-} from '@biconomy/paymaster';
 import useBiconomyPayment from './useBiconomyPayment';
 
 interface NFT {
@@ -204,11 +192,6 @@ export default function useMintNFT() {
 
     // ------------------------STEP 2: Build Partial User op from your user Transaction/s Request --------------------------------//
 
-    // generate mintNft data
-    const nftInterface = new Interface([
-      'function safeMint(address _to,string uri)',
-    ]);
-
     // passing accountIndex is optional, by default it will be 0
     // it should match with the index used to initialise the SDK Biconomy Smart Account instance
     const biconomySmartAccount = smartAccount;
@@ -243,6 +226,11 @@ export default function useMintNFT() {
 
     // Here we are minting NFT to smart account address itself
     const nftAddress = process.env.NEXT_PUBLIC_TIPERC721_ADDRESS;
+
+    // generate mintNft data
+    const nftInterface = new Interface([
+      'function safeMint(address _to,string uri)',
+    ]);
 
     const transaction = createTransaction()
       .to(nftAddress as string)

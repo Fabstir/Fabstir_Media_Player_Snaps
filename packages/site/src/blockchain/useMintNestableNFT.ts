@@ -1,9 +1,4 @@
 import { Contract, ContractFactory } from '@ethersproject/contracts';
-import {
-  JsonRpcProvider,
-  JsonRpcSigner,
-  Provider,
-} from '@ethersproject/providers';
 import { Interface } from '@ethersproject/abi';
 import { BigNumber } from '@ethersproject/bignumber';
 import { parseUnits } from '@ethersproject/units';
@@ -166,7 +161,6 @@ export default function useMintNestableNFT() {
     const nftAddress = nft.address;
 
     // get EOA address from wallet provider
-    //    let provider = new ethers.providers.JsonRpcProvider(config.rpcUrl);
 
     const signer = await connectToWallet();
     const signerAccountAddress = await signer.getAddress();
@@ -327,18 +321,17 @@ export default function useMintNestableNFT() {
     );
 
     // Here we are minting NFT to smart account address itself
-    const data = nestableNFTInterface.encodeFunctionData('mint', [
-      recipientAccountAddress,
-    ]);
-    console.log(`mintNestableNFT: nestableNFT: data: ${data}`);
 
     //    const nftAddress = '0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e'; // Todo // use from config
     const nestableNFTAddress = process.env.NEXT_PUBLIC_NESTABLENFT_ADDRESS;
 
-    const transaction = {
-      to: nestableNFTAddress,
-      data: data,
-    };
+    const transaction = createTransaction()
+      .to(nestableNFTAddress as string)
+      .data(
+        nestableNFTInterface.encodeFunctionData('mint', [
+          recipientAccountAddress,
+        ]),
+      );
 
     console.log(`mintNestableNFT: nestableNFT: transaction: ${transaction}`);
 
