@@ -54,6 +54,16 @@ By upgrading a standard ERC721 NFT to an ERC7401 nestable NFT then Fabstir Media
 
 This project was uses [Next.js](https://nextjs.org/).
 
+## 3d renderer
+
+Fabstir Media Player can render 3d models from .gltf files. In the media player app, add 'other' NFT and upload the (3d model) file.
+
+To install the WASM files. Go to (https://github.com/Fabstir/fabstir-renderer), compile and copy these files to /packages/site/public
+wgpu_fabstir_renderer_bg.wasm
+wgpu_fabstir_renderer_bg.wasm.d.ts
+wgpu_fabstir_renderer.d.ts
+wgpu_fabstir_renderer.js
+
 ## Available Scripts
 
 In the project directory, you can run:
