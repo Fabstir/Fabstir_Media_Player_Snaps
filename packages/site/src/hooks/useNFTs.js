@@ -11,6 +11,7 @@ import { loadState } from '../utils';
 import useMintNestableNFT from '../blockchain/useMintNestableNFT';
 import { useRecoilValue } from 'recoil';
 import { selectedparentnftaddressid } from '../atoms/nestableNFTAtom';
+import useNFT, { fetchNFT } from './useNFT';
 
 /**
  * Asynchronously retrieves metadata from a given URI.
@@ -29,6 +30,37 @@ const getMetadata = async (uri, downloadFile) => {
   }
 };
 
+async function getModelUrisFromNestedNFT(
+  id,
+  provider,
+  getChildrenOfNestableNFT,
+  downloadFile,
+) {
+  const children = await getChildrenOfNestableNFT(id);
+  if (!children || children.length === 0) return;
+
+  const uris = [];
+  for (const child of children) {
+    const address_id = `${child.contractAddress.toString()}_${child.tokenId.toString()}`;
+
+    const nft = await fetchNFT(address_id, provider, downloadFile);
+
+    if (nft.fileUrls) {
+      for (const fileUrl of nft.fileUrls) {
+        const [urlBefore] = fileUrl.split('<<');
+        if (
+          urlBefore.toLowerCase().endsWith('.obj') ||
+          urlBefore.toLowerCase().endsWith('.gltf')
+        ) {
+          uris.push(fileUrl);
+        }
+      }
+    }
+  }
+
+  return uris;
+}
+
 /**
  * Asynchronously fetches NFT metadata from the blockchain and downloads the NFT images.
  *
@@ -45,6 +77,7 @@ const fetchNFTs = async (
   downloadFile,
   getIsNestableNFT,
   getChildrenOfNestableNFT,
+  getChildOfNestableNFT,
 ) => {
   let nftAddresses = {};
 
@@ -101,7 +134,8 @@ const fetchNFTs = async (
       );
 
       console.log('useNFTs: before childOf');
-      const child = await contractNestableNFT.childOf(id, 0);
+      //const child = await contractNestableNFT.childOf(id, 0);
+      const child = await getChildOfNestableNFT(id, 0);
       console.log('useNFTs: child = ', child);
 
       nftAddress = child.contractAddress;
@@ -134,7 +168,9 @@ const fetchNFTs = async (
       symbol,
       id: nftId,
       owner,
+      isNestableNFT,
       ...(metadata || {}),
+      ...(isNestableNFT ? { isNestableNFT } : {}),
     };
 
     if (parentAddress || selectedParentNFTAddressId) {
@@ -143,6 +179,18 @@ const fetchNFTs = async (
 
     if (parentId || selectedParentNFTAddressId) {
       nft.parentId = parentId;
+
+      if (isNestableNFT) {
+        const modelUris = await getModelUrisFromNestedNFT(
+          parentId,
+          provider,
+          getChildrenOfNestableNFT,
+          downloadFile,
+        );
+        if (modelUris && modelUris.length > 0) {
+          nft.fileUrls.push(...modelUris);
+        }
+      }
     }
 
     nfts.push(nft);
@@ -171,7 +219,8 @@ export default function useNFTs() {
   // Use the usePortal hook to download the NFT images
   const { downloadFile } = usePortal();
 
-  const { getChildrenOfNestableNFT, getIsNestableNFT } = useMintNestableNFT();
+  const { getChildrenOfNestableNFT, getIsNestableNFT, getChildOfNestableNFT } =
+    useMintNestableNFT();
 
   const selectedParentNFTAddressId = useRecoilValue(selectedparentnftaddressid);
 
@@ -192,6 +241,7 @@ export default function useNFTs() {
       downloadFile,
       getIsNestableNFT,
       getChildrenOfNestableNFT,
+      getChildOfNestableNFT,
     );
   });
 }

@@ -187,8 +187,8 @@ export default function useMintNFT() {
     // ------------------------STEP 1: Initialise Biconomy Smart Account SDK--------------------------------//
     console.log(`useMintNFT: smartAccount: ${smartAccount}`);
 
-    // get EOA address from wallet provider
-    const signer = await connectToWallet();
+    // // get EOA address from wallet provider
+    // const signer = await connectToWallet();
 
     // ------------------------STEP 2: Build Partial User op from your user Transaction/s Request --------------------------------//
 

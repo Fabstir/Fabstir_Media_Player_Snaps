@@ -117,6 +117,29 @@ export default function useMintNestableNFT() {
     return children;
   };
 
+  const getChildOfNestableNFT = async (
+    parentId: string,
+    position: Number,
+  ): Promise<any> => {
+    console.log(
+      'useMintNestableNFT: getChildOfNestableNFT: parentId = ',
+      parentId,
+    );
+
+    const nestableNFTContract = new Contract(
+      process.env.NEXT_PUBLIC_NESTABLENFT_ADDRESS as string,
+      FNFTNestable.abi,
+      provider,
+    );
+
+    const child = await nestableNFTContract.childOf(
+      parentId,
+      position.toString(),
+    );
+    console.log('useMintNestableNFT: getChildOfNestableNFT: child = ', child);
+    return child;
+  };
+
   /**
    * Function to add a child NFT to a Nestable NFT.
    * It takes the parent NFT ID, child index, and NFT object as arguments and returns a promise that resolves to a `MintNestableNFTResponse` object.
@@ -179,14 +202,14 @@ export default function useMintNestableNFT() {
       smartAccountProvider,
     );
 
+    const txNFTApprove = await nftContract.populateTransaction.approve(
+      process.env.NEXT_PUBLIC_NESTABLENFT_ADDRESS as string,
+      nft.id,
+    );
+
     const transactionNFTApprove = createTransaction()
       .to(nftAddress)
-      .data(
-        await nftContract.populateTransaction.approve(
-          process.env.NEXT_PUBLIC_NESTABLENFT_ADDRESS as string,
-          nft.id,
-        ),
-      );
+      .data(txNFTApprove.data);
 
     console.log(
       'useMintNestableNFT: transactionNFTTransferFrom = ',
@@ -203,34 +226,36 @@ export default function useMintNestableNFT() {
       nestableNFTContract,
     );
 
+    const txNestableNFTAddChild =
+      await nestableNFTContract.populateTransaction.addChildNFT(
+        parentId,
+        nftAddress,
+        nft.id,
+        [],
+      );
+
     // 4. ERC7401 owner proposes child
     const transactionNestableNFTAddChild = createTransaction()
       .to(nestableNFTContract.address)
-      .data(
-        await nestableNFTContract.populateTransaction.addChild(
-          parentId,
-          nftAddress,
-          nft.id,
-          [],
-        ),
-      );
+      .data(txNestableNFTAddChild.data);
 
     console.log(
       'useMintNestableNFT: transactionNestableNFTAddChild = ',
       transactionNestableNFTAddChild,
     );
 
+    const txNestableNFTAcceptChild =
+      await nestableNFTContract.populateTransaction.acceptChild(
+        parentId,
+        childIndex,
+        nftAddress,
+        nft.id,
+      );
+
     // 3. ERC7401 owner proposes child
     const transactionNestableNFTAcceptChild = createTransaction()
       .to(nestableNFTContract.address)
-      .data(
-        await nestableNFTContract.populateTransaction.acceptChild(
-          parentId,
-          childIndex,
-          nftAddress,
-          nft.id,
-        ),
-      );
+      .data(txNestableNFTAcceptChild.data);
 
     console.log(
       'useMintNestableNFT: transactionNestableNFTAcceptChild = ',
@@ -622,5 +647,6 @@ export default function useMintNestableNFT() {
     removeChildFromNestableNFT,
     mintNestableNFT,
     getChildrenOfNestableNFT,
+    getChildOfNestableNFT,
   };
 }

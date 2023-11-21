@@ -10,9 +10,11 @@ import { Transaction } from '@biconomy/core-types';
 import { IBundler, Bundler } from '@biconomy/bundler';
 import {
   BiconomySmartAccount,
+  BiconomySmartAccountConfig,
   DEFAULT_ENTRYPOINT_ADDRESS,
 } from '@biconomy/account';
 import { IPaymaster, BiconomyPaymaster } from '@biconomy/paymaster';
+import { ChainId } from '@biconomy/core-types';
 
 import {
   IHybridPaymaster,
@@ -38,6 +40,7 @@ import { currentnftcategories } from '../src/atoms/nftSlideOverAtom';
 import useMintNestableNFT from '../src/blockchain/useMintNestableNFT';
 import useMintNFT from '../src/blockchain/useMintNFT';
 import useParticleAuth from '../src/blockchain/useParticleAuth';
+import config from '../config.json';
 
 type NFTCollection = {
   [address: string]: object;
@@ -90,7 +93,7 @@ const Index = () => {
     if (blockchainContext) {
       blockchainContext.setSmartAccountProvider(smartAccountProvider);
       console.log(
-        'useMintNFT: blockchainContext.biconomyProvider = ',
+        'index: blockchainContext.biconomyProvider = ',
         smartAccountProvider,
       );
     }
@@ -98,8 +101,10 @@ const Index = () => {
 
   useEffect(() => {
     // Update the context value
-    blockchainContext.setSmartAccount(smartAccount);
-    console.log('useMintNFT: blockchainContext.smartAccount = ', smartAccount);
+    if (blockchainContext) {
+      blockchainContext.setSmartAccount(smartAccount);
+      console.log('index: blockchainContext.smartAccount = ', smartAccount);
+    }
   }, [smartAccount]);
 
   const { getIsNestableNFT } = useMintNestableNFT();
@@ -269,6 +274,8 @@ const Index = () => {
     projectId: 'ed8d5743-25cc-4356-bcff-4babad01922d',
     clientKey: 'c7J1GXeesDyAYSgR68n445ZsglbTluMaiWofalmi',
     appId: '6a89f6d0-f864-4d79-9afd-f92187f77fce',
+    chainName: config.chainName,
+    chainId: config.chainId,
     wallet: {
       displayWalletEntry: true,
       defaultWalletEntryPosition: ParticleAuthModule.WalletEntryPosition.BR,
@@ -292,6 +299,9 @@ const Index = () => {
       const { biconomySmartAccount, web3Provider, userInfo } =
         await socialLogin();
 
+      if (!(biconomySmartAccount && web3Provider && userInfo))
+        throw new Error('index: connect: login failed');
+
       setSmartAccountAddress(
         await biconomySmartAccount.getSmartAccountAddress(),
       );
@@ -301,24 +311,61 @@ const Index = () => {
       setUserInfo(userInfo);
       setLoading(false);
     } catch (e) {
-      const errorMessage = 'useMintNFT: connect: error received';
+      const errorMessage = 'index: connect: error received';
       console.error(`${errorMessage} ${e.message}`);
       throw new Error(errorMessage, e);
     }
   };
 
+  // // Add event listener when component mounts
+  // useEffect(() => {
+  //   const loadData = async () => {
+  //     const particleProvider = new ParticleProvider(particle.auth);
+  //     console.log({ particleProvider });
+  //     const web3Provider = new Web3Provider(particleProvider, 'any');
+
+  //     console.log('index: setSmartAccountProvider(web3Provider);');
+  //     const biconomySmartAccountConfig: BiconomySmartAccountConfig = {
+  //       signer: web3Provider.getSigner(),
+  //       chainId: Number(process.env.NEXT_PUBLIC_CHAIN_ID) as ChainId,
+  //       bundler: bundler,
+  //       paymaster: paymaster,
+  //     };
+
+  //     let biconomySmartAccount = new BiconomySmartAccount(
+  //       biconomySmartAccountConfig,
+  //     );
+  //     biconomySmartAccount = await biconomySmartAccount.init();
+  //   };
+
+  //   loadData();
+
+  //   // const loadData = async () => {
+  //   //   const { biconomySmartAccount, web3Provider, userInfo } =
+  //   //     await socialLogin();
+
+  //   //   if (setSmartAccount && setSmartAccountProvider && setUserInfo) {
+  //   //     setSmartAccount(biconomySmartAccount);
+  //   //     setSmartAccountProvider(web3Provider);
+  //   //     setUserInfo(userInfo);
+  //   //   }
+  //   // };
+
+  //   // if (!(smartAccount && smartAccountProvider && userInfo)) loadData();
+  // }, [smartAccount, smartAccountProvider, userInfo]);
+
   const handleFundYourSmartAccount = async () => {
     try {
       if (!smartAccount)
         throw new Error(
-          'useMintNFT: handleFundYourSmartAccount: smartAccount is null',
+          'index: handleFundYourSmartAccount: smartAccount is null',
         );
 
       const transak = await fundYourSmartAccount(userInfo, smartAccount);
       setTransak(transak);
     } catch (error) {
       throw new Error(
-        'useMintNFT: handleFundYourSmartAccount: error received ',
+        'index: handleFundYourSmartAccount: error received ',
         error,
       );
     }
@@ -343,7 +390,7 @@ const Index = () => {
     if (smartAccountProvider) {
       if (smartAccount) {
         const address = await smartAccount.getSmartAccountAddress();
-        console.log('useMintNFT: mintNFT: address = ', address);
+        console.log('index: mintNFT: address = ', address);
 
         // const nftInterface = new Interface([
         //   'function safeMint(address _to,string uri)',
@@ -361,19 +408,19 @@ const Index = () => {
           data: data,
         };
 
-        console.log('useMintNFT: mintNFT: creating nft mint userop');
+        console.log('index: mintNFT: creating nft mint userop');
         let partialUserOp = await smartAccount.buildUserOp([
           transaction as Transaction,
         ]);
 
-        console.log('useMintNFT: mintNFT: partialUserOp= ', partialUserOp);
+        console.log('index: mintNFT: partialUserOp= ', partialUserOp);
         let finalUserOp = partialUserOp;
 
         const biconomyPaymaster =
           smartAccount.paymaster as IHybridPaymaster<SponsorUserOperationDto>;
 
         console.log(
-          'useMintNFT: mintNFT: process.env.NEXT_PUBLIC_USDC_TOKEN_ADDRESS = ',
+          'index: mintNFT: process.env.NEXT_PUBLIC_USDC_TOKEN_ADDRESS = ',
           process.env.NEXT_PUBLIC_USDC_TOKEN_ADDRESS,
         );
 
@@ -387,8 +434,8 @@ const Index = () => {
         const spender = feeQuotesResponse.tokenPaymasterAddress || '';
         const usdcFeeQuotes = feeQuotes[0];
 
-        console.log('useMintNFT: mintNFT: spender= ', spender);
-        console.log('useMintNFT: mintNFT: usdcFeeQuotes= ', usdcFeeQuotes);
+        console.log('index: mintNFT: spender= ', spender);
+        console.log('index: mintNFT: usdcFeeQuotes= ', usdcFeeQuotes);
 
         finalUserOp = await smartAccount.buildTokenPaymasterUserOp(
           partialUserOp,
@@ -400,7 +447,7 @@ const Index = () => {
         );
 
         console.log(
-          'useMintNFT: mintNFT: usdcFeeQuotes.tokenAddress = ',
+          'index: mintNFT: usdcFeeQuotes.tokenAddress = ',
           usdcFeeQuotes.tokenAddress,
         );
 
@@ -409,7 +456,7 @@ const Index = () => {
           feeTokenAddress: process.env.NEXT_PUBLIC_USDC_TOKEN_ADDRESS,
         };
 
-        console.log('useMintNFT: mintNFT: finalUserOp= ', finalUserOp);
+        console.log('index: mintNFT: finalUserOp= ', finalUserOp);
 
         try {
           const paymasterAndDataWithLimits =
@@ -419,7 +466,7 @@ const Index = () => {
             );
 
           console.log(
-            'useMintNFT: mintNFT: paymasterAndDataWithLimits = ',
+            'index: mintNFT: paymasterAndDataWithLimits = ',
             paymasterAndDataWithLimits,
           );
 
@@ -427,46 +474,46 @@ const Index = () => {
             paymasterAndDataWithLimits.paymasterAndData;
 
           console.log(
-            'useMintNFT: mintNFT: finalUserOp.paymasterAndData = ',
+            'index: mintNFT: finalUserOp.paymasterAndData = ',
             finalUserOp.paymasterAndData,
           );
         } catch (e) {
-          const errorMessage = 'useMintNFT: mintNFT: error received';
+          const errorMessage = 'index: mintNFT: error received';
           console.error(`${errorMessage} ${e.message}`);
           throw new Error(errorMessage, e);
         }
 
         try {
           console.log(
-            'useMintNFT: mintNFT: before const userOpResponse = await smartAccount.sendUserOp(finalUserOp);',
+            'index: mintNFT: before const userOpResponse = await smartAccount.sendUserOp(finalUserOp);',
           );
           const userOpResponse = await smartAccount.sendUserOp(finalUserOp);
-          console.log('useMintNFT: mintNFT: userOpResponse = ', userOpResponse);
+          console.log('index: mintNFT: userOpResponse = ', userOpResponse);
 
           const transactionDetails = await userOpResponse.wait();
           console.log(
-            'useMintNFT: mintNFT: transactionDetails = ',
+            'index: mintNFT: transactionDetails = ',
             transactionDetails,
           );
 
           console.log(
-            `useMintNFT: mintNFT: transactionDetails: https://mumbai.polygonscan.com/tx/${transactionDetails.logs[0].transactionHash}`,
+            `index: mintNFT: transactionDetails: https://mumbai.polygonscan.com/tx/${transactionDetails.logs[0].transactionHash}`,
           );
           console.log(
-            `useMintNFT: mintNFT: view minted nfts for smart account: https://testnets.opensea.io/${address}`,
+            `index: mintNFT: view minted nfts for smart account: https://testnets.opensea.io/${address}`,
           );
         } catch (e) {
-          const errorMessage = 'useMintNFT: mintNFT: error received';
+          const errorMessage = 'index: mintNFT: error received';
           console.error(`${errorMessage} ${e.message}`);
           throw new Error(errorMessage, e);
         }
       } else {
-        const errorMessage = 'useMintNFT: mintNFT: smartAccount is null';
+        const errorMessage = 'index: mintNFT: smartAccount is null';
         console.error(errorMessage);
         throw new Error(errorMessage);
       }
     } else {
-      const errorMessage = 'useMintNFT: mintNFT: biconomy provider is null';
+      const errorMessage = 'index: mintNFT: biconomy provider is null';
       console.error(errorMessage);
       throw new Error(errorMessage);
     }

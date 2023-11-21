@@ -124,7 +124,7 @@ export default function DetailsSidebar({
   console.log('DetailsSidebar: nftInfoDecorated1 = ', nftInfoDecorated);
 
   const [nftImage, setNFTImage] = useState();
-  const [is3dModel, setIs3dModel] = useState(true);
+  const [is3dModel, setIs3dModel] = useState(false);
   const { getPortalLinkUrl, getBlobUrl } = usePortal();
 
   const {
@@ -144,6 +144,7 @@ export default function DetailsSidebar({
 
   useEffect(() => {
     if (!nft) return;
+    setIs3dModel(false);
 
     console.log('DetailsSidebar: nft.image = ', nft?.image);
     (async () => {

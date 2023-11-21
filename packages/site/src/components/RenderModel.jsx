@@ -46,6 +46,8 @@ export default function RenderModel({
     // Define get_canvas_size in the global scope
     window.get_canvas_size = function () {
       const canvas = document.getElementById('nftFrame');
+      if (!canvas) return;
+
       console.log(
         'DetailsSidebar: get_canvas_size: ',
         canvas.clientWidth,
@@ -55,11 +57,21 @@ export default function RenderModel({
     };
   }, []);
 
-  async function handleRenderModel(uri, extension) {
-    try {
-      console.log('DetailsSidebar: handleRenderModel: uri = ', uri);
-      console.log('DetailsSidebar: handleRenderModel: extension = ', extension);
+  useEffect(() => {
+    const stopRendering = async () => {
+      if (!isWasmReady) return;
 
+      const canvas = canvasRef.current;
+      if (!is3dModel && canvas) {
+        await stop_rendering(canvas);
+      }
+    };
+
+    stopRendering();
+  }, [is3dModel]);
+
+  async function handleRenderModel(uris) {
+    try {
       if (!canvasRef.current) return;
       const canvas = canvasRef.current;
       if (!canvas) return;
@@ -68,11 +80,35 @@ export default function RenderModel({
 
       if (isWasmReady) {
         try {
+          console.log('DetailsSidebar: callback: setIs3dModel(true)');
           console.log(
-            `DetailsSidebar: await render_model(canvas, model_url, extension);`,
+            `DetailsSidebar: await render_model(canvas, model_urls, extensions);`,
           );
-          const model_url = `${process.env.NEXT_PUBLIC_PORTAL_URL_3D}/${uri}`;
-          await render_model(canvas, model_url, extension);
+
+          const model_urls = [];
+          const extensions = [];
+
+          for (const uri of uris) {
+            let [cid, extension] = uri.split('.');
+
+            const model_url = `${process.env.NEXT_PUBLIC_PORTAL_URL_3D}/${cid}`;
+            console.log(
+              `DetailsSidebar: (model_url, extension) = (${model_url}, ${extension})`,
+            );
+            model_urls.push(model_url);
+            extensions.push(extension);
+          }
+
+          if (model_urls.length === 0) return;
+
+          const callback = () => {
+            //            setIs3dModel(true);
+            //            setModelRendered(true);
+          };
+
+          console.log('DetailsSidebar: callback: setIs3dModel(true)2');
+          await render_model(canvas, model_urls, extensions, callback);
+          setIs3dModel(true);
         } catch (err) {
           // ignore expected exception
         }
@@ -83,6 +119,8 @@ export default function RenderModel({
   }
 
   useEffect(() => {
+    if (!isWasmReady) return;
+
     if (
       nftInfoDecorated &&
       'fileUrls' in nftInfoDecorated &&
@@ -93,6 +131,7 @@ export default function RenderModel({
       const renderModels = async () => {
         setIs3dModel(false);
 
+        const uris = [];
         for (const [key, value] of Object.entries(nftInfoDecorated.fileUrls)) {
           let [uri, extension] = value.split('.');
           console.log('DetailsSidebar: uri = ', uri);
@@ -105,16 +144,17 @@ export default function RenderModel({
             extension.toLowerCase() === 'gltf'
           ) {
             console.log('DetailsSidebar: value = ', value);
-            setIs3dModel(true);
-
-            await handleRenderModel(uri, extension);
+            uris.push(`${uri}.${extension.toLowerCase()}`);
           }
         }
+
+        if (uris.length === 0) return;
+        await handleRenderModel(uris);
       };
       renderModels();
     }
     console.log('DetailsSidebar: nftInfoDecorated = ', nftInfoDecorated);
-  }, [nft]);
+  }, [nft, isWasmReady]);
 
   return (
     <canvas
