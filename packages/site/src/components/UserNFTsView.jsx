@@ -46,13 +46,13 @@ export default function UserNFTsView({
           Back to parent
         </button>
       )}
-      <div className={twStyle}>
+      <div className={`${twStyle} list-none`}>
         {nfts
           ?.filter((nft) => nft !== null) // Filter out null NFTs
           .map((nft) => (
             <li
               key={nft.name}
-              className="mr-4 transform items-center shadow-lg shadow-fabstir-light-purple/50 transition duration-100 ease-in hover:scale-105 hover:text-fabstir-white"
+              className="mr-4 transform items-center transition duration-100 ease-in hover:scale-105 hover:text-fabstir-white"
             >
               <UserNFTView
                 nft={nft}

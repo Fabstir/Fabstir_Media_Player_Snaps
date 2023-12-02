@@ -1,9 +1,9 @@
 module.exports = {
   extends: [
-    '../../.eslintrc.js',
     'next',
     'next/core-web-vitals',
-    'plugin:prettier/recommended', // Add this line
+    '../../.eslintrc.js',
+    // 'plugin:prettier/recommended', // Removed this line
   ],
 
   rules: {

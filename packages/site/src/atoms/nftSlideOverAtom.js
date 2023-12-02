@@ -21,5 +21,5 @@ export const nftslideoverstate = atom({
  */
 export const currentnftcategories = atom({
   key: 'currentNFTCategories',
-  default: null,
+  default: [''],
 });

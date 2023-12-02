@@ -3,8 +3,9 @@ import { useRecoilState } from 'recoil';
 import { currentnftmetadata } from '../atoms/nftMetaDataAtom';
 
 import init, {
+  load_model,
   render_model,
-  stop_rendering,
+  stop_render,
 } from '../../public/wgpu_fabstir_renderer.js';
 
 /**
@@ -17,16 +18,16 @@ export default function RenderModel({
   setIs3dModel,
   isWasmReady,
   setIsWasmReady,
-  nftInformationDecorator,
+  modelUris,
 }) {
   /**
    * State to hold the current NFT metadata.
    * @type {[Object, Function]}
    */
   const [currentNFT, setCurrentNFT] = useRecoilState(currentnftmetadata);
+  const isFirstRender = useRef(true);
 
   const canvasRef = useRef(null);
-  const nftInfoDecorated = nftInformationDecorator(nft ? nft : null);
 
   useEffect(() => {
     init()
@@ -46,6 +47,8 @@ export default function RenderModel({
     // Define get_canvas_size in the global scope
     window.get_canvas_size = function () {
       const canvas = document.getElementById('nftFrame');
+      if (!canvas) return;
+
       console.log(
         'DetailsSidebar: get_canvas_size: ',
         canvas.clientWidth,
@@ -55,11 +58,8 @@ export default function RenderModel({
     };
   }, []);
 
-  async function handleRenderModel(uri, extension) {
+  async function handleRenderModel(uris) {
     try {
-      console.log('DetailsSidebar: handleRenderModel: uri = ', uri);
-      console.log('DetailsSidebar: handleRenderModel: extension = ', extension);
-
       if (!canvasRef.current) return;
       const canvas = canvasRef.current;
       if (!canvas) return;
@@ -68,11 +68,45 @@ export default function RenderModel({
 
       if (isWasmReady) {
         try {
+          console.log('DetailsSidebar: callback: setIs3dModel(true)');
           console.log(
-            `DetailsSidebar: await render_model(canvas, model_url, extension);`,
+            `DetailsSidebar: await render_model(canvas, model_urls, extensions);`,
           );
-          const model_url = `${process.env.NEXT_PUBLIC_PORTAL_URL_3D}/${uri}`;
-          await render_model(canvas, model_url, extension);
+
+          const model_urls = [];
+          const extensions = [];
+
+          for (const uri of uris) {
+            let [cid, extension] = uri.split('.');
+
+            const model_url = `${process.env.NEXT_PUBLIC_PORTAL_URL_3D}/${cid}`;
+            console.log(
+              `DetailsSidebar: (model_url, extension) = (${model_url}, ${extension})`,
+            );
+            model_urls.push(model_url);
+            extensions.push(extension);
+          }
+
+          if (model_urls.length === 0) return;
+
+          const callback = () => {
+            if (!is3dModel) setIs3dModel(true);
+            //            setModelRendered(true);
+            //console.log('wgpu_renderer: hello');
+          };
+
+          console.log('DetailsSidebar: callback: setIs3dModel(true)2');
+
+          if (isFirstRender.current) {
+            try {
+              await render_model(canvas, model_urls, extensions, callback);
+            } catch (err) {
+              console.error('Error calling render_model:', err);
+            }
+            isFirstRender.current = false;
+          } else load_model(model_urls, extensions);
+
+          setIs3dModel(true);
         } catch (err) {
           // ignore expected exception
         }
@@ -83,44 +117,26 @@ export default function RenderModel({
   }
 
   useEffect(() => {
-    if (
-      nftInfoDecorated &&
-      'fileUrls' in nftInfoDecorated &&
-      nftInfoDecorated.fileUrls
-    ) {
+    if (!isWasmReady) return;
+
+    if (modelUris?.length > 0) {
       //      setFileUrls(nftInfoDecorated.fileUrls);
 
       const renderModels = async () => {
-        setIs3dModel(false);
+        //        setIs3dModel(false);
 
-        for (const [key, value] of Object.entries(nftInfoDecorated.fileUrls)) {
-          let [uri, extension] = value.split('.');
-          console.log('DetailsSidebar: uri = ', uri);
-
-          extension = extension.split('<')[0];
-          console.log('DetailsSidebar: extension = ', extension);
-
-          if (
-            extension.toLowerCase() === 'obj' ||
-            extension.toLowerCase() === 'gltf'
-          ) {
-            console.log('DetailsSidebar: value = ', value);
-            setIs3dModel(true);
-
-            await handleRenderModel(uri, extension);
-          }
-        }
+        //        await new Promise((resolve) => setTimeout(resolve, 2000));
+        await handleRenderModel(modelUris);
       };
       renderModels();
     }
-    console.log('DetailsSidebar: nftInfoDecorated = ', nftInfoDecorated);
-  }, [nft]);
+  }, [nft, isWasmReady]);
 
   return (
     <canvas
       id="canvas"
       ref={canvasRef}
-      className={`absolute z-0 w-full h-full ${
+      className={`absolute z-10 w-full h-full ${
         is3dModel ? 'opacity-100' : 'opacity-0'
       }`}
     ></canvas>

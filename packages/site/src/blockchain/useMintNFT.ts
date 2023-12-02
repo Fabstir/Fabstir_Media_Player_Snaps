@@ -2,6 +2,7 @@ import { Contract, ContractFactory } from '@ethersproject/contracts';
 import { Interface } from '@ethersproject/abi';
 import { BigNumber } from '@ethersproject/bignumber';
 import { parseUnits } from '@ethersproject/units';
+import { JsonRpcProvider } from '@ethersproject/providers';
 
 import { useContext } from 'react';
 import IERC165 from '../../contracts/IERC165.json';
@@ -20,6 +21,8 @@ import { connectToWallet } from '../utils/connectToWallet';
 import { currencycontractaddressesstate } from '../atoms/currenciesAtom';
 import { Transaction } from '@biconomy/core-types';
 import useBiconomyPayment from './useBiconomyPayment';
+
+const erc721InterfaceId = 0x80ac58cd;
 
 interface NFT {
   name?: string;
@@ -52,13 +55,29 @@ export default function useMintNFT() {
   console.log('useMintNFT: provider = ', provider);
   console.log('useMintNFT: smartAccountProvider = ', smartAccountProvider);
 
+  if (!provider || !smartAccountProvider || !smartAccount) {
+    console.log(
+      'useMintNFT: provider, smartAccountProvider or smartAccount is null',
+    );
+    return;
+  }
+
   const {
     handleBiconomyPayment,
     handleBiconomyPaymentSponsor,
     createTransaction,
-  } = useBiconomyPayment(provider, smartAccountProvider, smartAccount);
+  } =
+    provider && smartAccountProvider && smartAccount
+      ? useBiconomyPayment(provider, smartAccountProvider, smartAccount)
+      : {
+          handleBiconomyPayment: null,
+          handleBiconomyPaymentSponsor: null,
+          createTransaction: null,
+        };
 
-  const { uploadFile } = usePortal();
+  const { uploadFile } = usePortal() as {
+    uploadFile: (file: File) => Promise<string>;
+  };
 
   let nftAddress = '';
   const nftTokenId = 1;
@@ -77,6 +96,9 @@ export default function useMintNFT() {
    * @returns {Promise<MintNFTResponse>} The response containing the NFT address, ID, and URI.
    */
   const mintNFTSponsored = async (nft: NFT): Promise<MintNFTResponse> => {
+    if (!handleBiconomyPaymentSponsor)
+      throw new Error('useMintNFT: handleBiconomyPaymentSponsor is undefined');
+
     const signerAccount = await connectToWallet();
     const signerAccountAddress = await signerAccount.getAddress();
 
@@ -187,8 +209,8 @@ export default function useMintNFT() {
     // ------------------------STEP 1: Initialise Biconomy Smart Account SDK--------------------------------//
     console.log(`useMintNFT: smartAccount: ${smartAccount}`);
 
-    // get EOA address from wallet provider
-    const signer = await connectToWallet();
+    // // get EOA address from wallet provider
+    // const signer = await connectToWallet();
 
     // ------------------------STEP 2: Build Partial User op from your user Transaction/s Request --------------------------------//
 
@@ -204,8 +226,11 @@ export default function useMintNFT() {
         uri: '',
       };
 
+    if (!createTransaction)
+      throw new Error('useMintNFT: createTransaction is undefined');
+
     const smartAccountAddress =
-      await biconomySmartAccount.getSmartAccountAddress(config.accountIndex);
+      await biconomySmartAccount.getSmartAccountAddress();
 
     let nftMetaData = { ...nft };
 
@@ -306,8 +331,6 @@ export default function useMintNFT() {
     }
   };
 
-  const erc721InterfaceId = 0x80ac58cd;
-
   /**
    * Function to check if an NFT contract is ERC721 compliant.
    * It takes the NFT contract address as an argument and returns a boolean indicating if it is ERC721 compliant.
@@ -338,3 +361,21 @@ export default function useMintNFT() {
     getIsERC721,
   };
 }
+
+export const getIsERC721NonHook = async (
+  nftAddress: string,
+  provider: JsonRpcProvider | null,
+): Promise<boolean> => {
+  if (!nftAddress || !provider) return false;
+
+  console.log('useMintNFT: getIsERC721: nftAddress = ', nftAddress);
+  const iERC165 = new Contract(nftAddress, IERC165.abi, provider);
+
+  console.log('before isERC721 result');
+  const result = (await iERC165.supportsInterface(
+    erc721InterfaceId,
+  )) as boolean;
+  console.log('isERC721 result = ', result);
+
+  return result;
+};

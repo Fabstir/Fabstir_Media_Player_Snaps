@@ -6,6 +6,7 @@ import { S5Client } from '../../../../node_modules/s5client-js/dist/mjs/index';
 import BlockchainContext from '../../state/BlockchainContext';
 import { Contract } from '@ethersproject/contracts';
 import { useContext } from 'react';
+import usePortal from './usePortal.js';
 
 /**
  * Asynchronously retrieves metadata from a given URI.

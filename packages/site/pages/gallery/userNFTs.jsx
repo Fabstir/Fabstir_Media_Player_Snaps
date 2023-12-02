@@ -1,11 +1,30 @@
 import React, { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
+
 import { useRouter } from 'next/router';
-import UserNFTsSection from '../../src/components/UserNFTsSection';
+
+const UserNFTsSection = dynamic(
+  () => import('../../src/components/UserNFTsSection'),
+  { ssr: false }, // This will make the component only render on the client side
+);
+
+// import UserNFTsSection from '../../src/components/UserNFTsSection';
 import { useRecoilState, useRecoilValue } from 'recoil';
-import DetailsSidebar from '../../src/components/DetailsSidebar';
+
+const DetailsSidebar = dynamic(
+  () => import('../../src/components/DetailsSidebar'),
+  { ssr: false }, // This will make the component only render on the client side
+);
+
+//import DetailsSidebar from '../../src/components/DetailsSidebar';
 import { currentnftmetadata } from '../../src/atoms/nftMetaDataAtom';
-import { loadState } from '../../src/utils';
-import NFTSlideOver from '../../src/components/NFTSlideOver';
+
+const NFTSlideOver = dynamic(
+  () => import('../../src/components/NFTSlideOver'),
+  { ssr: false }, // This will make the component only render on the client side
+);
+
+//import NFTSlideOver from '../../src/components/NFTSlideOver';
 import { nftslideoverstate } from '../../src/atoms/nftSlideOverAtom';
 
 /**
@@ -22,15 +41,6 @@ const twUserTitleStyle =
   'text-xs sm:text-xs md:text-xs lg:text-sm xl:text-sm 2xl:text-md';
 
 const userViewStyle = 'relative mx-auto w-20 text-xs';
-
-/**
- * Utility function to join class names.
- * @param {...string} classes - The class names to join.
- * @returns {string} - The joined class names.
- */
-function classNames(...classes) {
-  return classes.filter(Boolean).join(' ');
-}
 
 /**
  * UserNFTs component to display user's NFTs and details.
@@ -74,7 +84,7 @@ export default function UserNFTs() {
         <div className="flex flex-1 flex-col items-stretch overflow-hidden overflow-y-auto rounded-sm">
           <UserNFTsSection
             theTitle="My NFTs"
-            twStyle="grid grid-cols-8 gap-x-4 gap-y-8 sm:grid-cols-3 sm:gap-x-4 md:grid-cols-5 md:gap-x-5 lg:grid-cols-6 xl:gap-x-5 xl:grid-cols-4 2xl:grid-cols-5 2xl:gap-x-5 3xl:grid-cols-8"
+            twStyle="grid grid-cols-8 gap-x-4 gap-y-8 sm:grid-cols-3 sm:gap-x-4 md:grid-cols-5 md:gap-x-5 lg:grid-cols-6 xl:gap-x-5 xl:grid-cols-4 2xl:grid-cols-5 2xl:gap-x-5 3xl:grid-cols-8 ml-2"
             twTitleStyle="text-xs sm:text-xs md:text-sm lg:text-sm xl:text-lg 2xl:text-lg"
             twTextStyle="text-xs sm:text-xs md:text-xs lg:text-sm xl:text-sm 2xl:text-md"
           />
@@ -92,7 +102,9 @@ export default function UserNFTs() {
         currentNFT
         setRerenderUserNFTs={setRerenderUserNFTs}
       />
-      <button onClick={handleBackToRoot}>Back to Root</button>
+      <button className="mt-2" onClick={handleBackToRoot}>
+        Back to Root
+      </button>
     </>
   );
 }

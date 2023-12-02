@@ -113,3 +113,6 @@ Thumbs.db
 # Tailwind CSS
 tailwind.config.js
 packages/site/config.json
+
+# misc
+packages/site/assets/

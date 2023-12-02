@@ -130,7 +130,7 @@ export default function UserNFTView({
           <></>
         )}
       </div>
-      {nft?.parentId && (
+      {nft?.isNestableNFT && (
         <div className="absolute top-0 right-0 p-1">
           <DocumentDuplicateIcon className="h-6 w-6 text-gray-700" />
         </div>

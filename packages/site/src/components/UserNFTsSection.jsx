@@ -91,7 +91,7 @@ export default function UserNFTsSection({
       </div>
 
       {/* Gallery */}
-      <section className="mt-8 pb-16" aria-labelledby="gallery-heading">
+      <section className="mt-4 pb-16" aria-labelledby="gallery-heading">
         {filteredUserNFTs && (
           <UserNFTsView
             nfts={filteredUserNFTs}

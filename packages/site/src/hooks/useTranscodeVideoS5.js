@@ -7,8 +7,6 @@ import useS5net from './useS5';
  * @returns {Object} - An object containing a function to transcode a video.
  */
 export default function useTranscodeVideoS5() {
-  const { setTranscodePending } = useS5net();
-
   /**
    * Asynchronously transcodes a video using the Fabstir transcoder service.
    * Initializes an array of video formats to transcode to and constructs the transcoder service URL with the necessary parameters.

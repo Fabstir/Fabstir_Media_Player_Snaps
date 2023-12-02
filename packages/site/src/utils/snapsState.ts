@@ -8,14 +8,17 @@ interface TransakObject {
   transak: any;
 }
 
-type NFTCollection = {
-  [address: string]: object;
-};
+interface Addresses {
+  state?: any; // Replace `any` with the actual type of `state`
+  // Define other properties of `state.addresses` here
+}
 
 export const removeAddress = async (removeAddress: string) => {
   console.log('handleRemoveAddress: removeAddress = ', removeAddress);
 
-  const state: NFTCollection = (await loadState()) as unknown as NFTCollection;
+  const state: { addresses: Addresses } = (await loadState()) as unknown as {
+    addresses: Addresses;
+  };
 
   const addresses = state.addresses.state;
 
@@ -27,7 +30,10 @@ export const removeAddress = async (removeAddress: string) => {
 };
 
 export const addAddress = async (address: string) => {
-  const state: NFTCollection = (await loadState()) as unknown as NFTCollection;
+  const state: { addresses: Addresses } = (await loadState()) as unknown as {
+    addresses: Addresses;
+  };
+
   const addresses = state.addresses.state;
 
   let nftJSON = {};
@@ -36,7 +42,9 @@ export const addAddress = async (address: string) => {
 };
 
 export const loadAddresses = async (): Promise<object> => {
-  const state: NFTCollection = (await loadState()) as unknown as NFTCollection;
+  const state: { addresses: Addresses } = (await loadState()) as unknown as {
+    addresses: Addresses;
+  };
 
   console.log('useCreateNFT: state.addresses.state = ', state.addresses.state);
   console.log('removeAddress: state.addresses.state = ', state.addresses.state);

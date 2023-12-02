@@ -12,4 +12,22 @@ module.exports = withSvgr({
     }
     return config;
   },
+  async headers() {
+    return [
+      {
+        source: '/',
+        headers: [
+          {
+            key: 'Cross-Origin-Embedder-Policy',
+            value: 'no-cors',
+            // value: 'require-corp',
+          },
+          {
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'same-origin',
+          },
+        ],
+      },
+    ];
+  },
 });

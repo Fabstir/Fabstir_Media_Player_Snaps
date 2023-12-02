@@ -18,11 +18,6 @@ import NFTVideoJS from './NFTVideoJS';
 import useMintNestableNFT from '../blockchain/useMintNestableNFT';
 import RenderModel from './RenderModel';
 
-/**
- * A utility function to join classes.
- * @param {...string} classes - The classes to join.
- * @returns {string} - The joined classes.
- */
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
 }
@@ -120,12 +115,15 @@ export default function DetailsSidebar({
     nftattributesexpandstate,
   );
 
-  const nftInfoDecorated = nftInformationDecorator(nft ? nft : null);
+  const nftInfoDecorated = nftInformationDecorator(
+    currentNFT ? currentNFT : null,
+  );
   console.log('DetailsSidebar: nftInfoDecorated1 = ', nftInfoDecorated);
 
   const [nftImage, setNFTImage] = useState();
-  const [is3dModel, setIs3dModel] = useState(true);
+  const [is3dModel, setIs3dModel] = useState(false);
   const { getPortalLinkUrl, getBlobUrl } = usePortal();
+  const [modelUris, setModelUris] = useState(null);
 
   const {
     getChildrenOfNestableNFT,
@@ -139,6 +137,52 @@ export default function DetailsSidebar({
   useEffect(() => {
     console.log('DetailsSidebar: currentNFT = ', currentNFT);
     setNFT(currentNFT);
+
+    if (!isWasmReady) return;
+
+    if (
+      nftInfoDecorated &&
+      'fileUrls' in nftInfoDecorated &&
+      nftInfoDecorated.fileUrls
+    ) {
+      //      setFileUrls(nftInfoDecorated.fileUrls);
+
+      const renderModels = async () => {
+        //        setIs3dModel(false);
+
+        const uris = [];
+        for (const [key, value] of Object.entries(nftInfoDecorated.fileUrls)) {
+          let [uri, extension] = value.split('.');
+          console.log('DetailsSidebar: uri = ', uri);
+
+          extension = extension.split('<')[0];
+          console.log('DetailsSidebar: extension = ', extension);
+
+          if (
+            extension.toLowerCase() === 'obj' ||
+            extension.toLowerCase() === 'gltf'
+          ) {
+            console.log('DetailsSidebar: value = ', value);
+            uris.push(`${uri}.${extension.toLowerCase()}`);
+          }
+        }
+
+        setModelUris(uris);
+
+        if (uris.length === 0) {
+          setIs3dModel(false);
+          return;
+        }
+
+        setIs3dModel(true);
+      };
+
+      renderModels();
+    } else {
+      setIs3dModel(false);
+      setModelUris(null);
+    }
+
     (async () => {})();
   }, [currentNFT, currentNFT?.image]);
 
@@ -366,12 +410,12 @@ export default function DetailsSidebar({
                     setIs3dModel={setIs3dModel}
                     isWasmReady={isWasmReady}
                     setIsWasmReady={setIsWasmReady}
-                    nftInformationDecorator={nftInformationDecorator}
+                    modelUris={modelUris}
                   />
                   <img
                     src={nftImage}
                     alt=""
-                    className="mx-auto object-cover relative z-10"
+                    className="mx-auto object-cover relative z-30"
                     crossOrigin="anonymous"
                     style={{ visibility: is3dModel ? 'hidden' : 'visible' }}
                   />

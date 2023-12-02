@@ -52,10 +52,13 @@ export default function ThumbnailArt({
           nft?.current
             ? 'ring-2 ring-indigo-500 ring-offset-2'
             : 'focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-gray-100',
-          'group aspect-h-7 aspect-w-10 block overflow-hidden rounded-lg bg-fabstir-dark-gray shadow-md shadow-fabstir-black/50',
+          'shadow-md shadow-fabstir-black/50',
         )}
       >
-        <button type="button" className="absolute inset-0 focus:outline-none">
+        <button
+          type="button"
+          className="block focus:outline-none h-fit m-0 p-0"
+        >
           <img src={nftImage} alt="" crossOrigin="anonymous" />
 
           {handleSubmit_AddEntityToList && (
@@ -86,8 +89,6 @@ export default function ThumbnailArt({
               />
             </div>
           )}
-
-          <span className="sr-only">View details for {nft.name}</span>
         </button>
       </div>
       <div className="text-left">
