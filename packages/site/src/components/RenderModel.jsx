@@ -58,6 +58,22 @@ export default function RenderModel({
     };
   }, []);
 
+<<<<<<< HEAD
+=======
+  useEffect(() => {
+    const stopRendering = async () => {
+      if (!isWasmReady) return;
+
+      const canvas = canvasRef.current;
+      if (!is3dModel && canvas) {
+        await stop_rendering(canvas);
+      }
+    };
+
+    stopRendering();
+  }, [is3dModel]);
+
+>>>>>>> 64f928fb34bc64b97320b733ac8eb849de607082
   async function handleRenderModel(uris) {
     try {
       if (!canvasRef.current) return;
@@ -90,6 +106,7 @@ export default function RenderModel({
           if (model_urls.length === 0) return;
 
           const callback = () => {
+<<<<<<< HEAD
             if (!is3dModel) setIs3dModel(true);
             //            setModelRendered(true);
             //console.log('wgpu_renderer: hello');
@@ -106,6 +123,14 @@ export default function RenderModel({
             isFirstRender.current = false;
           } else load_model(model_urls, extensions);
 
+=======
+            //            setIs3dModel(true);
+            //            setModelRendered(true);
+          };
+
+          console.log('DetailsSidebar: callback: setIs3dModel(true)2');
+          await render_model(canvas, model_urls, extensions, callback);
+>>>>>>> 64f928fb34bc64b97320b733ac8eb849de607082
           setIs3dModel(true);
         } catch (err) {
           // ignore expected exception
@@ -119,17 +144,51 @@ export default function RenderModel({
   useEffect(() => {
     if (!isWasmReady) return;
 
+<<<<<<< HEAD
     if (modelUris?.length > 0) {
+=======
+    if (
+      nftInfoDecorated &&
+      'fileUrls' in nftInfoDecorated &&
+      nftInfoDecorated.fileUrls
+    ) {
+>>>>>>> 64f928fb34bc64b97320b733ac8eb849de607082
       //      setFileUrls(nftInfoDecorated.fileUrls);
 
       const renderModels = async () => {
         //        setIs3dModel(false);
 
+<<<<<<< HEAD
         //        await new Promise((resolve) => setTimeout(resolve, 2000));
         await handleRenderModel(modelUris);
       };
       renderModels();
     }
+=======
+        const uris = [];
+        for (const [key, value] of Object.entries(nftInfoDecorated.fileUrls)) {
+          let [uri, extension] = value.split('.');
+          console.log('DetailsSidebar: uri = ', uri);
+
+          extension = extension.split('<')[0];
+          console.log('DetailsSidebar: extension = ', extension);
+
+          if (
+            extension.toLowerCase() === 'obj' ||
+            extension.toLowerCase() === 'gltf'
+          ) {
+            console.log('DetailsSidebar: value = ', value);
+            uris.push(`${uri}.${extension.toLowerCase()}`);
+          }
+        }
+
+        if (uris.length === 0) return;
+        await handleRenderModel(uris);
+      };
+      renderModels();
+    }
+    console.log('DetailsSidebar: nftInfoDecorated = ', nftInfoDecorated);
+>>>>>>> 64f928fb34bc64b97320b733ac8eb849de607082
   }, [nft, isWasmReady]);
 
   return (

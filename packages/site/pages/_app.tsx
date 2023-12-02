@@ -15,6 +15,10 @@ import { RecoilRoot } from 'recoil';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import useParticleAuth from '../src/blockchain/useParticleAuth';
 import { BiconomySmartAccount } from '@biconomy/account';
+<<<<<<< HEAD
+=======
+import { Web3Provider } from '@ethersproject/providers';
+>>>>>>> 64f928fb34bc64b97320b733ac8eb849de607082
 import { ParticleAuthModule } from '@biconomy/particle-auth';
 
 const provider = new JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_PROVIDER);
@@ -30,7 +34,11 @@ function MyApp({ Component, pageProps }: AppProps) {
     null,
   );
   const [smartAccountProvider, setSmartAccountProvider] =
+<<<<<<< HEAD
     useState<Provider | null>(null);
+=======
+    useState<Web3Provider | null>(null);
+>>>>>>> 64f928fb34bc64b97320b733ac8eb849de607082
 
   const { socialLogin } = useParticleAuth();
 
@@ -39,6 +47,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   // Add event listener when component mounts
   useEffect(() => {
     const initialiseSmartAccount = async () => {
+<<<<<<< HEAD
       if (!(smartAccount && smartAccountProvider && userInfo)) {
         const { biconomySmartAccount, web3Provider, userInfo } =
           await socialLogin(true);
@@ -48,6 +57,20 @@ function MyApp({ Component, pageProps }: AppProps) {
           setSmartAccountProvider(web3Provider);
           setUserInfo(userInfo);
         }
+=======
+      if (
+        !(smartAccount && smartAccountProvider && userInfo) &&
+        setSmartAccount &&
+        setSmartAccountProvider &&
+        setUserInfo
+      ) {
+        const { biconomySmartAccount, web3Provider, userInfo } =
+          await socialLogin(true);
+
+        setSmartAccount(biconomySmartAccount);
+        setSmartAccountProvider(web3Provider);
+        setUserInfo(userInfo);
+>>>>>>> 64f928fb34bc64b97320b733ac8eb849de607082
       }
     };
 
@@ -72,6 +95,10 @@ function MyApp({ Component, pageProps }: AppProps) {
     <BlockchainContext.Provider
       value={{
         provider,
+<<<<<<< HEAD
+=======
+        signerAdmin,
+>>>>>>> 64f928fb34bc64b97320b733ac8eb849de607082
         userInfo,
         setUserInfo,
         smartAccount,

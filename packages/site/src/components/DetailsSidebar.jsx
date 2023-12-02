@@ -188,6 +188,7 @@ export default function DetailsSidebar({
 
   useEffect(() => {
     if (!nft) return;
+    setIs3dModel(false);
 
     console.log('DetailsSidebar: nft.image = ', nft?.image);
     (async () => {
