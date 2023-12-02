@@ -43,10 +43,7 @@ import { getIsNestableNFTNonHook } from '../src/blockchain/useMintNestableNFT';
 import { getIsERC721NonHook } from '../src/blockchain/useMintNFT';
 import useParticleAuth from '../src/blockchain/useParticleAuth';
 import config from '../config.json';
-<<<<<<< HEAD
 import useTranscodeVideoS5 from '../src/hooks/useTranscodeVideoS5';
-=======
->>>>>>> 64f928fb34bc64b97320b733ac8eb849de607082
 
 type NFTCollection = {
   [address: string]: object;
@@ -355,11 +352,8 @@ const Index = () => {
       if (!(biconomySmartAccount && web3Provider && userInfo))
         throw new Error('index: connect: login failed');
 
-<<<<<<< HEAD
       const acc = await biconomySmartAccount.getSmartAccountAddress();
       console.log('index: connect: acc = ', acc);
-=======
->>>>>>> 64f928fb34bc64b97320b733ac8eb849de607082
       setSmartAccountAddress(
         await biconomySmartAccount.getSmartAccountAddress(),
       );
@@ -375,63 +369,6 @@ const Index = () => {
     }
   };
 
-<<<<<<< HEAD
-=======
-  // // Add event listener when component mounts
-  // useEffect(() => {
-  //   const loadData = async () => {
-  //     const particleProvider = new ParticleProvider(particle.auth);
-  //     console.log({ particleProvider });
-  //     const web3Provider = new Web3Provider(particleProvider, 'any');
-
-  //     console.log('index: setSmartAccountProvider(web3Provider);');
-  //     const biconomySmartAccountConfig: BiconomySmartAccountConfig = {
-  //       signer: web3Provider.getSigner(),
-  //       chainId: Number(process.env.NEXT_PUBLIC_CHAIN_ID) as ChainId,
-  //       bundler: bundler,
-  //       paymaster: paymaster,
-  //     };
-
-  //     let biconomySmartAccount = new BiconomySmartAccount(
-  //       biconomySmartAccountConfig,
-  //     );
-  //     biconomySmartAccount = await biconomySmartAccount.init();
-  //   };
-
-  //   loadData();
-
-  //   // const loadData = async () => {
-  //   //   const { biconomySmartAccount, web3Provider, userInfo } =
-  //   //     await socialLogin();
-
-  //   //   if (setSmartAccount && setSmartAccountProvider && setUserInfo) {
-  //   //     setSmartAccount(biconomySmartAccount);
-  //   //     setSmartAccountProvider(web3Provider);
-  //   //     setUserInfo(userInfo);
-  //   //   }
-  //   // };
-
-  //   // if (!(smartAccount && smartAccountProvider && userInfo)) loadData();
-  // }, [smartAccount, smartAccountProvider, userInfo]);
-
-  const handleFundYourSmartAccount = async () => {
-    try {
-      if (!smartAccount)
-        throw new Error(
-          'index: handleFundYourSmartAccount: smartAccount is null',
-        );
-
-      const transak = await fundYourSmartAccount(userInfo, smartAccount);
-      setTransak(transak);
-    } catch (error) {
-      throw new Error(
-        'index: handleFundYourSmartAccount: error received ',
-        error,
-      );
-    }
-  };
-
->>>>>>> 64f928fb34bc64b97320b733ac8eb849de607082
   interface ExtendedBlobPropertyBag extends BlobPropertyBag {
     lastModified?: number;
   }

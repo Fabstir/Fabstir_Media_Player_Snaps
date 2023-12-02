@@ -11,22 +11,13 @@ import { ParticleAuthModule } from '@biconomy/particle-auth';
 export interface BlockchainContextType {
   provider: JsonRpcProvider | null;
 
-<<<<<<< HEAD
   userInfo: ParticleAuthModule.UserInfo | null;
-=======
-  userInfo: ParticleAuthModule.UserInfo;
->>>>>>> 64f928fb34bc64b97320b733ac8eb849de607082
   setUserInfo: React.Dispatch<
     React.SetStateAction<ParticleAuthModule.UserInfo | null>
   >;
 
-<<<<<<< HEAD
   smartAccount: BiconomySmartAccount | null;
   setSmartAccount: React.Dispatch<
-=======
-  smartAccount?: BiconomySmartAccount;
-  setSmartAccount?: React.Dispatch<
->>>>>>> 64f928fb34bc64b97320b733ac8eb849de607082
     React.SetStateAction<BiconomySmartAccount | null>
   >;
 

@@ -10,13 +10,10 @@ import {
 import { IPaymaster, BiconomyPaymaster } from '@biconomy/paymaster';
 import { ChainId } from '@biconomy/core-types';
 import config from '../../config.json';
-<<<<<<< HEAD
 import {
   ECDSAOwnershipValidationModule,
   DEFAULT_ECDSA_OWNERSHIP_MODULE,
 } from '@biconomy/modules';
-=======
->>>>>>> 64f928fb34bc64b97320b733ac8eb849de607082
 
 import { createTransak, getTransak, initTransak } from '../hooks/useTransakSDK';
 
