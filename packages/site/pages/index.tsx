@@ -11,8 +11,7 @@ import { Transaction } from '@biconomy/core-types';
 
 import { IBundler, Bundler } from '@biconomy/bundler';
 import {
-  BiconomySmartAccount,
-  BiconomySmartAccountConfig,
+  BiconomySmartAccountV2,
   DEFAULT_ENTRYPOINT_ADDRESS,
 } from '@biconomy/account';
 import { IPaymaster, BiconomyPaymaster } from '@biconomy/paymaster';
@@ -93,9 +92,8 @@ const Index = () => {
 
   const [smartAccountAddress, setSmartAccountAddress] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
-  const [smartAccount, setSmartAccount] = useState<BiconomySmartAccount | null>(
-    null,
-  );
+  const [smartAccount, setSmartAccount] =
+    useState<BiconomySmartAccountV2 | null>(null);
   const [smartAccountProvider, setSmartAccountProvider] =
     useState<Provider | null>(null);
 
@@ -352,11 +350,9 @@ const Index = () => {
       if (!(biconomySmartAccount && web3Provider && userInfo))
         throw new Error('index: connect: login failed');
 
-      const acc = await biconomySmartAccount.getSmartAccountAddress();
+      const acc = await biconomySmartAccount.getAccountAddress();
       console.log('index: connect: acc = ', acc);
-      setSmartAccountAddress(
-        await biconomySmartAccount.getSmartAccountAddress(),
-      );
+      setSmartAccountAddress(await biconomySmartAccount.getAccountAddress());
       setSmartAccount(biconomySmartAccount);
       setSmartAccountProvider(web3Provider);
 
@@ -387,7 +383,7 @@ const Index = () => {
     let tokenId: any;
     if (smartAccountProvider) {
       if (smartAccount) {
-        const address = await smartAccount.getSmartAccountAddress();
+        const address = await smartAccount.getAccountAddress();
         console.log('index: mintNFT: address = ', address);
 
         // const nftInterface = new Interface([

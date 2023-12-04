@@ -229,8 +229,7 @@ export default function useMintNFT() {
     if (!createTransaction)
       throw new Error('useMintNFT: createTransaction is undefined');
 
-    const smartAccountAddress =
-      await biconomySmartAccount.getSmartAccountAddress();
+    const smartAccountAddress = await biconomySmartAccount.getAccountAddress();
 
     let nftMetaData = { ...nft };
 

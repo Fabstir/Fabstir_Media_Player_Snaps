@@ -5,7 +5,7 @@ import {
   Web3Provider,
   Provider,
 } from '@ethersproject/providers';
-import { BiconomySmartAccount } from '@biconomy/account';
+import { BiconomySmartAccountV2 } from '@biconomy/account';
 import { ParticleAuthModule } from '@biconomy/particle-auth';
 
 export interface BlockchainContextType {
@@ -16,9 +16,9 @@ export interface BlockchainContextType {
     React.SetStateAction<ParticleAuthModule.UserInfo | null>
   >;
 
-  smartAccount: BiconomySmartAccount | null;
+  smartAccount: BiconomySmartAccountV2 | null;
   setSmartAccount: React.Dispatch<
-    React.SetStateAction<BiconomySmartAccount | null>
+    React.SetStateAction<BiconomySmartAccountV2 | null>
   >;
 
   smartAccountProvider: Provider | null;

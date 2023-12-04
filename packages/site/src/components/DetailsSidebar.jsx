@@ -51,7 +51,6 @@ const nftInformationDecorator = (information) => {
         key !== 'image' &&
         key !== 'multiToken' &&
         key !== 'tokenise' &&
-        key !== 'image' &&
         key !== 'subscriptionPlan' &&
         key !== 'holders' &&
         key !== 'enc_key' &&
@@ -396,7 +395,10 @@ export default function DetailsSidebar({
 
       {!isScreenViewClosed && (
         <div
-          className={classNames('mx-auto', isTheatreMode ? '' : 'max-w-5xl')}
+          className={classNames(
+            'mx-auto mt-4',
+            isTheatreMode ? '' : 'max-w-5xl',
+          )}
         >
           {nft && nftImage && !nft.video && !nft.audio && (
             <div>

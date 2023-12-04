@@ -520,9 +520,7 @@ export default function useMintNestableNFT() {
         'upgradeToNestableNFT: nestableNFT: biconomySmartAccount or provider is undefined',
       );
 
-    const smartAccountAddress = await smartAccount.getSmartAccountAddress(
-      config.accountIndex,
-    );
+    const smartAccountAddress = await smartAccount.getAccountAddress();
 
     // remove child from nestableNFT
     if (!smartAccountProvider)
@@ -638,9 +636,7 @@ export default function useMintNestableNFT() {
         'upgradeToNestableNFT: nestableNFT: smartAccount or provider is undefined',
       );
 
-    const smartAccountAddress = await smartAccount.getSmartAccountAddress(
-      config.accountIndex,
-    );
+    const smartAccountAddress = await smartAccount.getAccountAddress();
 
     const nestableNFT = await mintNestableNFT(smartAccountAddress);
 

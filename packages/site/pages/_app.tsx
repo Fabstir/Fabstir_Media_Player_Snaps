@@ -14,7 +14,7 @@ import { RecoilRoot } from 'recoil';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import useParticleAuth from '../src/blockchain/useParticleAuth';
-import { BiconomySmartAccount } from '@biconomy/account';
+import { BiconomySmartAccountV2 } from '@biconomy/account';
 import { ParticleAuthModule } from '@biconomy/particle-auth';
 
 const provider = new JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_PROVIDER);
@@ -26,9 +26,8 @@ function MyApp({ Component, pageProps }: AppProps) {
   const [userInfo, setUserInfo] = useState<ParticleAuthModule.UserInfo | null>(
     null,
   );
-  const [smartAccount, setSmartAccount] = useState<BiconomySmartAccount | null>(
-    null,
-  );
+  const [smartAccount, setSmartAccount] =
+    useState<BiconomySmartAccountV2 | null>(null);
   const [smartAccountProvider, setSmartAccountProvider] =
     useState<Provider | null>(null);
 

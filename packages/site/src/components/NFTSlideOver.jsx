@@ -152,7 +152,7 @@ const NFTSlideOver = ({
   console.log('NFTSlideOver open = ', open);
 
   useEffect(() => {
-    setSubmitText('Add NFT');
+    setSubmitText('Create NFT');
   }, [open, setSubmitText]);
 
   /**
@@ -189,7 +189,7 @@ const NFTSlideOver = ({
       };
     } catch (err) {
       alert(err.message);
-      setSubmitText('Add NFT');
+      setSubmitText('Create NFT');
       return;
     }
 
@@ -250,7 +250,7 @@ const NFTSlideOver = ({
                           ? 'Error!'
                           : createNFTInfo.isSuccess
                           ? 'Minted!'
-                          : 'Add NFT'
+                          : 'Create NFT'
                       }
                       nft={nft.current}
                       handleSubmit_NFT={handleSubmit_NFT}

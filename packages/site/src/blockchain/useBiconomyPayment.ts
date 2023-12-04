@@ -17,7 +17,7 @@ import {
   PaymasterMode,
   SponsorUserOperationDto,
 } from '@biconomy/paymaster';
-import { BiconomySmartAccount } from '@biconomy/account';
+import { BiconomySmartAccountV2 } from '@biconomy/account';
 
 /**
  * Function to handle Biconomy payment for a given user operation with sponsorship.
@@ -33,7 +33,7 @@ import { BiconomySmartAccount } from '@biconomy/account';
 export default function useBiconomyPayment(
   provider: JsonRpcProvider | undefined,
   smartAccountProvider: Provider | undefined,
-  smartAccount: BiconomySmartAccount | undefined,
+  smartAccount: BiconomySmartAccountV2 | undefined,
 ) {
   const blockchainContext = console.log(
     'useMintNestableNFT: provider = ',

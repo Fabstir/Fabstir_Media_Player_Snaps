@@ -3,8 +3,8 @@ import { Web3Provider } from '@ethersproject/providers';
 import { ParticleAuthModule, ParticleProvider } from '@biconomy/particle-auth';
 import { IBundler, Bundler } from '@biconomy/bundler';
 import {
-  BiconomySmartAccount,
-  BiconomySmartAccountConfig,
+  BiconomySmartAccountV2,
+  BiconomySmartAccountV2Config,
   DEFAULT_ENTRYPOINT_ADDRESS,
 } from '@biconomy/account';
 import { IPaymaster, BiconomyPaymaster } from '@biconomy/paymaster';
@@ -24,7 +24,7 @@ import { createTransak, getTransak, initTransak } from '../hooks/useTransakSDK';
  * @async
  * @function
  * @param {ParticleAuthModule.UserInfo} userInfo - The user info object.
- * @param {BiconomySmartAccount} smartAccount - The Biconomy Smart Account object.
+ * @param {BiconomySmartAccountV2} smartAccount - The Biconomy Smart Account object.
  * @returns {Promise<any>} A promise that resolves to a Transak object.
  */
 export default function useParticleAuth() {
@@ -75,7 +75,7 @@ export default function useParticleAuth() {
    * @async
    * @function
    * @returns {Promise<{
-   *   biconomySmartAccount: BiconomySmartAccount;
+   *   biconomySmartAccount: BiconomySmartAccountV2;
    *   web3Provider: Web3Provider;
    *   userInfo: ParticleAuthModule.UserInfo;
    * }>} A promise that resolves to an object with the Biconomy Smart Account, Web3Provider, and user info.
@@ -83,7 +83,7 @@ export default function useParticleAuth() {
   const socialLogin = async (
     isFresh: boolean = false,
   ): Promise<{
-    biconomySmartAccount: BiconomySmartAccount | null;
+    biconomySmartAccount: BiconomySmartAccountV2 | null;
     web3Provider: Web3Provider | null;
     userInfo: ParticleAuthModule.UserInfo | null;
   }> => {
@@ -111,23 +111,36 @@ export default function useParticleAuth() {
     particle.setFiatCoin('USD');
 
     // enable ERC-4337, openWallet will open Account Abstraction Wallet
-    particle.setERC4337(true);
+    particle.setERC4337({
+      name: 'BICONOMY',
+      version: '2.0.0',
+    });
 
     const particleProvider = new ParticleProvider(particle.auth);
     console.log({ particleProvider });
     const web3Provider = new Web3Provider(particleProvider, 'any');
 
-    const biconomySmartAccountConfig: BiconomySmartAccountConfig = {
-      signer: web3Provider.getSigner(),
+    const signer = web3Provider.getSigner();
+
+    const module = await ECDSAOwnershipValidationModule.create({
+      signer: signer, // you will need to supply a signer from an EOA in this step
+      moduleAddress: DEFAULT_ECDSA_OWNERSHIP_MODULE,
+    });
+
+    const biconomySmartAccountConfig: BiconomySmartAccountV2Config = {
       chainId: Number(process.env.NEXT_PUBLIC_CHAIN_ID) as ChainId,
       bundler: bundler,
       paymaster: paymaster,
+      entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS,
+      defaultValidationModule: module,
     };
 
-    let biconomySmartAccount = new BiconomySmartAccount(
+    let biconomySmartAccount = await BiconomySmartAccountV2.create(
       biconomySmartAccountConfig,
     );
-    biconomySmartAccount = await biconomySmartAccount.init();
+
+    const smartContractAddress = await biconomySmartAccount.getAccountAddress();
+    console.log('address: ', smartContractAddress);
 
     const result = {
       biconomySmartAccount,
@@ -145,12 +158,12 @@ export default function useParticleAuth() {
    * @async
    * @function
    * @param {ParticleAuthModule.UserInfo} userInfo - The user info object.
-   * @param {BiconomySmartAccount} smartAccount - The Biconomy Smart Account object.
+   * @param {BiconomySmartAccountV2} smartAccount - The Biconomy Smart Account object.
    * @returns {Promise<any>} A promise that resolves to a Transak object.
    */
   const fundYourSmartAccount = async (
     userInfo: ParticleAuthModule.UserInfo,
-    smartAccount: BiconomySmartAccount,
+    smartAccount: BiconomySmartAccountV2,
   ): Promise<any> => {
     try {
       const biconomySmartAccount = smartAccount;
@@ -158,7 +171,7 @@ export default function useParticleAuth() {
         throw new Error('biconomySmartAccount is undefined');
 
       const smartAccountAddress =
-        await biconomySmartAccount.getSmartAccountAddress();
+        await biconomySmartAccount.getAccountAddress();
 
       const transakData = {
         walletAddress: smartAccountAddress,

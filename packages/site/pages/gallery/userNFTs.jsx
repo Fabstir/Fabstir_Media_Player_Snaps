@@ -58,7 +58,7 @@ export default function UserNFTs() {
    * State to hold the submit button text.
    * @type {[string, Function]}
    */
-  const [submitText, setSubmitText] = useState('Add NFT');
+  const [submitText, setSubmitText] = useState('Create NFT');
 
   /**
    * State to trigger re-rendering of the UserNFTs component.
