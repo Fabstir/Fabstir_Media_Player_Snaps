@@ -11,6 +11,7 @@ import {
   convertBytesToBase64url,
 } from '../utils/s5EncryptCIDHelper';
 import { ffmpegprogressstate } from '../atoms/ffmpegAtom';
+import { CheckIcon } from '@heroicons/react/24/solid';
 
 /**
  * ProgressBar Component
@@ -105,7 +106,7 @@ const DropVideoS5 = ({ field, twStyle, text, encKey }) => {
           {...getRootProps()}
           className={`mt-8 flex flex-col ${twStyle} relative mx-auto rounded-md border-2 border-fabstir-gray bg-fabstir-dark-gray fill-current text-fabstir-light-gray shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:items-center sm:justify-center sm:text-center sm:text-sm`}
         >
-          {!watchUrl && !ffmpegProgress && (
+          {!watchUrl && !ffmpegProgress ? (
             <div>
               <input
                 {...getInputProps()}
@@ -138,6 +139,8 @@ const DropVideoS5 = ({ field, twStyle, text, encKey }) => {
               {/* {transcodeVideoInfo?.isLoading && <p>Transcoding...</p>}
               {transcodeVideoInfo?.isError && <p>Transcode error</p>} */}
             </div>
+          ) : (
+            <CheckIcon className="ml-2 w-6" />
           )}
 
           {ffmpegProgress > 0 &&

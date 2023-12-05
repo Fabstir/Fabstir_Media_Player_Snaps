@@ -130,7 +130,7 @@ export default function RenderModel({
       };
       renderModels();
     }
-  }, [nft, isWasmReady]);
+  }, [nft, isWasmReady, modelUris]);
 
   return (
     <canvas

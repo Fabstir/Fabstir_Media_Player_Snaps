@@ -52,6 +52,7 @@
     "uuid": "^9.0.1",
     "video.js": "^7.20.3",
     "videojs-resolution-switcher": "^0.4.2",
+    "videojs-resolution-switcher-vjs7": "^1.0.0",
     "web3modal": "^1.9.12",
     "yup": "^1.2.0"
   },

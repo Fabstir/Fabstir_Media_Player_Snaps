@@ -19043,6 +19043,7 @@ __metadata:
     uuid: ^9.0.1
     video.js: ^7.20.3
     videojs-resolution-switcher: ^0.4.2
+    videojs-resolution-switcher-vjs7: ^1.0.0
     web3modal: ^1.9.12
     yup: ^1.2.0
   languageName: unknown
@@ -21005,6 +21006,13 @@ __metadata:
   version: 3.2.0
   resolution: "videojs-font@npm:3.2.0"
   checksum: 3c773d4a64123c237c26029a5d04c51919e3b6e688db0a20c6f9c647198ec815425d96a62dd24989046f27aa583c96cecae715f789f8d98452b4df419c23158a
+  languageName: node
+  linkType: hard
+
+"videojs-resolution-switcher-vjs7@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "videojs-resolution-switcher-vjs7@npm:1.0.0"
+  checksum: b0cde48bce9c540bfa2864361630ef29d0209735226cea8dac96e7bc01a70bb66223133d7a27900cd354f185b54fc55ff9ee53c1b411bc07c01bc2d56b166734
   languageName: node
   linkType: hard
 

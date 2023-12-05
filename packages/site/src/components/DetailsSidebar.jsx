@@ -182,11 +182,11 @@ export default function DetailsSidebar({
     }
 
     (async () => {})();
-  }, [currentNFT, currentNFT?.image]);
+  }, [currentNFT, currentNFT?.image, isWasmReady]);
 
   useEffect(() => {
     if (!nft) return;
-    setIs3dModel(false);
+    //    setIs3dModel(false);
 
     console.log('DetailsSidebar: nft.image = ', nft?.image);
     (async () => {
@@ -404,6 +404,12 @@ export default function DetailsSidebar({
               <div
                 id="nftFrame"
                 className="aspect-h-7 aspect-w-10 block w-full rounded-lg shadow-2xl shadow-fabstir-black/50"
+                style={{
+                  display:
+                    nft && nftImage && !nft.video && !nft.audio
+                      ? 'block'
+                      : 'none',
+                }}
               >
                 <div className="relative">
                   <RenderModel

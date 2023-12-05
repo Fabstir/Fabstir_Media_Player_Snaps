@@ -105,7 +105,7 @@ export default function UserNFTs() {
       <button className="my-2" onClick={handleBackToRoot}>
         <div className="flex justify-center">
           <ArrowLongLeftIcon
-            className="h-6 w-6 font-bold text-gray-500 lg:h-8 lg:w-8 mr-2 pb-2"
+            className="h-6 w-6 font-bold text-gray-500 lg:h-8 lg:w-8 pb-2"
             aria-hidden="true"
           />
           Back to Root
