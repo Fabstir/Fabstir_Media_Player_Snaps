@@ -84,12 +84,12 @@ export default function UserNFTs() {
         <div className="flex flex-1 flex-col items-stretch overflow-hidden overflow-y-auto rounded-sm">
           <UserNFTsSection
             theTitle="My NFTs"
-            twStyle="grid grid-cols-8 gap-x-4 gap-y-8 sm:grid-cols-3 sm:gap-x-4 md:grid-cols-5 md:gap-x-5 lg:grid-cols-6 xl:gap-x-5 xl:grid-cols-4 2xl:grid-cols-5 2xl:gap-x-5 3xl:grid-cols-8 ml-2"
+            twStyle="grid sm:grid-cols-2 sm:gap-x-2 md:grid-cols-3 md:gap-x-3 lg:grid-cols-4 xl:gap-x-3 xl:grid-cols-4 2xl:grid-cols-5 2xl:gap-x-4 3xl:grid-cols-5 ml-2"
             twTitleStyle="text-xs sm:text-xs md:text-sm lg:text-sm xl:text-lg 2xl:text-lg"
             twTextStyle="text-xs sm:text-xs md:text-xs lg:text-sm xl:text-sm 2xl:text-md"
           />
         </div>
-        <div className="mx-auto xl:w-1/2">
+        <div className="mx-auto w-full">
           <DetailsSidebar currentNFT={currentNFT} />
         </div>
       </div>
