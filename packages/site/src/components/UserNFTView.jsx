@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import usePortal from '../hooks/usePortal';
 import ThumbnailArt from './ThumbnailArt';
 import ThumbnailFilm from './ThumbnailFilm';
+import ThumbnailMusic from './ThumbnailMusic';
 import { DocumentDuplicateIcon } from '@heroicons/react/24/outline';
 import { useRecoilState } from 'recoil';
 import { selectedparentnftaddressid } from '../atoms/nestableNFTAtom';
@@ -108,6 +109,17 @@ export default function UserNFTView({
           <ThumbnailFilm
             nft={nft}
             posterImage={nftPosterImage}
+            twTitleStyle={twTitleStyle}
+            twTextStyle={twTextStyle}
+            handleSubmit_AddEntityToList={handleSubmit_AddEntityToList}
+            handleSubmit_RemoveEntityFromList={
+              handleSubmit_RemoveEntityFromList
+            }
+          />
+        ) : nft.type === 'audio' && nftBackDropImage ? (
+          <ThumbnailMusic
+            nft={nft}
+            nftImage={nftBackDropImage}
             twTitleStyle={twTitleStyle}
             twTextStyle={twTextStyle}
             handleSubmit_AddEntityToList={handleSubmit_AddEntityToList}

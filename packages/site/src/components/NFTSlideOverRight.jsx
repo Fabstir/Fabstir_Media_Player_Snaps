@@ -10,6 +10,7 @@ import { useFormContext } from 'react-hook-form';
 import DropFile from './DropFile';
 import DropImage from './DropImage';
 import DropVideoS5 from './DropVideoS5';
+import DropAudioS5 from './DropAudioS5';
 
 /**
  * The NFTSlideOverRight component represents the right section of a slide-over panel for creating a new NFT.
@@ -31,6 +32,10 @@ const NFTSlideOverRight = ({ encKey }) => {
 
   const [videoGenresSet, setVideoGenresSet] = useState(
     new Set(getValues('genres')),
+  );
+
+  const [musicGenresSet, setMusicGenresSet] = useState(
+    new Set(getValues('musicGenres')),
   );
 
   useEffect(() => {
@@ -131,6 +136,15 @@ const NFTSlideOverRight = ({ encKey }) => {
     setValue('genres', [...theGenres]);
   };
 
+  const handle_MusicGenres = (genreId) => {
+    const theMusicGenres = new Set(musicGenresSet);
+    if (theMusicGenres.has(genreId)) theMusicGenres.delete(genreId);
+    else theMusicGenres.add(genreId);
+
+    setMusicGenresSet(theMusicGenres);
+    setValue('musicGenres', [...theMusicGenres]);
+  };
+
   return (
     <section
       aria-labelledby="summary-heading"
@@ -152,31 +166,17 @@ const NFTSlideOverRight = ({ encKey }) => {
               text="<NFT image (1:1)>"
             />
 
-            <div className="grid grid-cols-3 gap-4 sm:gap-7">
-              <div className="col-span-2">
-                <DropImage
-                  field="backDropImage"
-                  twStyle="aspect-[16/9]"
-                  text="<backdrop image (16:9)>"
-                />
-              </div>
+            <DropImage
+              field="backDropImage"
+              twStyle="w-1/2 aspect-[16/9]"
+              text="<backdrop image (16:9)>"
+            />
 
-              <div className="col-span-1">
-                <DropImage
-                  field="posterImage"
-                  twStyle="aspect-[2/3]"
-                  text="<poster image (2:3)>"
-                  image="posterImage"
-                />
-              </div>
-            </div>
-
-            <DropFile
-              field="fileUrls"
-              fieldName="fileNames"
-              twStyle="w-1/2 aspect-[3/2]"
-              text="<file>"
-              maxNumberOfFiles={10}
+            <DropImage
+              field="posterImage"
+              twStyle="w-1/4 aspect-[2/3]"
+              text="<poster image (2:3)>"
+              image="posterImage"
             />
 
             <DropVideoS5
@@ -197,12 +197,64 @@ const NFTSlideOverRight = ({ encKey }) => {
                 >
                   <div>
                     <input
-                      className="form-check-input float-left mr-2 mt-1 h-4 w-4 cursor-pointer appearance-none rounded-sm border border-gray-300 bg-fabstir-dark-gray bg-contain bg-center bg-no-repeat align-top transition duration-200 checked:border-blue-600 checked:bg-blue-600 focus:outline-none"
+                      className="form-check-input float-left mr-2 mt-1 h-4 w-4 cursor-pointer appearance-none rounded-sm border border-gray-300 bg-fabstir-dark-gray bg-contain bg-center bg-no-repeat align-top transition duration-200  checked:border-gray-600 checked:bg-gray-600 focus:outline-none bg-white focus:outline-none"
                       type="checkbox"
                       id="inlineCheckbox1"
                       checked={videoGenresSet?.has(genreId)}
                       value={genreId}
                       onChange={() => handle_FilmGenres(genreId)}
+                    />
+                    <label
+                      className="form-check-label inline-block text-sm text-fabstir-light-gray"
+                      for="inlineCheckbox1"
+                    >
+                      {genre}
+                    </label>
+                  </div>
+                </li>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {watchType === 'audio' && (
+          <div>
+            <DropImage
+              field="image"
+              twStyle="w-1/2 aspect-[1/1] rounded-xl"
+              text="<NFT image (1:1)>"
+            />
+
+            <DropImage
+              field="backDropImage"
+              twStyle="w-2/3 aspect-[16/9]"
+              text="<backdrop image (16:9)>"
+            />
+
+            <DropAudioS5
+              field="audio"
+              twStyle="w-1/2 aspect-[16/9]"
+              text="<audio>"
+              encKey={encKey}
+            />
+
+            <h2 className="mt-6 text-center text-3xl font-extrabold text-fabstir-light-gray">
+              Genres
+            </h2>
+            <div className="mt-3 flex grid grid-cols-4 justify-center">
+              {Object.entries(musicGenres).map(([genre, genreId]) => (
+                <li
+                  className="form-check form-check-inline col-span-1 flex flex-1"
+                  key={genreId}
+                >
+                  <div>
+                    <input
+                      className="form-check-input float-left mr-2 mt-1 h-4 w-4 cursor-pointer appearance-none rounded-sm border border-gray-300 bg-fabstir-dark-gray bg-contain bg-center bg-no-repeat align-top transition duration-200 checked:border-gray-600 checked:bg-gray-600 focus:outline-none bg-white"
+                      type="checkbox"
+                      id="inlineCheckbox1"
+                      checked={musicGenresSet?.has(genreId)}
+                      value={genreId}
+                      onChange={() => handle_MusicGenres(genreId)}
                     />
                     <label
                       className="form-check-label inline-block text-sm text-fabstir-light-gray"

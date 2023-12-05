@@ -352,7 +352,7 @@ export default function useS5net() {
     console.log('getTranscodedMetadata: transcoded url = ', transcodeUrl);
 
     try {
-      const response = await fetch(transcodeUrl, { method: 'POST' });
+      const response = await fetch(transcodeUrl, { method: 'GET' });
       console.log('getTranscodedMetadata: response = ', response);
 
       if (!response.ok) {
@@ -391,66 +391,6 @@ export default function useS5net() {
       throw error;
     }
   }
-  /**
-   * Updates the `transcodesCompleted` state with the given value.
-   *
-   * @param {Array} value - The new value for the `transcodesCompleted` state.
-   */
-  async function updateTranscodesCompleted() {
-    // go through all pending, any that return a result then update 'media' node and remove from pending
-    console.log('TranscodesCompleted: start');
-
-    try {
-      const results = await new Promise((res) =>
-        user
-          .get('transcodes_pending')
-          .load((final_value) => res(final_value), { wait: 90 }),
-      );
-      console.log('TranscodesCompleted checked');
-      console.log('TranscodesCompleted: results = ', results);
-
-      if (results)
-        for (var cidScrambled in results) {
-          try {
-            const cid = await SEA.decrypt(cidScrambled, user._.sea);
-            const data = results[cidScrambled];
-
-            console.log('TranscodesCompleted: data = ', data);
-            console.log('TranscodesCompleted: cidScrambled = ', cidScrambled);
-
-            console.log('TranscodesCompleted: cid = ', cid);
-
-            if (data?.isTranscodePending) {
-              console.log(
-                'TranscodesCompleted: inside data?.isTranscodePending',
-              );
-              const metadata = await getTranscodedMetadata(cid);
-              if (metadata) {
-                console.log('TranscodesCompleted: metadata = ', metadata);
-
-                // data.isTranscodePending > 0 means that the file is encrypted
-                if (data.isTranscodePending) {
-                  const cidWithoutKey = removeKeyFromEncryptedCid(cid);
-                  console.log(
-                    'TranscodesCompleted: cidWithoutKey = ',
-                    cidWithoutKey,
-                  );
-
-                  putMetadata(cidWithoutKey, metadata);
-                } else putMetadata(cid, metadata); // unencrypted
-
-                //deleteTranscodePending(cid);
-              }
-            }
-          } catch (error) {
-            // Network errors or other unexpected issues. Stop retrying and propagate the error to the caller.
-            console.error('TranscodesCompleted: Unexpected error:', error);
-          }
-        }
-    } catch (e) {
-      console.error('TranscodesCompleted: e: ', e);
-    }
-  }
 
   return {
     uploadFile,
@@ -466,6 +406,5 @@ export default function useS5net() {
     setTranscodePending,
     getTranscodedMetadata,
     //    deleteTranscodePending,
-    updateTranscodesCompleted,
   };
 }

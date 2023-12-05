@@ -26,6 +26,7 @@ let defaultFormValues = {
   category: '',
   attributes: '',
   genres: [],
+  musicGenres: [],
   image: '',
   multiToken: false,
   tokenise: false,
@@ -35,7 +36,7 @@ let defaultFormValues = {
  * Valid values for the 'type' field.
  * @type {string[]}
  */
-const typeValues = ['image', 'video', 'other'];
+const typeValues = ['audio', 'image', 'video', 'other'];
 
 /**
  * Utility function to join class names.
@@ -120,6 +121,14 @@ const NFTSlideOver = ({
         then: () => yup.string().required('Video is required'),
         otherwise: () => yup.string(),
       }),
+    audio: yup
+      .string()
+      .notRequired()
+      .when('type', {
+        is: (type) => type === 'audio',
+        then: () => yup.string().required('Audio is required'),
+        otherwise: () => yup.string(),
+      }),
     fileUrls: yup
       .array()
       .notRequired()
@@ -168,7 +177,15 @@ const NFTSlideOver = ({
 
     if (data.type === 'video')
       nft.current = { ...data, genres: data.genres ? [...data.genres] : [] };
-    else nft.current = { ...data };
+    else if (data.type === 'audio') {
+      nft.current = {
+        ...data,
+        genres: data.musicGenres ? [...data.musicGenres] : [],
+      };
+
+      if (nft.current.hasOwnProperty('musicGenres'))
+        delete nft.current.musicGenres;
+    } else nft.current = { ...data };
 
     delete nft.current.fileNames;
 
@@ -193,7 +210,7 @@ const NFTSlideOver = ({
       return;
     }
 
-    createNFT(nft.current);
+    createNFT({ ...nft.current, encKey: encKey.current });
 
     methods.reset();
     setOpen(false);

@@ -237,7 +237,8 @@ const Index = () => {
         );
         console.log('index: nft = ', nft);
 
-        const isEncrypted = true;
+        const isEncrypted =
+          process.env.NEXT_PUBLIC_DEFAULT_IS_ENCRYPT === 'true';
         if (nft?.video) {
           await transcodeVideo(nft.video, isEncrypted, true);
           nftJSON = { isTranscodePending: true };

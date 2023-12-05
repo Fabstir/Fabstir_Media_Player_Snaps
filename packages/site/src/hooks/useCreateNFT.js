@@ -46,9 +46,11 @@ export default function useCreateNFT() {
 
       let newState;
 
-      if (nftJSON?.video) {
+      if (nftJSON?.video || nftJSON?.audio) {
         //        await transcodeVideo(nft, encryptionKey, true);
-        newState = { isTranscodePending: true };
+        if (nftJSON.encKey)
+          newState = { isTranscodePending: true, encKey: nftJSON.encKey };
+        else newState = { isTranscodePending: true };
       } else newState = {};
 
       await saveNFTtoState(`${nftJSON.address}_${nftJSON.id}`, newState);

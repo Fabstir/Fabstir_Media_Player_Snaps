@@ -19,7 +19,7 @@ module.exports = withSvgr({
         headers: [
           {
             key: 'Cross-Origin-Embedder-Policy',
-            value: 'no-cors',
+            value: 'unsafe-none',
             // value: 'require-corp',
           },
           {

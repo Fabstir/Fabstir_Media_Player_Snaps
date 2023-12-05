@@ -12,7 +12,7 @@ import {
 import usePortal from '../hooks/usePortal';
 import { removeAddress, addAddress, replaceAddress } from '../utils/snapsState';
 
-//import NFTAudioJS from './NFTAudioJS';
+import NFTAudioJS from './NFTAudioJS';
 import NFTFileUrls from './NFTFileUrls';
 import NFTVideoJS from './NFTVideoJS';
 import useMintNestableNFT from '../blockchain/useMintNestableNFT';
@@ -48,7 +48,6 @@ const nftInformationDecorator = (information) => {
         key !== 'name' &&
         key !== 'summary' &&
         key !== 'attributes' &&
-        key !== 'image' &&
         key !== 'multiToken' &&
         key !== 'tokenise' &&
         key !== 'subscriptionPlan' &&
@@ -460,6 +459,33 @@ export default function DetailsSidebar({
             <div>
               <div className="w-full overflow-hidden rounded-lg shadow-2xl shadow-fabstir-black/50">
                 <NFTVideoJS
+                  nft={nft}
+                  className="min-w-[256px] rounded-2xl bg-fabstir-dark-gray shadow-lg shadow-fabstir-black md:shadow-lg lg:shadow-xl xl:shadow-xl 2xl:shadow-xl 3xl:shadow-2xl"
+                />
+              </div>
+              <div className="mt-4 flex items-start justify-between">
+                <div>
+                  <div className="flex justify-between">
+                    <h2 className="text-lg font-medium text-fabstir-black">
+                      <span className="sr-only">Details for </span>
+                      {nft?.name}
+                    </h2>
+                    <p className="text-sm font-medium text-fabstir-light-gray">
+                      {nft?.price}
+                    </p>
+                  </div>
+                  <p className="mt-2 text-sm font-medium text-fabstir-light-gray/80">
+                    {nft?.summary}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {nft?.audio && (
+            <div>
+              <div className="w-full overflow-hidden rounded-lg shadow-2xl shadow-fabstir-black/50">
+                <NFTAudioJS
                   nft={nft}
                   className="min-w-[256px] rounded-2xl bg-fabstir-dark-gray shadow-lg shadow-fabstir-black md:shadow-lg lg:shadow-xl xl:shadow-xl 2xl:shadow-xl 3xl:shadow-2xl"
                 />

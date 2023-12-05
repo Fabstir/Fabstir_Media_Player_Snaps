@@ -1,5 +1,6 @@
 import useS5net from './useS5';
 import { saveState, loadState } from '../utils';
+import { combineKeytoEncryptedCid } from '../utils/s5EncryptCIDHelper';
 
 /**
  * A custom React hook that returns the video link for a given video cid to S5.
@@ -9,7 +10,7 @@ import { saveState, loadState } from '../utils';
  */
 export default function useVideoLinkS5() {
   const portNumber = parseInt(window.location.port, 10);
-  const { getMetadata, getTranscodedMetadata, putMetadata } = useS5net();
+  const { getTranscodedMetadata } = useS5net();
 
   /**
    * Generates player sources from metadata.
@@ -58,7 +59,15 @@ export default function useVideoLinkS5() {
         'useVideoLinkS5: const transcodedMetadata = await getTranscodedMetadata(cid)',
       );
 
-      const cid = nft.video;
+      let cid;
+
+      if (state.addresses.state[address].encKey)
+        cid = combineKeytoEncryptedCid(
+          state.addresses.state[address].encKey,
+          nft.video,
+        );
+      else cid = nft.video;
+
       console.log('useVideoLinkS5: cid = ', cid);
 
       const transcodedMetadata = await getTranscodedMetadata(cid);

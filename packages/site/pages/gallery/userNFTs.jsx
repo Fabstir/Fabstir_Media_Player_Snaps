@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
-
 import { useRouter } from 'next/router';
+import { ArrowLongLeftIcon } from '@heroicons/react/24/solid';
 
 const UserNFTsSection = dynamic(
   () => import('../../src/components/UserNFTsSection'),
@@ -102,8 +102,14 @@ export default function UserNFTs() {
         currentNFT
         setRerenderUserNFTs={setRerenderUserNFTs}
       />
-      <button className="mt-2" onClick={handleBackToRoot}>
-        Back to Root
+      <button className="my-2" onClick={handleBackToRoot}>
+        <div className="flex justify-center">
+          <ArrowLongLeftIcon
+            className="h-6 w-6 font-bold text-gray-500 lg:h-8 lg:w-8 mr-2 pb-2"
+            aria-hidden="true"
+          />
+          Back to Root
+        </div>
       </button>
     </>
   );

@@ -1,7 +1,8 @@
+/* This example requires Tailwind CSS v2.0+ */
 import React, { useCallback, useEffect, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useFormContext } from 'react-hook-form';
-import useTranscodeVideoS5 from '../hooks/useTranscodeVideoS5';
+import useTranscodeAudioS5 from '../hooks/useTranscodeAudioS5';
 import { useRecoilValue, useRecoilState } from 'recoil';
 import usePortal from '../hooks/usePortal';
 import {
@@ -10,14 +11,9 @@ import {
   removeKeyFromEncryptedCid,
   convertBytesToBase64url,
 } from '../utils/s5EncryptCIDHelper';
+import useS5net from '../hooks/useS5';
 import { ffmpegprogressstate } from '../atoms/ffmpegAtom';
 
-/**
- * ProgressBar Component
- * @param {Object} props - Properties passed to the component
- * @param {number} props.progressPercentage - The percentage of the progress to be displayed
- * @returns {JSX.Element} - Rendered ProgressBar component
- */
 const ProgressBar = ({ progressPercentage }) => {
   return (
     <div className="h-2 w-full bg-fabstir-blue">
@@ -34,15 +30,16 @@ const ProgressBar = ({ progressPercentage }) => {
 };
 
 /**
- * DropVideoS5 Component
- * @param {Object} props - Properties passed to the component
- * @param {string} props.field - The field name
- * @param {string} props.twStyle - Tailwind CSS styles as a string
- * @param {string} props.text - Text to display in the dropzone
- * @param {Object} props.encKey - Encryption key reference
- * @returns {JSX.Element} - Rendered DropVideoS5 component
+ * DropAudioS5 component.
+ *
+ * @param {Object} props - The component props.
+ * @param {string} props.field - The field name.
+ * @param {string} props.twStyle - The tailwind CSS style.
+ * @param {string} props.text - The text to display.
+ * @param {Object} props.encKey - The encryption key.
+ * @returns {JSX.Element} The DropAudioS5 component.
  */
-const DropVideoS5 = ({ field, twStyle, text, encKey }) => {
+const DropAudioS5 = ({ field, twStyle, text, encKey }) => {
   const {
     watch,
     setValue,
@@ -52,14 +49,16 @@ const DropVideoS5 = ({ field, twStyle, text, encKey }) => {
   const watchUrl = watch(field);
 
   const { uploadFile } = usePortal();
-  const { transcodeVideo } = useTranscodeVideoS5();
+  const { transcodeAudio } = useTranscodeAudioS5();
+
+  const { putMetadata } = useS5net();
 
   const [ffmpegProgress, setFFMPEGProgress] =
     useRecoilState(ffmpegprogressstate);
 
   const onDrop = useCallback(async (acceptedFiles) => {
     // Do something with the files
-    console.log('DropVideoS5: acceptedFiles = ', acceptedFiles);
+    console.log('DropAudioS5: acceptedFiles = ', acceptedFiles);
 
     if (!acceptedFiles || acceptedFiles.length !== 1) {
       alert('Please upload single image only');
@@ -70,29 +69,33 @@ const DropVideoS5 = ({ field, twStyle, text, encKey }) => {
 
     const customOptions = { encrypt: isEncrypted };
     const file = acceptedFiles[0];
-    const sourceCID = await uploadFile(file, customOptions);
+    const origSourceCID = await uploadFile(file, customOptions);
+    const sourceCID = origSourceCID.replace(
+      /\.[^/.]+$/,
+      process.env.NEXT_PUBLIC_DEFAULT_AUDIO_FILE_EXTENSION,
+    );
 
     let key = '';
     if (customOptions.encrypt) {
-      console.log('DropVideoS5: sourceCID = ', sourceCID);
+      console.log('DropAudioS5: sourceCID = ', sourceCID);
 
       key = getKeyFromEncryptedCid(sourceCID);
       encKey.current = key;
 
       const cidWithoutKey = removeKeyFromEncryptedCid(sourceCID);
-      console.log('DropVideoS5: cidWithoutKey= ', cidWithoutKey);
+      console.log('DropAudioS5: cidWithoutKey= ', cidWithoutKey);
 
       setValue(field, cidWithoutKey);
     } else {
       encKey.current = '';
       setValue(field, sourceCID);
 
-      console.log('DropVideoS5: sourceCID = ', sourceCID);
+      console.log('DropAudioS5: sourceCID = ', sourceCID);
     }
 
-    console.log('DropVideoS5: field = ', field);
+    console.log('DropAudioS5: field = ', field);
 
-    await transcodeVideo(sourceCID, isEncrypted, true);
+    await transcodeAudio(origSourceCID, isEncrypted);
     setFFMPEGProgress(0);
   }, []);
 
@@ -135,14 +138,14 @@ const DropVideoS5 = ({ field, twStyle, text, encKey }) => {
                 </p>
               )}
 
-              {/* {transcodeVideoInfo?.isLoading && <p>Transcoding...</p>}
-              {transcodeVideoInfo?.isError && <p>Transcode error</p>} */}
+              {/* {transcodeAudioInfo?.isLoading && <p>Transcoding...</p>}
+              {transcodeAudioInfo?.isError && <p>Transcode error</p>} */}
             </div>
           )}
 
           {ffmpegProgress > 0 &&
             ffmpegProgress < 1 &&
-            !transcodeVideoInfo?.isSuccess && (
+            !transcodeAudioInfo?.isSuccess && (
               <div
                 className={`flex flex-col ${twStyle} mx-auto rounded-md border-2 border-fabstir-gray bg-fabstir-dark-gray fill-current text-fabstir-light-gray shadow-sm sm:items-center sm:justify-center sm:text-center sm:text-sm`}
               >
@@ -159,4 +162,4 @@ const DropVideoS5 = ({ field, twStyle, text, encKey }) => {
   );
 };
 
-export default DropVideoS5;
+export default DropAudioS5;

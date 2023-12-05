@@ -1,5 +1,3 @@
-import useS5net from './useS5';
-
 /**
  * Custom hook that provides a function to transcode a video using the S5net transcoder service.
  *
@@ -72,7 +70,7 @@ export default function useTranscodeVideoS5() {
 
     const url = `${
       process.env.NEXT_PUBLIC_TRANSCODER_CLIENT_URL
-    }/transcode?source_cid=${cid}&video_formats=${JSON.stringify(
+    }/transcode?source_cid=${cid}&media_formats=${JSON.stringify(
       videoFormats,
     )}&is_encrypted=${isEncrypted}&is_gpu=${isGPU}`;
     console.log('useTranscodeVideoS5: url = ', url);
