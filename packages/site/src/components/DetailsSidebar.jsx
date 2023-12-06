@@ -423,7 +423,7 @@ export default function DetailsSidebar({
                   <img
                     src={nftImage}
                     alt=""
-                    className="mx-auto object-cover relative z-30"
+                    className="mx-auto object-cover relative z-30 w-full"
                     crossOrigin="anonymous"
                     style={{ visibility: is3dModel ? 'hidden' : 'visible' }}
                   />

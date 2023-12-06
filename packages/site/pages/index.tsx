@@ -54,8 +54,8 @@ const Index = () => {
   const [triggerEffect, setTriggerEffect] = useState(0);
 
   const [addresses, setAddresses] = useState({}); // initialize with an empty array of type string[]
-  const [newAddress, setNewAddress] = useState<string>('');
-  const [removeAddress, setRemoveAddress] = useState<string>('');
+  const [newAddresses, setNewAddresses] = useState<string>('');
+  const [removeAddresses, setRemoveAddresses] = useState<string>('');
 
   const [readyToExecute, setReadyToExecute] = useState(false);
 
@@ -102,6 +102,10 @@ const Index = () => {
   const [transak, setTransak] = useState<any>(undefined);
 
   const { socialLogin, fundYourSmartAccount, logout } = useParticleAuth();
+
+  const [errorsAddAddresses, setErrorsAddAddresses] = useState<string>('');
+  const [errorsRemoveAddresses, setErrorsRemoveAddresses] =
+    useState<string>('');
 
   useEffect(() => {
     // Update the context value
@@ -187,11 +191,12 @@ const Index = () => {
      * Handles adding a new address to the list of addresses.
      * If the NFT is a video, it ingests and transcodes it.
      */
-    const handleAddAddress = async () => {
+    const handleAddAddresses = async () => {
       const { provider } = blockchainContext;
       if (!provider || !smartAccount) {
         // Handle the case when provider or smartAccount is not available
         console.error('Provider or smartAccount is undefined');
+        setErrorsAddAddresses('Not logged in.');
         return;
       }
 
@@ -210,54 +215,66 @@ const Index = () => {
       };
       console.log('index: handleAddAddress: after downloadFile');
 
-      const [addressId, encryptionKey] = newAddress.split(',');
-      console.log('index: handleAddAddress: addressId = ', addressId);
+      const addressesList = newAddresses.split('\n');
 
-      const [address, id] = addressId.split('_');
+      interface Addresses {
+        [key: string]: any; // Replace `any` with the actual type of the values
+      }
+      const updatedAddresses: Addresses = { ...addresses };
 
-      if (!provider)
-        throw new Error('index: handleAddAddress: provider is null');
+      for (const anAddress of addressesList) {
+        const [addressId, encryptionKey] = anAddress.split(',');
+        console.log('index: handleAddAddress: addressId = ', addressId);
 
-      const isERC721 = await getIsERC721NonHook(address, provider);
-      if (!isERC721)
-        throw new Error('index: handleAddAddress: address is not ERC721');
+        const [address, id] = addressId.split('_');
 
-      let nftJSON = {};
+        if (!provider)
+          throw new Error('index: handleAddAddress: provider is null');
 
-      const isNestableNFT = await getIsNestableNFTNonHook(address, provider);
-      if (!isNestableNFT) {
-        interface Nft {
-          video?: any; // Replace `any` with the actual type of `video`
-          // Define other properties of `nft` here
+        const isERC721 = await getIsERC721NonHook(address, provider);
+        if (!isERC721)
+          throw new Error('index: handleAddAddress: address is not ERC721');
+
+        let nftJSON = {};
+
+        const isNestableNFT = await getIsNestableNFTNonHook(address, provider);
+        if (!isNestableNFT) {
+          interface Nft {
+            video?: any; // Replace `any` with the actual type of `video`
+            // Define other properties of `nft` here
+          }
+          const nft: Nft | null = await fetchNFT(
+            addressId,
+            provider,
+            downloadFile,
+          );
+          console.log('index: nft = ', nft);
+
+          const isEncrypted =
+            process.env.NEXT_PUBLIC_DEFAULT_IS_ENCRYPT === 'true';
+          if (nft?.video) {
+            await transcodeVideo(nft.video, isEncrypted, true);
+            nftJSON = { isTranscodePending: true };
+          }
         }
-        const nft: Nft | null = await fetchNFT(
-          addressId,
-          provider,
-          downloadFile,
+
+        console.log('index: handleAddAddress: nftJSON = ', nftJSON);
+
+        updatedAddresses[addressId as string] = nftJSON;
+        console.log(
+          'index: handleAddAddress: updatedAddresses = ',
+          updatedAddresses,
         );
-        console.log('index: nft = ', nft);
-
-        const isEncrypted =
-          process.env.NEXT_PUBLIC_DEFAULT_IS_ENCRYPT === 'true';
-        if (nft?.video) {
-          await transcodeVideo(nft.video, isEncrypted, true);
-          nftJSON = { isTranscodePending: true };
-        }
       }
 
-      console.log('index: handleAddAddress: nftJSON = ', nftJSON);
+      setAddresses(updatedAddresses);
+      await saveState(updatedAddresses);
 
-      const newAddresses = { ...addresses, [addressId as string]: nftJSON };
-      console.log('index: handleAddAddress: newAddresses = ', newAddresses);
-
-      setAddresses(newAddresses);
-      await saveState(newAddresses);
-
-      setNewAddress('');
+      setNewAddresses('');
     };
     if (triggerEffect > 0) {
       // Or check if the flag is true, if using a boolean
-      handleAddAddress();
+      handleAddAddresses();
     }
   }, [triggerEffect]);
 
@@ -265,15 +282,34 @@ const Index = () => {
    * Handles removing an address from the list of addresses.
    * Deletes the address from the saved state and updates the addresses state.
    */
-  const handleRemoveAddress = async () => {
-    console.log('handleRemoveAddress: removeAddress = ', removeAddress);
+  const handleRemoveAddresses = async () => {
+    if (!smartAccount) {
+      // Handle the case when provider or smartAccount is not available
+      console.error('Provider or smartAccount is undefined');
+      setErrorsRemoveAddresses('Not logged in.');
+      return;
+    }
 
-    const newAddresses = { ...addresses };
-    delete newAddresses[removeAddress as keyof typeof newAddresses];
+    console.log('handleRemoveAddress: removeAddress = ', removeAddresses);
+
+    interface Addresses {
+      [key: string]: any; // Replace `any` with the actual type of the values
+    }
+
+    const newAddresses: Addresses = { ...addresses };
+
+    const addressesList = removeAddresses.split('\n');
+
+    for (const address of addressesList) {
+      if (address in newAddresses) {
+        delete newAddresses[address];
+      }
+    }
+
     await saveState(newAddresses);
 
     setAddresses(newAddresses);
-    setRemoveAddress('');
+    setRemoveAddresses('');
   };
 
   /**
@@ -359,6 +395,9 @@ const Index = () => {
 
       setUserInfo(userInfo);
       setLoading(false);
+
+      setErrorsAddAddresses('');
+      setErrorsRemoveAddresses('');
     } catch (e) {
       const errorMessage = 'index: connect: error received';
       console.error(`${errorMessage} ${e.message}`);
@@ -568,29 +607,36 @@ const Index = () => {
           ))}
         </ul>
       </div>
-      <input
-        className="mt-4 border-blue-100 border-2 text-sm p-1"
-        value={newAddress}
-        onChange={(e) => setNewAddress(e.target.value)}
-        placeholder="Enter address"
-      />
-      <button
-        className="bg-blue-100 p-1"
-        onClick={() => setTriggerEffect((prev) => prev + 1)}
-      >
-        Add Address
-      </button>
-      <br />
-      <input
-        className="mt-4 border-blue-100 border-2 text-sm p-1"
-        value={removeAddress}
-        onChange={(e) => setRemoveAddress(e.target.value)}
-        placeholder="Enter address to remove"
-      />
-      <button className="bg-blue-100 p-1" onClick={handleRemoveAddress}>
-        Remove Address
-      </button>
-      <br />
+      <div className="flex flex-1">
+        <textarea
+          className="mt-4 border-blue-100 border-2 text-sm p-1 w-[26rem]"
+          value={newAddresses}
+          onChange={(e) => setNewAddresses(e.target.value)}
+          placeholder="Enter addresses"
+        />
+        <button
+          className="bg-blue-100 p-1 h-8 m-4"
+          onClick={() => setTriggerEffect((prev) => prev + 1)}
+        >
+          Add Addresses
+        </button>
+      </div>
+      <p className=" text-red-600 pb-2">{errorsAddAddresses}</p>
+      <div className="flex flex-1">
+        <textarea
+          className="mt-4 border-blue-100 border-2 text-sm p-1 w-[26rem]"
+          value={removeAddresses}
+          onChange={(e) => setRemoveAddresses(e.target.value)}
+          placeholder="Enter address to remove"
+        />
+        <button
+          className="bg-blue-100 p-1 h-8 m-4"
+          onClick={handleRemoveAddresses}
+        >
+          Remove Addresses
+        </button>
+      </div>
+      <p className=" text-red-600 pb-2">{errorsRemoveAddresses}</p>
       <button
         className="bg-blue-100 text-xl mt-4"
         onClick={handleLoadAddresses}

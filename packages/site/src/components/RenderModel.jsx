@@ -56,6 +56,24 @@ export default function RenderModel({
       );
       return { width: canvas.clientWidth, height: canvas.clientHeight };
     };
+
+    // // Cleanup function
+    // return () => {
+    //   const stopRender = async () => {
+    //     await stop_render(canvasRef.current);
+
+    //     // load_model = null;
+    //     // render_model = null;
+    //     // stop_render = null;
+    //     setIsWasmReady(false);
+
+    //     if (window.gc) {
+    //       window.gc();
+    //     }
+    //   };
+
+    //   stopRender();
+    // };
   }, []);
 
   async function handleRenderModel(uris) {

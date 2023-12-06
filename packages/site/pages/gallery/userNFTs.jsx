@@ -84,7 +84,7 @@ export default function UserNFTs() {
         <div className="flex flex-1 flex-col items-stretch overflow-hidden overflow-y-auto rounded-sm">
           <UserNFTsSection
             theTitle="My NFTs"
-            twStyle="grid sm:grid-cols-2 sm:gap-x-2 md:grid-cols-3 md:gap-x-3 lg:grid-cols-4 xl:gap-x-3 xl:grid-cols-4 2xl:grid-cols-5 2xl:gap-x-4 3xl:grid-cols-5 ml-2"
+            twStyle="grid sm:grid-cols-2 sm:gap-x-2 md:grid-cols-3 md:gap-x-3 lg:grid-cols-4 xl:gap-x-3 xl:grid-cols-5 2xl:grid-cols-6 2xl:gap-x-4 3xl:grid-cols-7 ml-2"
             twTitleStyle="text-xs sm:text-xs md:text-sm lg:text-sm xl:text-lg 2xl:text-lg"
             twTextStyle="text-xs sm:text-xs md:text-xs lg:text-sm xl:text-sm 2xl:text-md"
           />
