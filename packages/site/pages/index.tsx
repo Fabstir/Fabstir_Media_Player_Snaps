@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 
 import { MetamaskActions, MetaMaskContext } from '../src/hooks';
@@ -16,6 +16,8 @@ import {
 } from '@biconomy/account';
 import { IPaymaster, BiconomyPaymaster } from '@biconomy/paymaster';
 import { ChainId } from '@biconomy/core-types';
+
+import { v4 as uuidv4 } from 'uuid';
 
 import {
   IHybridPaymaster,
@@ -43,21 +45,28 @@ import { getIsERC721NonHook } from '../src/blockchain/useMintNFT';
 import useParticleAuth from '../src/blockchain/useParticleAuth';
 import config from '../config.json';
 import useTranscodeVideoS5 from '../src/hooks/useTranscodeVideoS5';
+import { saveAs } from 'file-saver';
 
 type NFTCollection = {
   [address: string]: object;
 };
+
+interface Addresses {
+  [key: string]: any; // Replace `any` with the actual type of the values
+}
 
 const Index = () => {
   const [state, dispatch] = useContext(MetaMaskContext);
   const emptyStringArray = new Array<string>();
   const [triggerEffect, setTriggerEffect] = useState(0);
 
-  const [addresses, setAddresses] = useState({}); // initialize with an empty array of type string[]
+  const [addresses, setAddresses] = useState<Addresses>({}); // initialize with an empty array of type string[]
   const [newAddresses, setNewAddresses] = useState<string>('');
   const [removeAddresses, setRemoveAddresses] = useState<string>('');
+  const [importKeys, setImportKeys] = useState<string>('');
+  const [exportKeys, setExportKeys] = useState<string>('');
 
-  const [readyToExecute, setReadyToExecute] = useState(false);
+  const fileImportKeysRef = useRef<HTMLInputElement>(null);
 
   //  const { getIsNestableNFT } = useMintNestableNFT();
 
@@ -106,6 +115,8 @@ const Index = () => {
   const [errorsAddAddresses, setErrorsAddAddresses] = useState<string>('');
   const [errorsRemoveAddresses, setErrorsRemoveAddresses] =
     useState<string>('');
+  const [errorsImportKeys, setErrorsImportKeys] = useState<string>('');
+  const [errorsExportKeys, setErrorsExportKeys] = useState<string>('');
 
   useEffect(() => {
     // Update the context value
@@ -217,9 +228,6 @@ const Index = () => {
 
       const addressesList = newAddresses.split('\n');
 
-      interface Addresses {
-        [key: string]: any; // Replace `any` with the actual type of the values
-      }
       const updatedAddresses: Addresses = { ...addresses };
 
       for (const anAddress of addressesList) {
@@ -306,10 +314,98 @@ const Index = () => {
       }
     }
 
+    setAddresses(newAddresses);
     await saveState(newAddresses);
 
-    setAddresses(newAddresses);
     setRemoveAddresses('');
+  };
+
+  const handleButtonImportKeys = () => {
+    if (!smartAccount) {
+      // Handle the case when provider or smartAccount is not available
+      console.error('Provider or smartAccount is undefined');
+      setErrorsImportKeys('Not logged in.');
+      return;
+    }
+
+    // Trigger the file input click event
+    if (!fileImportKeysRef.current) return;
+
+    fileImportKeysRef.current.click();
+  };
+
+  const handleImportKeys = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    if (!smartAccount) {
+      // Handle the case when provider or smartAccount is not available
+      console.error('Provider or smartAccount is undefined');
+      setErrorsImportKeys('Not logged in.');
+      return;
+    }
+
+    if (!event.target.files?.length) return;
+
+    if (!fileImportKeysRef.current || !event.target.files) return;
+
+    const file = event.target.files[0];
+
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      const contents = e.target?.result as string;
+
+      try {
+        const newAddresses = JSON.parse(contents);
+
+        const updatedAddresses = { ...addresses };
+
+        for (const key in newAddresses) {
+          if (importKeys.includes(key)) {
+            updatedAddresses[key] = newAddresses[key];
+          }
+        }
+
+        setAddresses(updatedAddresses);
+        const handleSaveState = async () => {
+          await saveState(updatedAddresses);
+        };
+
+        handleSaveState();
+      } catch (error) {
+        console.error('Error parsing JSON file:', error);
+      }
+    };
+
+    reader.readAsText(file);
+    setImportKeys('');
+  };
+
+  const handleExportKeys = () => {
+    if (!smartAccount) {
+      // Handle the case when provider or smartAccount is not available
+      console.error('Provider or smartAccount is undefined');
+      setErrorsExportKeys('Not logged in.');
+      return;
+    }
+
+    let result: { [key: string]: any } = {}; // Declare result as an object with string keys and values of any type
+
+    const exportKeysSplit = exportKeys.split('\n');
+    for (let key of exportKeysSplit) {
+      // Iterate over exportKeys
+      if (key in addresses) {
+        result[key] = addresses[key]; // If key is in addresses, add it to result
+      }
+    }
+
+    const json = JSON.stringify(result); // Stringify result, not exportKeys
+    const blob = new Blob([json], { type: 'application/json' });
+
+    const uniqueString = uuidv4().replace(/-/g, ''); // Generate a unique string and remove dashes
+
+    saveAs(blob, `mp_addresses_keys_${uniqueString}.json`);
+    setExportKeys('');
   };
 
   /**
@@ -398,6 +494,8 @@ const Index = () => {
 
       setErrorsAddAddresses('');
       setErrorsRemoveAddresses('');
+      setErrorsImportKeys('');
+      setErrorsExportKeys('');
     } catch (e) {
       const errorMessage = 'index: connect: error received';
       console.error(`${errorMessage} ${e.message}`);
@@ -594,7 +692,7 @@ const Index = () => {
           Gallery
         </button>
       </Link>
-      <h1 className="mt-6">List of Addresses</h1>{' '}
+      <h1 className="mt-7">List of Addresses</h1>{' '}
       {/* Replaced Heading with h1 */}
       <div>
         {' '}
@@ -627,7 +725,7 @@ const Index = () => {
           className="mt-4 border-blue-100 border-2 text-sm p-1 w-[26rem]"
           value={removeAddresses}
           onChange={(e) => setRemoveAddresses(e.target.value)}
-          placeholder="Enter address to remove"
+          placeholder="Enter addresses to remove"
         />
         <button
           className="bg-blue-100 p-1 h-8 m-4"
@@ -637,6 +735,40 @@ const Index = () => {
         </button>
       </div>
       <p className=" text-red-600 pb-2">{errorsRemoveAddresses}</p>
+      <div className="flex flex-1">
+        <textarea
+          className="mt-4 border-blue-100 border-2 text-sm p-1 w-[26rem]"
+          value={importKeys}
+          onChange={(e) => setImportKeys(e.target.value)}
+          placeholder="Import Keys: Enter Addresses"
+        />
+        <input
+          type="file"
+          style={{ display: 'none' }}
+          ref={fileImportKeysRef}
+          onChange={handleImportKeys}
+          accept=".json"
+        />
+        <button
+          className="bg-blue-100 p-1 h-8 m-4"
+          onClick={handleButtonImportKeys}
+        >
+          Import Keys
+        </button>
+      </div>
+      <p className=" text-red-600 pb-2">{errorsImportKeys}</p>
+      <div className="flex flex-1">
+        <textarea
+          className="mt-4 border-blue-100 border-2 text-sm p-1 w-[26rem]"
+          value={exportKeys}
+          onChange={(e) => setExportKeys(e.target.value)}
+          placeholder="Export Keys: Enter Addresses"
+        />
+        <button className="bg-blue-100 p-1 h-8 m-4" onClick={handleExportKeys}>
+          Export Keys
+        </button>
+      </div>
+      <p className=" text-red-600 pb-2">{errorsExportKeys}</p>
       <button
         className="bg-blue-100 text-xl mt-4"
         onClick={handleLoadAddresses}
