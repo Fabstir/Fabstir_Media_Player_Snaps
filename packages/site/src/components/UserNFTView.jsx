@@ -3,7 +3,7 @@ import usePortal from '../hooks/usePortal';
 import ThumbnailArt from './ThumbnailArt';
 import ThumbnailFilm from './ThumbnailFilm';
 import ThumbnailMusic from './ThumbnailMusic';
-import { DocumentDuplicateIcon } from '@heroicons/react/24/outline';
+import { ArrowLongRightIcon } from '@heroicons/react/24/outline';
 import { useRecoilState } from 'recoil';
 import { selectedparentnftaddressid } from '../atoms/nestableNFTAtom';
 
@@ -143,8 +143,8 @@ export default function UserNFTView({
         )}
       </div>
       {nft?.isNestableNFT && (
-        <div className="absolute top-0 right-0 p-1">
-          <DocumentDuplicateIcon className="h-6 w-6 text-gray-700" />
+        <div className="absolute -top-8 right-0 p-1">
+          <ArrowLongRightIcon className="h-8 w-8 text-gray-400" />
         </div>
       )}
     </div>

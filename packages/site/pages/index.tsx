@@ -81,6 +81,12 @@ const Index = () => {
   const { transcodeVideo } = useTranscodeVideoS5() as UseTranscodeVideoS5Return;
 
   const blockchainContext = useContext(BlockchainContext);
+  const {
+    smartAccountProvider,
+    setSmartAccountProvider,
+    smartAccount,
+    setSmartAccount,
+  } = blockchainContext;
 
   const [currencyContractAddresses, setCurrencyContractAddresses] =
     useRecoilState(currencycontractaddressesstate);
@@ -100,11 +106,8 @@ const Index = () => {
   );
 
   const [smartAccountAddress, setSmartAccountAddress] = useState<string>('');
+
   const [loading, setLoading] = useState<boolean>(false);
-  const [smartAccount, setSmartAccount] =
-    useState<BiconomySmartAccountV2 | null>(null);
-  const [smartAccountProvider, setSmartAccountProvider] =
-    useState<Provider | null>(null);
 
   const [userInfo, setUserInfo] = useState<any>(undefined);
 
@@ -131,10 +134,11 @@ const Index = () => {
 
   useEffect(() => {
     // Update the context value
-    if (blockchainContext) {
-      blockchainContext.setSmartAccount(smartAccount);
-      console.log('index: blockchainContext.smartAccount = ', smartAccount);
-    }
+    const setSmartAccountAddressFn = async () => {
+      if (smartAccount)
+        setSmartAccountAddress(await smartAccount.getAccountAddress());
+    };
+    setSmartAccountAddressFn();
   }, [smartAccount]);
 
   //  const { getIsERC721 } = useMintNFT();
@@ -657,6 +661,7 @@ const Index = () => {
 
   async function handleLogout() {
     await logout();
+    setSmartAccount(null);
   }
 
   return (
@@ -665,7 +670,7 @@ const Index = () => {
       <button onClick={handleConnectClick}>Connect Snap</button>
       <br />
       <h1>Based Account Abstraction</h1>
-      {!loading && !smartAccountAddress && (
+      {!loading && !smartAccount && (
         <button
           onClick={connect}
           className="bg-blue-100 mt-4 p-1 text-xl font-semibold"
@@ -678,10 +683,10 @@ const Index = () => {
         Mint NFT
       </button> */}
       {loading && <p>Loading Smart Account...</p>}
-      {smartAccountAddress && (
+      {smartAccount && (
         <h2 className="">Smart Account: {smartAccountAddress}</h2>
       )}
-      {smartAccountAddress && (
+      {smartAccount && (
         <button onClick={handleLogout} className="bg-blue-100 mt-2 mb-6 p-1">
           Log out
         </button>

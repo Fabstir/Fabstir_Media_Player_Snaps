@@ -35,6 +35,7 @@ export default function useParticleAuth() {
     wallet: {
       displayWalletEntry: true,
       defaultWalletEntryPosition: ParticleAuthModule.WalletEntryPosition.BR,
+      uiMode: 'light',
     },
   });
 
@@ -97,13 +98,6 @@ export default function useParticleAuth() {
 
     console.log('Logged in user:', userInfo);
 
-    particle.setAuthTheme({
-      uiMode: 'dark',
-      displayCloseButton: true,
-      displayWallet: true, // display wallet entrance when send transaction.
-      modalBorderRadius: 10, // auth & wallet modal border radius. default 10.
-    });
-
     //support languages: en, zh-CN, zh-TW, zh-HK, ja, ko
     particle.setLanguage('en');
 
@@ -114,6 +108,13 @@ export default function useParticleAuth() {
     particle.setERC4337({
       name: 'BICONOMY',
       version: '2.0.0',
+    });
+
+    particle.setAuthTheme({
+      uiMode: 'light',
+      displayCloseButton: true,
+      displayWallet: true, // display wallet entrance when send transaction.
+      modalBorderRadius: 10, // auth & wallet modal border radius. default 10.
     });
 
     const particleProvider = new ParticleProvider(particle.auth);

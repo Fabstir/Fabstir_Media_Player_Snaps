@@ -90,7 +90,10 @@ export default function UserNFTs() {
           />
         </div>
         <div className="mx-auto w-full">
-          <DetailsSidebar currentNFT={currentNFT} />
+          <DetailsSidebar
+            currentNFT={currentNFT}
+            setCurrentNFT={setCurrentNFT}
+          />
         </div>
       </div>
       <NFTSlideOver

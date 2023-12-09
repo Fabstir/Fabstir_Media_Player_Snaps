@@ -127,12 +127,6 @@ const fetchNFTs = async (
     console.log('useNFTs: isNestableNFT = ', isNestableNFT);
 
     if (isNestableNFT) {
-      const contractNestableNFT = new Contract(
-        address,
-        FNFTNestable.abi,
-        provider,
-      );
-
       console.log('useNFTs: before childOf');
       //const child = await contractNestableNFT.childOf(id, 0);
       const child = await getChildOfNestableNFT(id, 0);
@@ -178,7 +172,17 @@ const fetchNFTs = async (
     }
 
     if (parentId || selectedParentNFTAddressId) {
-      nft.parentId = parentId;
+      {
+        nft.parentId = parentId;
+
+        const contractNestableNFT = new Contract(
+          address,
+          FNFTNestable.abi,
+          provider,
+        );
+
+        nft.parentOwner = await contractNestableNFT.ownerOf(parentId);
+      }
 
       if (isNestableNFT) {
         const modelUris = await getModelUrisFromNestedNFT(

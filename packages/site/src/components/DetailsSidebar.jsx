@@ -88,6 +88,7 @@ const twTextStyle = 'invisible';
  */
 export default function DetailsSidebar({
   currentNFT,
+  setCurrentNFT,
   width1,
   isTheatreMode,
   setIsTheatreMode,
@@ -246,7 +247,10 @@ export default function DetailsSidebar({
     console.log('DetailsSidebar: handleUpgradeToNestableNFT: token id = ', id);
 
     // now need to swap NFT address with nestable NFT address in Snaps state
-    await replaceAddress(`${nft.address}_${nft.id}`, `${address}_${id}`);
+    const newAddress = `${address}_${id}`;
+    await replaceAddress(`${nft.address}_${nft.id}`, newAddress);
+
+    setCurrentNFT(null);
   }
 
   /**
@@ -315,7 +319,10 @@ export default function DetailsSidebar({
       nft.id,
     );
 
-    await addAddress(`${address}_${id}`);
+    const newAddress = `${address}_${id}`;
+    await addAddress(newAddress);
+
+    setCurrentNFT(null);
   }
 
   /**
@@ -360,6 +367,8 @@ export default function DetailsSidebar({
       );
 
       removeFromNestableNFT(selectedNFT);
+
+      setCurrentNFT(null);
 
       console.log(
         `DetailsSidebar: handleSelectedToParent: added nft address ${selectedNFT.address} with token id ${selectedNFT.id} to nestableNFT = ${nestableNFT}`,
@@ -559,7 +568,7 @@ export default function DetailsSidebar({
                   className="bg-blue-100 p-1 text-sm"
                   onClick={handleAddToNestableNFT}
                 >
-                  Add to select
+                  Add to selected
                 </button>
               )}
             </div>
