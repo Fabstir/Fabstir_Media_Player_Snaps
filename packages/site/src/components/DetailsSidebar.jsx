@@ -98,6 +98,7 @@ export default function DetailsSidebar({
   const [nft, setNFT] = useState();
   const [isWasmReady, setIsWasmReady] = useState(false);
   const [fileUrls, setFileUrls] = useState(null);
+  const [canvasData, setCanvasData] = useRecoilState(canvasState);
 
   console.log('UserNFTView: inside DetailsSidebar');
   console.log('DetailsSidebar: nft = ', nft);

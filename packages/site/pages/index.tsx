@@ -1,6 +1,20 @@
 import React, { useContext, useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 
+import { Button } from '../src/ui-components/button';
+import { Description, Label } from '../src/ui-components/fieldset';
+import { Textarea } from '../src/ui-components/textarea';
+import { Field as HeadlessField } from '@headlessui/react';
+import { Input } from '../src/ui-components/input';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../src/ui-components/table';
+
 import { MetamaskActions, MetaMaskContext } from '../src/hooks';
 import Link from 'next/link';
 import { fetchNFT } from '../src/hooks/useNFT';
@@ -215,6 +229,8 @@ const Index = () => {
         return;
       }
 
+      if (!newAddresses) return;
+
       console.log('index: handleAddAddress: enter');
 
       const customClientOptions = {};
@@ -302,6 +318,8 @@ const Index = () => {
       return;
     }
 
+    if (!removeAddresses) return;
+
     console.log('handleRemoveAddress: removeAddress = ', removeAddresses);
 
     interface Addresses {
@@ -365,7 +383,7 @@ const Index = () => {
         const updatedAddresses = { ...addresses };
 
         for (const key in newAddresses) {
-          if (importKeys.includes(key)) {
+          if (!importKeys || importKeys.includes(key)) {
             updatedAddresses[key] = newAddresses[key];
           }
         }
@@ -666,17 +684,24 @@ const Index = () => {
 
   return (
     <div className="p-4">
-      <h1 className="uppercase text-2xl font-bold mb-4">Web3 Media Player</h1>
-      <button onClick={handleConnectClick}>Connect Snap</button>
+      <h1 className="uppercase text-2xl font-bold mb-6">Web3 Media Player</h1>
+      <Button
+        onClick={handleConnectClick}
+        outline
+        className="p-1 h-8 col-span-1 text-gray-800 dark:text-gray-800 border-gray-500 dark:border-gray-500"
+      >
+        Connect Snap
+      </Button>
       <br />
       <h1>Based Account Abstraction</h1>
       {!loading && !smartAccount && (
-        <button
+        <Button
           onClick={connect}
-          className="bg-blue-100 mt-4 p-1 text-xl font-semibold"
+          color="white"
+          className="mt-4 text-xl font-semibold dark:bg-gray-200 bg-gray-200"
         >
           Log in
-        </button>
+        </Button>
       )}
       <br />
       {/* <button onClick={mintNFT} className="">
@@ -687,66 +712,162 @@ const Index = () => {
         <h2 className="">Smart Account: {smartAccountAddress}</h2>
       )}
       {smartAccount && (
-        <button onClick={handleLogout} className="bg-blue-100 mt-2 mb-6 p-1">
+        <Button
+          onClick={handleLogout}
+          color="white"
+          className="mt-2 mb-6 dark:bg-gray-200 bg-gray-200"
+        >
           Log out
-        </button>
+        </Button>
       )}
       <br />
       <Link href="/gallery/userNFTs">
-        <button className="bg-blue-100 p-1 text-xl font-semibold">
-          Gallery
-        </button>
+        <Button
+          color="white"
+          className="p-1 text-2xl font-semibold dark:bg-gray-200 bg-gray-200 mt-2"
+        >
+          <p className="text-lg p-1 font-bold">Gallery</p>
+        </Button>
       </Link>
-      <h1 className="mt-7">List of Addresses</h1>{' '}
-      {/* Replaced Heading with h1 */}
-      <div>
-        {' '}
-        {/* Replaced Text with p */}
-        <ul>
-          {' '}
-          {/* Replaced UnorderedList with ul */}
-          {Object.keys(addresses).map((address) => (
-            <li key={address}>{address}</li>
-          ))}
-        </ul>
+      {/* <h1 className="mt-7 mb-4">List of Addresses</h1>{' '} */}
+
+      <div className="mt-6 mb-10">
+        <Button
+          color="white"
+          className="text-xl mt-4 dark:bg-gray-200 bg-gray-200"
+          onClick={handleLoadAddresses}
+        >
+          Display Addresses
+        </Button>
+
+        {Object.keys(addresses)?.length > 0 && (
+          <Table dense grid>
+            <TableHead>
+              <TableRow>
+                <TableHeader>Address Id</TableHeader>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {Object.keys(addresses).map((address) => (
+                <TableRow key={address}>
+                  <TableCell className="font-medium">{address}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </div>
-      <div className="flex flex-1">
-        <textarea
-          className="mt-4 border-blue-100 border-2 text-sm p-1 w-[26rem]"
-          value={newAddresses}
-          onChange={(e) => setNewAddresses(e.target.value)}
-          placeholder="Enter addresses"
-        />
-        <button
-          className="bg-blue-100 p-1 h-8 m-4"
+      {/* Replaced Heading with h1 */}
+      <div className="grid grid-cols-12">
+        <p className="col-span-12 text-gray-600 ml-4 mb-2">
+          Enter address ids as contract address and token id separated by `_`
+        </p>
+        <HeadlessField className="grid grid-cols-12 gap-6 p-4 border-2 border-gray-200 col-span-11">
+          <div className="col-span-5">
+            <Label className="text-gray-800 dark:text-gray-800">
+              Add Addresses
+            </Label>
+            <Description className="mt-1">
+              Enter address ids to add to the gallery.
+            </Description>
+          </div>
+          <div className="col-span-7">
+            <Textarea
+              name="addAddressses"
+              className="bg-gray-200 rounded-md text-gray-800 dark:text-gray-800"
+              value={newAddresses}
+              onChange={(e) => setNewAddresses(e.target.value)}
+              placeholder="Enter address ids"
+            />
+          </div>
+        </HeadlessField>
+
+        <Button
+          outline
+          className="p-1 h-8 m-4 col-span-1 text-gray-800 dark:text-gray-800 border-gray-500 dark:border-gray-500"
           onClick={() => setTriggerEffect((prev) => prev + 1)}
         >
-          Add Addresses
-        </button>
-      </div>
-      <p className=" text-red-600 pb-2">{errorsAddAddresses}</p>
-      <div className="flex flex-1">
-        <textarea
-          className="mt-4 border-blue-100 border-2 text-sm p-1 w-[26rem]"
-          value={removeAddresses}
-          onChange={(e) => setRemoveAddresses(e.target.value)}
-          placeholder="Enter addresses to remove"
-        />
-        <button
-          className="bg-blue-100 p-1 h-8 m-4"
+          Add
+        </Button>
+        <p className=" text-red-600 pb-2">{errorsAddAddresses}</p>
+        <HeadlessField className="grid grid-cols-12 gap-6 p-4 border-2 border-gray-200 col-span-11 col-start-1">
+          <div className="col-span-5">
+            <Label className="text-gray-800 dark:text-gray-800">
+              Remove Addresses
+            </Label>
+            <Description className="mt-1">
+              Enter address ids to remove from the gallery.
+            </Description>
+          </div>
+          <div className="col-span-7">
+            <Textarea
+              name="removeAddressses"
+              className="bg-gray-200 rounded-md text-gray-800 dark:text-gray-800"
+              value={removeAddresses}
+              onChange={(e) => setRemoveAddresses(e.target.value)}
+              placeholder="Enter address ids"
+            />
+          </div>
+        </HeadlessField>
+
+        <Button
+          outline
+          className="p-1 h-8 m-4 col-span-1 text-gray-800 dark:text-gray-800 border-gray-500 dark:border-gray-500"
           onClick={handleRemoveAddresses}
         >
-          Remove Addresses
-        </button>
-      </div>
-      <p className=" text-red-600 pb-2">{errorsRemoveAddresses}</p>
-      <div className="flex flex-1">
-        <textarea
-          className="mt-4 border-blue-100 border-2 text-sm p-1 w-[26rem]"
-          value={importKeys}
-          onChange={(e) => setImportKeys(e.target.value)}
-          placeholder="Import Keys: Enter Addresses"
-        />
+          Remove
+        </Button>
+        <p className=" text-red-600 pb-2">{errorsRemoveAddresses}</p>
+        <HeadlessField className="grid grid-cols-12 gap-6 p-4 border-2 border-gray-200 col-span-11 col-start-1">
+          <div className="col-span-5">
+            <Label className="text-gray-800 dark:text-gray-800">
+              Export Keys
+            </Label>
+            <Description className="mt-1">
+              Enter address ids to export to a new keys file.
+            </Description>
+          </div>
+          <div className="col-span-7">
+            <Textarea
+              name="exportKeys"
+              className="bg-gray-200 rounded-md text-gray-800 dark:text-gray-800"
+              value={exportKeys}
+              onChange={(e) => setExportKeys(e.target.value)}
+              placeholder="Enter address ids"
+            />
+          </div>
+        </HeadlessField>
+
+        <Button
+          outline
+          className="p-1 h-8 m-4 col-span-1 text-gray-800 dark:text-gray-800 border-gray-500 dark:border-gray-500"
+          onClick={handleExportKeys}
+        >
+          Export
+        </Button>
+        <p className=" text-red-600 pb-2">{errorsExportKeys}</p>
+
+        <HeadlessField className="grid grid-cols-12 gap-6 p-4 border-2 border-gray-200 col-span-11 col-start-1">
+          <div className="col-span-5">
+            <Label className="text-gray-800 dark:text-gray-800">
+              Import Keys
+            </Label>
+            <Description className="mt-1">
+              Browse to keys file to import. To import subset, enter address
+              ids. Leave blank to import all keys.
+            </Description>
+          </div>
+          <div className="col-span-7">
+            <Textarea
+              name="importKeys"
+              className="bg-gray-200 rounded-md text-gray-800 dark:text-gray-800"
+              value={importKeys}
+              onChange={(e) => setImportKeys(e.target.value)}
+              placeholder="Enter address ids"
+            />
+          </div>
+        </HeadlessField>
+
         <input
           type="file"
           style={{ display: 'none' }}
@@ -754,32 +875,15 @@ const Index = () => {
           onChange={handleImportKeys}
           accept=".json"
         />
-        <button
-          className="bg-blue-100 p-1 h-8 m-4"
+        <Button
+          outline
+          className="p-1 h-8 m-4 col-span-1 text-gray-800 dark:text-gray-800 border-gray-500 dark:border-gray-500"
           onClick={handleButtonImportKeys}
         >
-          Import Keys
-        </button>
+          Import
+        </Button>
+        <p className=" text-red-600 pb-2">{errorsImportKeys}</p>
       </div>
-      <p className=" text-red-600 pb-2">{errorsImportKeys}</p>
-      <div className="flex flex-1">
-        <textarea
-          className="mt-4 border-blue-100 border-2 text-sm p-1 w-[26rem]"
-          value={exportKeys}
-          onChange={(e) => setExportKeys(e.target.value)}
-          placeholder="Export Keys: Enter Addresses"
-        />
-        <button className="bg-blue-100 p-1 h-8 m-4" onClick={handleExportKeys}>
-          Export Keys
-        </button>
-      </div>
-      <p className=" text-red-600 pb-2">{errorsExportKeys}</p>
-      <button
-        className="bg-blue-100 text-xl mt-4"
-        onClick={handleLoadAddresses}
-      >
-        <p className="text-lg p-1">Load Addresses</p>
-      </button>
     </div>
   );
 };
