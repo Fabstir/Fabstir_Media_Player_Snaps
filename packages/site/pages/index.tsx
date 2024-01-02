@@ -688,7 +688,7 @@ const Index = () => {
       <Button
         onClick={handleConnectClick}
         outline
-        className="p-1 h-8 col-span-1 text-gray-800 dark:text-gray-800 border-gray-500 dark:border-gray-500"
+        className="p-1 h-8 col-span-1 text-gray-900 dark:text-gray-900 border-gray-400 dark:border-gray-400"
       >
         Connect Snap
       </Button>
@@ -764,7 +764,7 @@ const Index = () => {
         </p>
         <HeadlessField className="grid grid-cols-12 gap-6 p-4 border-2 border-gray-200 col-span-11">
           <div className="col-span-5">
-            <Label className="text-gray-800 dark:text-gray-800">
+            <Label className="text-gray-900 dark:text-gray-900">
               Add Addresses
             </Label>
             <Description className="mt-1">
@@ -774,7 +774,7 @@ const Index = () => {
           <div className="col-span-7">
             <Textarea
               name="addAddressses"
-              className="bg-gray-200 rounded-md text-gray-800 dark:text-gray-800"
+              className="bg-gray-200 rounded-md text-gray-900 dark:text-gray-900"
               value={newAddresses}
               onChange={(e) => setNewAddresses(e.target.value)}
               placeholder="Enter address ids"
@@ -784,7 +784,7 @@ const Index = () => {
 
         <Button
           outline
-          className="p-1 h-8 m-4 col-span-1 text-gray-800 dark:text-gray-800 border-gray-500 dark:border-gray-500"
+          className="p-1 h-8 m-4 col-span-1 text-gray-500 dark:text-gray-500 border-gray-400 dark:border-gray-400"
           onClick={() => setTriggerEffect((prev) => prev + 1)}
         >
           Add
@@ -792,7 +792,7 @@ const Index = () => {
         <p className=" text-red-600 pb-2">{errorsAddAddresses}</p>
         <HeadlessField className="grid grid-cols-12 gap-6 p-4 border-2 border-gray-200 col-span-11 col-start-1">
           <div className="col-span-5">
-            <Label className="text-gray-800 dark:text-gray-800">
+            <Label className="text-gray-900 dark:text-gray-900">
               Remove Addresses
             </Label>
             <Description className="mt-1">
@@ -802,7 +802,7 @@ const Index = () => {
           <div className="col-span-7">
             <Textarea
               name="removeAddressses"
-              className="bg-gray-200 rounded-md text-gray-800 dark:text-gray-800"
+              className="bg-gray-200 rounded-md text-gray-900 dark:text-gray-900"
               value={removeAddresses}
               onChange={(e) => setRemoveAddresses(e.target.value)}
               placeholder="Enter address ids"
@@ -812,7 +812,7 @@ const Index = () => {
 
         <Button
           outline
-          className="p-1 h-8 m-4 col-span-1 text-gray-800 dark:text-gray-800 border-gray-500 dark:border-gray-500"
+          className="p-1 h-8 m-4 col-span-1 text-gray-500 dark:text-gray-500 border-gray-400 dark:border-gray-400"
           onClick={handleRemoveAddresses}
         >
           Remove
@@ -820,7 +820,7 @@ const Index = () => {
         <p className=" text-red-600 pb-2">{errorsRemoveAddresses}</p>
         <HeadlessField className="grid grid-cols-12 gap-6 p-4 border-2 border-gray-200 col-span-11 col-start-1">
           <div className="col-span-5">
-            <Label className="text-gray-800 dark:text-gray-800">
+            <Label className="text-gray-900 dark:text-gray-900">
               Export Keys
             </Label>
             <Description className="mt-1">
@@ -830,7 +830,7 @@ const Index = () => {
           <div className="col-span-7">
             <Textarea
               name="exportKeys"
-              className="bg-gray-200 rounded-md text-gray-800 dark:text-gray-800"
+              className="bg-gray-200 rounded-md text-gray-900 dark:text-gray-900"
               value={exportKeys}
               onChange={(e) => setExportKeys(e.target.value)}
               placeholder="Enter address ids"
@@ -840,7 +840,7 @@ const Index = () => {
 
         <Button
           outline
-          className="p-1 h-8 m-4 col-span-1 text-gray-800 dark:text-gray-800 border-gray-500 dark:border-gray-500"
+          className="p-1 h-8 m-4 col-span-1 text-gray-500 dark:text-gray-500 border-gray-400 dark:border-gray-400"
           onClick={handleExportKeys}
         >
           Export
@@ -849,7 +849,7 @@ const Index = () => {
 
         <HeadlessField className="grid grid-cols-12 gap-6 p-4 border-2 border-gray-200 col-span-11 col-start-1">
           <div className="col-span-5">
-            <Label className="text-gray-800 dark:text-gray-800">
+            <Label className="text-gray-900 dark:text-gray-900">
               Import Keys
             </Label>
             <Description className="mt-1">
@@ -860,7 +860,7 @@ const Index = () => {
           <div className="col-span-7">
             <Textarea
               name="importKeys"
-              className="bg-gray-200 rounded-md text-gray-800 dark:text-gray-800"
+              className="bg-gray-200 rounded-md text-gray-900 dark:text-gray-900"
               value={importKeys}
               onChange={(e) => setImportKeys(e.target.value)}
               placeholder="Enter address ids"
@@ -877,7 +877,7 @@ const Index = () => {
         />
         <Button
           outline
-          className="p-1 h-8 m-4 col-span-1 text-gray-800 dark:text-gray-800 border-gray-500 dark:border-gray-500"
+          className="p-1 h-8 m-4 col-span-1 text-gray-500 dark:text-gray-500 border-gray-400 dark:border-gray-400"
           onClick={handleButtonImportKeys}
         >
           Import
