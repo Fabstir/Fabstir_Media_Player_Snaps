@@ -7,19 +7,14 @@ import init, {
   render_model,
   stop_render,
 } from '../../public/wgpu_fabstir_renderer.js';
+import { useRouter } from 'next/router';
+import { is3dmodelstate, iswasmreadystate } from '../atoms/renderStateAtom';
 
 /**
  * RenderModel is a React component that is responsible for rendering a 3D model.
  * It takes a props object as a parameter, which includes all the properties passed to the component.
  */
-export default function RenderModel({
-  nft,
-  is3dModel,
-  setIs3dModel,
-  isWasmReady,
-  setIsWasmReady,
-  modelUris,
-}) {
+export default function RenderModel({ nft, modelUris }) {
   /**
    * State to hold the current NFT metadata.
    * @type {[Object, Function]}
@@ -27,7 +22,11 @@ export default function RenderModel({
   const [currentNFT, setCurrentNFT] = useRecoilState(currentnftmetadata);
   const isFirstRender = useRef(true);
 
+  const [is3dModel, setIs3dModel] = useRecoilState(is3dmodelstate);
+  const [isWasmReady, setIsWasmReady] = useRecoilState(iswasmreadystate);
+
   const canvasRef = useRef(null);
+  const router = useRouter();
 
   useEffect(() => {
     init()
@@ -58,22 +57,30 @@ export default function RenderModel({
     };
 
     // // Cleanup function
-    // return () => {
-    //   const stopRender = async () => {
-    //     await stop_render(canvasRef.current);
+    return () => {
+      console.log('DetailsSidebar: cleanup');
 
-    //     // load_model = null;
-    //     // render_model = null;
-    //     // stop_render = null;
-    //     setIsWasmReady(false);
+      setIsWasmReady(false);
+      if (!isFirstRender.current) router.reload();
 
-    //     if (window.gc) {
-    //       window.gc();
-    //     }
-    //   };
+      // if (!isFirstRender.current) {
+      //   const stopRender = async () => {
+      //     //await stop_render();
 
-    //   stopRender();
-    // };
+      //     setIs3dModel(false);
+      //     setIsWasmReady(false);
+      //     isFirstRender.current = true;
+
+      //     if (window.gc) {
+      //       window.gc();
+      //     }
+
+      //     router.reload();
+      //   };
+
+      //   stopRender();
+      // }
+    };
   }, []);
 
   async function handleRenderModel(uris) {

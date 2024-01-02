@@ -17,6 +17,7 @@ import NFTFileUrls from './NFTFileUrls';
 import NFTVideoJS from './NFTVideoJS';
 import useMintNestableNFT from '../blockchain/useMintNestableNFT';
 import RenderModel from './RenderModel';
+import { is3dmodelstate, iswasmreadystate } from '../atoms/renderStateAtom';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -96,9 +97,10 @@ export default function DetailsSidebar({
   setIsScreenViewClosed,
 }) {
   const [nft, setNFT] = useState();
-  const [isWasmReady, setIsWasmReady] = useState(false);
   const [fileUrls, setFileUrls] = useState(null);
-  const [canvasData, setCanvasData] = useRecoilState(canvasState);
+
+  const [is3dModel, setIs3dModel] = useRecoilState(is3dmodelstate);
+  const [isWasmReady, setIsWasmReady] = useRecoilState(iswasmreadystate);
 
   console.log('UserNFTView: inside DetailsSidebar');
   console.log('DetailsSidebar: nft = ', nft);
@@ -121,7 +123,6 @@ export default function DetailsSidebar({
   console.log('DetailsSidebar: nftInfoDecorated1 = ', nftInfoDecorated);
 
   const [nftImage, setNFTImage] = useState();
-  const [is3dModel, setIs3dModel] = useState(false);
   const { getPortalLinkUrl, getBlobUrl } = usePortal();
   const [modelUris, setModelUris] = useState(null);
 
@@ -422,14 +423,7 @@ export default function DetailsSidebar({
                 }}
               >
                 <div className="relative">
-                  <RenderModel
-                    nft={nft}
-                    is3dModel={is3dModel}
-                    setIs3dModel={setIs3dModel}
-                    isWasmReady={isWasmReady}
-                    setIsWasmReady={setIsWasmReady}
-                    modelUris={modelUris}
-                  />
+                  <RenderModel nft={nft} modelUris={modelUris} />
                   <img
                     src={nftImage}
                     alt=""
