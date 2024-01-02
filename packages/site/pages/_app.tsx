@@ -84,7 +84,7 @@ function MyApp({ Component, pageProps }: AppProps) {
           <Head>
             <title>Web3 Media Player</title>{' '}
           </Head>
-          <div className="flex flex-col w-full min-h-screen max-w-6xl mx-auto">
+          <div className="flex flex-col w-full min-h-screen max-w-full">
             <Header handleToggleClick={toggleTheme} />
             <Component {...pageProps} />
             <Footer />
