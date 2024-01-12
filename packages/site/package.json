@@ -49,6 +49,7 @@
     "recoil": "^0.7.7",
     "recoil-persist": "^5.1.0",
     "s5client-js": "https://github.com/parajbs-dev/s5client-js.git#test_15_encryptWasm_4_2",
+    "tailwind-merge": "^2.2.0",
     "tailwindcss": "latest",
     "uuid": "^9.0.1",
     "video.js": "^7.20.3",

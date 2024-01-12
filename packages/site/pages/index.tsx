@@ -685,15 +685,17 @@ const Index = () => {
   return (
     <div className="p-4 max-w-6xl mx-auto">
       <h1 className="uppercase text-2xl font-bold mb-6">Web3 Media Player</h1>
-      <Button
-        onClick={handleConnectClick}
-        outline
-        className="p-1 h-8 col-span-1 text-gray-800 dark:text-gray-800 border-gray-300 dark:border-gray-300"
-      >
-        Connect Snap
-      </Button>
+
+      {!state.installedSnap && (
+        <Button
+          color="white"
+          onClick={handleConnectClick}
+          className="p-1 h-8 col-span-1 dark:bg-gray-200 bg-gray-200 mb-2"
+        >
+          Connect Snap
+        </Button>
+      )}
       <br />
-      <h1>Based Account Abstraction</h1>
       {!loading && !smartAccount && (
         <Button
           onClick={connect}
@@ -724,7 +726,7 @@ const Index = () => {
       <Link href="/gallery/userNFTs">
         <Button
           color="white"
-          className="p-1 text-2xl font-semibold dark:bg-gray-200 bg-gray-200 mt-2"
+          className="p-1 text-2xl font-semibold dark:bg-gray-200 bg-gray-200 mt-4"
         >
           <p className="text-lg p-1 font-bold">Gallery</p>
         </Button>
@@ -740,21 +742,25 @@ const Index = () => {
           Display Addresses
         </Button>
 
-        {Object.keys(addresses)?.length > 0 && (
-          <Table dense grid>
-            <TableHead>
-              <TableRow>
-                <TableHeader>Address Id</TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {Object.keys(addresses).map((address) => (
-                <TableRow key={address}>
-                  <TableCell className="font-medium">{address}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+        {addresses && (
+          <>
+            {Object.keys(addresses)?.length > 0 && (
+              <Table dense grid>
+                <TableHead>
+                  <TableRow>
+                    <TableHeader>Address Id</TableHeader>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {Object.keys(addresses).map((address) => (
+                    <TableRow key={address}>
+                      <TableCell className="font-medium">{address}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </>
         )}
       </div>
       {/* Replaced Heading with h1 */}
@@ -783,7 +789,7 @@ const Index = () => {
         </HeadlessField>
 
         <Button
-          outline
+          color="white"
           className="p-1 h-8 m-4 col-span-1 text-gray-400 dark:text-gray-400 border-gray-300 dark:border-gray-300"
           onClick={() => setTriggerEffect((prev) => prev + 1)}
         >
@@ -801,7 +807,7 @@ const Index = () => {
           </div>
           <div className="col-span-7">
             <Textarea
-              name="removeAddressses"
+              name="removeAddresses"
               className="bg-gray-200 rounded-md text-gray-800 dark:text-gray-800"
               value={removeAddresses}
               onChange={(e) => setRemoveAddresses(e.target.value)}
@@ -811,7 +817,7 @@ const Index = () => {
         </HeadlessField>
 
         <Button
-          outline
+          color="white"
           className="p-1 h-8 m-4 col-span-1 text-gray-400 dark:text-gray-400 border-gray-300 dark:border-gray-300"
           onClick={handleRemoveAddresses}
         >
@@ -839,7 +845,7 @@ const Index = () => {
         </HeadlessField>
 
         <Button
-          outline
+          color="white"
           className="p-1 h-8 m-4 col-span-1 text-gray-400 dark:text-gray-400 border-gray-300 dark:border-gray-300"
           onClick={handleExportKeys}
         >
@@ -876,7 +882,7 @@ const Index = () => {
           accept=".json"
         />
         <Button
-          outline
+          color="white"
           className="p-1 h-8 m-4 col-span-1 text-gray-400 dark:text-gray-400 border-gray-300 dark:border-gray-300"
           onClick={handleButtonImportKeys}
         >

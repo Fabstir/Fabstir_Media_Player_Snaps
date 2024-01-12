@@ -221,10 +221,6 @@ const NFTSlideOver = ({
     if (createNFTInfo.isSuccess) setRerenderUserNFTs((prev) => prev + 1);
   }, [createNFTInfo.isSuccess]);
 
-  const handleButtonClick = () => {
-    setRerenderUserNFTs((prevValue) => prevValue + 1);
-  };
-
   return (
     <FormProvider {...methods}>
       <Transition.Root show={open} as={Fragment}>
@@ -274,9 +270,6 @@ const NFTSlideOver = ({
                       summaryMax={summaryMax}
                       descriptionMax={descriptionMax}
                     />
-                    <div>
-                      <button onClick={handleButtonClick}>Increment</button>
-                    </div>
                   </div>
                 </div>
               </Transition.Child>

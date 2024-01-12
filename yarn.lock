@@ -2587,6 +2587,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@babel/runtime@npm:^7.23.5":
+  version: 7.23.8
+  resolution: "@babel/runtime@npm:7.23.8"
+  dependencies:
+    regenerator-runtime: ^0.14.0
+  checksum: 0bd5543c26811153822a9f382fd39886f66825ff2a397a19008011376533747cd05c33a91f6248c0b8b0edf0448d7c167ebfba34786088f1b7eb11c65be7dfc3
+  languageName: node
+  linkType: hard
+
 "@babel/template@npm:^7.18.10, @babel/template@npm:^7.22.5, @babel/template@npm:^7.3.3":
   version: 7.22.5
   resolution: "@babel/template@npm:7.22.5"
@@ -19270,6 +19279,7 @@ __metadata:
     recoil-persist: ^5.1.0
     rimraf: ^3.0.2
     s5client-js: "https://github.com/parajbs-dev/s5client-js.git#test_15_encryptWasm_4_2"
+    tailwind-merge: ^2.2.0
     tailwindcss: latest
     typescript: ^4.7.4
     uuid: ^9.0.1
@@ -20035,6 +20045,15 @@ __metadata:
     typical: ^5.2.0
     wordwrapjs: ^4.0.0
   checksum: 8f41b5671f101a5195747ec1727b1d35ea2cd5bf85addda11cc2f4b36892db9696ce3c2c7334b5b8a122505b34d19135fede50e25678df71b0439e0704fd953f
+  languageName: node
+  linkType: hard
+
+"tailwind-merge@npm:^2.2.0":
+  version: 2.2.0
+  resolution: "tailwind-merge@npm:2.2.0"
+  dependencies:
+    "@babel/runtime": ^7.23.5
+  checksum: f80d31ec990792fb204e3ad5a184a4b18a8f8929c651c7067693d8ffa74c6ec9666f15f4e50c1d831a47e7dcc75e688887e34fdb734096363ad1868d9ad5778a
   languageName: node
   linkType: hard
 
