@@ -1,13 +1,13 @@
 {
   "version": "0.1.0",
   "description": "An example Snap written in TypeScript.",
-  "proposedName": "TypeScript Example Snap",
+  "proposedName": "Web3 Media Player",
   "repository": {
     "type": "git",
     "url": "https://github.com/MetaMask/template-snap-monorepo.git"
   },
   "source": {
-    "shasum": "3b1nwL2jbSFc7ulpjK0v0/7R/hyqwwa/wBc1aA1ZIb0=",
+    "shasum": "5oE53O6n7pVhNZQcUO1O7KcFqPmG0JfITIWJLuGPu+Y=",
     "location": {
       "npm": {
         "filePath": "dist/bundle.js",

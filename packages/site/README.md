@@ -94,6 +94,8 @@ This project uses Tailwind CSS. Use utility classes to directly style HTML eleme
 
 ## Environment variables
 
+Use `env.template` and copy to one of the .env files (see next paragraph). Make sure to fill in all the entries with values.
+
 In development, Next.js will load environment variables from a files
 `.env: Default.`
 `.env.local`: Local overrides. This file is loaded for all environments except test.
@@ -102,16 +104,14 @@ In development, Next.js will load environment variables from a files
 
 By default you can use the `SNAP_ORIGIN` variable (used in `src/config/snap.ts`) to define a production origin for you snap (eg. `npm:MyPackageName`). If not defined it will defaults to `local:http://localhost:8080`.
 
-A `.env` file template is available, to use it rename `.env.production.dist` to `.env.production`
+## In use
 
-To learn more visit [Gatsby documentation](https://www.gatsbyjs.com/docs/how-to/local-development/environment-variables/)
+To install snap to MetaMask, click the `Connect Snap` button. Then in the MetaMask Snaps section, should see "Web3 Media Player" that confirms that the snap has been successfully installed.
 
 ## Learn More
+
+To learn more visit [Gatsby documentation](https://www.gatsbyjs.com/docs/how-to/local-development/environment-variables/)
 
 You can learn more in the [Next.js documentation](https://nextjs.org/docs).
 
 To learn React, check out the [React documentation](https://reactjs.org/).
-
-## In use
-
-To install snap to metamask, click the `Connect` button.
