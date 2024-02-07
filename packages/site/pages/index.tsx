@@ -473,25 +473,6 @@ const Index = () => {
     }
   };
 
-  const particle = new ParticleAuthModule.ParticleNetwork({
-    projectId: 'ed8d5743-25cc-4356-bcff-4babad01922d',
-    clientKey: 'c7J1GXeesDyAYSgR68n445ZsglbTluMaiWofalmi',
-    appId: '6a89f6d0-f864-4d79-9afd-f92187f77fce',
-    chainName: config.chainName,
-    chainId: config.chainId,
-    wallet: {
-      displayWalletEntry: true,
-      defaultWalletEntryPosition: ParticleAuthModule.WalletEntryPosition.BR,
-    },
-  });
-
-  const bundler: IBundler = new Bundler({
-    bundlerUrl:
-      'https://bundler.biconomy.io/api/v2/80001/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44',
-    chainId: 80001,
-    entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS,
-  });
-
   const paymaster: IPaymaster = new BiconomyPaymaster({
     paymasterUrl:
       'https://paymaster.biconomy.io/api/v1/80001/FmcNOqB2j.1512a154-33be-4e05-8e0a-598dfa6fbef9',
