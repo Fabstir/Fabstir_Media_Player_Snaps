@@ -481,45 +481,29 @@ const Index = () => {
     }
   };
 
-  useEffect(() => {
-    // Check if user session exists
-    console.log('index.tsx: useEffect: user: ', user);
-    if (user?.recall) {
-      const session = user.recall();
-      if (session) {
-        setUserSession(session);
-      }
-    }
-  }, []);
+  const particle = new ParticleAuthModule.ParticleNetwork({
+    projectId: 'ed8d5743-25cc-4356-bcff-4babad01922d',
+    clientKey: 'c7J1GXeesDyAYSgR68n445ZsglbTluMaiWofalmi',
+    appId: '6a89f6d0-f864-4d79-9afd-f92187f77fce',
+    chainName: config.chainName,
+    chainId: config.chainId,
+    wallet: {
+      displayWalletEntry: true,
+      defaultWalletEntryPosition: ParticleAuthModule.WalletEntryPosition.BR,
+    },
+  });
 
-  const loginFabstirDB = async (alias: string, password: string) => {
-    // const alias = "test2";
-    // const password = "mypassword";
-    // The ready check is no longer necessary here since libsodium is initialized at the app level
+  const bundler: IBundler = new Bundler({
+    bundlerUrl:
+      'https://bundler.biconomy.io/api/v2/80001/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44',
+    chainId: 80001,
+    entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS,
+  });
 
-    if ((await user?.exists(alias)) === false) {
-      user.create(alias, password, (error, keys) => {
-        if (error) {
-          console.error('User creation failed:', error);
-        } else {
-          console.log('User created successfully, user keys:', keys);
-          setUserSession(user.recall());
-        }
-      });
-    } else {
-      user.auth(alias, password, (error, keys) => {
-        if (error) {
-          console.error('Login failed:', error);
-        } else {
-          console.log('Logged in successfully, user keys:', keys);
-          setUserSession(user.recall());
-        }
-      });
-    }
-
-    // Clear the react-query cache
-    queryClient.removeQueries();
-  };
+  const paymaster: IPaymaster = new BiconomyPaymaster({
+    paymasterUrl:
+      'https://paymaster.biconomy.io/api/v1/80001/FmcNOqB2j.1512a154-33be-4e05-8e0a-598dfa6fbef9',
+  });
 
   const connect = async () => {
     try {
