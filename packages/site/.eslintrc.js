@@ -12,6 +12,8 @@ module.exports = {
     'react/require-render-return': 'off',
     'prettier/prettier': ['error', { endOfLine: 'auto' }], // Add this rule
     '@typescript-eslint/no-parameter-properties': 'off',
+    'no-process-env': 'off',
+    curly: ['error', 'multi-line'],
   },
 
   parser: '@typescript-eslint/parser',

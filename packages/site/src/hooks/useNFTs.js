@@ -12,6 +12,7 @@ import useMintNestableNFT from '../blockchain/useMintNestableNFT';
 import { useRecoilValue } from 'recoil';
 import { selectedparentnftaddressid } from '../atoms/nestableNFTAtom';
 import useNFT, { fetchNFT } from './useNFT';
+import { loadNFTsState as loadNFTsStateFromFabstirDB } from '../utils/fabstirDBNFTState';
 
 /**
  * Asynchronously retrieves metadata from a given URI.
@@ -100,8 +101,12 @@ const fetchNFTs = async (
       console.log('useNFTs: push addressId = ', addressId);
     });
   } else {
-    const state = await loadState();
-    nftAddresses = state.addresses.state;
+    if (process.env.NEXT_PUBLIC_IS_USE_FABSTIRDB === 'true')
+      nftAddresses = await loadNFTsStateFromFabstirDB();
+    else {
+      const state = await loadState();
+      nftAddresses = state.addresses.state;
+    }
   }
 
   console.log('useNFTs: fetchNFTs nftAddresses = ', nftAddresses);
@@ -207,7 +212,7 @@ const fetchNFTs = async (
 };
 
 /**
- * Custom hook that fetches NFT metadata from the blockchain and downloads the NFT images.
+ * Custom hook that fetches all the user's NFTs' metadata from the blockchain and downloads their images.
  *
  * @function
  * @param {Object} nftAddresses - An array of NFT addresses.

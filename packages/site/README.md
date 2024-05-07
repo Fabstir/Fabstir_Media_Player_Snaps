@@ -41,6 +41,10 @@ Once NFT is ready to be minted then a user can pay for transaction fees using an
 
 Paying for gas fees on Fabstir Media Player via ERC20 tokens is achieved by using [Biconomy's](https://www.biconomy.io/) implementation of ERC4337 account abstraction.The use of a smart wallet account address allows for a bundler contract to intercept and execute transactions and a paymaster contract to either sponsor gas fees or allow for the use of ERC20 tokens to pay for the gas. For the user this just makes for an easier UIX experience as they are able to pay for everything using one preferred ERC20 token type and the bundler is able to execute multiple transactions in a batch, thus minimising interactions with the user for a more seamless experience.
 
+## Storage
+
+This application uses a choice of secure decentralised storage for NFT and other related data; from using MetaMask's in-built secure sandbox storage to utilising our graph database to store to IPFS via OrbitDB.
+
 ## Payment methods
 
 Biconomy comes bundled with [Transak](https://transak.com/) compatibility. This allows many fiat types (over 100) to be used to buy ERC20 tokens direcctly, such as USDC stablecoin, that can be deposited directly into the user's smart contract wallet account. Payment methods include debit/credit card and direct bank transfer.

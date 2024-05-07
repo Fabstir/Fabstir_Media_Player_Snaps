@@ -2,6 +2,7 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "module": "esnext",
+    "target": "es2017",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
@@ -12,5 +13,6 @@
     "skipLibCheck": true,
     "incremental": true
   },
-  "include": ["src", "pages", "globals.ts"]
+  "include": [".eslintrc.js", "src", "pages", "globals.ts"],
+  "exclude": ["node_modules"]
 }

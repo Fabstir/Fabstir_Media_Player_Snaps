@@ -37,20 +37,22 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   // Add event listener when component mounts
   useEffect(() => {
-    const initialiseSmartAccount = async () => {
-      if (!(smartAccount && smartAccountProvider && userInfo)) {
-        const { biconomySmartAccount, web3Provider, userInfo } =
-          await socialLogin(true);
+    if (process.env.NEXT_PUBLIC_ENABLE_OTHER_WALLET !== 'true') {
+      const initialiseSmartAccount = async () => {
+        if (!(smartAccount && smartAccountProvider && userInfo)) {
+          const { biconomySmartAccount, web3Provider, userInfo } =
+            await socialLogin(true);
 
-        if (web3Provider) {
-          setSmartAccount(biconomySmartAccount);
-          setSmartAccountProvider(web3Provider);
-          setUserInfo(userInfo);
+          if (web3Provider) {
+            setSmartAccount(biconomySmartAccount);
+            setSmartAccountProvider(web3Provider);
+            setUserInfo(userInfo);
+          }
         }
-      }
-    };
+      };
 
-    initialiseSmartAccount();
+      initialiseSmartAccount();
+    }
   }, []);
 
   useEffect(() => {

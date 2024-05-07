@@ -1,7 +1,7 @@
-import { Contract, ContractFactory } from '@ethersproject/contracts';
+import { ethers } from 'ethers';
 import { Interface } from '@ethersproject/abi';
-import { BigNumber } from '@ethersproject/bignumber';
-import { parseUnits } from '@ethersproject/units';
+
+import { Contract, ContractFactory } from '@ethersproject/contracts';
 
 import { JsonRpcProvider } from '@ethersproject/providers';
 
@@ -10,37 +10,27 @@ import IERC165 from '../../contracts/IERC165.json';
 import TipERC721 from '../../contracts/TipERC721.json';
 import FNFTNestable from '../../contracts/FNFTNestable.json';
 
-import { useRecoilValue } from 'recoil';
 import BlockchainContext, {
   BlockchainContextType,
 } from '../../state/BlockchainContext';
 
-import config from '../../config.json';
-import { getIsERC721NonHook } from '../blockchain/useMintNFT';
+import useMintNFT, { getIsERC721NonHook } from './useMintNFT';
 
-import { connectToWallet } from '../utils/connectToWallet';
-import { currencycontractaddressesstate } from '../atoms/currenciesAtom';
-import { Transaction } from '@biconomy/core-types';
-import useMintNFT from './useMintNFT';
-import useBiconomyPayment from './useBiconomyPayment';
+import useAccountAbstractionPayment, {
+  getSmartAccountAddress,
+} from './useAccountAbstractionPayment';
 
-interface NFT {
+type NFT = {
   name?: string;
   symbol?: string;
   supply?: string;
   [key: string]: any;
-}
+};
 
-interface MintNFTResponse {
+type MintNestableNFTResponse = {
   address: string;
   id: string;
-  uri: string;
-}
-
-interface MintNestableNFTResponse {
-  address: string;
-  id: string;
-}
+};
 
 /**
  * Custom hook to mint a Nestable NFT and add child NFTs to it.
@@ -50,10 +40,6 @@ interface MintNestableNFTResponse {
  * @returns {Object} An object with functions to mint a Nestable NFT, add a child NFT to it, and remove a child NFT from it.
  */
 export default function useMintNestableNFT() {
-  const currencyContractAddresses = useRecoilValue(
-    currencycontractaddressesstate,
-  );
-
   const blockchainContext =
     useContext<BlockchainContextType>(BlockchainContext);
   const { provider, smartAccountProvider, smartAccount } = blockchainContext;
@@ -62,15 +48,16 @@ export default function useMintNestableNFT() {
     'useMintNestableNFT: smartAccountProvider = ',
     smartAccountProvider,
   );
+  const { getIsERC721Address } = useMintNFT();
 
   if (!provider || !smartAccountProvider || !smartAccount) {
     console.log('useMintNestableNFT: provider, or smartAccount is undefined');
     return;
   }
 
-  const { handleBiconomyPayment, createTransaction } =
-    provider && smartAccountProvider && smartAccount
-      ? useBiconomyPayment(provider, smartAccountProvider, smartAccount)
+  const { processTransactionBundle } =
+    provider && smartAccount
+      ? useAccountAbstractionPayment(provider, smartAccount)
       : { handleBiconomyPayment: null, createTransaction: null };
 
   /**
@@ -124,7 +111,7 @@ export default function useMintNestableNFT() {
 
   const getChildOfNestableNFT = async (
     parentId: string,
-    position: Number,
+    position: number,
   ): Promise<any> => {
     console.log(
       'useMintNestableNFT: getChildOfNestableNFT: parentId = ',
@@ -167,10 +154,7 @@ export default function useMintNestableNFT() {
 
     console.log(`useMintNestableNFT: smartAccount: ${smartAccount}`);
 
-    if (!createTransaction)
-      throw new Error('useMintNestableNFT: createTransaction is undefined');
-
-    if (!getIsERC721NonHook(nft.address, provider)) {
+    if (!getIsERC721Address(nft.address)) {
       const errorMessage = 'useMintNestableNFT: not an ERC721 token';
       console.error(errorMessage);
       throw new Error(errorMessage);
@@ -180,40 +164,28 @@ export default function useMintNestableNFT() {
     // it should match with the index used to initialise the SDK Biconomy Smart Account instance
     console.log(`useMintNestableNFT: smartAccount: ${smartAccount}`);
 
-    if (!smartAccount || !provider || !smartAccountProvider)
+    if (!smartAccount || !provider)
       throw new Error(
-        'upgradeToNestableNFT: nestableNFT: biconomySmartAccount or provider is undefined',
+        'upgradeToNestableNFT: nestableNFT: smartAccount or provider is undefined',
       );
 
     const nftAddress = nft.address;
-
-    // get EOA address from wallet provider
-
-    const signer = await connectToWallet();
-    const signerAccountAddress = await signer.getAddress();
-
-    // generate mintNft data
-    const nftInterface = new Interface([
-      'function safeMint(address _to,string uri)',
-    ]);
-
-    const userOps: Transaction[] = [];
+    // const userOps = []
 
     // 3. transfer ownership of NFT to ERC7401 contract
     const nftContract = new Contract(
-      nftAddress as string,
+      nftAddress,
       TipERC721.abi,
       smartAccountProvider,
     );
 
-    const txNFTApprove = await nftContract.populateTransaction.approve(
-      process.env.NEXT_PUBLIC_NESTABLENFT_ADDRESS as string,
-      nft.id,
-    );
-
-    const transactionNFTApprove = createTransaction()
-      .to(nftAddress)
-      .data(txNFTApprove.data);
+    const transactionNFTApprove = [
+      await nftContract.populateTransaction.approve(
+        process.env.NEXT_PUBLIC_NESTABLENFT_ADDRESS as string,
+        nft.id,
+      ),
+      nftAddress,
+    ];
 
     console.log(
       'useMintNestableNFT: transactionNFTTransferFrom = ',
@@ -230,77 +202,46 @@ export default function useMintNestableNFT() {
       nestableNFTContract,
     );
 
-    const txNestableNFTAddChild =
+    // 4. ERC7401 owner proposes child
+    const transactionNestableNFTAddChild = [
       await nestableNFTContract.populateTransaction.addChildNFT(
         parentId,
-        nftAddress,
+        nft.address,
         nft.id,
         [],
-      );
-
-    // 4. ERC7401 owner proposes child
-    const transactionNestableNFTAddChild = createTransaction()
-      .to(nestableNFTContract.address)
-      .data(txNestableNFTAddChild.data);
+      ),
+      nestableNFTContract.address,
+    ];
 
     console.log(
       'useMintNestableNFT: transactionNestableNFTAddChild = ',
       transactionNestableNFTAddChild,
     );
 
-    const txNestableNFTAcceptChild =
+    // 3. ERC7401 owner proposes child
+    const transactionNestableNFTAcceptChild = [
       await nestableNFTContract.populateTransaction.acceptChild(
         parentId,
         childIndex,
         nftAddress,
         nft.id,
-      );
-
-    // 3. ERC7401 owner proposes child
-    const transactionNestableNFTAcceptChild = createTransaction()
-      .to(nestableNFTContract.address)
-      .data(txNestableNFTAcceptChild.data);
+      ),
+      nestableNFTContract.address,
+    ];
 
     console.log(
       'useMintNestableNFT: transactionNestableNFTAcceptChild = ',
       transactionNestableNFTAcceptChild,
     );
 
-    // build partial userOp
-    let partialUserOp = await smartAccount.buildUserOp([
-      transactionNFTApprove,
-      transactionNestableNFTAddChild,
-      transactionNestableNFTAcceptChild,
-    ]);
-    console.log(
-      `useMintNestableNFT: useMintNestableNFT: partialUserOp: ${JSON.stringify(
-        partialUserOp,
-        null,
-        '\t',
-      )}`,
-    );
-
     // Below section gets the signature from the user (signer provided in Biconomy Smart Account)
     // and also send the full op to attached bundler instance
     try {
-      const userOpResponse = await handleBiconomyPayment(partialUserOp);
-
-      console.log(
-        `useMintNestableNFT:userOp Hash: ${userOpResponse.userOpHash}`,
-      );
-      const transactionDetails = await userOpResponse.wait(1);
-
-      console.log(
-        `useMintNestableNFT: transactionDetails: ${JSON.stringify(
-          transactionDetails,
-          null,
-          '\t',
-        )}`,
-      );
-
-      const receipt = transactionDetails.receipt;
-      console.log('useMintNestableNFT: receipt = ', receipt);
-
+      await processTransactionBundle([
+        transactionNFTApprove,
+        transactionNestableNFTAddChild,
+        transactionNestableNFTAcceptChild,
+      ]);
       return {
         address: nestableNFTContract.address,
         id: parentId,
@@ -308,7 +249,7 @@ export default function useMintNestableNFT() {
     } catch (e) {
       const errorMessage = 'useMintNestableNFT: error received ';
       console.error(`${errorMessage} ${e.message}`);
-      throw new Error(errorMessage, e);
+      throw new Error(`${errorMessage}: ${e}`);
     }
   };
 
@@ -324,27 +265,18 @@ export default function useMintNestableNFT() {
   const mintNestableNFT = async (
     recipientAccountAddress: string,
   ): Promise<MintNestableNFTResponse> => {
-    // ------------------------STEP 1: Initialise Biconomy Smart Account SDK--------------------------------//
     console.log(`mintNestableNFT: nestableNFT: smartAccount: ${smartAccount}`);
-
-    if (!createTransaction)
-      throw new Error('useMintNestableNFT: createTransaction is undefined');
-
-    // get EOA address from wallet provider
-    const signer = await connectToWallet();
 
     // generate mintNft data
     const nestableNFTInterface = new Interface(['function mint(address _to)']);
 
     // passing accountIndex is optional, by default it will be 0
     // it should match with the index used to initialise the SDK Biconomy Smart Account instance
-    console.log(
-      `mintNestableNFT: nestableNFT: biconomySmartAccount: ${smartAccount}`,
-    );
+    console.log(`mintNestableNFT: nestableNFT: smartAccount: ${smartAccount}`);
 
     if (!smartAccount || !provider)
       throw new Error(
-        'mintNestableNFT: nestableNFT: biconomySmartAccount or provider is undefined',
+        'mintNestableNFT: nestableNFT: smartAccount or provider is undefined',
       );
 
     console.log(
@@ -353,54 +285,25 @@ export default function useMintNestableNFT() {
     );
 
     // Here we are minting NFT to smart account address itself
+    const data = nestableNFTInterface.encodeFunctionData('mint', [
+      recipientAccountAddress,
+    ]);
+    console.log(`mintNestableNFT: nestableNFT: data: ${data}`);
 
     //    const nftAddress = '0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e'; // Todo // use from config
     const nestableNFTAddress = process.env.NEXT_PUBLIC_NESTABLENFT_ADDRESS;
 
-    const transaction = createTransaction()
-      .to(nestableNFTAddress as string)
-      .data(
-        nestableNFTInterface.encodeFunctionData('mint', [
-          recipientAccountAddress,
-        ]),
-      );
+    const transaction = {
+      to: nestableNFTAddress,
+      data,
+    };
 
     console.log(`mintNestableNFT: nestableNFT: transaction: ${transaction}`);
-
-    // build partial userOp
-    let partialUserOp = await smartAccount.buildUserOp([
-      transaction as Transaction,
-    ]);
-    console.log(
-      `useMintNestableNFT: nestableNFT: partialUserOp: ${JSON.stringify(
-        partialUserOp,
-        null,
-        '\t',
-      )}`,
-    );
 
     // Below section gets the signature from the user (signer provided in Biconomy Smart Account)
     // and also send the full op to attached bundler instance
     try {
-      const userOpResponse = await handleBiconomyPayment(partialUserOp);
-
-      console.log(
-        `mintNestableNFT: nestableNFT:userOp Hash: ${userOpResponse.userOpHash}`,
-      );
-      const transactionDetails = await userOpResponse.wait(1);
-
-      console.log(
-        `mintNestableNFT: nestableNFT: transactionDetails: ${JSON.stringify(
-          transactionDetails,
-          null,
-          '\t',
-        )}`,
-      );
-
-      const receipt = transactionDetails.receipt;
-
-      console.log('mintNestableNFT: nestableNFT: receipt = ', receipt);
-
+      const { receipt } = await processTransactionBundle([transaction]);
       const iface = new Interface(TipERC721.abi);
       const parsedLogs = receipt.logs.map((log) => {
         try {
@@ -427,17 +330,15 @@ export default function useMintNestableNFT() {
       const tokenId = transferLog?.args.tokenId;
 
       return {
-        address: nestableNFTAddress as string,
+        address: nestableNFTAddress,
         id: tokenId ? tokenId.toNumber().toString() : undefined,
       };
     } catch (e) {
       const errorMessage = 'mintNestableNFT: nestableNFT: error received';
       console.error(`${errorMessage} ${e.message}`);
-      throw new Error(errorMessage, e);
+      throw new Error(`${errorMessage}: ${e}`);
     }
   };
-
-  const erc721InterfaceId = 0x80ac58cd;
 
   /**
    * Function to remove a child NFT from a Nestable NFT.
@@ -459,9 +360,6 @@ export default function useMintNestableNFT() {
       `useMintNestableNFT: removeChildFromNestableNFT: parentId ${parentId}, childAddress ${childAddress}, childId ${childId}}`,
     );
 
-    if (!handleBiconomyPayment)
-      throw new Error('useMintNestableNFT: handleBiconomyPayment is undefined');
-
     const children = await getChildrenOfNestableNFT(parentId);
     console.log(
       'useMintNestableNFT: removeChildFromNestableNFT: children = ',
@@ -474,7 +372,7 @@ export default function useMintNestableNFT() {
     );
 
     const childIndex = children.findIndex(
-      (child: any) =>
+      (child) =>
         child.tokenId.toString() === childId.toString() &&
         child.contractAddress === childAddress,
     );
@@ -502,7 +400,7 @@ export default function useMintNestableNFT() {
       `useMintNestableNFT: removeChildFromNestableNFT: smartAccount: ${smartAccount}`,
     );
 
-    if (!getIsERC721NonHook(child.contractAddress, provider)) {
+    if (!getIsERC721Address(child.contractAddress)) {
       const errorMessage =
         'useMintNestableNFT: removeChildFromNestableNFT: not an ERC721 token';
       console.error(errorMessage);
@@ -517,14 +415,12 @@ export default function useMintNestableNFT() {
 
     if (!smartAccount || !provider)
       throw new Error(
-        'upgradeToNestableNFT: nestableNFT: biconomySmartAccount or provider is undefined',
+        'upgradeToNestableNFT: nestableNFT: smartAccount or provider is undefined',
       );
 
-    const smartAccountAddress = await smartAccount.getAccountAddress();
+    const smartAccountAddress = await getSmartAccountAddress(smartAccount);
 
     // remove child from nestableNFT
-    if (!smartAccountProvider)
-      throw new Error('smartAccountProvider is undefined');
 
     const nestableNFTContract = new Contract(
       process.env.NEXT_PUBLIC_NESTABLENFT_ADDRESS as string,
@@ -559,43 +455,11 @@ export default function useMintNestableNFT() {
       data: minTxRemoveChildFromParent.data,
     };
 
-    // build partial userOp
-    let partialUserOp = await smartAccount.buildUserOp([
-      transactionRemoveChildFromParent,
-    ]);
-    console.log(
-      `useMintNestableNFT: removeChildFromNestableNFT: partialUserOp: ${JSON.stringify(
-        partialUserOp,
-        null,
-        '\t',
-      )}`,
-    );
-
     // Below function gets the signature from the user (signer provided in Biconomy Smart Account)
     // and also send the full op to attached bundler instance
 
     try {
-      const userOpResponse = await handleBiconomyPayment(partialUserOp);
-
-      console.log(
-        `useMintNestableNFT: removeChildFromNestableNFT:userOp Hash: ${userOpResponse.userOpHash}`,
-      );
-      const transactionDetails = await userOpResponse.wait(1);
-
-      console.log(
-        `useMintNestableNFT: removeChildFromNestableNFT: transactionDetails: ${JSON.stringify(
-          transactionDetails,
-          null,
-          '\t',
-        )}`,
-      );
-
-      const receipt = transactionDetails.receipt;
-      console.log(
-        'useMintNestableNFT: removeChildFromNestableNFT: receipt = ',
-        receipt,
-      );
-
+      await processTransactionBundle([transactionRemoveChildFromParent]);
       return {
         address: childAddress,
         id: childId.toString(),
@@ -604,7 +468,7 @@ export default function useMintNestableNFT() {
       const errorMessage =
         'useMintNestableNFT: removeChildFromNestableNFT: error received';
       console.error(`${errorMessage} ${e.message}`);
-      throw new Error(errorMessage, e);
+      throw new Error(`${errorMessage}: ${e}`);
     }
   };
 

@@ -5,6 +5,10 @@ coverage/
 .cache/
 public/
 
+# Package lock files
+package-lock.json
+yarn.lock
+
 # Logs
 logs
 *.log

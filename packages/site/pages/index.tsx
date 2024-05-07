@@ -1,11 +1,10 @@
 import React, { useContext, useState, useEffect, useRef } from 'react';
-import dynamic from 'next/dynamic';
+import { ethers } from 'ethers';
 
 import { Button } from '../src/ui-components/button';
 import { Description, Label } from '../src/ui-components/fieldset';
 import { Textarea } from '../src/ui-components/textarea';
 import { Field as HeadlessField } from '@headlessui/react';
-import { Input } from '../src/ui-components/input';
 import {
   Table,
   TableBody,
@@ -57,21 +56,20 @@ import { currentnftcategories } from '../src/atoms/nftSlideOverAtom';
 import { getIsNestableNFTNonHook } from '../src/blockchain/useMintNestableNFT';
 import { getIsERC721NonHook } from '../src/blockchain/useMintNFT';
 import useParticleAuth from '../src/blockchain/useParticleAuth';
-import config from '../config.json';
 import useTranscodeVideoS5 from '../src/hooks/useTranscodeVideoS5';
 import { saveAs } from 'file-saver';
+import { iswasmreadystate } from '../src/atoms/renderStateAtom';
+import { getSmartAccountAddress } from '../src/blockchain/useAccountAbstractionPayment';
+import { createEOAAccount } from '../src/utils/eoaUtils';
+import { getUser } from '../src/GlobalOrbit';
+import { useQueryClient } from '@tanstack/react-query';
 
-type NFTCollection = {
-  [address: string]: object;
-};
-
-interface Addresses {
+type Addresses = {
   [key: string]: any; // Replace `any` with the actual type of the values
-}
+};
 
 const Index = () => {
   const [state, dispatch] = useContext(MetaMaskContext);
-  const emptyStringArray = new Array<string>();
   const [triggerEffect, setTriggerEffect] = useState(0);
 
   const [addresses, setAddresses] = useState<Addresses>({}); // initialize with an empty array of type string[]
@@ -81,6 +79,11 @@ const Index = () => {
   const [exportKeys, setExportKeys] = useState<string>('');
 
   const fileImportKeysRef = useRef<HTMLInputElement>(null);
+
+  const [isWasmReady, setIsWasmReady] = useRecoilState(iswasmreadystate);
+
+  const queryClient = useQueryClient();
+  const user = getUser();
 
   //  const { getIsNestableNFT } = useMintNestableNFT();
 
@@ -128,6 +131,7 @@ const Index = () => {
   const [transak, setTransak] = useState<any>(undefined);
 
   const { socialLogin, fundYourSmartAccount, logout } = useParticleAuth();
+  const [userSession, setUserSession] = useState(null);
 
   const [errorsAddAddresses, setErrorsAddAddresses] = useState<string>('');
   const [errorsRemoveAddresses, setErrorsRemoveAddresses] =
@@ -146,11 +150,20 @@ const Index = () => {
     }
   }, [smartAccountProvider]);
 
+  function searchEnvVar(name: string): string | null {
+    for (const key in process.env) {
+      if (key === name) {
+        return process.env[key] || null;
+      }
+    }
+    return null;
+  }
+
   useEffect(() => {
     // Update the context value
     const setSmartAccountAddressFn = async () => {
       if (smartAccount)
-        setSmartAccountAddress(await smartAccount.getAccountAddress());
+        setSmartAccountAddress(await getSmartAccountAddress(smartAccount));
     };
     setSmartAccountAddressFn();
   }, [smartAccount]);
@@ -159,16 +172,43 @@ const Index = () => {
 
   console.log('index: Object.keys(process.env) =', Object.keys(process.env));
 
-  const theCurrencies = ['USDC']; // Add other currencies as needed
+  const theCurrencies = ['DAI']; // Add other currencies as needed
 
   useEffect(() => {
-    const usdcTokenAddress = process.env[`NEXT_PUBLIC_USDC_TOKEN_ADDRESS`];
-    if (usdcTokenAddress) {
-      setCurrencyContractAddresses({ USDC: usdcTokenAddress });
-      setContractAddressesCurrencies({ [usdcTokenAddress as string]: 'USDC' });
+    let theCurrenciesDecimalPlaces = {};
 
-      let theCurrenciesDecimalPlaces = {};
-      theCurrencies.forEach((currency) => {
+    const theCurrentNFTCategories = [
+      'artwork',
+      'achievement',
+      'certificate',
+      'chat',
+      'content',
+      'financial',
+      'identity',
+      'in-game',
+      'legal',
+      'ownership',
+      'other',
+      'intellectual property',
+      'real estate',
+      'rights',
+      'service',
+      'ticket',
+    ];
+    setCurrentNFTCategories(theCurrentNFTCategories);
+
+    setCurrenciesLogoUrl({
+      USDC: 'assets/coins/usd-coin-stablecoin-logo.svg',
+      DAI: 'assets/coins/multi-collateral-dai-dai-logo.svg',
+      MATIC: 'assets/coins/polygon-matic-logo.svg',
+      STIR: 'assets/coins/fabstir_logo_official.png',
+    });
+
+    for (const currency of theCurrencies) {
+      const tokenAddress = searchEnvVar(
+        `NEXT_PUBLIC_${currency}_TOKEN_ADDRESS`,
+      );
+      if (tokenAddress) {
         if (currency === 'USDC')
           theCurrenciesDecimalPlaces = {
             ...theCurrenciesDecimalPlaces,
@@ -179,35 +219,12 @@ const Index = () => {
             ...theCurrenciesDecimalPlaces,
             [currency]: 18,
           };
-      });
 
-      setCurrenciesDecimalPlaces(theCurrenciesDecimalPlaces);
+        setCurrencyContractAddresses({ [currency]: tokenAddress });
+        setContractAddressesCurrencies({ [tokenAddress as string]: currency });
 
-      const theCurrentNFTCategories = [
-        'artwork',
-        'achievement',
-        'certificate',
-        'chat',
-        'content',
-        'financial',
-        'identity',
-        'in-game',
-        'legal',
-        'ownership',
-        'other',
-        'intellectual property',
-        'real estate',
-        'rights',
-        'service',
-        'ticket',
-      ];
-      setCurrentNFTCategories(theCurrentNFTCategories);
-
-      setCurrenciesLogoUrl({
-        USDC: 'assets/coins/usd-coin-usdc-logo.svg',
-        MATIC: 'assets/coins/polygon-matic-logo.svg',
-        STIR: 'assets/coins/fabstir_logo_official.png',
-      });
+        setCurrenciesDecimalPlaces(theCurrenciesDecimalPlaces);
+      }
     }
   }, []);
 
@@ -322,10 +339,6 @@ const Index = () => {
 
     console.log('handleRemoveAddress: removeAddress = ', removeAddresses);
 
-    interface Addresses {
-      [key: string]: any; // Replace `any` with the actual type of the values
-    }
-
     const newAddresses: Addresses = { ...addresses };
 
     const addressesList = removeAddresses.split('\n');
@@ -435,19 +448,14 @@ const Index = () => {
    * Sets the addresses state to the saved state.
    */
   const handleLoadAddresses = async () => {
-    interface Addresses {
+    type Addresses = {
       state?: any; // Replace `any` with the actual type of `state`
       // Define other properties of `state.addresses` here
-    }
+    };
 
     const state: { addresses: Addresses } = (await loadState()) as unknown as {
       addresses: Addresses;
     };
-
-    interface Addresses {
-      state?: any; // Replace `any` with the actual type of `state`
-      // Define other properties of `state.addresses` here
-    }
 
     console.log(
       'useCreateNFT: state.addresses.state = ',
@@ -473,51 +481,92 @@ const Index = () => {
     }
   };
 
-  const particle = new ParticleAuthModule.ParticleNetwork({
-    projectId: 'ed8d5743-25cc-4356-bcff-4babad01922d',
-    clientKey: 'c7J1GXeesDyAYSgR68n445ZsglbTluMaiWofalmi',
-    appId: '6a89f6d0-f864-4d79-9afd-f92187f77fce',
-    chainName: config.chainName,
-    chainId: config.chainId,
-    wallet: {
-      displayWalletEntry: true,
-      defaultWalletEntryPosition: ParticleAuthModule.WalletEntryPosition.BR,
-    },
-  });
+  useEffect(() => {
+    // Check if user session exists
+    console.log('index.tsx: useEffect: user: ', user);
+    if (user?.recall) {
+      const session = user.recall();
+      if (session) {
+        setUserSession(session);
+      }
+    }
+  }, []);
 
-  const bundler: IBundler = new Bundler({
-    bundlerUrl:
-      'https://bundler.biconomy.io/api/v2/80001/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44',
-    chainId: 80001,
-    entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS,
-  });
+  const loginFabstirDB = async (alias: string, password: string) => {
+    // const alias = "test2";
+    // const password = "mypassword";
+    // The ready check is no longer necessary here since libsodium is initialized at the app level
 
-  const paymaster: IPaymaster = new BiconomyPaymaster({
-    paymasterUrl:
-      'https://paymaster.biconomy.io/api/v1/80001/FmcNOqB2j.1512a154-33be-4e05-8e0a-598dfa6fbef9',
-  });
+    if ((await user?.exists(alias)) === false) {
+      user.create(alias, password, (error, keys) => {
+        if (error) {
+          console.error('User creation failed:', error);
+        } else {
+          console.log('User created successfully, user keys:', keys);
+          setUserSession(user.recall());
+        }
+      });
+    } else {
+      user.auth(alias, password, (error, keys) => {
+        if (error) {
+          console.error('Login failed:', error);
+        } else {
+          console.log('Logged in successfully, user keys:', keys);
+          setUserSession(user.recall());
+        }
+      });
+    }
+
+    // Clear the react-query cache
+    queryClient.removeQueries();
+  };
 
   const connect = async () => {
     try {
-      const { biconomySmartAccount, web3Provider, userInfo } =
-        await socialLogin();
+      if (process.env.NEXT_PUBLIC_ENABLE_OTHER_WALLET !== 'true') {
+        const { biconomySmartAccount, web3Provider, userInfo } =
+          await socialLogin();
 
-      if (!(biconomySmartAccount && web3Provider && userInfo))
-        throw new Error('index: connect: login failed');
+        if (!(biconomySmartAccount && web3Provider && userInfo))
+          throw new Error('index: connect: login failed');
 
-      const acc = await biconomySmartAccount.getAccountAddress();
-      console.log('index: connect: acc = ', acc);
-      setSmartAccountAddress(await biconomySmartAccount.getAccountAddress());
-      setSmartAccount(biconomySmartAccount);
-      setSmartAccountProvider(web3Provider);
+        const acc = await getSmartAccountAddress(biconomySmartAccount);
+        console.log('index: connect: acc = ', acc);
+        setSmartAccountAddress(acc);
+        setSmartAccount(biconomySmartAccount);
+        setSmartAccountProvider(web3Provider);
 
-      setUserInfo(userInfo);
-      setLoading(false);
+        setUserInfo(userInfo);
+        setLoading(false);
 
-      setErrorsAddAddresses('');
-      setErrorsRemoveAddresses('');
-      setErrorsImportKeys('');
-      setErrorsExportKeys('');
+        setErrorsAddAddresses('');
+        setErrorsRemoveAddresses('');
+        setErrorsImportKeys('');
+        setErrorsExportKeys('');
+      } else if (
+        !(smartAccount && smartAccountProvider) &&
+        setSmartAccount &&
+        setSmartAccountProvider
+      ) {
+        if (process.env.NEXT_PUBLIC_DEFAULT_ALLOW_AA_SPONSORED === 'true') {
+          const wallet = new ethers.Wallet(
+            process.env.NEXT_PUBLIC_SPONSORED_ACCOUNT_PRIVATE_KEY as string,
+          );
+          const signer = wallet.connect(provider);
+          setSmartAccount(signer);
+          setSmartAccountProvider(signer);
+          setUserInfo(null);
+        } else {
+          const result = await createEOAAccount();
+          console.log('_app: result=', result);
+
+          await loginFabstirDB('test3', 'mypassword3');
+
+          setSmartAccount(result.smartAccount);
+          setSmartAccountProvider(result.web3Provider);
+          setUserInfo(null);
+        }
+      }
     } catch (e) {
       const errorMessage = 'index: connect: error received';
       console.error(`${errorMessage} ${e.message}`);
@@ -525,160 +574,8 @@ const Index = () => {
     }
   };
 
-  interface ExtendedBlobPropertyBag extends BlobPropertyBag {
-    lastModified?: number;
-  }
-
-  interface MintNFTResponse {
-    address: string;
-    id: string;
-  }
-
-  const mintNFTorig = async (): Promise<MintNFTResponse> => {
-    const { provider } = blockchainContext;
-
-    //    const nftAddress = process.env.NEXT_PUBLIC_TIPERC721_ADDRESS;
-    const nftAddress = '0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e'; // Todo // use from config
-
-    let tokenId: any;
-    if (smartAccountProvider) {
-      if (smartAccount) {
-        const address = await smartAccount.getAccountAddress();
-        console.log('index: mintNFT: address = ', address);
-
-        // const nftInterface = new Interface([
-        //   'function safeMint(address _to,string uri)',
-        // ]);
-        const nftInterface = new Interface(['function safeMint(address _to)']);
-
-        // const data = nftInterface.encodeFunctionData('safeMint', [
-        //   address,
-        //   cid,
-        // ]);
-        const data = nftInterface.encodeFunctionData('safeMint', [address]);
-
-        const transaction = {
-          to: nftAddress,
-          data: data,
-        };
-
-        console.log('index: mintNFT: creating nft mint userop');
-        let partialUserOp = await smartAccount.buildUserOp([
-          transaction as Transaction,
-        ]);
-
-        console.log('index: mintNFT: partialUserOp= ', partialUserOp);
-        let finalUserOp = partialUserOp;
-
-        const biconomyPaymaster =
-          smartAccount.paymaster as IHybridPaymaster<SponsorUserOperationDto>;
-
-        console.log(
-          'index: mintNFT: process.env.NEXT_PUBLIC_USDC_TOKEN_ADDRESS = ',
-          process.env.NEXT_PUBLIC_USDC_TOKEN_ADDRESS,
-        );
-
-        const feeQuotesResponse =
-          await biconomyPaymaster.getPaymasterFeeQuotesOrData(partialUserOp, {
-            mode: PaymasterMode.ERC20,
-            tokenList: [process.env.NEXT_PUBLIC_USDC_TOKEN_ADDRESS as string],
-          });
-
-        const feeQuotes = feeQuotesResponse.feeQuotes as PaymasterFeeQuote[];
-        const spender = feeQuotesResponse.tokenPaymasterAddress || '';
-        const usdcFeeQuotes = feeQuotes[0];
-
-        console.log('index: mintNFT: spender= ', spender);
-        console.log('index: mintNFT: usdcFeeQuotes= ', usdcFeeQuotes);
-
-        finalUserOp = await smartAccount.buildTokenPaymasterUserOp(
-          partialUserOp,
-          {
-            feeQuote: usdcFeeQuotes,
-            spender: spender,
-            maxApproval: false,
-          },
-        );
-
-        console.log(
-          'index: mintNFT: usdcFeeQuotes.tokenAddress = ',
-          usdcFeeQuotes.tokenAddress,
-        );
-
-        let paymasterServiceData = {
-          mode: PaymasterMode.ERC20,
-          feeTokenAddress: process.env.NEXT_PUBLIC_USDC_TOKEN_ADDRESS,
-        };
-
-        console.log('index: mintNFT: finalUserOp= ', finalUserOp);
-
-        try {
-          const paymasterAndDataWithLimits =
-            await biconomyPaymaster.getPaymasterAndData(
-              finalUserOp,
-              paymasterServiceData,
-            );
-
-          console.log(
-            'index: mintNFT: paymasterAndDataWithLimits = ',
-            paymasterAndDataWithLimits,
-          );
-
-          finalUserOp.paymasterAndData =
-            paymasterAndDataWithLimits.paymasterAndData;
-
-          console.log(
-            'index: mintNFT: finalUserOp.paymasterAndData = ',
-            finalUserOp.paymasterAndData,
-          );
-        } catch (e) {
-          const errorMessage = 'index: mintNFT: error received';
-          console.error(`${errorMessage} ${e.message}`);
-          throw new Error(errorMessage, e);
-        }
-
-        try {
-          console.log(
-            'index: mintNFT: before const userOpResponse = await smartAccount.sendUserOp(finalUserOp);',
-          );
-          const userOpResponse = await smartAccount.sendUserOp(finalUserOp);
-          console.log('index: mintNFT: userOpResponse = ', userOpResponse);
-
-          const transactionDetails = await userOpResponse.wait();
-          console.log(
-            'index: mintNFT: transactionDetails = ',
-            transactionDetails,
-          );
-
-          console.log(
-            `index: mintNFT: transactionDetails: https://mumbai.polygonscan.com/tx/${transactionDetails.logs[0].transactionHash}`,
-          );
-          console.log(
-            `index: mintNFT: view minted nfts for smart account: https://testnets.opensea.io/${address}`,
-          );
-        } catch (e) {
-          const errorMessage = 'index: mintNFT: error received';
-          console.error(`${errorMessage} ${e.message}`);
-          throw new Error(errorMessage, e);
-        }
-      } else {
-        const errorMessage = 'index: mintNFT: smartAccount is null';
-        console.error(errorMessage);
-        throw new Error(errorMessage);
-      }
-    } else {
-      const errorMessage = 'index: mintNFT: biconomy provider is null';
-      console.error(errorMessage);
-      throw new Error(errorMessage);
-    }
-    return {
-      address: nftAddress as string,
-      id: tokenId ? tokenId.toNumber().toString() : undefined,
-    };
-  };
-
   async function handleLogout() {
-    await logout();
+    if (logout) await logout();
     setSmartAccount(null);
   }
 

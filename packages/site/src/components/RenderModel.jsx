@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useRecoilState } from 'recoil';
 import { currentnftmetadata } from '../atoms/nftMetaDataAtom';
 
@@ -27,20 +27,23 @@ export default function RenderModel({ nft, modelUris }) {
 
   const canvasRef = useRef(null);
   const router = useRouter();
+  const [wasm, setWasm] = useState(null);
 
-  useEffect(() => {
-    init()
-      .then(() => {
-        console.log('DetailsSidebar1: WebAssembly module initialized');
-        setIsWasmReady(true);
-      })
-      .catch((e) => {
-        console.error(
-          'DetailsSidebar1: Failed to initialize WebAssembly module:',
-          e,
-        );
-      });
-  }, []);
+  // Rest of the code...
+
+  // useEffect(() => {
+  //   init()
+  //     .then(() => {
+  //       console.log('DetailsSidebar1: WebAssembly module initialized');
+  //       setIsWasmReady(true);
+  //     })
+  //     .catch((e) => {
+  //       console.error(
+  //         'DetailsSidebar1: Failed to initialize WebAssembly module:',
+  //         e,
+  //       );
+  //     });
+  // }, []);
 
   useEffect(() => {
     // Define get_canvas_size in the global scope
@@ -60,8 +63,8 @@ export default function RenderModel({ nft, modelUris }) {
     return () => {
       console.log('DetailsSidebar: cleanup');
 
-      setIsWasmReady(false);
-      if (!isFirstRender.current) router.reload();
+      // setIsWasmReady(false);
+      // if (!isFirstRender.current) router.reload();
 
       // if (!isFirstRender.current) {
       //   const stopRender = async () => {
@@ -81,6 +84,20 @@ export default function RenderModel({ nft, modelUris }) {
       //   stopRender();
       // }
     };
+  }, []);
+
+  useEffect(() => {
+    init()
+      .then((wasmInstance) => {
+        console.log('DetailsSidebar1: WebAssembly module initialized');
+        setIsWasmReady(true);
+      })
+      .catch((e) => {
+        console.error(
+          'DetailsSidebar1: Failed to initialize WebAssembly module:',
+          e,
+        );
+      });
   }, []);
 
   async function handleRenderModel(uris) {
@@ -124,6 +141,7 @@ export default function RenderModel({ nft, modelUris }) {
 
           if (isFirstRender.current) {
             try {
+              //              const renderModelBound = render_model.bind(wasm);
               await render_model(canvas, model_urls, extensions, callback);
             } catch (err) {
               console.error('Error calling render_model:', err);

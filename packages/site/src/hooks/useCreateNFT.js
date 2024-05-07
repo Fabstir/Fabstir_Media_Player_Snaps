@@ -2,6 +2,7 @@ import { useMutation } from '@tanstack/react-query';
 import { queryClient } from '../../pages/_app.tsx';
 
 import { saveState, loadState } from '../utils';
+import { saveNFTState as saveNFTStateToFabstirDB } from '../utils/fabstirDBNFTState';
 
 /**
  * Asynchronously saves the NFT data to the local state.
@@ -26,7 +27,7 @@ export async function saveNFTtoState(address, nftState) {
 
 /**
  * Custom hook to create an NFT. It uses react-query's useMutation hook to handle the mutation,
- * and recoil to manage the state.
+ * and recoil to manage the state. NFT address is saved to either wallet sandboxed storage or FabstirDB.
  *
  * @function
  * @returns {Object} - The result object from the useMutation hook, which includes data, error, and other properties.
@@ -53,7 +54,12 @@ export default function useCreateNFT() {
         else newState = { isTranscodePending: true };
       } else newState = {};
 
-      await saveNFTtoState(`${nftJSON.address}_${nftJSON.id}`, newState);
+      if (process.env.NEXT_PUBLIC_IS_USE_FABSTIRDB === 'true')
+        await saveNFTStateToFabstirDB(
+          `${nftJSON.address}_${nftJSON.id}`,
+          newState,
+        );
+      else await saveNFTtoState(`${nftJSON.address}_${nftJSON.id}`, newState);
       console.log('useCreateNFT: newState = ', newState);
     },
     {

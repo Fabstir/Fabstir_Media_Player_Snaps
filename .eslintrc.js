@@ -17,6 +17,8 @@ module.exports = {
       extends: ['@metamask/eslint-config-typescript'],
       rules: {
         '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
+        'no-process-env': 'off',
+        curly: 'off',
       },
     },
 
