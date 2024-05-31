@@ -1,3 +1,5 @@
+import useContractUtils from './useContractUtils';
+
 /**
  * Function to handle Biconomy payment for a given user operation with sponsorship.
  * It checks if the smart account is defined and throws an error if it is not.
@@ -9,8 +11,8 @@
  * @param {any} userOp - The user operation to handle Biconomy payment for.
  * @returns {Promise<any>} - The user operation response.
  */
-export default function useParticlePayment(provider, smartAccount) {
-  console.log('useMintNestableNFT: provider = ', provider);
+export default function useParticlePayment(smartAccount) {
+  const { getAddressFromChainIdAddressForTransaction } = useContractUtils();
 
   /**
    * Function to handle Biconomy payment for a given user operation.
@@ -21,7 +23,7 @@ export default function useParticlePayment(provider, smartAccount) {
    * Finally, it sends the user operation and returns the user operation response.
    *
    * @function
-   * @param {any} partialUserOp - The partial user operation to handle Biconomy payment for.
+   * @param {any} transactions - The partial user operation to handle Biconomy payment for.
    * @returns {Promise<any>} - The user operation response.
    */
   const handleAAPayment = async (transactions) => {
@@ -54,7 +56,7 @@ export default function useParticlePayment(provider, smartAccount) {
       });
       console.log('useParticlePayment: handleAAPayment: txHash = ', txHash);
 
-      const receipt = await provider.waitForTransaction(txHash);
+      const receipt = await smartAccount.waitForTransaction(txHash);
       console.log(
         'useAccountAbstractionPaymentSponsor: handleAAPayment: receipt =',
         receipt,
@@ -74,7 +76,7 @@ export default function useParticlePayment(provider, smartAccount) {
    * Function to handle Biconomy payment for a given user operation with sponsorship.
    *
    * @function
-   * @param {any} userOp - The user operation to handle Biconomy payment for.
+   * @param {any} transactions - The user operation to handle Biconomy payment for.
    * @returns {Promise<any>} - The user operation response.
    */
   const handleAAPaymentSponsor = async (transactions) => {
@@ -112,7 +114,7 @@ export default function useParticlePayment(provider, smartAccount) {
           txHash,
         );
 
-        const receipt = await provider.waitForTransaction(txHash);
+        const receipt = await smartAccount.waitForTransaction(txHash);
         console.log(
           'useAccountAbstractionPaymentSponsor: handleAAPaymentSponsor: receipt =',
           receipt,
@@ -156,10 +158,22 @@ export default function useParticlePayment(provider, smartAccount) {
     };
   }
 
+  /**
+   * Processes a bundle of transactions. If the environment variable `NEXT_PUBLIC_DEFAULT_ALLOW_AA_SPONSORED` is set to 'all' or 'true',
+   * it handles the payment process using Biconomy's Account Abstraction (AA) feature with a sponsor. Otherwise, it handles the payment process using AA without a sponsor.
+   *
+   * @async
+   * @param {Array<Array<string, string>>} transactions - An array of pairs, each containing transaction data and a chain ID address.
+   * @returns {Promise<Object>} A promise that resolves to an object containing the user operation hash, transaction details, and receipt.
+   * @throws {Error} If the smart account is undefined or the connected chain ID is null or undefined.
+   */
   async function processTransactionBundle(transactions) {
     const createdTransactions = [];
 
-    for (const [transactionData, address] of transactions) {
+    for (const [transactionData, chainIdAddress] of transactions) {
+      const address =
+        getAddressFromChainIdAddressForTransaction(chainIdAddress);
+
       const createdTransaction = createTransaction()
         .to(address)
         .data(transactionData);

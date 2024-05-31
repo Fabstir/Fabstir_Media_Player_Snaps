@@ -7,15 +7,15 @@ import { getUser } from '../GlobalOrbit';
  * @returns {Promise<Object>} - A Promise that resolves with an object. The keys of the object are the second properties of each NFT state, and the values are the corresponding values of these properties.
  * @throws {Error} - Throws an error if loading the NFTs state fails.
  */
-export const loadNFTsState = async (addressId) => {
+export const loadNFTsState = async () => {
   const user = getUser();
   const nftsState = await user.get('nfts').load();
 
   const addressIds = {};
-  for (const nftState of nftsState) {
-    const nftStateKeys = Object.keys(nftState);
-    const secondPropertyKey = nftStateKeys[1];
-    addressIds[secondPropertyKey] = nftState[secondPropertyKey];
+  for (const nftObject of nftsState) {
+    for (const [key, value] of Object.entries(nftObject)) {
+      addressIds[key] = value;
+    }
   }
   return addressIds;
 };

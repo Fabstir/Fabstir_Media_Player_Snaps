@@ -67,9 +67,8 @@ node_modules/
 .yarn-integrity
 
 # dotenv environment variables file
-.env
-.env.local
-.env.test
+.env*
+!.env.template
 
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test
@@ -95,6 +94,9 @@ Copy code
 # dotenv environment variables file
 .env
 .env.test
+.env.hardhat
+.env.amoy
+.env.base_sepolia
 
 # Next.js
 .next/

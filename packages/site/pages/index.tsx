@@ -1,5 +1,7 @@
 import React, { useContext, useState, useEffect, useRef } from 'react';
 import { ethers } from 'ethers';
+const Gun = require('gun');
+const SEA = require('gun/sea');
 
 import { Button } from '../src/ui-components/button';
 import { Description, Label } from '../src/ui-components/fieldset';
@@ -18,9 +20,6 @@ import { MetamaskActions, MetaMaskContext } from '../src/hooks';
 import Link from 'next/link';
 import { fetchNFT } from '../src/hooks/useNFT';
 import { ParticleAuthModule, ParticleProvider } from '@biconomy/particle-auth';
-import { Web3Provider, Provider } from '@ethersproject/providers';
-import { Interface } from '@ethersproject/abi';
-import { Transaction } from '@biconomy/core-types';
 
 import { IBundler, Bundler } from '@biconomy/bundler';
 import {
@@ -28,20 +27,11 @@ import {
   DEFAULT_ENTRYPOINT_ADDRESS,
 } from '@biconomy/account';
 import { IPaymaster, BiconomyPaymaster } from '@biconomy/paymaster';
-import { ChainId } from '@biconomy/core-types';
 
 import { v4 as uuidv4 } from 'uuid';
 
-import {
-  IHybridPaymaster,
-  PaymasterMode,
-  SponsorUserOperationDto,
-  PaymasterFeeQuote,
-} from '@biconomy/paymaster';
-
 import { connectSnap, getSnap, saveState, loadState } from '../src/utils';
 import { useRecoilState } from 'recoil';
-import { S5Client } from '../../../node_modules/s5client-js/dist/mjs/index';
 
 import usePortal from '../src/hooks/usePortal';
 import BlockchainContext from '../state/BlockchainContext';
@@ -53,16 +43,22 @@ import {
 } from '../src/atoms/currenciesAtom';
 import { currentnftcategories } from '../src/atoms/nftSlideOverAtom';
 
-import { getIsNestableNFTNonHook } from '../src/blockchain/useMintNestableNFT';
-import { getIsERC721NonHook } from '../src/blockchain/useMintNFT';
+import useMintNestableNFT from '../src/blockchain/useMintNestableNFT';
 import useParticleAuth from '../src/blockchain/useParticleAuth';
+import { CreateUser, ParticleAuth } from '../types';
 import useTranscodeVideoS5 from '../src/hooks/useTranscodeVideoS5';
 import { saveAs } from 'file-saver';
 import { iswasmreadystate } from '../src/atoms/renderStateAtom';
 import { getSmartAccountAddress } from '../src/blockchain/useAccountAbstractionPayment';
-import { createEOAAccount } from '../src/utils/eoaUtils';
+import { createEOAAccount, generatePassword } from '../src/utils/eoaUtils';
 import { getUser } from '../src/GlobalOrbit';
 import { useQueryClient } from '@tanstack/react-query';
+import { getConnectedChainId } from '../src/utils/chainUtils';
+import useMintNFT from '../src/blockchain/useMintNFT';
+import useContractUtils from '../src/blockchain/useContractUtils';
+import useCreateUser from '../src/hooks/useCreateUser';
+import { process_env } from '../src/utils/process_env';
+import useNativeAuth from '../src/hooks/useNativeAuth';
 
 type Addresses = {
   [key: string]: any; // Replace `any` with the actual type of the values
@@ -85,8 +81,6 @@ const Index = () => {
   const queryClient = useQueryClient();
   const user = getUser();
 
-  //  const { getIsNestableNFT } = useMintNestableNFT();
-
   // Define a type for the hook's return value
   type UseTranscodeVideoS5Return = {
     transcodeVideo: (
@@ -103,7 +97,14 @@ const Index = () => {
     setSmartAccountProvider,
     smartAccount,
     setSmartAccount,
+    connectedChainId,
+    setConnectedChainId,
   } = blockchainContext;
+
+  const useMintNFTResult = useMintNFT();
+  if (!useMintNFTResult) throw new Error('useMintNFTResult is undefined');
+
+  const { getIsERC721 } = useMintNFTResult;
 
   const [currencyContractAddresses, setCurrencyContractAddresses] =
     useRecoilState(currencycontractaddressesstate);
@@ -130,7 +131,10 @@ const Index = () => {
 
   const [transak, setTransak] = useState<any>(undefined);
 
-  const { socialLogin, fundYourSmartAccount, logout } = useParticleAuth();
+  const { socialLogin, logout } = useParticleAuth() as ParticleAuth;
+  const { createUser, signOut, isUserExists, login } =
+    useCreateUser() as CreateUser;
+
   const [userSession, setUserSession] = useState(null);
 
   const [errorsAddAddresses, setErrorsAddAddresses] = useState<string>('');
@@ -138,26 +142,20 @@ const Index = () => {
     useState<string>('');
   const [errorsImportKeys, setErrorsImportKeys] = useState<string>('');
   const [errorsExportKeys, setErrorsExportKeys] = useState<string>('');
+  const {
+    newReadOnlyContract,
+    getTokenNumberOfDecimalPlacesChainIdAndTokenSymbol,
+    getCurrencyContractAddresses,
+    getCurrencyDecimalPlaces,
+    getContractAddressesCurrencies,
+  } = useContractUtils();
 
-  useEffect(() => {
-    // Update the context value
-    if (blockchainContext) {
-      blockchainContext.setSmartAccountProvider(smartAccountProvider);
-      console.log(
-        'index: blockchainContext.biconomyProvider = ',
-        smartAccountProvider,
-      );
-    }
-  }, [smartAccountProvider]);
+  const mintNestableNFT = useMintNestableNFT();
+  if (!mintNestableNFT) throw new Error('mintNestableNFT is undefined');
 
-  function searchEnvVar(name: string): string | null {
-    for (const key in process.env) {
-      if (key === name) {
-        return process.env[key] || null;
-      }
-    }
-    return null;
-  }
+  const { getIsNestableNFT } = mintNestableNFT;
+
+  const { loginNative } = useNativeAuth();
 
   useEffect(() => {
     // Update the context value
@@ -175,8 +173,6 @@ const Index = () => {
   const theCurrencies = ['DAI']; // Add other currencies as needed
 
   useEffect(() => {
-    let theCurrenciesDecimalPlaces = {};
-
     const theCurrentNFTCategories = [
       'artwork',
       'achievement',
@@ -204,29 +200,15 @@ const Index = () => {
       STIR: 'assets/coins/fabstir_logo_official.png',
     });
 
-    for (const currency of theCurrencies) {
-      const tokenAddress = searchEnvVar(
-        `NEXT_PUBLIC_${currency}_TOKEN_ADDRESS`,
-      );
-      if (tokenAddress) {
-        if (currency === 'USDC')
-          theCurrenciesDecimalPlaces = {
-            ...theCurrenciesDecimalPlaces,
-            [currency]: 6,
-          };
-        else
-          theCurrenciesDecimalPlaces = {
-            ...theCurrenciesDecimalPlaces,
-            [currency]: 18,
-          };
+    const theCurrencyContractAddresses = getCurrencyContractAddresses();
+    setCurrencyContractAddresses(theCurrencyContractAddresses);
 
-        setCurrencyContractAddresses({ [currency]: tokenAddress });
-        setContractAddressesCurrencies({ [tokenAddress as string]: currency });
+    const theContractAddressesCurrencies = getContractAddressesCurrencies();
+    setContractAddressesCurrencies(theContractAddressesCurrencies);
 
-        setCurrenciesDecimalPlaces(theCurrenciesDecimalPlaces);
-      }
-    }
-  }, []);
+    const theCurrencyDecimalPlaces = getCurrencyDecimalPlaces();
+    setCurrenciesDecimalPlaces(theCurrencyDecimalPlaces);
+  }, [process.env]);
 
   useEffect(() => {
     console.log('Addresses updated:', addresses);
@@ -238,8 +220,8 @@ const Index = () => {
      * If the NFT is a video, it ingests and transcodes it.
      */
     const handleAddAddresses = async () => {
-      const { provider } = blockchainContext;
-      if (!provider || !smartAccount) {
+      const { providers } = blockchainContext;
+      if (!providers || Object.keys(providers).length === 0 || !smartAccount) {
         // Handle the case when provider or smartAccount is not available
         console.error('Provider or smartAccount is undefined');
         setErrorsAddAddresses('Not logged in.');
@@ -249,12 +231,6 @@ const Index = () => {
       if (!newAddresses) return;
 
       console.log('index: handleAddAddress: enter');
-
-      const customClientOptions = {};
-      const client = new S5Client(
-        process.env.NEXT_PUBLIC_PORTAL_URL,
-        customClientOptions,
-      );
       console.log('index: handleAddAddress: before downloadFile');
 
       // Define a type for the hook's return value
@@ -273,24 +249,21 @@ const Index = () => {
 
         const [address, id] = addressId.split('_');
 
-        if (!provider)
-          throw new Error('index: handleAddAddress: provider is null');
-
-        const isERC721 = await getIsERC721NonHook(address, provider);
+        const isERC721 = await getIsERC721(address);
         if (!isERC721)
           throw new Error('index: handleAddAddress: address is not ERC721');
 
         let nftJSON = {};
 
-        const isNestableNFT = await getIsNestableNFTNonHook(address, provider);
+        const isNestableNFT = await getIsNestableNFT(address);
         if (!isNestableNFT) {
-          interface Nft {
+          type Nft = {
             video?: any; // Replace `any` with the actual type of `video`
             // Define other properties of `nft` here
-          }
+          };
           const nft: Nft | null = await fetchNFT(
             addressId,
-            provider,
+            newReadOnlyContract,
             downloadFile,
           );
           console.log('index: nft = ', nft);
@@ -481,18 +454,6 @@ const Index = () => {
     }
   };
 
-  const particle = new ParticleAuthModule.ParticleNetwork({
-    projectId: 'ed8d5743-25cc-4356-bcff-4babad01922d',
-    clientKey: 'c7J1GXeesDyAYSgR68n445ZsglbTluMaiWofalmi',
-    appId: '6a89f6d0-f864-4d79-9afd-f92187f77fce',
-    chainName: config.chainName,
-    chainId: config.chainId,
-    wallet: {
-      displayWalletEntry: true,
-      defaultWalletEntryPosition: ParticleAuthModule.WalletEntryPosition.BR,
-    },
-  });
-
   const bundler: IBundler = new Bundler({
     bundlerUrl:
       'https://bundler.biconomy.io/api/v2/80001/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44',
@@ -505,20 +466,64 @@ const Index = () => {
       'https://paymaster.biconomy.io/api/v1/80001/FmcNOqB2j.1512a154-33be-4e05-8e0a-598dfa6fbef9',
   });
 
-  const connect = async () => {
-    try {
-      if (process.env.NEXT_PUBLIC_ENABLE_OTHER_WALLET !== 'true') {
-        const { biconomySmartAccount, web3Provider, userInfo } =
-          await socialLogin();
+  const loginFabstirDB = async (smartAccountAddress: string) => {
+    if (!process.env.NEXT_PUBLIC_FABSTIR_SALT_PAIR)
+      throw new Error('logInOrCreateNewUser: Salt pair is not set');
 
-        if (!(biconomySmartAccount && web3Provider && userInfo))
+    const password = generatePassword(
+      smartAccountAddress,
+      process.env.NEXT_PUBLIC_FABSTIR_SALT_KEY as string,
+    );
+
+    const pair = JSON.parse(process.env.NEXT_PUBLIC_FABSTIR_SALT_PAIR);
+
+    console.log('SEA = ', SEA);
+
+    const username = await SEA.work(smartAccountAddress, pair);
+    const passw = await SEA.work(password, pair);
+
+    console.log('logInOrCreateNewUser: passw = ', passw);
+
+    const testUserName = `${username}_${process.env.NEXT_PUBLIC_FABSTIR_MEDIA_PLAYER_INSTANCE}`;
+    const testPassword = `${passw}_${process.env.NEXT_PUBLIC_FABSTIR_MEDIA_PLAYER_INSTANCE}`;
+
+    let loggedIn = false;
+    if (await isUserExists(testUserName)) {
+      console.log('logInOrCreateNewUser: isUserExists(userInfo.uuid) in if');
+      loggedIn = await login(testUserName, testPassword);
+    } else {
+      console.log('logInOrCreateNewUser: isUserExists(userInfo.uuid) in else');
+
+      loggedIn = await createUser(testUserName, testPassword);
+    }
+
+    if (!loggedIn) throw new Error('logInOrCreateNewUser: login failed');
+  };
+
+  const handleLogin = async () => {
+    try {
+      let userAccountAddress = null;
+
+      if (process.env.NEXT_PUBLIC_ENABLE_OTHER_WALLET !== 'true') {
+        const {
+          smartAccount: biconomySmartAccount,
+          web3Provider,
+          userInfo,
+        } = await socialLogin();
+
+        if (!(biconomySmartAccount && web3Provider))
           throw new Error('index: connect: login failed');
 
-        const acc = await getSmartAccountAddress(biconomySmartAccount);
-        console.log('index: connect: acc = ', acc);
-        setSmartAccountAddress(acc);
+        userAccountAddress = await getSmartAccountAddress(biconomySmartAccount);
+        console.log(
+          'index: connect: userAccountAddress = ',
+          userAccountAddress,
+        );
         setSmartAccount(biconomySmartAccount);
         setSmartAccountProvider(web3Provider);
+
+        const chainId = await getConnectedChainId(biconomySmartAccount);
+        setConnectedChainId(chainId);
 
         setUserInfo(userInfo);
         setLoading(false);
@@ -527,30 +532,12 @@ const Index = () => {
         setErrorsRemoveAddresses('');
         setErrorsImportKeys('');
         setErrorsExportKeys('');
-      } else if (
-        !(smartAccount && smartAccountProvider) &&
-        setSmartAccount &&
-        setSmartAccountProvider
-      ) {
-        if (process.env.NEXT_PUBLIC_DEFAULT_ALLOW_AA_SPONSORED === 'true') {
-          const wallet = new ethers.Wallet(
-            process.env.NEXT_PUBLIC_SPONSORED_ACCOUNT_PRIVATE_KEY as string,
-          );
-          const signer = wallet.connect(provider);
-          setSmartAccount(signer);
-          setSmartAccountProvider(signer);
-          setUserInfo(null);
-        } else {
-          const result = await createEOAAccount();
-          console.log('_app: result=', result);
-
-          await loginFabstirDB('test3', 'mypassword3');
-
-          setSmartAccount(result.smartAccount);
-          setSmartAccountProvider(result.web3Provider);
-          setUserInfo(null);
-        }
+      } else if (!(smartAccount && smartAccountProvider)) {
+        userAccountAddress = await loginNative();
+        setSmartAccountAddress(userAccountAddress);
       }
+
+      await loginFabstirDB(userAccountAddress);
     } catch (e) {
       const errorMessage = 'index: connect: error received';
       console.error(`${errorMessage} ${e.message}`);
@@ -559,8 +546,9 @@ const Index = () => {
   };
 
   async function handleLogout() {
-    if (logout) await logout();
+    await signOut();
     setSmartAccount(null);
+    setConnectedChainId(null);
   }
 
   return (
@@ -579,7 +567,7 @@ const Index = () => {
       <br />
       {!loading && !smartAccount && (
         <Button
-          onClick={connect}
+          onClick={handleLogin}
           color="white"
           className="mt-4 text-xl font-semibold dark:bg-gray-200 bg-gray-200"
         >

@@ -13,6 +13,7 @@ import { useRecoilValue } from 'recoil';
 import { selectedparentnftaddressid } from '../atoms/nestableNFTAtom';
 import useNFT, { fetchNFT } from './useNFT';
 import { loadNFTsState as loadNFTsStateFromFabstirDB } from '../utils/fabstirDBNFTState';
+import useContractUtils from '../blockchain/useContractUtils';
 
 /**
  * Asynchronously retrieves metadata from a given URI.
@@ -33,7 +34,7 @@ const getMetadata = async (uri, downloadFile) => {
 
 async function getModelUrisFromNestedNFT(
   id,
-  provider,
+  newReadOnlyContract,
   getChildrenOfNestableNFT,
   downloadFile,
 ) {
@@ -44,7 +45,7 @@ async function getModelUrisFromNestedNFT(
   for (const child of children) {
     const address_id = `${child.contractAddress.toString()}_${child.tokenId.toString()}`;
 
-    const nft = await fetchNFT(address_id, provider, downloadFile);
+    const nft = await fetchNFT(address_id, newReadOnlyContract, downloadFile);
 
     if (nft.fileUrls) {
       for (const fileUrl of nft.fileUrls) {
@@ -68,13 +69,13 @@ async function getModelUrisFromNestedNFT(
  * @async
  * @function
  * @param {Object} nftAddresses - The addresses of the NFTs.
- * @param {Object} provider - The blockchain provider.
+ * @param {Object} newReadOnlyContract - wrapper to `new ethers.Contract`.
  * @param {function} downloadFile - The function to download files.
  * @returns {Array} - An array of NFT objects containing metadata and other properties.
  */
 const fetchNFTs = async (
   selectedParentNFTAddressId,
-  provider,
+  newReadOnlyContract,
   downloadFile,
   getIsNestableNFT,
   getChildrenOfNestableNFT,
@@ -147,7 +148,7 @@ const fetchNFTs = async (
     }
 
     // Initialize a new ethers Contract instance with the NFT address and provider
-    const contract = new Contract(nftAddress, TipERC721.abi, provider);
+    const contract = newReadOnlyContract(nftAddress, TipERC721.abi);
 
     const name = await contract.name();
     console.log('useNFTs: name = ', name);
@@ -180,10 +181,9 @@ const fetchNFTs = async (
       {
         nft.parentId = parentId;
 
-        const contractNestableNFT = new Contract(
+        const contractNestableNFT = newReadOnlyContract(
           address,
           FNFTNestable.abi,
-          provider,
         );
 
         nft.parentOwner = await contractNestableNFT.ownerOf(parentId);
@@ -192,7 +192,7 @@ const fetchNFTs = async (
       if (isNestableNFT) {
         const modelUris = await getModelUrisFromNestedNFT(
           parentId,
-          provider,
+          newReadOnlyContract,
           getChildrenOfNestableNFT,
           downloadFile,
         );
@@ -238,15 +238,13 @@ export default function useNFTs() {
     process.env.NEXT_PUBLIC_PORTAL_URL,
   );
 
-  // Use the useContext hook to get the blockchain provider from the BlockchainContext
-  const blockchainContext = useContext(BlockchainContext);
-  const { provider } = blockchainContext;
+  const { newReadOnlyContract } = useContractUtils();
 
   // Use the useQuery hook from react-query to fetch the NFT metadata
   return useQuery(['nfts', selectedParentNFTAddressId], () => {
     return fetchNFTs(
       selectedParentNFTAddressId,
-      provider,
+      newReadOnlyContract,
       downloadFile,
       getIsNestableNFT,
       getChildrenOfNestableNFT,

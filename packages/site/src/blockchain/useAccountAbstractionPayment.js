@@ -1,29 +1,40 @@
 // Importing the required types from ethers.js
+import { Web3Provider } from '@ethersproject/providers';
+
 import useBiconomyPayment from './useBiconomyPayment';
 import useParticlePayment from './useParticlePayment';
 import useNativePayment from './useNativePayment';
 
+// eslint-disable-next-line jsdoc/check-param-names
 /**
- * This hook function selects the appropriate payment method based on the environment variable `NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK`.
- * It supports Biconomy, Particle, and Native payment methods.
+ * This function is used to handle account abstraction payments. It uses the provided smart account
+ * to determine which payment method to use (Biconomy, Particle, or Native) and returns an object
+ * with the appropriate payment handling functions.
  *
- * @param {object} provider - The provider object to be used for the payment.
- * @param {object} smartAccount - The smart account object to be used for the payment.
- * @returns {object} An object containing the following methods:
- * - handleAAPayment: Function to handle the account abstraction payment.
- * - handleAAPaymentSponsor: Function to handle the account abstraction payment sponsor. This is null for Native payment method.
- * - createTransaction: Function to create a transaction.
- * - processTransactionBundle: Function to process a transaction bundle.
- * @throws {Error} Will throw an error if `NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK` is not 'Biconomy', 'Particle', or 'Native'.
+ * @param {Object} smartAccount - The smart account object to use for payment abstraction.
+ *
+ * @returns {Object} An object containing the following properties:
+ * - handleAAPayment: A function to handle the account abstraction payment.
+ * - handleAAPaymentSponsor: A function to handle the account abstraction payment sponsor.
+ * - createTransaction: A function to create a transaction.
+ * - processTransactionBundle: A function to process a transaction bundle.
+ *
+ * @throws {Error} Throws an error if the `NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK` environment variable is not set to a valid value.
  */
-export default function useAccountAbstractionPayment(provider, smartAccount) {
-  const biconomy = useBiconomyPayment(provider, smartAccount);
-  const particle = useParticlePayment(provider, smartAccount);
+export default function useAccountAbstractionPayment(smartAccount) {
+  const biconomy = useBiconomyPayment(smartAccount);
+  const particle = useParticlePayment(smartAccount);
 
   const native = useNativePayment(smartAccount);
 
-  if (!provider)
-    throw new Error(`useAccountAbstractionPayment: provider is undefined`);
+  if (!smartAccount) {
+    return {
+      handleAAPayment: () => {},
+      handleAAPaymentSponsor: null,
+      createTransaction: () => {},
+      processTransactionBundle: () => {},
+    };
+  }
 
   if (process.env.NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK === 'Biconomy') {
     return {

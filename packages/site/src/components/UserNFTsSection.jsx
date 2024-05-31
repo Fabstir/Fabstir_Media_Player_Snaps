@@ -4,7 +4,7 @@ import { useRecoilState } from 'recoil';
 import {
   PlusSmallIcon as PlusSmIconOutline,
   Bars4Icon,
-  Squares2x2Icon,
+  Squares2X2Icon,
   ChevronDoubleDownIcon,
 } from '@heroicons/react/24/solid';
 
@@ -77,7 +77,7 @@ export default function UserNFTsSection({
 
         <div className="ml-6 flex items-center rounded-lg p-0.5 sm:hidden">
           <button type="button" className="rounded-md p-1.5">
-            <Squares2x2Icon className="h-5 w-5" aria-hidden="true" />
+            <Squares2X2Icon className="h-5 w-5" aria-hidden="true" />
             <span className="sr-only">Use list view</span>
           </button>
           <button

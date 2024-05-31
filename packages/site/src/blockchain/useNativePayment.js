@@ -1,4 +1,8 @@
+import useContractUtils from './useContractUtils';
+
 export default function useNativePayment(signer) {
+  const { getAddressFromChainIdAddressForTransaction } = useContractUtils();
+
   // Ensures the signer is correctly provided and alerts if not
   if (!signer) {
     console.error('useNativePayment: No signer provided');
@@ -13,6 +17,15 @@ export default function useNativePayment(signer) {
     };
 
     // Optionally initialize arrays to store hashes and details for all transactions
+    const [transactionData, address, gasEstimate] = transactions[0];
+    console.log(
+      `useNativePayment: handleAAPayment: transactionData = ${transactionData}`,
+    );
+    console.log(`useNativePayment: handleAAPayment: address = ${address}`);
+    console.log(
+      `useNativePayment: handleAAPayment: gasEstimate = ${gasEstimate}`,
+    );
+
     const transactionHashes = [];
     const transactionDetails = [];
 
@@ -86,7 +99,19 @@ export default function useNativePayment(signer) {
 
   // Process a bundle of transactions, with the option for additional configurations like gas limit adjustments
   async function processTransactionBundle(transactions) {
-    return handleAAPayment(transactions);
+    const createdTransactions = [];
+
+    for (const [transactionData, chainIdAddress] of transactions) {
+      const address =
+        getAddressFromChainIdAddressForTransaction(chainIdAddress);
+
+      const createdTransaction = createTransaction()
+        .to(address)
+        .data(transactionData);
+      createdTransactions.push([createdTransaction, address]);
+    }
+
+    return handleAAPayment(createdTransactions);
   }
 
   return {

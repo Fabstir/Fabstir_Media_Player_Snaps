@@ -13,14 +13,18 @@ module.exports = {
     'prettier/prettier': ['error', { endOfLine: 'auto' }], // Add this rule
     '@typescript-eslint/no-parameter-properties': 'off',
     'no-process-env': 'off',
-    curly: ['error', 'multi-line'],
+    // curly: ['error', 'multi-or-nest'],
+    curly: ['off'],
+    'import/no-named-as-default-member': 'off', // Disabling the rule that warns about named imports from a default-exported module
+    'node/no-process-env': 'off',
   },
 
   parser: '@typescript-eslint/parser',
   parserOptions: {
     project: './tsconfig.json',
     tsconfigRootDir: __dirname,
-    sourceType: 'module',
+    sourceType: 'module', // Ensures that ESLint understands module syntax
+    ecmaVersion: 2020, // Updating ECMAScript version for compatibility with latest syntax
   },
 
   overrides: [

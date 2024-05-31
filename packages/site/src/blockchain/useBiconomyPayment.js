@@ -1,9 +1,12 @@
 import { PaymasterMode } from '@biconomy/account';
+import useContractUtils from './useContractUtils';
+import { useContext } from 'react';
+import BlockchainContext from '../../state/BlockchainContext';
+import { process_env } from '../utils/process_env';
 
 /**
  * Custom hook to handle payments using Biconomy.
  *
- * @param {Object} provider - The provider object to interact with Ethereum.
  * @param {Object} smartAccount - The smart account object to perform transactions.
  * @returns {Object} An object containing various functions to handle payments and transactions.
  *
@@ -12,16 +15,44 @@ import { PaymasterMode } from '@biconomy/account';
  * @property {Function} createTransaction - Function to create a transaction object.
  * @property {Function} processTransactionBundle - Function to process a bundle of transactions.
  */
-export default function useBiconomyPayment(provider, smartAccount) {
+export default function useBiconomyPayment(smartAccount) {
+  const blockchainContext = useContext(BlockchainContext);
+  const { connectedChainId } = blockchainContext;
+
+  const {
+    getAddressFromChainIdAddressForTransaction,
+    getTokenAddressFromChainIdAndTokenSymbol,
+  } = useContractUtils();
+
+  /**
+   * Handles the payment process using Biconomy's Account Abstraction (AA) feature.
+   *
+   * @async
+   * @param {Object[]} transactions - An array of transaction objects to be processed.
+   * @returns {Promise<Object>} A promise that resolves to an object containing the user operation hash, transaction details, and receipt.
+   * @throws {Error} If the smart account is undefined or the connected chain ID is null or undefined.
+   */
   const handleAAPayment = async (transactions) => {
     if (!smartAccount)
       throw new Error(`handleAAPayment: smartAccount is undefined`);
 
+    if (connectedChainId === null || connectedChainId === undefined) {
+      throw new Error('connectedChainId is null or undefined.');
+    }
+
     console.log('handleAAPayment: transactions = ', transactions);
+
+    const tokenSymbolName = 'NEXT_PUBLIC_DEFAULT_CURRENCY_' + connectedChainId;
+    console.log('handleAAPayment: tokenSymbolName = ', tokenSymbolName);
+
+    const tokenSymbol = process_env[tokenSymbolName];
 
     const paymasterServiceData = {
       mode: PaymasterMode.ERC20,
-      preferredToken: process.env.NEXT_PUBLIC_USDC_TOKEN_ADDRESS,
+      preferredToken: getTokenAddressFromChainIdAndTokenSymbol(
+        connectedChainId,
+        tokenSymbol,
+      ),
     };
 
     const userOpResponse = await smartAccount.sendTransaction(transactions, {
@@ -50,16 +81,34 @@ export default function useBiconomyPayment(provider, smartAccount) {
     };
   };
 
+  /**
+   * Handles the payment process using Biconomy's Account Abstraction (AA) feature with a sponsor.
+   *
+   * @async
+   * @param {Object[]} transactions - An array of transaction objects to be processed.
+   * @returns {Promise<Object>} A promise that resolves to an object containing the user operation hash, transaction details, and receipt.
+   * @throws {Error} If the smart account is undefined or the connected chain ID is null or undefined.
+   */
   const handleAAPaymentSponsor = async (transactions) => {
     if (!smartAccount)
       throw new Error(
         `useMintNestableNFT: handleAAPaymentSponsor: smartAccount is undefined`,
       );
 
+    if (connectedChainId === null || connectedChainId === undefined) {
+      throw new Error('connectedChainId is null or undefined.');
+    }
+
     try {
+      const tokenSymbol =
+        process_env['NEXT_PUBLIC_DEFAULT_CURRENCY_' + connectedChainId];
+
       let paymasterServiceData = {
         mode: PaymasterMode.SPONSORED, // - mandatory // now we know chosen fee token and requesting paymaster and data for it
-        feeTokenAddress: process.env.NEXT_PUBLIC_USDC_TOKEN_ADDRESS,
+        feeTokenAddress: getTokenAddressFromChainIdAndTokenSymbol(
+          connectedChainId,
+          tokenSymbol,
+        ),
         // optional params..
         calculateGasLimits: true, // Always recommended and especially when using token paymaster
       };
@@ -109,6 +158,17 @@ export default function useBiconomyPayment(provider, smartAccount) {
     };
   }
 
+  /**
+   * Processes a bundle of transactions. If the environment variable `NEXT_PUBLIC_DEFAULT_ALLOW_AA_SPONSORED` is set to 'all' or 'true',
+   * it handles the payment process using Biconomy's Account Abstraction (AA) feature with a sponsor. Otherwise, it handles the payment process using AA without a sponsor.
+   *
+   * @async
+   * @param {Array<Array<string, string>>} transactions - An array of pairs, each containing transaction data and a chain ID address.
+   * @param {number} [increaseGasLimit=0.0] - The amount to increase the gas limit by.
+   * @param {Array<number>} [gasLimits=null] - An array of gas limits for the transactions.
+   * @returns {Promise<Object>} A promise that resolves to an object containing the user operation hash, transaction details, and receipt.
+   * @throws {Error} If the smart account is undefined or the connected chain ID is null or undefined.
+   */
   async function processTransactionBundle(
     transactions,
     increaseGasLimit = 0.0,
@@ -116,7 +176,10 @@ export default function useBiconomyPayment(provider, smartAccount) {
   ) {
     const createdTransactions = [];
 
-    for (const [transactionData, address] of transactions) {
+    for (const [transactionData, chainIdAddress] of transactions) {
+      const address =
+        getAddressFromChainIdAddressForTransaction(chainIdAddress);
+
       const createdTransaction = createTransaction()
         .to(address)
         .data(transactionData);

@@ -13,6 +13,6 @@
     "skipLibCheck": true,
     "incremental": true
   },
-  "include": [".eslintrc.js", "src", "pages", "globals.ts"],
+  "include": [".eslintrc.js", "src", "pages", "globals.ts", "types/*.ts"],
   "exclude": ["node_modules"]
 }

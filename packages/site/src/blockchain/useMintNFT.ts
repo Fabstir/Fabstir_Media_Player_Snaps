@@ -16,6 +16,8 @@ import BlockchainContext, {
 import usePortal from '../hooks/usePortal';
 
 import useAccountAbstractionPayment from './useAccountAbstractionPayment';
+import useContractUtils from './useContractUtils';
+import { AccountAbstractionPayment } from '../../types';
 
 const erc721InterfaceId = 0x80ac58cd;
 
@@ -35,43 +37,69 @@ type MintNFTResponse = {
 export default function useMintNFT() {
   const blockchainContext =
     useContext<BlockchainContextType>(BlockchainContext);
-  const { provider, smartAccountProvider, smartAccount } = blockchainContext;
-  console.log('useMintNFT: provider = ', provider);
+  const { providers, connectedChainId, smartAccountProvider, smartAccount } =
+    blockchainContext;
+  console.log('useMintNFT: providers = ', providers);
   console.log('useMintNFT: smartAccountProvider = ', smartAccountProvider);
 
+  const {
+    getChainIdAddressFromContractAddresses,
+    newReadOnlyContract,
+    newContract,
+  } = useContractUtils();
+
   const { processTransactionBundle } = useAccountAbstractionPayment(
-    provider,
-    smartAccount,
-  );
+    smartAccount as object,
+  ) as AccountAbstractionPayment;
 
   const { uploadFile } = usePortal() as {
     uploadFile: (file: File) => Promise<string>;
   };
 
-  if (!provider || !smartAccountProvider || !smartAccount) {
+  if (
+    !providers ||
+    Object.keys(providers).length === 0 ||
+    !smartAccountProvider ||
+    !smartAccount
+  ) {
     console.log(
-      'useMintNFT: provider, smartAccountProvider or smartAccount is null',
+      'useMintNFT: smartAccountProvider or smartAccount is null or no providers',
     );
-    return;
+    return {
+      mintNFT: async () => {
+        throw new Error('Cannot mint NFT: smartAccount is not defined');
+      },
+      getIsERC721: async () => {
+        throw new Error(
+          'Cannot check if NFT is ERC721: smartAccount is not defined',
+        );
+      },
+      getIsERC721Address: async () => {
+        throw new Error(
+          'Cannot check if NFT address is ERC721: smartAccount is not defined',
+        );
+      },
+    };
   }
-
-  const nftAddress = process.env.NEXT_PUBLIC_TIPERC721_ADDRESS;
-  if (!nftAddress) throw new Error('useMintNFT: nftAddress is undefined');
 
   type ExtendedBlobPropertyBag = BlobPropertyBag & {
     lastModified?: number;
   };
 
   /**
-   * Function to mint a new NFT.
-   * It takes the NFT metadata as an argument and mints the new NFT using account abstraction for fees payment.
+   * Asynchronously mints a new NFT.
    *
-   * @async
-   * @function
-   * @param {NFT} nft - The NFT metadata.
-   * @returns {Promise<MintNFTResponse>} The response containing the NFT address, ID, and URI.
+   * @param {NFT} nft - The NFT to be minted.
+   * @returns {Promise<MintNFTResponse>} - A promise that resolves to the response of the minting operation.
    */
   const mintNFT = async (nft: NFT): Promise<MintNFTResponse> => {
+    if (!connectedChainId) throw new Error('useMintNFT: No default chain id');
+    const nftAddress = getChainIdAddressFromContractAddresses(
+      connectedChainId,
+      'NEXT_PUBLIC_TIPERC721_ADDRESS',
+    );
+    if (!nftAddress) throw new Error('useMintNFT: nftAddress is undefined');
+
     // ------------------------STEP 1: Initialise Biconomy Smart Account SDK--------------------------------//
     console.log(`useMintNFT: smartAccount: ${smartAccount}`);
 
@@ -85,7 +113,11 @@ export default function useMintNFT() {
     const biconomySmartAccount = smartAccount;
     console.log(`useMintNFT: biconomySmartAccount: ${biconomySmartAccount}`);
 
-    if (!biconomySmartAccount || !provider)
+    if (
+      !biconomySmartAccount ||
+      !providers ||
+      Object.keys(providers).length === 0
+    )
       return {
         address: '',
         id: '',
@@ -116,7 +148,7 @@ export default function useMintNFT() {
     console.log('useMintNFT: cid = ', cid);
 
     // Here we are minting NFT to smart account address itself
-    const tipERC721Contract = new Contract(
+    const tipERC721Contract = newContract(
       nftAddress,
       TipERC721.abi,
       smartAccountProvider,
@@ -125,9 +157,15 @@ export default function useMintNFT() {
     // Below function gets the signature from the user (signer provided in Biconomy Smart Account)
     // and also send the full op to attached bundler instance
     try {
+      const transact1 = await (
+        tipERC721Contract as any
+      ).populateTransaction.safeMint(smartAccountAddress, cid);
+
+      console.log('useMintNFT: transact1 = ', transact1);
+
       const { receipt } = await processTransactionBundle([
         [
-          await tipERC721Contract.populateTransaction.safeMint(
+          await (tipERC721Contract as any).populateTransaction.safeMint(
             smartAccountAddress,
             cid,
           ),
@@ -138,7 +176,7 @@ export default function useMintNFT() {
       console.log('useMintNFT: receipt = ', receipt);
 
       const iface = new Interface(TipERC721.abi);
-      const parsedLogs = receipt.logs.map((log) => {
+      const parsedLogs = receipt.logs.map((log: any) => {
         try {
           return iface.parseLog(log);
         } catch (e) {
@@ -148,7 +186,7 @@ export default function useMintNFT() {
 
       // Filter out null values and find the Transfer event
       const transferLog = parsedLogs.find(
-        (log) => log && log.name === 'Transfer',
+        (log: any) => log && log.name === 'Transfer',
       );
 
       if (transferLog) {
@@ -187,7 +225,7 @@ export default function useMintNFT() {
     if (!nftAddress) return false;
 
     console.log('useMintNFT: getIsERC721: nftAddress = ', nftAddress);
-    const iERC165 = new Contract(nftAddress, IERC165.abi, provider);
+    const iERC165 = newReadOnlyContract(nftAddress, IERC165.abi);
 
     console.log('before isERC721 result');
     const result = (await iERC165.supportsInterface(
@@ -203,11 +241,7 @@ export default function useMintNFT() {
   const getIsERC721Address = async (nftAddress: string): Promise<boolean> => {
     if (!nftAddress) return false;
 
-    const iERC165 = new ethers.Contract(
-      nftAddress,
-      IERC165.abi,
-      smartAccountProvider,
-    );
+    const iERC165 = newReadOnlyContract(nftAddress, IERC165.abi);
 
     console.log('getIsERC721Address: before getIsERC721Address result');
 
@@ -232,21 +266,3 @@ export default function useMintNFT() {
     getIsERC721Address,
   };
 }
-
-export const getIsERC721NonHook = async (
-  nftAddress: string,
-  provider: JsonRpcProvider | null,
-): Promise<boolean> => {
-  if (!nftAddress || !provider) return false;
-
-  console.log('useMintNFT: getIsERC721: nftAddress = ', nftAddress);
-  const iERC165 = new Contract(nftAddress, IERC165.abi, provider);
-
-  console.log('before isERC721 result');
-  const result = (await iERC165.supportsInterface(
-    erc721InterfaceId,
-  )) as boolean;
-  console.log('isERC721 result = ', result);
-
-  return result;
-};

@@ -4,7 +4,6 @@ import { queryClient } from '../../pages/_app.tsx';
 import TipERC721 from '../../contracts/TipERC721.json';
 import { S5Client } from '../../../../node_modules/s5client-js/dist/mjs/index';
 import BlockchainContext from '../../state/BlockchainContext';
-import { Contract } from '@ethersproject/contracts';
 import { useContext } from 'react';
 import usePortal from './usePortal.js';
 
@@ -35,14 +34,18 @@ const getMetadata = async (uri, downloadFile) => {
  * @param {function} downloadFile - The function to use for downloading files.
  * @returns {Promise<Object|null>} - A promise that resolves to an NFT object containing the metadata or null if the NFT address is not provided.
  */
-export const fetchNFT = async (address_id, provider, downloadFile) => {
+export const fetchNFT = async (
+  address_id,
+  newReadOnlyContract,
+  downloadFile,
+) => {
   if (!address_id) return null;
 
   const [address, id] = address_id.split('_');
   const parsedId = parseInt(id, 10);
 
   // Initialize a new Contract instance with the NFT address and provider
-  const contract = new Contract(address, TipERC721.abi, provider);
+  const contract = newReadOnlyContract(address, TipERC721.abi);
   const name = await contract.name();
   const symbol = await contract.symbol();
   const uri = await contract.tokenURI(parsedId);
@@ -76,15 +79,15 @@ export default function useNFT(address_id) {
     customClientOptions,
   );
   const { downloadFile } = usePortal();
+  const { newReadOnlyContract } = useContractUtils();
 
   // Use the useContext hook to get the blockchain provider from the BlockchainContext
   const blockchainContext = useContext(BlockchainContext);
-  const { provider } = blockchainContext;
 
   // Use the useQuery hook from react-query to fetch the NFT metadata
   return useQuery(
     ['nft', address_id],
-    () => fetchNFT(address_id, provider, downloadFile),
+    () => fetchNFT(address_id, newReadOnlyContract, downloadFile),
     {
       placeholderData: () =>
         queryClient

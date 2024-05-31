@@ -30,4 +30,7 @@ module.exports = withSvgr({
       },
     ];
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 });

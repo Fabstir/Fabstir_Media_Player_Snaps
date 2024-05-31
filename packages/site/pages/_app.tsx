@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import Head from 'next/head';
+import { Web3Provider } from '@ethersproject/providers';
 
 import type { AppProps } from 'next/app';
 import { useContext, useState } from 'react';
@@ -8,16 +9,20 @@ import { Footer } from '../src/components/Footer';
 import '../styles/globals.css';
 import { JsonRpcProvider, Provider } from '@ethersproject/providers';
 import BlockchainContext from '../state/BlockchainContext';
-
+import { SmartAccount } from '@particle-network/aa';
 import { ToggleThemeContext } from '../src/Root';
 import { RecoilRoot } from 'recoil';
+import { JsonRpcSigner } from '@ethersproject/providers';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import useParticleAuth from '../src/blockchain/useParticleAuth';
 import { BiconomySmartAccountV2 } from '@biconomy/account';
 import { ParticleAuthModule } from '@biconomy/particle-auth';
+import { getConnectedChainId } from '../src/utils/chainUtils';
+import { process_env } from '../src/utils/process_env';
 
-const provider = new JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_PROVIDER);
+// Import the ParticleAuth type
+import { ParticleAuth } from '../types';
 
 // Create a client
 export const queryClient = new QueryClient();
@@ -26,12 +31,17 @@ function MyApp({ Component, pageProps }: AppProps) {
   const [userInfo, setUserInfo] = useState<ParticleAuthModule.UserInfo | null>(
     null,
   );
-  const [smartAccount, setSmartAccount] =
-    useState<BiconomySmartAccountV2 | null>(null);
+  const [smartAccount, setSmartAccount] = useState<
+    BiconomySmartAccountV2 | SmartAccount | JsonRpcSigner | null
+  >(null);
   const [smartAccountProvider, setSmartAccountProvider] =
     useState<Provider | null>(null);
+  const [connectedChainId, setConnectedChainId] = useState<number | null>(null);
+  const [providers, setProviders] = useState<{
+    [key: string]: JsonRpcProvider;
+  }>({});
 
-  const { socialLogin } = useParticleAuth();
+  const { socialLogin } = useParticleAuth() as ParticleAuth;
 
   const toggleTheme = useContext(ToggleThemeContext);
 
@@ -40,13 +50,19 @@ function MyApp({ Component, pageProps }: AppProps) {
     if (process.env.NEXT_PUBLIC_ENABLE_OTHER_WALLET !== 'true') {
       const initialiseSmartAccount = async () => {
         if (!(smartAccount && smartAccountProvider && userInfo)) {
-          const { biconomySmartAccount, web3Provider, userInfo } =
-            await socialLogin(true);
+          const {
+            smartAccount: newSmartAccount,
+            web3Provider,
+            userInfo,
+          } = await socialLogin(true);
 
           if (web3Provider) {
-            setSmartAccount(biconomySmartAccount);
+            setSmartAccount(newSmartAccount);
             setSmartAccountProvider(web3Provider);
             setUserInfo(userInfo);
+
+            const chainId = await getConnectedChainId(newSmartAccount);
+            setConnectedChainId(chainId);
           }
         }
       };
@@ -69,14 +85,61 @@ function MyApp({ Component, pageProps }: AppProps) {
       });
   }, []);
 
+  function getRpcProviders() {
+    const rpcProviders: { [key: string]: JsonRpcProvider } = {};
+
+    for (const [key, value] of Object.entries(process_env)) {
+      if (key.startsWith('NEXT_PUBLIC_RPC_PROVIDER_')) {
+        const chainId = Number(key.split('_').pop());
+
+        if (chainId !== undefined && !isNaN(chainId) && value !== undefined) {
+          rpcProviders[chainId] = new JsonRpcProvider(value);
+        }
+      }
+    }
+
+    return rpcProviders;
+  }
+
+  useEffect(() => {
+    const rpcProviders = getRpcProviders();
+    setProviders(rpcProviders);
+
+    if (
+      // process.env.NEXT_PUBLIC_ENABLE_OTHER_WALLET === 'true' &&
+      window.ethereum
+    ) {
+      const handleChainChanged = async (newChainIdHex: string) => {
+        const newChainId = Number.parseInt(newChainIdHex, 16);
+        setConnectedChainId(newChainId);
+        console.log('_app: Connected chainId: ', newChainId);
+
+        const web3Provider = new Web3Provider(window.ethereum);
+        const smartAccount = web3Provider.getSigner();
+        setSmartAccount(smartAccount);
+        setSmartAccountProvider(web3Provider);
+      };
+
+      window.ethereum.on('chainChanged', handleChainChanged);
+
+      // Return a cleanup function that removes the event listener
+      return () => {
+        window.ethereum.removeListener('chainChanged', handleChainChanged);
+      };
+    }
+  }, []);
+
   return (
     <BlockchainContext.Provider
       value={{
-        provider,
         userInfo,
         setUserInfo,
         smartAccount,
         setSmartAccount,
+        providers,
+        setProviders,
+        connectedChainId,
+        setConnectedChainId,
         smartAccountProvider,
         setSmartAccountProvider,
       }}
