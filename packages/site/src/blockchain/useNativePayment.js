@@ -9,6 +9,14 @@ export default function useNativePayment(signer) {
     //    throw new Error('useNativePayment: requires a valid signer')
   }
 
+  /**
+   * Handles execution of onchain transactions using blockchain native token for gas.
+   *
+   * @async
+   * @function
+   * @param {Array} transactions - An array of transactions to be processed.
+   * @returns {Promise<void>} A Promise that resolves when the payment process is complete.
+   */
   const handleAAPayment = async (transactions) => {
     const aggregatedReceipt = {
       isSuccess: true,

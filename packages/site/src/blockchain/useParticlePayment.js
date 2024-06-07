@@ -1,4 +1,7 @@
+import { useContext } from 'react';
 import useContractUtils from './useContractUtils';
+import BlockchainContext from '../../state/BlockchainContext';
+import { useEthereum } from '@particle-network/auth-core-modal';
 
 /**
  * Function to handle Biconomy payment for a given user operation with sponsorship.
@@ -12,7 +15,13 @@ import useContractUtils from './useContractUtils';
  * @returns {Promise<any>} - The user operation response.
  */
 export default function useParticlePayment(smartAccount) {
-  const { getAddressFromChainIdAddressForTransaction } = useContractUtils();
+  const {
+    getAddressFromChainIdAddressForTransaction,
+    getProviderFromProviders,
+    getDefaultCurrencySymbolFromChainId,
+  } = useContractUtils();
+  const blockchainContext = useContext(BlockchainContext);
+  const { smartAccountProvider, connectedChainId } = blockchainContext;
 
   /**
    * Function to handle Biconomy payment for a given user operation.
@@ -28,9 +37,7 @@ export default function useParticlePayment(smartAccount) {
    */
   const handleAAPayment = async (transactions) => {
     if (!smartAccount)
-      throw new Error(
-        `useMintNestableNFT: handleAAPayment: smartAccount is undefined`,
-      );
+      throw new Error(`handleAAPayment: smartAccount is undefined`);
 
     //get fee quotes with tx or txs
     const feeQuotesResult = await smartAccount.getFeeQuotes(transactions);
@@ -40,11 +47,19 @@ export default function useParticlePayment(smartAccount) {
       const tokenPaymasterAddress =
         feeQuotesResult.tokenPaymaster.tokenPaymasterAddress;
       const tokenFeeQuotes = feeQuotesResult.tokenPaymaster.feeQuotes;
-      //      tokenFeeQuotes[0].premiumPercentage = "14";
+
+      const tokenFeeQuote = tokenFeeQuotes.find(
+        (quote) =>
+          quote?.tokenInfo?.symbol ===
+          getDefaultCurrencySymbolFromChainId(connectedChainId),
+      );
+
+      if (!tokenFeeQuote)
+        throw new Error('handleAAPayment: Token fee quote not found');
 
       const userOpBundle = await smartAccount.buildUserOperation({
         tx: transactions,
-        feeQuote: tokenFeeQuotes[0],
+        feeQuote: tokenFeeQuote,
         tokenPaymasterAddress,
       });
       const userOp = userOpBundle.userOp;
@@ -56,7 +71,8 @@ export default function useParticlePayment(smartAccount) {
       });
       console.log('useParticlePayment: handleAAPayment: txHash = ', txHash);
 
-      const receipt = await smartAccount.waitForTransaction(txHash);
+      const provider = getProviderFromProviders(connectedChainId);
+      const receipt = await provider.waitForTransaction(txHash);
       console.log(
         'useAccountAbstractionPaymentSponsor: handleAAPayment: receipt =',
         receipt,
@@ -68,7 +84,6 @@ export default function useParticlePayment(smartAccount) {
         receipt,
       };
     }
-
     return null;
   };
 
@@ -114,7 +129,8 @@ export default function useParticlePayment(smartAccount) {
           txHash,
         );
 
-        const receipt = await smartAccount.waitForTransaction(txHash);
+        const provider = getProviderFromProviders(connectedChainId);
+        const receipt = await provider.waitForTransaction(txHash);
         console.log(
           'useAccountAbstractionPaymentSponsor: handleAAPaymentSponsor: receipt =',
           receipt,

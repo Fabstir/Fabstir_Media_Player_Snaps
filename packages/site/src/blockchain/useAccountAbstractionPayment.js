@@ -1,7 +1,4 @@
 // Importing the required types from ethers.js
-import { Web3Provider } from '@ethersproject/providers';
-
-import useBiconomyPayment from './useBiconomyPayment';
 import useParticlePayment from './useParticlePayment';
 import useNativePayment from './useNativePayment';
 
@@ -22,7 +19,6 @@ import useNativePayment from './useNativePayment';
  * @throws {Error} Throws an error if the `NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK` environment variable is not set to a valid value.
  */
 export default function useAccountAbstractionPayment(smartAccount) {
-  const biconomy = useBiconomyPayment(smartAccount);
   const particle = useParticlePayment(smartAccount);
 
   const native = useNativePayment(smartAccount);
@@ -36,16 +32,7 @@ export default function useAccountAbstractionPayment(smartAccount) {
     };
   }
 
-  if (process.env.NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK === 'Biconomy') {
-    return {
-      handleAAPayment: biconomy.handleAAPayment,
-      handleAAPaymentSponsor: biconomy.handleAAPaymentSponsor,
-      createTransaction: biconomy.createTransaction,
-      processTransactionBundle: biconomy.processTransactionBundle,
-    };
-  } else if (
-    process.env.NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK === 'Particle'
-  ) {
+  if (process.env.NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK === 'Particle') {
     return {
       handleAAPayment: particle.handleAAPayment,
       handleAAPaymentSponsor: particle.handleAAPaymentSponsor,
@@ -66,9 +53,7 @@ export default function useAccountAbstractionPayment(smartAccount) {
 }
 
 export const getSmartAccountAddress = (smartAccount) => {
-  if (process.env.NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK === 'Biconomy')
-    return smartAccount.getAccountAddress(smartAccount);
-  else if (process.env.NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK === 'Particle')
+  if (process.env.NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK === 'Particle')
     return smartAccount.getAddress(smartAccount);
   else if (process.env.NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK === 'Native')
     return smartAccount.getAddress(smartAccount);

@@ -154,6 +154,9 @@ export default function useMintNFT() {
       smartAccountProvider,
     );
 
+    const nftName = await tipERC721Contract.name();
+    console.log('useMintNFT: nftName = ', nftName);
+
     // Below function gets the signature from the user (signer provided in Biconomy Smart Account)
     // and also send the full op to attached bundler instance
     try {

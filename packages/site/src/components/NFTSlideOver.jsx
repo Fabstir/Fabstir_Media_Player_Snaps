@@ -7,7 +7,6 @@ import * as yup from 'yup';
 
 import useMintNFT from '../blockchain/useMintNFT';
 import useCreateNFT from '../hooks/useCreateNFT';
-//import useUploadEncKey from '../hooks/useUploadEncKey';
 import NFTSlideOverLeft from './NFTSlideOverLeft';
 import NFTSlideOverRight from './NFTSlideOverRight';
 import { currentnftmetadata } from '../atoms/nftMetaDataAtom';
@@ -154,7 +153,6 @@ const NFTSlideOver = ({
   const [currentNFT, setCurrentNFT] = useRecoilState(currentnftmetadata);
 
   const encKey = useRef('');
-  //  const uploadEncKey = useUploadEncKey();
 
   const nft = useRef({});
 
@@ -224,10 +222,8 @@ const NFTSlideOver = ({
   return (
     <FormProvider {...methods}>
       <Transition.Root show={open} as={Fragment}>
-        <Dialog as="div" className="fixed inset-0 z-50" onClose={setOpen}>
+        <div className="fixed inset-0 z-30" onClick={() => setOpen(false)}>
           <div className="inset-0">
-            <Dialog.Overlay className="absolute inset-0" />
-
             <div className="fixed inset-y-0 right-0 flex max-w-full transform border-2 border-fabstir-gray">
               <Transition.Child
                 as={Fragment}
@@ -238,7 +234,10 @@ const NFTSlideOver = ({
                 leaveFrom="translate-x-0"
                 leaveTo="translate-x-full"
               >
-                <div className="bg-fabstir-white">
+                <div
+                  className="bg-fabstir-white"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   {/* Background color split screen for large screens */}
                   <div
                     className="fixed left-0 top-0 hidden h-full w-1/2 bg-fabstir-white lg:block"
@@ -258,12 +257,12 @@ const NFTSlideOver = ({
                         submitText
                           ? submitText
                           : createNFTInfo.isLoading
-                          ? 'Minting...'
-                          : createNFTInfo.isError
-                          ? 'Error!'
-                          : createNFTInfo.isSuccess
-                          ? 'Minted!'
-                          : 'Create NFT'
+                            ? 'Minting...'
+                            : createNFTInfo.isError
+                              ? 'Error!'
+                              : createNFTInfo.isSuccess
+                                ? 'Minted!'
+                                : 'Create NFT'
                       }
                       nft={nft.current}
                       handleSubmit_NFT={handleSubmit_NFT}
@@ -275,7 +274,7 @@ const NFTSlideOver = ({
               </Transition.Child>
             </div>
           </div>
-        </Dialog>
+        </div>
       </Transition.Root>
     </FormProvider>
   );

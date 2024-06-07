@@ -50,6 +50,10 @@ This application uses a choice of secure decentralised storage for NFT and other
 Biconomy comes bundled with [Transak](https://transak.com/) compatibility. This allows many fiat types (over 100) to be used to buy ERC20 tokens direcctly, such as USDC stablecoin, that can be deposited directly into the user's smart contract wallet account. Payment methods include debit/credit card and direct bank transfer.
 The smart contract wallet account is then used to pay for transactions using account abstraction.
 
+## Multi-chain support
+
+Fabstir Media Player can list and play nfts from any EVM compatible blockchain. To see which blockchain a particular NFT is on, select it in the NFT gallery and check the `address` displayed in the details panel on the right. The chain id is the decimal number before ":" and the contract address is the hex number after. To carry out a transaction on a particular blockchain, such as minting an NFT, just select the network in the Particle Network wallet widget and the media player will automatically switch to that network also.
+
 ## Extended NFT features
 
 Fabstir Media Player is not only able to mint ERC721 NFT tokens but ERC7401 nestable NFT tokens.The latter is part of the new NFT2.0 standard developed by [RMRK](https://singular.app/)

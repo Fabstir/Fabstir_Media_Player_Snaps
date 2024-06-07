@@ -61,16 +61,11 @@ export const getConnectedChainId = async (smartAccount: any) => {
   let provider;
   let chainId;
 
-  if (process.env.NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK === 'Biconomy') {
-    // Biconomy-specific provider extraction
-    provider = smartAccount.provider;
-    chainId = await provider.getChainId();
-  } else if (
-    process.env.NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK === 'Particle'
-  ) {
+  if (process.env.NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK === 'Particle') {
     // Particle-specific provider extraction
     provider = new Web3Provider(smartAccount.provider);
-    chainId = await smartAccount.getChainId();
+    const newChainIdHex = await smartAccount.getChainId();
+    chainId = Number.parseInt(newChainIdHex, 16);
   } else if (process.env.NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK === 'Native') {
     // Native provider (MetaMask) extraction
     provider = new Web3Provider(window.ethereum);

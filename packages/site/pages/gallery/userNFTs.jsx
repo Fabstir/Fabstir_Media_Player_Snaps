@@ -16,7 +16,6 @@ const DetailsSidebar = dynamic(
   { ssr: false }, // This will make the component only render on the client side
 );
 
-//import DetailsSidebar from '../../src/components/DetailsSidebar';
 import { currentnftmetadata } from '../../src/atoms/nftMetaDataAtom';
 
 const NFTSlideOver = dynamic(
@@ -24,7 +23,6 @@ const NFTSlideOver = dynamic(
   { ssr: false }, // This will make the component only render on the client side
 );
 
-//import NFTSlideOver from '../../src/components/NFTSlideOver';
 import { nftslideoverstate } from '../../src/atoms/nftSlideOverAtom';
 
 /**
@@ -102,7 +100,6 @@ export default function UserNFTs() {
         submitText={submitText}
         setSubmitText={setSubmitText}
         clearOnSubmit
-        currentNFT
         setRerenderUserNFTs={setRerenderUserNFTs}
       />
       <button className="my-2" onClick={handleBackToRoot}>

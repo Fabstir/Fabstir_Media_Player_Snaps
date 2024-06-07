@@ -1,6 +1,10 @@
 import React, { useEffect } from 'react';
+import dynamic from 'next/dynamic';
+
 import Head from 'next/head';
 import { Web3Provider } from '@ethersproject/providers';
+import { AuthType } from '@particle-network/auth-core';
+import { AuthCoreContextProvider } from '@particle-network/auth-core-modal';
 
 import type { AppProps } from 'next/app';
 import { useContext, useState } from 'react';
@@ -15,11 +19,15 @@ import { RecoilRoot } from 'recoil';
 import { JsonRpcSigner } from '@ethersproject/providers';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import useParticleAuth from '../src/blockchain/useParticleAuth';
-import { BiconomySmartAccountV2 } from '@biconomy/account';
+// import useParticleAuth from '../src/blockchain/useParticleAuth';
 import { ParticleAuthModule } from '@biconomy/particle-auth';
 import { getConnectedChainId } from '../src/utils/chainUtils';
 import { process_env } from '../src/utils/process_env';
+import {
+  getChainNameFromChainId,
+  getSupportedChains,
+  getSupportedChainIds,
+} from '../src/utils/chainUtils';
 
 // Import the ParticleAuth type
 import { ParticleAuth } from '../types';
@@ -32,7 +40,7 @@ function MyApp({ Component, pageProps }: AppProps) {
     null,
   );
   const [smartAccount, setSmartAccount] = useState<
-    BiconomySmartAccountV2 | SmartAccount | JsonRpcSigner | null
+    SmartAccount | JsonRpcSigner | null
   >(null);
   const [smartAccountProvider, setSmartAccountProvider] =
     useState<Provider | null>(null);
@@ -41,35 +49,35 @@ function MyApp({ Component, pageProps }: AppProps) {
     [key: string]: JsonRpcProvider;
   }>({});
 
-  const { socialLogin } = useParticleAuth() as ParticleAuth;
+  // const { socialLogin } = useParticleAuth() as ParticleAuth;
 
   const toggleTheme = useContext(ToggleThemeContext);
 
-  // Add event listener when component mounts
-  useEffect(() => {
-    if (process.env.NEXT_PUBLIC_ENABLE_OTHER_WALLET !== 'true') {
-      const initialiseSmartAccount = async () => {
-        if (!(smartAccount && smartAccountProvider && userInfo)) {
-          const {
-            smartAccount: newSmartAccount,
-            web3Provider,
-            userInfo,
-          } = await socialLogin(true);
+  // // Add event listener when component mounts
+  // useEffect(() => {
+  //   if (process.env.NEXT_PUBLIC_ENABLE_OTHER_WALLET !== 'true') {
+  //     const initialiseSmartAccount = async () => {
+  //       if (!(smartAccount && smartAccountProvider && userInfo)) {
+  //         const {
+  //           smartAccount: newSmartAccount,
+  //           web3Provider,
+  //           userInfo,
+  //         } = await socialLogin(true);
 
-          if (web3Provider) {
-            setSmartAccount(newSmartAccount);
-            setSmartAccountProvider(web3Provider);
-            setUserInfo(userInfo);
+  //         if (web3Provider) {
+  //           setSmartAccount(newSmartAccount);
+  //           setSmartAccountProvider(web3Provider);
+  //           setUserInfo(userInfo);
 
-            const chainId = await getConnectedChainId(newSmartAccount);
-            setConnectedChainId(chainId);
-          }
-        }
-      };
+  //           const chainId = await getConnectedChainId(newSmartAccount);
+  //           setConnectedChainId(chainId);
+  //         }
+  //       }
+  //     };
 
-      initialiseSmartAccount();
-    }
-  }, []);
+  //     initialiseSmartAccount();
+  //   }
+  // }, []);
 
   useEffect(() => {
     navigator.serviceWorker
@@ -129,6 +137,16 @@ function MyApp({ Component, pageProps }: AppProps) {
     }
   }, []);
 
+  // const supportChains = getSupportedChains();
+
+  const DynamicAuthCoreContextProvider = dynamic(
+    () =>
+      import('@particle-network/auth-core-modal').then(
+        (mod) => mod.AuthCoreContextProvider,
+      ),
+    { ssr: false }, // This will load the component only on client side
+  );
+
   return (
     <BlockchainContext.Provider
       value={{
@@ -145,16 +163,54 @@ function MyApp({ Component, pageProps }: AppProps) {
       }}
     >
       <RecoilRoot>
-        <QueryClientProvider client={queryClient}>
-          <Head>
-            <title>Web3 Media Player</title>{' '}
-          </Head>
-          <div className="flex flex-col w-full min-h-screen max-w-full">
-            <Header handleToggleClick={toggleTheme} />
-            <Component {...pageProps} />
-            <Footer />
-          </div>
-        </QueryClientProvider>
+        <DynamicAuthCoreContextProvider
+          options={{
+            projectId: process.env.NEXT_PUBLIC_PARTICLE_PROJECT_ID || '',
+            clientKey: process.env.NEXT_PUBLIC_PARTICLE_CLIENT_KEY || '',
+            appId: process.env.NEXT_PUBLIC_PARTICLE_APP_ID || '',
+            erc4337: {
+              name: 'BICONOMY',
+              version: '2.0.0',
+            },
+            authTypes: [AuthType.email, AuthType.google, AuthType.apple],
+            themeType: 'dark', //light or dark
+            fiatCoin: 'USD',
+            language: 'en',
+            customStyle: {
+              logo: 'https://xxxx', // image url
+              projectName: 'xxx',
+              modalBorderRadius: 10,
+              theme: {
+                light: {
+                  textColor: '#000',
+                },
+                dark: {
+                  textColor: '#fff',
+                },
+              },
+            },
+            wallet: {
+              visible: true,
+              customStyle: {
+                supportChains: [
+                  { id: 84532, name: 'Base' },
+                  { id: 80002, name: 'Polygon' },
+                ],
+              },
+            },
+          }}
+        >
+          <QueryClientProvider client={queryClient}>
+            <Head>
+              <title>Web3 Media Player</title>{' '}
+            </Head>
+            <div className="flex flex-col w-full min-h-screen max-w-full">
+              <Header handleToggleClick={toggleTheme} />
+              <Component {...pageProps} />
+              <Footer />
+            </div>
+          </QueryClientProvider>
+        </DynamicAuthCoreContextProvider>
       </RecoilRoot>
     </BlockchainContext.Provider>
   );

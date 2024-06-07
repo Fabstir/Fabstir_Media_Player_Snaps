@@ -19,14 +19,6 @@ import {
 import { MetamaskActions, MetaMaskContext } from '../src/hooks';
 import Link from 'next/link';
 import { fetchNFT } from '../src/hooks/useNFT';
-import { ParticleAuthModule, ParticleProvider } from '@biconomy/particle-auth';
-
-import { IBundler, Bundler } from '@biconomy/bundler';
-import {
-  BiconomySmartAccountV2,
-  DEFAULT_ENTRYPOINT_ADDRESS,
-} from '@biconomy/account';
-import { IPaymaster, BiconomyPaymaster } from '@biconomy/paymaster';
 
 import { v4 as uuidv4 } from 'uuid';
 
@@ -453,18 +445,6 @@ const Index = () => {
       });
     }
   };
-
-  const bundler: IBundler = new Bundler({
-    bundlerUrl:
-      'https://bundler.biconomy.io/api/v2/80001/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44',
-    chainId: 80001,
-    entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS,
-  });
-
-  const paymaster: IPaymaster = new BiconomyPaymaster({
-    paymasterUrl:
-      'https://paymaster.biconomy.io/api/v1/80001/FmcNOqB2j.1512a154-33be-4e05-8e0a-598dfa6fbef9',
-  });
 
   const loginFabstirDB = async (smartAccountAddress: string) => {
     if (!process.env.NEXT_PUBLIC_FABSTIR_SALT_PAIR)

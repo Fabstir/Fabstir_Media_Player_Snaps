@@ -115,6 +115,7 @@ const fetchNFTs = async (
   const nfts = [];
   for (const address_id in nftAddresses) {
     console.log('useNFTs: address_id = ', address_id);
+    if (address_id === 'undefined_undefined') continue;
 
     if (!selectedParentNFTAddressId) {
       parentId = undefined;

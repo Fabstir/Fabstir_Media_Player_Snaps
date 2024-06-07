@@ -6,15 +6,9 @@
  */
 import React, { useEffect } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
-import { Link } from 'react-router-dom';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import TokenAttributes from './TokenAttributes';
 
-import {
-  PlayIcon,
-  ShieldExclamationIcon,
-  UsersIcon,
-} from '@heroicons/react/24/solid';
 import { currentnftcategories } from '../atoms/nftSlideOverAtom';
 
 // Tailwind CSS styles

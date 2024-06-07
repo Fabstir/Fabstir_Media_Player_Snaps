@@ -4,6 +4,7 @@ import BlockchainContext, {
   BlockchainContextType,
 } from '../../state/BlockchainContext';
 import { process_env } from '../utils/process_env';
+import { PolygonAmoy, BaseSepolia } from '@particle-network/chains';
 
 /**
  * Custom hook to provide utility functions for interacting with contracts.
@@ -234,6 +235,27 @@ export default function useContractUtils() {
     return contractAddressesCurrencies;
   };
 
+  const getChainInfoFromChainId = (chainId: number) => {
+    if (chainId === PolygonAmoy.id) {
+      return PolygonAmoy;
+    } else if (chainId === BaseSepolia.id) {
+      return BaseSepolia;
+    } else {
+      return {
+        id: chainId,
+        name: 'Unknown Chain',
+      };
+    }
+  };
+
+  const getDefaultCurrencySymbolFromChainId = (chainId: number) => {
+    const defaultCurrencySymbol = (
+      process_env as { [key: string]: string | undefined }
+    )[`NEXT_PUBLIC_DEFAULT_CURRENCY_${chainId}`];
+
+    return defaultCurrencySymbol;
+  };
+
   return {
     getChainIdFromChainIdAddress,
     getChainIdAddressFromChainIdAndAddress,
@@ -246,9 +268,11 @@ export default function useContractUtils() {
     newReadOnlyContract,
     newContract,
     getTokenAddressFromChainIdAndTokenSymbol,
+    getDefaultCurrencySymbolFromChainId,
     getTokenNumberOfDecimalPlacesChainIdAndTokenSymbol,
     getCurrencyContractAddresses,
     getCurrencyDecimalPlaces,
     getContractAddressesCurrencies,
+    getChainInfoFromChainId,
   };
 }
