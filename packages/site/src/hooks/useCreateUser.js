@@ -1,7 +1,11 @@
-import { dbClient } from '../GlobalOrbit';
+import { dbClient, getUser } from '../GlobalOrbit';
 import { user } from '../user';
 import { queryClient } from '../../pages/_app';
 import useParticleAuth from '../blockchain/useParticleAuth';
+import useUserPubsExt from './useUserPubsExt';
+import { userpubstate } from '../atoms/userAtom';
+import { userauthpubstate } from '../atoms/userAuthAtom';
+import { useSetRecoilState } from 'recoil';
 
 /**
  * Custom hook for managing user creation, login, and sign out.
@@ -14,6 +18,9 @@ import useParticleAuth from '../blockchain/useParticleAuth';
  */
 export default function useCreateUser() {
   const { logout } = useParticleAuth();
+  const { putUserPub } = useUserPubsExt();
+  const setUserAuthPub = useSetRecoilState(userauthpubstate);
+  const setUserPub = useSetRecoilState(userpubstate);
 
   const isUserExists = async (alias) => {
     return new Promise((resolve) => {
@@ -43,12 +50,37 @@ export default function useCreateUser() {
     else {
       queryClient.removeQueries();
       loggedIn = true;
+      setUserAuthPub(user.is.pub);
+      setUserPub(user.is.pub);
     }
 
     return loggedIn;
   };
 
-  const createUser = (username, password) => {
+  const putUserProfile = async (userProfile) => {
+    const user = getUser();
+    //    await user.get('profile').put(JSON.stringify(userProfile));
+
+    await new Promise((resolve, reject) => {
+      user.get('profile').put(JSON.stringify(userProfile), function (ack) {
+        if (ack.err) {
+          console.log(`useCreateUser: putUserProfile: ack.err = ${ack.err}`);
+          reject(ack.err);
+        } else {
+          // setUserName(userProfile.userName);
+          console.log(
+            `useCreateUser: userProfile.userName =`,
+            userProfile.userName,
+          );
+          console.log(`useCreateUser: putUserProfile: success`);
+          resolve();
+        }
+      });
+    });
+  };
+
+  const createUser = (username, password, userProfile) => {
+    const user = getUser();
     if (!username || !username.trim())
       return Promise.reject(new Error('User name cannot be blank'));
 
@@ -58,12 +90,24 @@ export default function useCreateUser() {
     console.log('inputPassword = ', password);
 
     return new Promise((resolve, reject) => {
-      user.create(username, password, ({ err }) => {
+      user.create(username, password, async ({ err }) => {
         if (err) reject(new Error(err));
         else {
-          login(username, password)
-            .then((isLoggedIn) => resolve(isLoggedIn))
-            .catch(reject);
+          try {
+            const isLoggedIn = await login(username, password);
+
+            const pair = user._.sea;
+            userProfile = { ...userProfile, epub: pair.epub };
+
+            await putUserProfile(userProfile);
+
+            const pub = user.is.pub;
+            await putUserPub(pub);
+
+            resolve(isLoggedIn);
+          } catch (error) {
+            reject(error);
+          }
         }
       });
     });
@@ -84,6 +128,7 @@ export default function useCreateUser() {
 
   return {
     createUser,
+    putUserProfile,
     isUserExists,
     login,
     signOut,

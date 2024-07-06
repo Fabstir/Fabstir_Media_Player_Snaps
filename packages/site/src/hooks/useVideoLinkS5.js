@@ -1,30 +1,50 @@
-import useS5net from './useS5';
-import { saveState, loadState } from '../utils';
-import { combineKeytoEncryptedCid } from '../utils/s5EncryptCIDHelper';
+import {
+  combineKeytoEncryptedCid,
+  removeS5Prefix,
+} from '../utils/s5EncryptCIDHelper';
+import useNFTMedia from './useNFTMedia';
+import useIPFS from './useIPFS';
 
 /**
  * A custom React hook that returns the video link for a given video cid to S5.
  *
- * @param {string} videoId - The ID of the video.
- * @returns {string} - The video link.
+ * @param {String} videoId - The ID of the video.
+ * @returns {String} - The video link.
  */
 export default function useVideoLinkS5() {
   const portNumber = parseInt(window.location.port, 10);
-  const { getTranscodedMetadata } = useS5net();
 
-  /**
-   * Generates player sources from metadata.
-   *
-   * @param {Array} metadata - The metadata containing video formats.
-   * @returns {Array} - An array of sources for the video player.
-   */
+  const { removeIPFSPrefix } = useIPFS();
+
+  const {
+    getMetadata,
+    getTranscodedMetadata,
+    putMetadata,
+    deleteTranscodePending,
+    getTranscodePending,
+  } = useNFTMedia();
+
   const getPlayerSources = (metadata) => {
+    if (!Array.isArray(metadata)) {
+      return;
+    }
+
     const sources = [];
     metadata.forEach((videoFormat) => {
+      let src;
+      if (videoFormat.cid.startsWith(process.env.NEXT_PUBLIC_IPFS_PREFIX)) {
+        const cid = removeIPFSPrefix(videoFormat.cid);
+        src = `${process.env.NEXT_PUBLIC_IPFS_GATEWAY}/ipfs/${cid}`;
+      } else {
+        const cid = removeS5Prefix(videoFormat.cid);
+        src = `${process.env.NEXT_PUBLIC_S5_PORTAL_STREAMING_URL}:${portNumber}/s5/blob/${cid}?mediaType=video%2Fmp4`;
+      }
+
       const source = {
-        src: `${process.env.NEXT_PUBLIC_S5_PORTAL_STREAMING_URL}:${portNumber}/s5/blob/${videoFormat.cid}?mediaType=video%2Fmp4`,
+        src,
         type: videoFormat.type,
         label: videoFormat.label,
+        res: videoFormat.res,
       };
       sources.push(source);
     });
@@ -32,56 +52,51 @@ export default function useVideoLinkS5() {
     return sources;
   };
 
-  /**
-   * The main function to get the video URL.
-   *
-   * @param {Object} params - The parameters object.
-   * @param {Object} params.nft - The NFT object containing video details.
-   * @returns {Promise<string>} - A promise that resolves to the video URL.
-   */
-  return async ({ nft }) => {
+  // For unencrypted video, cid and cidWithoutKey will be the same
+  return async ({ key, cidWithoutKey, metadata }) => {
+    if (metadata === null) return;
+
+    console.log('useVideoLinkS5: cidWithoutKey =', cidWithoutKey);
+    const cid = key
+      ? combineKeytoEncryptedCid(key, cidWithoutKey)
+      : cidWithoutKey;
+
+    if (!metadata) metadata = await getMetadata(key, cidWithoutKey);
+
+    console.log('useVideoLinkS5: metadata =', metadata);
+
     let videoUrl;
-    const state = await loadState();
-    const address = `${nft.address}_${nft.id}`;
 
-    if (!state.addresses.state[address]) return {};
-
-    console.log('useVideoLinkS5: address = ', address);
-    console.log('useVideoLinkS5: state = ', state);
-    console.log(
-      'useVideoLinkS5: state.addresses.state[address] = ',
-      state.addresses.state[address],
-    );
-
-    let metadata;
-    if (state.addresses.state[address].isTranscodePending) {
+    if (metadata?.length === 0) {
       console.log(
         'useVideoLinkS5: const transcodedMetadata = await getTranscodedMetadata(cid)',
       );
-
-      let cid;
-
-      if (state.addresses.state[address].encKey)
-        cid = combineKeytoEncryptedCid(
-          state.addresses.state[address].encKey,
-          nft.video,
-        );
-      else cid = nft.video;
-
       console.log('useVideoLinkS5: cid = ', cid);
 
-      const transcodedMetadata = await getTranscodedMetadata(cid);
-      console.log('useVideoLinkS5: transcodedMetadata =', transcodedMetadata);
-      if (transcodedMetadata) {
-        metadata = transcodedMetadata;
-        state.addresses.state[address] = transcodedMetadata;
+      const transcodePending = await getTranscodePending(cidWithoutKey);
+      console.log('useVideoLinkS5: transcodePending =', transcodePending);
 
-        const addresses = state.addresses.state;
-        console.log('useVideoLinkS5: addresses = ', addresses);
-        await saveState(addresses);
+      if (transcodePending?.taskId) {
+        const transcodedMetadata = await getTranscodedMetadata(
+          transcodePending.taskId,
+        );
+        console.log('useVideoLinkS5: transcodedMetadata =', transcodedMetadata);
+        if (transcodedMetadata) {
+          metadata = transcodedMetadata;
+
+          console.log('useVideoLinkS5: ttranscodedMetadata key =', key);
+          console.log(
+            'useVideoLinkS5: ttranscodedMetadata cidWithoutKey =',
+            cidWithoutKey,
+          );
+          console.log(
+            'useVideoLinkS5: ttranscodedMetadata metadata =',
+            metadata,
+          );
+          await putMetadata(key, cidWithoutKey, metadata);
+          deleteTranscodePending(cidWithoutKey);
+        }
       }
-    } else {
-      metadata = state.addresses.state[address];
     }
 
     if (metadata) {

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useRecoilState } from 'recoil';
-import { currentnftmetadata } from '../atoms/nftMetaDataAtom';
+import { currentnftmetadata } from '../atoms/nftSlideOverAtom';
 
 import init, {
   load_model,

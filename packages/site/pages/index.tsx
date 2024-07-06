@@ -1,5 +1,4 @@
 import React, { useContext, useState, useEffect, useRef } from 'react';
-import { ethers } from 'ethers';
 const Gun = require('gun');
 const SEA = require('gun/sea');
 
@@ -7,6 +6,7 @@ import { Button } from '../src/ui-components/button';
 import { Description, Label } from '../src/ui-components/fieldset';
 import { Textarea } from '../src/ui-components/textarea';
 import { Field as HeadlessField } from '@headlessui/react';
+import { generateUsername } from 'unique-username-generator';
 import {
   Table,
   TableBody,
@@ -18,14 +18,12 @@ import {
 
 import { MetamaskActions, MetaMaskContext } from '../src/hooks';
 import Link from 'next/link';
-import { fetchNFT } from '../src/hooks/useNFT';
 
 import { v4 as uuidv4 } from 'uuid';
 
 import { connectSnap, getSnap, saveState, loadState } from '../src/utils';
-import { useRecoilState } from 'recoil';
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 
-import usePortal from '../src/hooks/usePortal';
 import BlockchainContext from '../state/BlockchainContext';
 import {
   contractaddressescurrenciesstate,
@@ -33,12 +31,15 @@ import {
   currencieslogourlstate,
   currencycontractaddressesstate,
 } from '../src/atoms/currenciesAtom';
-import { currentnftcategories } from '../src/atoms/nftSlideOverAtom';
+import {
+  currentnftcategories,
+  nftslideoverstate,
+} from '../src/atoms/nftSlideOverAtom';
 
 import useMintNestableNFT from '../src/blockchain/useMintNestableNFT';
 import useParticleAuth from '../src/blockchain/useParticleAuth';
 import { CreateUser, ParticleAuth } from '../types';
-import useTranscodeVideoS5 from '../src/hooks/useTranscodeVideoS5';
+import useTranscodeVideo from '../src/hooks/useTranscodeVideo';
 import { saveAs } from 'file-saver';
 import { iswasmreadystate } from '../src/atoms/renderStateAtom';
 import { getSmartAccountAddress } from '../src/blockchain/useAccountAbstractionPayment';
@@ -49,8 +50,17 @@ import { getConnectedChainId } from '../src/utils/chainUtils';
 import useMintNFT from '../src/blockchain/useMintNFT';
 import useContractUtils from '../src/blockchain/useContractUtils';
 import useCreateUser from '../src/hooks/useCreateUser';
-import { process_env } from '../src/utils/process_env';
 import useNativeAuth from '../src/hooks/useNativeAuth';
+import { currentnftmetadata } from '../src/atoms/nftSlideOverAtom';
+import { badgecreateslideoverstate } from '../src/atoms/badgeDetailsSlideOverFunctions';
+import { currentbadgecategories } from '../src/atoms/badgeSlideOverAtom';
+import { getNFTAddressId, splitNFTAddressId } from '../src/utils/nftUtils';
+import useNFTs from '../src/hooks/useNFTs';
+import { userpubstate } from '../src/atoms/userAtom';
+import useDeleteNFT from '../src/hooks/useDeleteNFT';
+import { userauthpubstate } from '../src/atoms/userAuthAtom';
+import useNFTMedia from '../src/hooks/useNFTMedia';
+import useUserProfile from '../src/hooks/useUserProfile';
 
 type Addresses = {
   [key: string]: any; // Replace `any` with the actual type of the values
@@ -70,8 +80,11 @@ const Index = () => {
 
   const [isWasmReady, setIsWasmReady] = useRecoilState(iswasmreadystate);
 
+  const [openNFT, setOpenNFT] = useRecoilState(nftslideoverstate);
+
   const queryClient = useQueryClient();
   const user = getUser();
+  const [getUserProfile] = useUserProfile();
 
   // Define a type for the hook's return value
   type UseTranscodeVideoS5Return = {
@@ -79,9 +92,10 @@ const Index = () => {
       cid: string,
       isEncrypted: boolean,
       isGPU: boolean,
+      transcodeVideo: any,
     ) => Promise<void>;
   };
-  const { transcodeVideo } = useTranscodeVideoS5() as UseTranscodeVideoS5Return;
+  const { transcodeVideo } = useTranscodeVideo() as UseTranscodeVideoS5Return;
 
   const blockchainContext = useContext(BlockchainContext);
   const {
@@ -96,7 +110,8 @@ const Index = () => {
   const useMintNFTResult = useMintNFT();
   if (!useMintNFTResult) throw new Error('useMintNFTResult is undefined');
 
-  const { getIsERC721 } = useMintNFTResult;
+  const userPub = useRecoilValue(userpubstate);
+  const nfts = useNFTs(userPub);
 
   const [currencyContractAddresses, setCurrencyContractAddresses] =
     useRecoilState(currencycontractaddressesstate);
@@ -108,8 +123,11 @@ const Index = () => {
   const [contractAddressesCurrencies, setContractAddressesCurrencies] =
     useRecoilState(contractaddressescurrenciesstate);
 
+  const [currentNFT, setCurrentNFT] = useRecoilState(currentnftmetadata);
   const [currentNFTCategories, setCurrentNFTCategories] =
     useRecoilState(currentnftcategories);
+
+  const setCurrentBadgeCategories = useSetRecoilState(currentbadgecategories);
 
   const [currenciesLogoUrl, setCurrenciesLogoUrl] = useRecoilState(
     currencieslogourlstate,
@@ -127,6 +145,7 @@ const Index = () => {
   const { createUser, signOut, isUserExists, login } =
     useCreateUser() as CreateUser;
 
+  const [userName, setUserName] = useState<string>('');
   const [userSession, setUserSession] = useState(null);
 
   const [errorsAddAddresses, setErrorsAddAddresses] = useState<string>('');
@@ -141,6 +160,12 @@ const Index = () => {
     getCurrencyDecimalPlaces,
     getContractAddressesCurrencies,
   } = useContractUtils();
+
+  const { unlockVideoFromController, unlockNestableKeysFromController } =
+    useNFTMedia();
+
+  const userAuthPub = useRecoilValue(userauthpubstate);
+  const { mutate: deleteNFT, ...deleteNFTInfo } = useDeleteNFT(userAuthPub);
 
   const mintNestableNFT = useMintNestableNFT();
   if (!mintNestableNFT) throw new Error('mintNestableNFT is undefined');
@@ -158,13 +183,28 @@ const Index = () => {
     setSmartAccountAddressFn();
   }, [smartAccount]);
 
-  //  const { getIsERC721 } = useMintNFT();
-
   console.log('index: Object.keys(process.env) =', Object.keys(process.env));
 
   const theCurrencies = ['DAI']; // Add other currencies as needed
 
   useEffect(() => {
+    const theCurrentBadgeCategories = [
+      'access pass',
+      'award',
+      'certificate',
+      'community',
+      'contribution',
+      'identity',
+      'legal',
+      'license',
+      'membership',
+      'other',
+      'proof of attendance',
+      'skill',
+      'voting',
+    ];
+    setCurrentBadgeCategories(theCurrentBadgeCategories);
+
     const theCurrentNFTCategories = [
       'artwork',
       'achievement',
@@ -207,12 +247,25 @@ const Index = () => {
   }, [addresses]);
 
   useEffect(() => {
+    (async () => {
+      if (userAuthPub) {
+        const userAuthProfile = await getUserProfile(userAuthPub);
+        setUserName(userAuthProfile?.userName);
+      } else {
+        setUserName('');
+      }
+    })();
+  }, [userAuthPub]);
+
+  useEffect(() => {
     /**
      * Handles adding a new address to the list of addresses.
      * If the NFT is a video, it ingests and transcodes it.
      */
     const handleAddAddresses = async () => {
       const { providers } = blockchainContext;
+      const addresses = await loadAddresses();
+
       if (!providers || Object.keys(providers).length === 0 || !smartAccount) {
         // Handle the case when provider or smartAccount is not available
         console.error('Provider or smartAccount is undefined');
@@ -223,14 +276,8 @@ const Index = () => {
       if (!newAddresses) return;
 
       console.log('index: handleAddAddress: enter');
-      console.log('index: handleAddAddress: before downloadFile');
 
       // Define a type for the hook's return value
-      const { downloadFile } = usePortal() as {
-        downloadFile: (uri: string, customOptions: {}) => Promise<void>;
-      };
-      console.log('index: handleAddAddress: after downloadFile');
-
       const addressesList = newAddresses.split('\n');
 
       const updatedAddresses: Addresses = { ...addresses };
@@ -241,31 +288,15 @@ const Index = () => {
 
         const [address, id] = addressId.split('_');
 
-        const isERC721 = await getIsERC721(address);
-        if (!isERC721)
-          throw new Error('index: handleAddAddress: address is not ERC721');
-
         let nftJSON = {};
 
         const isNestableNFT = await getIsNestableNFT(address);
         if (!isNestableNFT) {
-          type Nft = {
-            video?: any; // Replace `any` with the actual type of `video`
-            // Define other properties of `nft` here
-          };
-          const nft: Nft | null = await fetchNFT(
-            addressId,
-            newReadOnlyContract,
-            downloadFile,
-          );
-          console.log('index: nft = ', nft);
+          await unlockVideoFromController(userAuthPub, address, id);
+        } else {
+          let nft = { address, id, name: 'Nestable NFT', symbol: 'NNFT1' };
 
-          const isEncrypted =
-            process.env.NEXT_PUBLIC_DEFAULT_IS_ENCRYPT === 'true';
-          if (nft?.video) {
-            await transcodeVideo(nft.video, isEncrypted, true);
-            nftJSON = { isTranscodePending: true };
-          }
+          await unlockNestableKeysFromController(userAuthPub, nft);
         }
 
         console.log('index: handleAddAddress: nftJSON = ', nftJSON);
@@ -278,7 +309,9 @@ const Index = () => {
       }
 
       setAddresses(updatedAddresses);
-      await saveState(updatedAddresses);
+
+      if (process.env.NEXT_PUBLIC_IS_USE_FABSTIRDB === 'false')
+        await saveState(updatedAddresses);
 
       setNewAddresses('');
     };
@@ -302,6 +335,8 @@ const Index = () => {
 
     if (!removeAddresses) return;
 
+    const addresses = await loadAddresses();
+
     console.log('handleRemoveAddress: removeAddress = ', removeAddresses);
 
     const newAddresses: Addresses = { ...addresses };
@@ -310,14 +345,22 @@ const Index = () => {
 
     for (const address of addressesList) {
       if (address in newAddresses) {
+        if (process.env.NEXT_PUBLIC_IS_USE_FABSTIRDB === 'true') {
+          const { address: theAddress, id } = splitNFTAddressId(address);
+
+          deleteNFT({ address: theAddress, id });
+        }
         delete newAddresses[address];
       }
     }
 
     setAddresses(newAddresses);
-    await saveState(newAddresses);
+
+    if (process.env.NEXT_PUBLIC_IS_USE_FABSTIRDB !== 'true')
+      await saveState(newAddresses);
 
     setRemoveAddresses('');
+    setCurrentNFT(null);
   };
 
   const handleButtonImportKeys = () => {
@@ -381,13 +424,15 @@ const Index = () => {
     setImportKeys('');
   };
 
-  const handleExportKeys = () => {
+  const handleExportKeys = async () => {
     if (!smartAccount) {
       // Handle the case when provider or smartAccount is not available
       console.error('Provider or smartAccount is undefined');
       setErrorsExportKeys('Not logged in.');
       return;
     }
+
+    const addresses = await loadAddresses();
 
     let result: { [key: string]: any } = {}; // Declare result as an object with string keys and values of any type
 
@@ -408,25 +453,47 @@ const Index = () => {
     setExportKeys('');
   };
 
+  const loadAddresses = async () => {
+    if (process.env.NEXT_PUBLIC_IS_USE_FABSTIRDB === 'true') {
+      const nftAddresses = nfts?.data?.reduce(
+        (acc: { [key: string]: {} }, nft: any) => {
+          const addressId = getNFTAddressId(nft);
+          acc[addressId] = {};
+          return acc;
+        },
+        {},
+      );
+
+      setAddresses(nftAddresses || {});
+      return nftAddresses || {};
+    } else {
+      type Addresses = {
+        state?: any; // Replace `any` with the actual type of `state`
+        // Define other properties of `state.addresses` here
+      };
+
+      const state: { addresses: Addresses } =
+        (await loadState()) as unknown as {
+          addresses: Addresses;
+        };
+
+      console.log(
+        'useCreateNFT: state.addresses.state = ',
+        state.addresses.state,
+      );
+      setAddresses(state.addresses.state);
+
+      return state.addresses.state;
+    }
+  };
+
   /**
    * Handles loading the saved state of addresses.
    * Sets the addresses state to the saved state.
    */
   const handleLoadAddresses = async () => {
-    type Addresses = {
-      state?: any; // Replace `any` with the actual type of `state`
-      // Define other properties of `state.addresses` here
-    };
-
-    const state: { addresses: Addresses } = (await loadState()) as unknown as {
-      addresses: Addresses;
-    };
-
-    console.log(
-      'useCreateNFT: state.addresses.state = ',
-      state.addresses.state,
-    );
-    setAddresses(state.addresses.state);
+    const addresses = await loadAddresses();
+    setAddresses(addresses);
   };
 
   const handleConnectClick = async () => {
@@ -446,7 +513,10 @@ const Index = () => {
     }
   };
 
-  const loginFabstirDB = async (smartAccountAddress: string) => {
+  const loginFabstirDB = async (
+    smartAccountAddress: string,
+    eoaAddress: string,
+  ) => {
     if (!process.env.NEXT_PUBLIC_FABSTIR_SALT_PAIR)
       throw new Error('logInOrCreateNewUser: Salt pair is not set');
 
@@ -474,7 +544,15 @@ const Index = () => {
     } else {
       console.log('logInOrCreateNewUser: isUserExists(userInfo.uuid) in else');
 
-      loggedIn = await createUser(testUserName, testPassword);
+      const publicUsername = generateUsername('', 0, 15);
+
+      const userProfile = {
+        userName: publicUsername,
+        accountAddress: smartAccountAddress,
+        eoaAddress,
+      };
+
+      loggedIn = await createUser(testUserName, testPassword, userProfile);
     }
 
     if (!loggedIn) throw new Error('logInOrCreateNewUser: login failed');
@@ -483,13 +561,17 @@ const Index = () => {
   const handleLogin = async () => {
     try {
       let userAccountAddress = null;
+      let eoaAddress = '';
 
       if (process.env.NEXT_PUBLIC_ENABLE_OTHER_WALLET !== 'true') {
         const {
           smartAccount: biconomySmartAccount,
           web3Provider,
           userInfo,
+          eoaAddress: eoaAddress1,
         } = await socialLogin();
+
+        eoaAddress = eoaAddress1;
 
         if (!(biconomySmartAccount && web3Provider))
           throw new Error('index: connect: login failed');
@@ -514,10 +596,11 @@ const Index = () => {
         setErrorsExportKeys('');
       } else if (!(smartAccount && smartAccountProvider)) {
         userAccountAddress = await loginNative();
+        eoaAddress = userAccountAddress;
         setSmartAccountAddress(userAccountAddress);
       }
 
-      await loginFabstirDB(userAccountAddress);
+      await loginFabstirDB(userAccountAddress, eoaAddress);
     } catch (e) {
       const errorMessage = 'index: connect: error received';
       console.error(`${errorMessage} ${e.message}`);
@@ -533,7 +616,11 @@ const Index = () => {
 
   return (
     <div className="p-4 max-w-6xl mx-auto">
-      <h1 className="uppercase text-2xl font-bold mb-6">Web3 Media Player</h1>
+      <h1 className="uppercase text-2xl font-bold mb-5">Web3 Media Player</h1>
+
+      {userName && smartAccount && (
+        <h2 className="text-xl  font-semibold mb-7">User: {userName}</h2>
+      )}
 
       {!state.installedSnap && (
         <Button
@@ -580,6 +667,25 @@ const Index = () => {
           <p className="text-lg p-1 font-bold">Gallery</p>
         </Button>
       </Link>
+
+      <Link href="/playlists">
+        <Button
+          color="white"
+          className="ml-4 p-1 text-2xl font-semibold dark:bg-gray-200 bg-gray-200 mt-4"
+        >
+          <p className="text-lg p-1 font-bold">Playlists</p>
+        </Button>
+      </Link>
+
+      <Link href="/profile">
+        <Button
+          color="white"
+          className="ml-4 p-1 text-2xl font-semibold dark:bg-gray-200 bg-gray-200 mt-4"
+        >
+          <p className="text-lg p-1 font-bold">Profile</p>
+        </Button>
+      </Link>
+
       {/* <h1 className="mt-7 mb-4">List of Addresses</h1>{' '} */}
 
       <div className="mt-6 mb-10">
@@ -619,9 +725,6 @@ const Index = () => {
         </p>
         <HeadlessField className="grid grid-cols-12 gap-6 p-4 border-2 border-gray-200 col-span-11">
           <div className="col-span-5">
-            <Label className="text-gray-800 dark:text-gray-800">
-              Add Addresses
-            </Label>
             <Description className="mt-1">
               Enter address ids to add to the gallery.
             </Description>
@@ -639,7 +742,7 @@ const Index = () => {
 
         <Button
           color="white"
-          className="p-1 h-8 m-4 col-span-1 text-gray-400 dark:text-gray-400 border-gray-300 dark:border-gray-300"
+          className="p-1 h-8 m-4 col-span-1 text-gray-600 dark:text-gray-600 border-gray-300 dark:border-gray-300 dark:bg-gray-200 bg-gray-200"
           onClick={() => setTriggerEffect((prev) => prev + 1)}
         >
           Add
@@ -647,9 +750,6 @@ const Index = () => {
         <p className=" text-red-600 pb-2">{errorsAddAddresses}</p>
         <HeadlessField className="grid grid-cols-12 gap-6 p-4 border-2 border-gray-200 col-span-11 col-start-1">
           <div className="col-span-5">
-            <Label className="text-gray-800 dark:text-gray-800">
-              Remove Addresses
-            </Label>
             <Description className="mt-1">
               Enter address ids to remove from the gallery.
             </Description>
@@ -667,7 +767,7 @@ const Index = () => {
 
         <Button
           color="white"
-          className="p-1 h-8 m-4 col-span-1 text-gray-400 dark:text-gray-400 border-gray-300 dark:border-gray-300"
+          className="p-1 h-8 m-4 col-span-1 text-gray-600 dark:text-gray-600 border-gray-300 dark:border-gray-300 dark:bg-gray-200 bg-gray-200"
           onClick={handleRemoveAddresses}
         >
           Remove
@@ -675,9 +775,6 @@ const Index = () => {
         <p className=" text-red-600 pb-2">{errorsRemoveAddresses}</p>
         <HeadlessField className="grid grid-cols-12 gap-6 p-4 border-2 border-gray-200 col-span-11 col-start-1">
           <div className="col-span-5">
-            <Label className="text-gray-800 dark:text-gray-800">
-              Export Keys
-            </Label>
             <Description className="mt-1">
               Enter address ids to export to a new keys file.
             </Description>
@@ -695,7 +792,7 @@ const Index = () => {
 
         <Button
           color="white"
-          className="p-1 h-8 m-4 col-span-1 text-gray-400 dark:text-gray-400 border-gray-300 dark:border-gray-300"
+          className="p-1 h-8 m-4 col-span-1 text-gray-600 dark:text-gray-600 border-gray-300 dark:border-gray-300 dark:bg-gray-200 bg-gray-200"
           onClick={handleExportKeys}
         >
           Export
@@ -704,9 +801,6 @@ const Index = () => {
 
         <HeadlessField className="grid grid-cols-12 gap-6 p-4 border-2 border-gray-200 col-span-11 col-start-1">
           <div className="col-span-5">
-            <Label className="text-gray-800 dark:text-gray-800">
-              Import Keys
-            </Label>
             <Description className="mt-1">
               Browse to keys file to import. To import subset, enter address
               ids. Leave blank to import all keys.
@@ -732,7 +826,7 @@ const Index = () => {
         />
         <Button
           color="white"
-          className="p-1 h-8 m-4 col-span-1 text-gray-400 dark:text-gray-400 border-gray-300 dark:border-gray-300"
+          className="p-1 h-8 m-4 col-span-1 text-gray-600 dark:text-gray-600 border-gray-300 dark:border-gray-300 dark:bg-gray-200 bg-gray-200"
           onClick={handleButtonImportKeys}
         >
           Import

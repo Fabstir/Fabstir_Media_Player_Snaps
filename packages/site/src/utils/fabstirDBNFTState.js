@@ -10,14 +10,15 @@ import { getUser } from '../GlobalOrbit';
 export const loadNFTsState = async () => {
   const user = getUser();
   const nftsState = await user.get('nfts').load();
+  return nftsState;
 
-  const addressIds = {};
-  for (const nftObject of nftsState) {
-    for (const [key, value] of Object.entries(nftObject)) {
-      addressIds[key] = value;
-    }
-  }
-  return addressIds;
+  // const addressIds = {};
+  // for (const nftObject of nftsState) {
+  //   for (const [key, value] of Object.entries(nftObject)) {
+  //     addressIds[key] = value;
+  //   }
+  // }
+  // return addressIds;
 };
 
 /**

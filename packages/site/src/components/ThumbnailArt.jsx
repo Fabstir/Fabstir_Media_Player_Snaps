@@ -1,7 +1,7 @@
 import { MinusIcon, PlusIcon } from '@heroicons/react/24/solid';
 import React, { useEffect, useRef } from 'react';
 import { useRecoilState } from 'recoil';
-import { currentnftmetadata } from '../atoms/nftMetaDataAtom';
+import { currentnftmetadata } from '../atoms/nftSlideOverAtom';
 
 /**
  * A utility function to concatenate class names.
@@ -70,7 +70,7 @@ export default function ThumbnailArt({
               className="absolute left-1/2 top-1/2 z-10 flex w-fit -translate-x-1/2 -translate-y-1/2 rounded-full border-none bg-fabstir-gray bg-opacity-75 font-semibold text-fabstir-light-gray opacity-0 duration-300 group-hover:opacity-100"
             >
               <PlusIcon
-                className="h-8 w-8 font-bold text-fabstir-white lg:h-10 lg:w-10"
+                className="h-8 w-8 font-bold text-fabstir-light-gray lg:h-10 lg:w-10"
                 aria-hidden="true"
               />
             </div>
@@ -84,7 +84,7 @@ export default function ThumbnailArt({
               className="absolute left-1/2 top-1/2 z-10 flex w-fit -translate-x-1/2 -translate-y-1/2 rounded-full border-none bg-fabstir-gray bg-opacity-75 font-semibold text-fabstir-light-gray opacity-0 duration-300 group-hover:opacity-100"
             >
               <MinusIcon
-                className="h-6 w-6 font-bold text-fabstir-white lg:h-8 lg:w-8"
+                className="h-6 w-6 font-bold text-fabstir-light-gray lg:h-8 lg:w-8"
                 aria-hidden="true"
               />
             </div>

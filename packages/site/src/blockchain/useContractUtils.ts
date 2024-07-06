@@ -127,9 +127,6 @@ export default function useContractUtils() {
     chainId: number,
     envName: string,
   ): string => {
-    const textEnv = process_env.NEXT_PUBLIC_TIPERC721_ADDRESS_31337;
-    console.log('textEnv: ', textEnv);
-
     const envVariableName = `${envName}_${chainId}`;
     console.log(Object.keys(process_env));
     const envVariableValue = (

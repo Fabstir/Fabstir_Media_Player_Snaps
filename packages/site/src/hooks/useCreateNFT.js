@@ -1,8 +1,13 @@
 import { useMutation } from '@tanstack/react-query';
 import { queryClient } from '../../pages/_app.tsx';
+import { user } from '../user';
 
+import { stringifyArrayProperties } from '../utils/stringifyProperties';
+import { getNFTAddressId } from '../utils/nftUtils.js';
 import { saveState, loadState } from '../utils';
-import { saveNFTState as saveNFTStateToFabstirDB } from '../utils/fabstirDBNFTState';
+import { useRecoilValue } from 'recoil';
+import { userauthpubstate } from '../atoms/userAuthAtom.js';
+import useFabstirController from './useFabstirController.js';
 
 /**
  * Asynchronously saves the NFT data to the local state.
@@ -33,6 +38,12 @@ export async function saveNFTtoState(address, nftState) {
  * @returns {Object} - The result object from the useMutation hook, which includes data, error, and other properties.
  */
 export default function useCreateNFT() {
+  const userAuthPub = useRecoilValue(userauthpubstate);
+  const { submitKeyToController, retrieveKeyFromController } =
+    useFabstirController();
+
+  const userPub = user?.is?.pub;
+
   return useMutation(
     /**
      * The mutation function which is called when the mutation is triggered.
@@ -40,38 +51,61 @@ export default function useCreateNFT() {
      *
      * @async
      * @function
-     * @param {Object} nftJSON - The JSON representation of the NFT to be created.
+     * @param {Object} nft - The JSON representation of the NFT to be created.
      */
-    async (nftJSON) => {
-      console.log('useCreateNFT: nft = ', nftJSON);
+    async (nft) => {
+      console.log('useCreateNFT: nft = ', nft);
 
       let newState;
 
-      if (nftJSON?.video || nftJSON?.audio) {
+      if (nft?.video || nft?.audio) {
         //        await transcodeVideo(nft, encryptionKey, true);
-        if (nftJSON.encKey)
-          newState = { isTranscodePending: true, encKey: nftJSON.encKey };
+        if (nft.encKey)
+          newState = { isTranscodePending: true, encKey: nft.encKey };
         else newState = { isTranscodePending: true };
       } else newState = {};
 
+      const { encKey, ...newNFTWithoutEncKey } = nft;
+      const newNFT = stringifyArrayProperties(newNFTWithoutEncKey);
+      const addressId = getNFTAddressId(newNFT);
+      console.log('useCreateNFT: addressId = ', addressId);
+
       if (process.env.NEXT_PUBLIC_IS_USE_FABSTIRDB === 'true')
-        await saveNFTStateToFabstirDB(
-          `${nftJSON.address}_${nftJSON.id}`,
-          newState,
-        );
-      else await saveNFTtoState(`${nftJSON.address}_${nftJSON.id}`, newState);
+        user
+          .get('nfts')
+          .get(addressId)
+          .put(newNFT, function (ack) {
+            if (ack.err) {
+              console.error('useCreateNFT: Error writing data:', ack.err);
+            } else {
+              console.log('useCreateNFT: newNFT.address = ', newNFT.address);
+            }
+          });
+      else await saveNFTtoState(`${nft.address}_${nft.id}`, newState);
       console.log('useCreateNFT: newState = ', newState);
+
+      if (nft.encKey) {
+        await submitKeyToController(userAuthPub, addressId, nft.encKey);
+        // const encKey = await retrieveKeyFromController(
+        //   userAuthPub,
+        //   newNFT.userPub,
+        //   addressId,
+        // );
+
+        console.log('useCreateNFT: nft.encKey = ', nft.encKey);
+        // console.log('useCreateNFT: encKey = ', encKey);
+      }
     },
     {
       onMutate: (newNFT) => {
         console.log('useCreateNFT onMutate newNFT = ', newNFT);
 
-        queryClient.cancelQueries(['nfts']);
+        queryClient.cancelQueries([userPub, 'nfts']);
 
-        let oldNFTs = queryClient.getQueryData(['nfts']);
+        let oldNFTs = queryClient.getQueryData([userPub, 'nfts']);
         console.log('useCreateNFT oldNFTs = ', oldNFTs);
 
-        queryClient.setQueryData(['nfts'], (old) => {
+        queryClient.setQueryData([userPub, 'nfts'], (old) => {
           return old
             ? [
                 ...old,
@@ -88,20 +122,21 @@ export default function useCreateNFT() {
               ];
         });
 
-        const newNFTs = queryClient.getQueryData(['nfts']);
+        const newNFTs = queryClient.getQueryData([userPub, 'nfts']);
         console.log('useCreateNFT newNFTs = ', newNFTs);
 
-        return () => queryClient.setQueryData(['nfts'], oldNFTs);
+        return () => queryClient.setQueryData([userPub, 'nfts'], oldNFTs);
       },
       onError: (error, newNFT, rollback) => {
         console.log('useCreateNFT: error = ', error);
         rollback();
       },
       onSuccess: (data, newNFT) => {
-        queryClient.invalidateQueries(['nfts']);
-        queryClient.refetchQueries(['nfts']);
+        queryClient.invalidateQueries([userPub, 'nfts']);
+        const currentNFTs = queryClient.getQueryData([userPub, 'nfts']) || [];
+        const updatedNFTs = [...currentNFTs, newNFT]; // Or use `data` if it contains the updated list
+        queryClient.setQueryData([userPub, 'nfts'], updatedNFTs);
 
-        const updatedNFTs = queryClient.getQueryData(['nfts']);
         console.log('useCreateNFT: Updated NFTs:', updatedNFTs);
       },
     },

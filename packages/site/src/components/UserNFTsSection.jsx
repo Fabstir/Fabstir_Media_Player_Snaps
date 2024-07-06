@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useRecoilState } from 'recoil';
+import { useRecoilState, useRecoilValue } from 'recoil';
 
 import {
   PlusSmallIcon as PlusSmIconOutline,
@@ -11,6 +11,7 @@ import {
 import UserNFTsView from './UserNFTsView';
 import useNFTs from '../hooks/useNFTs';
 import { nftslideoverstate } from '../atoms/nftSlideOverAtom';
+import { userpubstate } from '../atoms/userAtom';
 
 /**
  * UserNFTsSection component to render the user's NFTs section.
@@ -36,7 +37,8 @@ export default function UserNFTsSection({
    * Fetches NFT metadata for each address using the useNFTs hook.
    * @type {Object}
    */
-  const nfts = useNFTs();
+  const userPub = useRecoilValue(userpubstate);
+  const nfts = useNFTs(userPub);
 
   /**
    * State to control the visibility of the NFT slide over component.
@@ -51,22 +53,24 @@ export default function UserNFTsSection({
   const [filteredUserNFTs, setFilteredUserNFTs] = useState();
 
   useEffect(() => {
-    setFilteredUserNFTs(nfts.data);
-    console.log('UserNFTsSection: nfts.data = ', nfts.data);
-  }, [nfts, nfts.data]);
+    if (nfts.isSuccess) {
+      setFilteredUserNFTs(nfts.data);
+      console.log('UserNFTsSection: nfts.data = ', nfts.data);
+    }
+  }, [nfts, nfts.isSuccess]);
 
   // Render UserNFTsView component to display filtered NFTs
   return (
     <main className="h-screen flex-1 rounded-sm bg-fabstir-light-purple">
-      <div className="flex border-t border-fabstir-medium-light-gray pt-6">
-        <h1 className="flex-1 text-2xl font-bold text-fabstir-light-gray">
+      <div className="flex border-t border-fabstir-medium-light-gray pt-6 pr-8">
+        <h1 className="flex-1 text-2xl font-bold text-fabstir-dark-gray">
           {theTitle}
         </h1>
 
         <button
           type="button"
           onClick={() => setOpenNFT(true)}
-          className="f-full focus:ring-fabstir-colour1 m-3 flex items-center justify-center rounded-full bg-fabstir-action-colour1 p-1 px-2 text-fabstir-light-gray shadow-lg shadow-fabstir-light-purple/50 hover:bg-indigo-700 focus:outline-none focus:ring-2"
+          className="f-full focus:ring-fabstir-colour1 m-3 flex items-center justify-center rounded-full bg-fabstir-light- p-1 px-2 text-fabstir-dark-gray shadow-lg shadow-fabstir-light-purple/50 hover:bg-fabstir-white focus:outline-none focus:ring-2"
         >
           <PlusSmIconOutline
             className="h-6 w-6 focus:ring-0"

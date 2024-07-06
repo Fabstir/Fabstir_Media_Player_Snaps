@@ -12,6 +12,16 @@ export const nftslideoverstate = atom({
   default: false,
 });
 
+export const currentnftmetadata = atom({
+  key: 'currentNFTMetadata',
+  default: null,
+});
+
+export const currentnftformstate = atom({
+  key: 'currentNFTForm',
+  default: null,
+});
+
 /**
  * Atom to store the current NFT categories.
  * It returns an array of objects representing the current NFT categories.

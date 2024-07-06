@@ -4,19 +4,25 @@ import usePortal from '../hooks/usePortal';
 import useVideoLinkS5 from '../hooks/useVideoLinkS5';
 import VideoJS from './VideoJS';
 import videojs from 'video.js';
-import { combineKeytoEncryptedCid } from '../utils/s5EncryptCIDHelper';
 
 /**
  * A React component that renders a Video.js player for an NFT video.
  *
- * @component
  * @param {Object} props - The component props.
  * @param {Object} props.nft - The NFT object containing video information.
  * @param {Function} props.onReady - The callback function to be called when the video is ready to play.
  * @param {Function} props.setIsPlay - The state setter function for the video play state.
  * @returns {JSX.Element} - The NFTVideoJS component.
  */
-export const NFTVideoJS = ({ nft, onReady, setIsPlay }) => {
+export const NFTVideoJS = ({
+  nft,
+  onReady,
+  setIsPlay,
+  encKey,
+  isPlayClicked,
+  setIsPlayClicked,
+  metadata,
+}) => {
   console.log('NFTVideoJS: nft.name useEffect');
   console.log('test: NFTVideoJS');
 
@@ -25,31 +31,11 @@ export const NFTVideoJS = ({ nft, onReady, setIsPlay }) => {
   const getVideoLinkS5 = useVideoLinkS5();
 
   const { getBlobUrl, getPortalType } = usePortal();
-
-  /**
-   * The options for the video player.
-   * @type {Object}
-   */
   const [options, setOptions] = useState();
 
-  /**
-   * The URL of the video to be played.
-   * @type {string}
-   */
-  const [videoUrl, setVideoUrl] = useState();
+  const [trailerSource, setTrailerSource] = useState();
+  const [mainSource, setMainSource] = useState();
 
-  /**
-   * The current time of the video player.
-   * @type {number}
-   */
-  const [playerCurrentTime, setPlayerCurrentTime] = useState(0);
-
-  /**
-   * The function to handle the readiness of the video player.
-   * It sets up various event listeners on the player.
-   *
-   * @param {Object} player - The video player object.
-   */
   const handlePlayerReady = (player) => {
     console.log('test: ScreenView handlePlayerReady');
 
@@ -74,17 +60,15 @@ export const NFTVideoJS = ({ nft, onReady, setIsPlay }) => {
 
     player.on('mouseover', () => {
       player.controlBar.show();
-      player.bigPlayButton.show();
     });
 
     player.on('mouseout', () => {
       player.controlBar.hide();
-      player.bigPlayButton.hide();
     });
 
-    player.on('timeupdate', () => {
-      setPlayerCurrentTime(player.currentTime());
-    });
+    // player.on('timeupdate', () => {
+    //   setPlayerCurrentTime(player.currentTime())
+    // })
 
     player.on('dispose', () => {
       console.log('player will dispose');
@@ -96,41 +80,55 @@ export const NFTVideoJS = ({ nft, onReady, setIsPlay }) => {
   };
 
   React.useEffect(() => {
-    if (!nft) return;
+    if (!nft && !encKey && !metadata) return;
+
+    setIsPlayClicked(false);
     (async () => {
-      //      const encKey = await getEncKey(nft.address);
-      //      console.log('NFTVideoJS: nft.name useEffect getEncKey');
+      console.log('NFTVideoJS: nft.name useEffect getEncKey');
+
+      console.log('NFTVideoJS: nft = ', nft);
+      console.log('NFTVideoJS: encKey = ', encKey);
+      console.log('NFTVideoJS: metadata = ', metadata);
 
       console.log('NFTVideoJS: nft.video = ', nft.video);
 
-      let prog_index_m3u8_url;
-      // const cid = encKey
-      //   ? combineKeytoEncryptedCid(encKey, nft.video)
-      //   : nft.video;
+      if (!nft.video) return;
 
-      prog_index_m3u8_url = await getVideoLinkS5({
-        nft,
+      const prog_index_m3u8_url = await getVideoLinkS5({
+        key: encKey,
+        cidWithoutKey: nft.video,
+        metadata,
       });
+      //      if (!prog_index_m3u8_url) return
+
+      if (prog_index_m3u8_url !== undefined) setMainSource(prog_index_m3u8_url);
+
+      const sampleSources = nft.animation_url
+        ? await getVideoLinkS5({
+            key: null,
+            cidWithoutKey: nft.animation_url,
+          })
+        : null;
+
+      setTrailerSource(sampleSources);
 
       console.log('NFTVideoJS: nft.name useEffect getVideoLink');
       console.log('NFTVideoJS: prog_index_m3u8_url = ', prog_index_m3u8_url);
 
       let nftImage;
-      if (nft && nft.backDropImage)
-        nftImage = await getBlobUrl(nft.backDropImage);
-      else if (nft && nft.image) nftImage = await getBlobUrl(nft.image);
+      if (nft?.backdropImage) nftImage = await getBlobUrl(nft.backdropImage);
+      else if (nft?.image) nftImage = await getBlobUrl(nft.image);
       else nftImage = null;
 
       console.log('NFTVideoJS: nft.name useEffect getBlobUrl');
 
-      setVideoUrl(prog_index_m3u8_url);
       console.log('NFTVideoJS: prog_index_m3u8_url= ', prog_index_m3u8_url);
 
       const theOptions = {
         // lookup the options in the docs for more options
         autoplay: false,
         controls: true,
-        bigPlayButton: true,
+        bigPlayButton: false,
         responsive: true,
         fluid: true,
         height: 1080,
@@ -144,34 +142,35 @@ export const NFTVideoJS = ({ nft, onReady, setIsPlay }) => {
             withCredentials: true,
           },
         },
-        sources: prog_index_m3u8_url,
-        //        portalType: getPortalType(nft.video),
+        portalType: getPortalType(nft.video),
+        preload: 'none',
       };
-
-      function ResolutionSelectorButton(props) {
-        const { resolutions, resolution, handleResolutionChange } = props;
-        return (
-          <div className="vjs-resolution-selector">
-            <select value={resolution} onChange={handleResolutionChange}>
-              {resolutions.map((res) => (
-                <option key={res} value={res}>
-                  {res.split('=')[1]}
-                </option>
-              ))}
-            </select>
-          </div>
-        );
-      }
 
       console.log('NFTVideoJS: nft = ', nft);
       console.log('NFTVideoJS: nft.name = ', nft.name);
       console.log('NFTVideoJS: theOptions = ', theOptions);
       setOptions(theOptions);
     })();
-  }, [nft]);
+
+    // Cleanup function
+    return () => {
+      console.log('NFTVideoJS: Component is unloading');
+    };
+  }, [nft, encKey, metadata]);
 
   return (
-    <>{options && <VideoJS options={options} onReady={handlePlayerReady} />}</>
+    <>
+      {options && (
+        <VideoJS
+          options={options}
+          trailerSource={trailerSource}
+          mainSource={mainSource}
+          onReady={handlePlayerReady}
+          isPlayClicked={isPlayClicked}
+          setIsPlayClicked={setIsPlayClicked}
+        />
+      )}
+    </>
   );
 };
 

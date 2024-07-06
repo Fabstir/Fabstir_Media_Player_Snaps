@@ -1,11 +1,29 @@
 import { useQuery } from '@tanstack/react-query';
 import { queryClient } from '../../pages/_app.tsx';
 
+import { parseArrayProperties } from '../utils/stringifyProperties';
 import TipERC721 from '../../contracts/TipERC721.json';
+import TipERC1155 from '../../contracts/TipERC1155.json';
 import { S5Client } from '../../../../node_modules/s5client-js/dist/mjs/index';
 import BlockchainContext from '../../state/BlockchainContext';
 import { useContext } from 'react';
 import usePortal from './usePortal.js';
+import { dbClient } from '../GlobalOrbit';
+
+export const fetchNFT = async (userPub, nftAddressId) => {
+  if (!nftAddressId) return null;
+
+  const resultRetrieved = await new Promise((res) =>
+    dbClient
+      .user(userPub)
+      .get('nfts')
+      .get(nftAddressId)
+      .once((final_value) => res(final_value)),
+  );
+
+  const result = parseArrayProperties(resultRetrieved);
+  return result;
+};
 
 /**
  * Asynchronously retrieves metadata from a given URI.
@@ -18,10 +36,11 @@ import usePortal from './usePortal.js';
  */
 const getMetadata = async (uri, downloadFile) => {
   const json = await downloadFile(uri, {});
+  return json;
 
-  if (json) {
-    return JSON.parse(json);
-  }
+  // if (json) {
+  //   return JSON.parse(json);
+  // }
 };
 
 /**
@@ -34,7 +53,7 @@ const getMetadata = async (uri, downloadFile) => {
  * @param {function} downloadFile - The function to use for downloading files.
  * @returns {Promise<Object|null>} - A promise that resolves to an NFT object containing the metadata or null if the NFT address is not provided.
  */
-export const fetchNFT = async (
+export const fetchNFTOnChain = async (
   address_id,
   newReadOnlyContract,
   downloadFile,
@@ -58,6 +77,33 @@ export const fetchNFT = async (
     address: address,
     name,
     symbol,
+    ...metadata,
+  };
+  console.log('useNFT: nft = ', nft);
+
+  return nft;
+};
+
+export const fetchNFT1155OnChain = async (
+  address_id,
+  newReadOnlyContract,
+  downloadFile,
+) => {
+  if (!address_id) return null;
+
+  const [address, id] = address_id.split('_');
+  const parsedId = parseInt(id, 10);
+
+  // Initialize a new Contract instance with the NFT address and provider
+  const contract = newReadOnlyContract(address, TipERC1155.abi);
+  const uri = await contract.uri(parsedId);
+
+  // Call the getMetadata function to download the NFT metadata
+  const metadata = await getMetadata(uri, downloadFile);
+
+  // Create an NFT object with the metadata
+  const nft = {
+    address: address,
     ...metadata,
   };
   console.log('useNFT: nft = ', nft);

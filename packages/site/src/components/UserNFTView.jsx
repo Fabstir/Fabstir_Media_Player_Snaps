@@ -6,6 +6,7 @@ import ThumbnailMusic from './ThumbnailMusic';
 import { ArrowLongRightIcon } from '@heroicons/react/24/outline';
 import { useRecoilState } from 'recoil';
 import { selectedparentnftaddressid } from '../atoms/nestableNFTAtom';
+import { currentnftmetadata } from '../atoms/nftSlideOverAtom';
 
 const tabs = [
   { name: 'Recently Added', href: '#', current: true },
@@ -47,6 +48,7 @@ export default function UserNFTView({
 
   const [selectedParentNFTAddressId, setSelectedParentNFTAddressId] =
     useRecoilState(selectedparentnftaddressid);
+  const [currentNFT, setCurrentNFT] = useRecoilState(currentnftmetadata);
 
   /**
    * State to hold the NFT image URL.
@@ -75,6 +77,7 @@ export default function UserNFTView({
   useEffect(() => {
     (async () => {
       console.log('test: UserNFTView useEffect');
+      //      setCurrentNFT(nft);
 
       if (nft?.image) {
         console.log('UserNFTView: nft.image = ', nft.image);
@@ -144,7 +147,7 @@ export default function UserNFTView({
       </div>
       {nft?.isNestableNFT && (
         <div className="absolute -top-8 right-0 p-1">
-          <ArrowLongRightIcon className="h-8 w-8 text-gray-400" />
+          <ArrowLongRightIcon className="h-8 w-8 text-fabstir-dark-gray" />
         </div>
       )}
     </div>

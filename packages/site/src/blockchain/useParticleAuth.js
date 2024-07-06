@@ -138,14 +138,21 @@ export default function useParticleAuth() {
   const login = async (isFresh = false) => {
     if (!userInfo) {
       try {
+        const chainInfo = getChainInfoFromChainId(
+          connectedChainId || Number(process.env.NEXT_PUBLIC_DEFAULT_CHAIN_ID),
+        );
+        console.log('useParticleAuth: chainInfo = ', chainInfo);
+        console.log('useParticleAuth: chainInfo = ', chainInfo);
+
         const newUserInfo = await connect({
           email: '',
           code: '',
-          chain: getChainInfoFromChainId(
-            connectedChainId ||
-              Number(process.env.NEXT_PUBLIC_DEFAULT_CHAIN_ID),
-          ),
+          chain: chainInfo,
         });
+
+        console.log('useParticleAuth: chainInfo = ', chainInfo);
+        console.log('useParticleAuth: chainInfo = ', chainInfo);
+
         return newUserInfo;
       } catch (error) {
         console.error(error.message);

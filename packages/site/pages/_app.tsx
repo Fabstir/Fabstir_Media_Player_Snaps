@@ -53,32 +53,6 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   const toggleTheme = useContext(ToggleThemeContext);
 
-  // // Add event listener when component mounts
-  // useEffect(() => {
-  //   if (process.env.NEXT_PUBLIC_ENABLE_OTHER_WALLET !== 'true') {
-  //     const initialiseSmartAccount = async () => {
-  //       if (!(smartAccount && smartAccountProvider && userInfo)) {
-  //         const {
-  //           smartAccount: newSmartAccount,
-  //           web3Provider,
-  //           userInfo,
-  //         } = await socialLogin(true);
-
-  //         if (web3Provider) {
-  //           setSmartAccount(newSmartAccount);
-  //           setSmartAccountProvider(web3Provider);
-  //           setUserInfo(userInfo);
-
-  //           const chainId = await getConnectedChainId(newSmartAccount);
-  //           setConnectedChainId(chainId);
-  //         }
-  //       }
-  //     };
-
-  //     initialiseSmartAccount();
-  //   }
-  // }, []);
-
   useEffect(() => {
     navigator.serviceWorker
       .register('/sw.js')
@@ -137,7 +111,7 @@ function MyApp({ Component, pageProps }: AppProps) {
     }
   }, []);
 
-  // const supportChains = getSupportedChains();
+  const supportChains = getSupportedChains();
 
   const DynamicAuthCoreContextProvider = dynamic(
     () =>
@@ -192,10 +166,7 @@ function MyApp({ Component, pageProps }: AppProps) {
             wallet: {
               visible: true,
               customStyle: {
-                supportChains: [
-                  { id: 84532, name: 'Base' },
-                  { id: 80002, name: 'Polygon' },
-                ],
+                supportChains,
               },
             },
           }}

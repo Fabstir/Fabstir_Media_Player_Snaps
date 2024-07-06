@@ -1,7 +1,6 @@
 import { useContext } from 'react';
 import useContractUtils from './useContractUtils';
 import BlockchainContext from '../../state/BlockchainContext';
-import { useEthereum } from '@particle-network/auth-core-modal';
 
 /**
  * Function to handle Biconomy payment for a given user operation with sponsorship.
@@ -21,7 +20,7 @@ export default function useParticlePayment(smartAccount) {
     getDefaultCurrencySymbolFromChainId,
   } = useContractUtils();
   const blockchainContext = useContext(BlockchainContext);
-  const { smartAccountProvider, connectedChainId } = blockchainContext;
+  const { connectedChainId } = blockchainContext;
 
   /**
    * Function to handle Biconomy payment for a given user operation.

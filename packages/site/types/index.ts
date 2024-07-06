@@ -5,7 +5,11 @@ export type ParticleAuth = {
 };
 
 export type CreateUser = {
-  createUser: (username: string, passw: string) => Promise<any>; // Replace any with the actual types
+  createUser: (
+    username: string,
+    passw: string,
+    userProfile: any,
+  ) => Promise<any>; // Replace any with the actual types
   signOut: () => Promise<void>;
   isUserExists: (userId: string) => Promise<boolean>;
   login: (username: string, passw: string) => Promise<any>; // Replace any with the actual types

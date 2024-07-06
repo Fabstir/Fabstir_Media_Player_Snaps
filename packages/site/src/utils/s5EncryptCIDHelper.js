@@ -4,14 +4,15 @@ const CHUNK_LENGTH_AS_POWEROF2_LENGTH = 1;
 const ENCRYPTED_BLOB_HASH_LENGTH = 33;
 const KEY_LENGTH = 32;
 const PADDING_LENGTH = 4;
+const ORIGINAL_CID_LENGTH = 37;
 
 /**
  * Extracts the encryption key from an encrypted CID.
- *
- * @param {string} encryptedCid - The encrypted CID to extract the key from.
- * @returns {string} - The extracted encryption key.
+ * @param {string} encryptedCid - The encrypted CID to get the key from.
+ * @returns {string} The encryption key from the CID.
  */
 export function getKeyFromEncryptedCid(encryptedCid) {
+  encryptedCid = removeS5Prefix(encryptedCid);
   const extensionIndex = encryptedCid.lastIndexOf('.');
 
   let cidWithoutExtension;
@@ -46,11 +47,12 @@ export function getKeyFromEncryptedCid(encryptedCid) {
 
 /**
  * Removes the encryption key from an encrypted CID.
- *
  * @param {string} encryptedCid - The encrypted CID to remove the key from.
- * @returns {string} - The CID with the encryption key removed.
+ * @returns {string} The CID with the encryption key removed.
  */
 export function removeKeyFromEncryptedCid(encryptedCid) {
+  encryptedCid = removeS5Prefix(encryptedCid);
+
   const extensionIndex = encryptedCid.lastIndexOf('.');
   const cidWithoutExtension =
     extensionIndex === -1
@@ -78,17 +80,28 @@ export function removeKeyFromEncryptedCid(encryptedCid) {
   combinedBytes.set(part2, part1.length);
 
   const cidWithoutKey = 'u' + convertBytesToBase64url(combinedBytes);
-  return cidWithoutKey;
+  return addS5Prefix(cidWithoutKey);
+}
+
+/**
+ * Removes the extension from a filename.
+ * @param {string} cid - The filename from which to remove the extension.
+ * @returns {string} The filename without its extension.
+ */
+export function removeExtensionFromCid(cid) {
+  const extensionIndex = cid.lastIndexOf('.');
+  return extensionIndex === -1 ? cid : cid.slice(0, extensionIndex);
 }
 
 /**
  * Combines an encryption key with an encrypted CID.
- *
  * @param {string} key - The encryption key to combine with the encrypted CID.
  * @param {string} encryptedCidWithoutKey - The encrypted CID without the encryption key.
- * @returns {string} - The encrypted CID with the encryption key combined.
+ * @returns {string} The encrypted CID with the encryption key combined.
  */
 export function combineKeytoEncryptedCid(key, encryptedCidWithoutKey) {
+  encryptedCidWithoutKey = removeS5Prefix(encryptedCidWithoutKey);
+
   const extensionIndex = encryptedCidWithoutKey.lastIndexOf('.');
   const cidWithoutKeyAndExtension =
     extensionIndex === -1
@@ -122,17 +135,12 @@ export function combineKeytoEncryptedCid(key, encryptedCidWithoutKey) {
   combinedBytes.set(part2, part1.length + keyBytes.length);
 
   const encryptedCid = `u` + convertBytesToBase64url(combinedBytes);
-  return encryptedCid;
+  return addS5Prefix(encryptedCid);
 }
 
-/**
- * Retrieves the Base64 URL encrypted blob hash from the encrypted CID.
- *
- * @param {string} encryptedCid - The encrypted CID to retrieve the blob hash from.
- * @param {number} fileSize - The size of the file.
- * @returns {string} - The Base64 URL encrypted blob hash.
- */
 export function getBase64UrlEncryptedBlobHash(encryptedCid, fileSize) {
+  encryptedCid = removeS5Prefix(encryptedCid);
+
   const extensionIndex = encryptedCid.lastIndexOf('.');
 
   let cidWithoutExtension;
@@ -166,12 +174,6 @@ export function getBase64UrlEncryptedBlobHash(encryptedCid, fileSize) {
   return key;
 }
 
-/**
- * Converts a byte array to a Base64 URL string.
- *
- * @param {Uint8Array} hashBytes - The byte array to convert.
- * @returns {string} - The converted Base64 URL string.
- */
 export function convertBytesToBase64url(hashBytes) {
   const mHash = Buffer.from(hashBytes);
 
@@ -187,12 +189,6 @@ export function convertBytesToBase64url(hashBytes) {
   return hashBase64url;
 }
 
-/**
- * Converts a Base64 URL string to a byte array.
- *
- * @param {string} base64String - The Base64 URL string to convert.
- * @returns {Uint8Array} - The converted byte array.
- */
 export function convertBase64urlToBytes2(base64String) {
   var padding = '='.repeat((4 - (base64String.length % 4)) % 4);
   var base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
@@ -206,12 +202,6 @@ export function convertBase64urlToBytes2(base64String) {
   return outputArray;
 }
 
-/**
- * Converts a Base64 URL string to a byte array.
- *
- * @param {string} b64url - The Base64 URL string to convert.
- * @returns {Uint8Array} - The converted byte array.
- */
 export function convertBase64urlToBytes(b64url) {
   // Convert the URL-safe Base64 string to a regular Base64 string
   let b64 = b64url.replace(/-/g, '+').replace(/_/g, '/');
@@ -228,4 +218,21 @@ export function convertBase64urlToBytes(b64url) {
   const mHash = Uint8Array.from(buffer);
 
   return mHash;
+}
+
+// Function to remove 's5:// prefix' from a string. If the string is not prefixed with 's5://', the original string is returned.
+export function removeS5Prefix(uri) {
+  if (uri?.startsWith(process.env.NEXT_PUBLIC_S5_PREFIX)) {
+    return uri.slice(process.env.NEXT_PUBLIC_S5_PREFIX.length);
+  } else {
+    return uri;
+  }
+}
+
+export function addS5Prefix(uri) {
+  if (uri && !uri.startsWith(process.env.NEXT_PUBLIC_S5_PREFIX)) {
+    return process.env.NEXT_PUBLIC_S5_PREFIX + uri;
+  } else {
+    return uri;
+  }
 }

@@ -3,12 +3,15 @@ import {
   type InputProps as HeadlessInputProps,
 } from '@headlessui/react';
 import { clsx } from 'clsx';
+import { useForm } from 'react-hook-form';
 
 const dateTypes = ['date', 'datetime-local', 'month', 'time', 'week'];
 type DateType = (typeof dateTypes)[number];
 
 export function Input({
   className,
+  defaultValue,
+  register, // Accept register as a prop
   ...props
 }: {
   type?:
@@ -20,12 +23,13 @@ export function Input({
     | 'text'
     | 'url'
     | DateType;
+  register?: ReturnType<typeof useForm>['register']; // Add type for register if using TypeScript
 } & HeadlessInputProps) {
   return (
     <span
       data-slot="control"
       className={clsx([
-        className,
+        className, // Include className prop here to ensure custom classes are applied
 
         // Basic layout
         'relative block w-full',
@@ -47,7 +51,10 @@ export function Input({
       ])}
     >
       <HeadlessInput
+        {...register}
         className={clsx([
+          className, // Include className prop here as well
+
           // Date classes
           props.type &&
             dateTypes.includes(props.type) && [
@@ -69,7 +76,7 @@ export function Input({
           'relative block w-full appearance-none rounded-lg px-[calc(theme(spacing[3.5])-1px)] py-[calc(theme(spacing[2.5])-1px)] sm:px-[calc(theme(spacing[3])-1px)] sm:py-[calc(theme(spacing[1.5])-1px)]',
 
           // Typography
-          'text-base/6 text-zinc-950 placeholder:text-zinc-500 sm:text-sm/6 dark:text-white',
+          'text-base/6 text-zinc-950 placeholder:text-zinc-500 sm:text-sm/6 dark:text-zinc-800', // Adjusted dark mode text color for better contrast
 
           // Border
           'border border-zinc-950/10 data-[hover]:border-zinc-950/20 dark:border-white/10 dark:data-[hover]:border-white/20',
@@ -86,6 +93,7 @@ export function Input({
           // Disabled state
           'data-[disabled]:border-zinc-950/20 dark:data-[hover]:data-[disabled]:border-white/15 data-[disabled]:dark:border-white/15 data-[disabled]:dark:bg-white/[2.5%]',
         ])}
+        defaultValue={defaultValue}
         {...props}
       />
     </span>

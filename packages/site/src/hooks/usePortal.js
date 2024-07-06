@@ -1,69 +1,82 @@
+import useIPFS from './useIPFS';
 import useS5net from './useS5';
 
-const SIA_CID_PREFIX = 'sia:';
-
-/**
- * Custom hook that provides access to the S5net portal functionality.
- * Uses the useS5net hook to get the S5net instance.
- * Provides functions for uploading files and directories, downloading files, and getting portal link and blob URLs.
- * Returns an object with the portal functions.
- *
- * @function
- * @returns {Object} - An object containing functions to interact with the S5net portal.
- */
-export default function usePortal() {
+export default function usePortal(storageNetwork = process.env.NEXT_PUBLIC_S5) {
   const s5 = useS5net();
+  const ipfs = useIPFS();
 
-  /**
-   * Asynchronously downloads a file from a given URI.
-   *
-   * @async
-   * @function
-   * @param {string} uri - The URI of the file to be downloaded.
-   * @param {Object} customOptions - Custom options for the download request.
-   * @returns {Promise<any>} - A promise that resolves to the downloaded file data.
-   */
+  // portalType is a hack for when a cid is transformed to an actual portal url
+  // hence unable to distinguish
   async function downloadFile(uri, customOptions) {
     if (!uri) return;
 
-    return await s5.downloadFile(uri, customOptions);
+    if (
+      uri.startsWith(process.env.NEXT_PUBLIC_IPFS_PREFIX) ||
+      customOptions?.portalType === 'ipfs'
+    ) {
+      return await ipfs.downloadFile(uri, customOptions);
+    } else return await s5.downloadFile(uri, customOptions);
   }
 
-  /**
-   * Asynchronously retrieves a portal link URL for a given URI.
-   *
-   * @async
-   * @function
-   * @param {string} uri - The URI for which to get the portal link URL.
-   * @param {Object} customOptions - Custom options for the request.
-   * @returns {Promise<string>} - A promise that resolves to the portal link URL.
-   */
-  async function getPortalLinkUrl(uri, customOptions) {
+  async function downloadFileWithFields(uri) {
     if (!uri) return;
 
-    return await s5.getPortalLinkUrl(uri, customOptions);
+    if (uri.startsWith(process.env.NEXT_PUBLIC_IPFS_PREFIX)) {
+      throw new Error('downloadFileWithFields not implemented for IPFS');
+    } else return await s5.downloadFileWithFields(uri);
   }
 
-  /**
-   * Asynchronously retrieves a blob URL for a given URI.
-   *
-   * @async
-   * @function
-   * @param {string} uri - The URI for which to get the blob URL.
-   * @returns {Promise<string>} - A promise that resolves to the blob URL.
-   */
   async function getBlobUrl(uri) {
     if (!uri) return;
 
-    return await s5.getBlobUrl(uri);
+    if (uri.startsWith(process.env.NEXT_PUBLIC_IPFS_PREFIX)) {
+      return ipfs.getBlobUrl(uri);
+    } else return await s5.getBlobUrl(uri);
   }
 
-  // default
+  async function getPortalLinkUrl(uri, customOptions) {
+    if (!uri) return;
+
+    if (
+      uri.startsWith(
+        process.env.NEXT_PUBLIC_IPFS_PREFIX ||
+          customOptions?.portalType === 'ipfs',
+      )
+    )
+      return await ipfs.getPortalLinkUrl(uri, customOptions);
+    else return await s5.getPortalLinkUrl(uri, customOptions);
+  }
+
+  function getPortalType(uri) {
+    if (uri.startsWith(process.env.NEXT_PUBLIC_IPFS_PREFIX)) {
+      return 'ipfs';
+    } else return 's5';
+  }
+
+  if (process.env.NEXT_PUBLIC_PORTAL_TYPE === `ipfs`)
+    return {
+      uploadFile: ipfs.uploadFile,
+      downloadFile,
+      uploadDirectory: ipfs.uploadDirectory,
+      getPortalLinkUrl,
+      getPortalType,
+      downloadFileWithFields,
+      getBlobUrl,
+    };
+
   return {
-    uploadFile: s5.uploadFile,
+    uploadFile:
+      storageNetwork === process.env.NEXT_PUBLIC_IPFS
+        ? ipfs.uploadFile
+        : s5.uploadFile,
     downloadFile,
-    uploadDirectory: s5.uploadDirectory,
+    uploadDirectory:
+      storageNetwork === process.env.NEXT_PUBLIC_IPFS
+        ? ipfs.uploadDirectory
+        : s5.uploadDirectory,
     getPortalLinkUrl,
+    getPortalType,
+    downloadFileWithFields,
     getBlobUrl,
   };
 }

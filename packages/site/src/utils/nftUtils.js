@@ -1,5 +1,5 @@
 export const getNFTAddressId = (nft) => {
-  return `${nft.chainId}:${nft.address}_${nft.id}`;
+  return `${nft.address}_${nft.id}`;
 };
 
 export const splitNFTAddressId = (nftAddressId) => {
@@ -12,8 +12,8 @@ export const constructNFTAddressId = (address, id) => {
 };
 
 export const getUniqueKeyFromNFT = (nft) => {
-  return `${constructNFTAddressId(nft.chainId, nft.address, nft.id)}${
-    nft.parentId ? `_${nft.parentId}` : ''
+  return `${constructNFTAddressId(nft.address, nft.id)}${
+    nft.parentId ? `_` + nft.parentId : ''
   }`;
 };
 

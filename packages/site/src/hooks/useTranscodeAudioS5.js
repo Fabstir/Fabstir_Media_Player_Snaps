@@ -34,7 +34,7 @@ export default function useTranscodeAudioS5() {
     console.log('useTranscodeAudioS5: url = ', url);
 
     try {
-      const response = await fetch(url, { method: 'POST' });
+      const response = await fetch(url, { method: 'GET' });
       const data = await response.json();
       console.log('useTranscodeAudioS5: data =', data);
 

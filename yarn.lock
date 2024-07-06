@@ -4099,6 +4099,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@ethersproject/solidity@npm:^5.7.0":
+  version: 5.7.0
+  resolution: "@ethersproject/solidity@npm:5.7.0"
+  dependencies:
+    "@ethersproject/bignumber": ^5.7.0
+    "@ethersproject/bytes": ^5.7.0
+    "@ethersproject/keccak256": ^5.7.0
+    "@ethersproject/logger": ^5.7.0
+    "@ethersproject/sha2": ^5.7.0
+    "@ethersproject/strings": ^5.7.0
+  checksum: 9a02f37f801c96068c3e7721f83719d060175bc4e80439fe060e92bd7acfcb6ac1330c7e71c49f4c2535ca1308f2acdcb01e00133129aac00581724c2d6293f3
+  languageName: node
+  linkType: hard
+
 "@ethersproject/strings@npm:^5.7.0":
   version: 5.7.0
   resolution: "@ethersproject/strings@npm:5.7.0"
@@ -13006,15 +13020,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fabstirdb-lib@file:E:\\\\dev\\\\Fabstir\\\\partners\\\\Sia\\\\GitHub\\\\\\\\fabstirdb-lib\\\\fabstirdb-lib-v1.0.59.tgz::locator=site%40workspace%3Apackages%2Fsite":
-  version: 1.0.59
-  resolution: "fabstirdb-lib@file:/E://dev//Fabstir//partners//Sia//GitHub////fabstirdb-lib//fabstirdb-lib-v1.0.59.tgz::locator=site%40workspace%3Apackages%2Fsite"
+"fabstirdb-lib@file:E:\\\\dev\\\\Fabstir\\\\partners\\\\Sia\\\\GitHub\\\\\\\\fabstirdb-lib\\\\fabstirdb-lib-v1.0.75.tgz::locator=site%40workspace%3Apackages%2Fsite":
+  version: 1.0.75
+  resolution: "fabstirdb-lib@file:/E://dev//Fabstir//partners//Sia//GitHub////fabstirdb-lib//fabstirdb-lib-v1.0.75.tgz::locator=site%40workspace%3Apackages%2Fsite"
   dependencies:
     bcryptjs: ^2.4.3
     crypto: ^1.0.1
     dotenv: ^16.4.5
     libsodium-wrappers: ^0.7.13
-  checksum: 991827b6652ea50c5226c4e114ac1377b20512b43f9cc2453818f7a0b20517142e637b064741fcd02c78d8528ab19f0aa57668993f29ac7751a9ed44b0e085f6
+  checksum: 077ed842f398f847be489bf5caa536074f7ea069af84f7b53ebaaef6cb140a9a9b30d7e2d939286a500a9570d2e13c016785ddb0c50291aacdc6d2da50d0ce2e
   languageName: node
   linkType: hard
 
@@ -14068,6 +14082,24 @@ __metadata:
   dependencies:
     function-bind: ^1.1.2
   checksum: e8516f776a15149ca6c6ed2ae3110c417a00b62260e222590e54aa367cbcd6ed99122020b37b7fbdf05748df57b265e70095d7bf35a47660587619b15ffb93db
+  languageName: node
+  linkType: hard
+
+"heroiconsv1@npm:@heroicons/react@^1.0.6":
+  version: 1.0.6
+  resolution: "@heroicons/react@npm:1.0.6"
+  peerDependencies:
+    react: ">= 16"
+  checksum: 372b1eda3ce735ef069777bc96304f70de585ebb71a6d1cedc121bb695f9bca235619112e3ee14e8779e95a03096813cbbe3b755927a54b7580d1ce084fa4096
+  languageName: node
+  linkType: hard
+
+"heroiconsv2@npm:@heroicons/react@^2.0.11":
+  version: 2.1.4
+  resolution: "@heroicons/react@npm:2.1.4"
+  peerDependencies:
+    react: ">= 16"
+  checksum: 4bdfc8934a855321e2e572dbad9bb5198e56d2cfa8d9c70b068d425e1f57028a1d3a114d27a01bd41948c6cc05b84632fc60355c34ad904c6be9671dd029f9ce
   languageName: node
   linkType: hard
 
@@ -20630,6 +20662,7 @@ __metadata:
     "@ethersproject/bytes": ^5.7.0
     "@ethersproject/contracts": ^5.7.0
     "@ethersproject/providers": ^5.7.2
+    "@ethersproject/solidity": ^5.7.0
     "@ethersproject/wallet": ^5.7.0
     "@headlessui/react": next
     "@heroicons/react": ^2.0.18
@@ -20670,9 +20703,11 @@ __metadata:
     eslint-plugin-prettier: ^5.0.0
     eslint-plugin-react: latest
     ethers: ^6.12.1
-    fabstirdb-lib: "E:\\\\dev\\\\Fabstir\\\\partners\\\\Sia\\\\GitHub\\\\\\\\fabstirdb-lib\\\\fabstirdb-lib-v1.0.59.tgz"
+    fabstirdb-lib: "E:\\\\dev\\\\Fabstir\\\\partners\\\\Sia\\\\GitHub\\\\\\\\fabstirdb-lib\\\\fabstirdb-lib-v1.0.75.tgz"
     file-saver: ^2.0.5
     gun: ^0.2020.1240
+    heroiconsv1: "npm:@heroicons/react@^1.0.6"
+    heroiconsv2: "npm:@heroicons/react@^2.0.11"
     inquirer: ^8.0.0
     next: ^13.4.19
     next-svgr: ^0.0.2
@@ -20687,9 +20722,11 @@ __metadata:
     recoil-persist: ^5.1.0
     rimraf: ^3.0.2
     s5client-js: "https://github.com/parajbs-dev/s5client-js.git#test_15_encryptWasm_4_2"
+    strip-json-comments: ^5.0.1
     tailwind-merge: ^2.2.0
     tailwindcss: latest
     typescript: latest
+    unique-username-generator: ^1.3.0
     uuid: ^9.0.1
     video.js: ^7.20.3
     videojs-resolution-switcher: ^0.4.2
@@ -21294,6 +21331,13 @@ __metadata:
   version: 3.1.1
   resolution: "strip-json-comments@npm:3.1.1"
   checksum: 492f73e27268f9b1c122733f28ecb0e7e8d8a531a6662efbd08e22cccb3f9475e90a1b82cab06a392f6afae6d2de636f977e231296400d0ec5304ba70f166443
+  languageName: node
+  linkType: hard
+
+"strip-json-comments@npm:^5.0.1":
+  version: 5.0.1
+  resolution: "strip-json-comments@npm:5.0.1"
+  checksum: b314af70c6666a71133e309a571bdb87687fc878d9fd8b38ebed393a77b89835b92f191aa6b0bc10dfd028ba99eed6b6365985001d64c5aef32a4a82456a156b
   languageName: node
   linkType: hard
 
@@ -22269,6 +22313,13 @@ __metadata:
   dependencies:
     imurmurhash: ^0.1.4
   checksum: 0884b58365af59f89739e6f71e3feacb5b1b41f2df2d842d0757933620e6de08eff347d27e9d499b43c40476cbaf7988638d3acb2ffbcb9d35fd035591adfd15
+  languageName: node
+  linkType: hard
+
+"unique-username-generator@npm:^1.3.0":
+  version: 1.3.0
+  resolution: "unique-username-generator@npm:1.3.0"
+  checksum: 0e8f79c6e3be01f081ea05285f07291b03f983a9905c8496b74c54a0d478d365161e345c655f6d206f9d4532bc3a35b07a7a8d4420d94c68a7584b487a7912bd
   languageName: node
   linkType: hard
 

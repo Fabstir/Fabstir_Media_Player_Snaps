@@ -1,42 +1,141 @@
-import React, { useContext } from 'react';
-const { Contract } = require('@ethersproject/contracts');
+import { Zero } from '@ethersproject/constants';
+import { BigNumber } from '@ethersproject/bignumber';
 import { useQuery } from '@tanstack/react-query';
-import TipERC721 from '../../contracts/TipERC721.json';
+import useMintNFT from '../blockchain/useMintNFT';
+import { dbClient, dbClientOnce, dbClientLoad } from '../GlobalOrbit';
+import useUserProfile from './useUserProfile';
 import FNFTNestable from '../../contracts/FNFTNestable.json';
 
-import usePortal from './usePortal';
-import { S5Client } from '../../../../node_modules/s5client-js/dist/mjs/index';
-import BlockchainContext from '../../state/BlockchainContext';
-import { loadState } from '../utils';
-import useMintNestableNFT from '../blockchain/useMintNestableNFT';
+import { constructNFTAddressId, splitNFTAddressId } from '../utils/nftUtils.js';
 import { useRecoilValue } from 'recoil';
-import { selectedparentnftaddressid } from '../atoms/nestableNFTAtom';
-import useNFT, { fetchNFT } from './useNFT';
-import { loadNFTsState as loadNFTsStateFromFabstirDB } from '../utils/fabstirDBNFTState';
+import { selectedparentnftaddressid } from '../atoms/nestableNFTAtom.js';
+import { fetchNFT } from './useNFT.js';
+import useMintNestableNFT from '../blockchain/useMintNestableNFT';
+import useReplaceNFT from './useReplaceNFT.js';
 import useContractUtils from '../blockchain/useContractUtils';
+import { parseArrayProperties } from '../utils/stringifyProperties';
 
-/**
- * Asynchronously retrieves metadata from a given URI.
- *
- * @async
- * @function
- * @param {string} uri - The URI where the metadata is located.
- * @param {function} downloadFile - The function to download the file from the URI.
- * @returns {Object|null} - The parsed JSON object from the URI or null if the JSON is not available.
- */
-const getMetadata = async (uri, downloadFile) => {
-  const json = await downloadFile(uri, {});
+const swapAnyNestableNFTWithFirstChild = async (
+  userPub,
+  nfts,
+  getIsNestableNFT,
+  getChildrenOfNestableNFT,
+  selectedParentNFTAddressId,
+  newReadOnlyContract,
+  getChainIdFromChainIdAddress,
+  getChainIdAddressFromChainIdAndAddress,
+) => {
+  if (!nfts) return [];
 
-  if (json) {
-    return JSON.parse(json);
+  const updatedNFTs = [];
+
+  const { address: parentAddress, id: parentId } = selectedParentNFTAddressId
+    ? splitNFTAddressId(selectedParentNFTAddressId)
+    : { address: null, id: null };
+
+  for (const idx in nfts) {
+    const nft = nfts[idx];
+
+    // if any are nestableNFTs then use the first child as `nft`
+    console.log('useMintNFt: swapAnyParentWithFirstChild: nft = ', nft);
+    const nftAddress = nft.address;
+    const isNestableNFT = await getIsNestableNFT(nft);
+    console.log(
+      'useMintNFt: swapAnyParentWithFirstChild: isNestableNFT = ',
+      isNestableNFT,
+    );
+
+    if (isNestableNFT) {
+      console.log(
+        `useMintNFt: swapAnyParentWithFirstChild: nftAddress = ${nftAddress}`,
+      );
+      const contractNestableNFT = newReadOnlyContract(
+        nftAddress,
+        FNFTNestable.abi,
+      );
+
+      console.log('useMintNFt: swapAnyParentWithFirstChild: before childOf');
+      const child = await contractNestableNFT.childOf(
+        BigNumber.from(nft.id),
+        Zero,
+      );
+      console.log('useMintNFt: swapAnyParentWithFirstChild: child = ', child);
+
+      let nftAddressId = constructNFTAddressId(
+        child.contractAddress,
+        child.tokenId.toString(),
+      );
+      const chainId = getChainIdFromChainIdAddress(nft.address);
+      nftAddressId = getChainIdAddressFromChainIdAndAddress(
+        chainId,
+        nftAddressId,
+      );
+
+      const childNFT = await fetchNFT(userPub, nftAddressId);
+
+      console.log(
+        'useMintNFt: swapAnyParentWithFirstChild: childNFT = ',
+        childNFT,
+      );
+
+      if (parentId || selectedParentNFTAddressId) {
+        childNFT.parentId = parentId;
+
+        if (isNestableNFT) {
+          const modelUris = await getModelUrisFromNestedNFT(
+            userPub,
+            parentId,
+            getChildrenOfNestableNFT,
+          );
+          if (modelUris && modelUris.length > 0) {
+            childNFT.fileUrls.push(...modelUris);
+          }
+        }
+      }
+
+      updatedNFTs.push({ ...childNFT, isNestableNFT: true });
+    } else {
+      if (!nft.parentId || nft.parentId === parentId) updatedNFTs.push(nft);
+    }
   }
+
+  return updatedNFTs;
+};
+
+const fetchScopedNFTs = async (userPub, userProfile) => {
+  console.log('useNFTs: timeout = ', process.env.NEXT_PUBLIC_GUN_TIMEOUT);
+
+  const resultArray = await dbClientOnce(
+    dbClient.user(userPub).get('nfts'),
+    process.env.NEXT_PUBLIC_GUN_TIMEOUT,
+  );
+
+  console.log('fetchNFTs: resultArray = ', resultArray);
+
+  console.log('fetchNFTs: userProfile = ', userProfile);
+  console.log(
+    'fetchNFTs: userProfile?.accountAddress = ',
+    userProfile?.accountAddress,
+  );
+
+  const parsedResultArray = resultArray.map((element) =>
+    parseArrayProperties(element),
+  );
+  return parsedResultArray;
+
+  // const userAccountAddress = userProfile.accountAddress
+
+  // const ownNFTs = await getOwnNFTs(userAccountAddress, resultArray)
+
+  // console.log('fetchNFTs: ownNFTs = ', ownNFTs)
+
+  // return ownNFTs
 };
 
 async function getModelUrisFromNestedNFT(
+  userPub,
   id,
-  newReadOnlyContract,
   getChildrenOfNestableNFT,
-  downloadFile,
 ) {
   const children = await getChildrenOfNestableNFT(id);
   if (!children || children.length === 0) return;
@@ -45,7 +144,7 @@ async function getModelUrisFromNestedNFT(
   for (const child of children) {
     const address_id = `${child.contractAddress.toString()}_${child.tokenId.toString()}`;
 
-    const nft = await fetchNFT(address_id, newReadOnlyContract, downloadFile);
+    const nft = await fetchNFT(userPub, address_id);
 
     if (nft.fileUrls) {
       for (const fileUrl of nft.fileUrls) {
@@ -63,193 +162,110 @@ async function getModelUrisFromNestedNFT(
   return uris;
 }
 
-/**
- * Asynchronously fetches NFT metadata from the blockchain and downloads the NFT images.
- *
- * @async
- * @function
- * @param {Object} nftAddresses - The addresses of the NFTs.
- * @param {Object} newReadOnlyContract - wrapper to `new ethers.Contract`.
- * @param {function} downloadFile - The function to download files.
- * @returns {Array} - An array of NFT objects containing metadata and other properties.
- */
-const fetchNFTs = async (
+export const fetchNFTs = async (
   selectedParentNFTAddressId,
-  newReadOnlyContract,
-  downloadFile,
+  userPub,
+  getUserProfile,
+  getOwnNFTs,
   getIsNestableNFT,
   getChildrenOfNestableNFT,
-  getChildOfNestableNFT,
+  newReadOnlyContract,
+  getChainIdFromChainIdAddress,
+  getChainIdAddressFromChainIdAndAddress,
 ) => {
-  let nftAddresses = {};
+  console.log('useNFTs: userPub = ', userPub);
 
   console.log(
     'useNFTs: selectedparentnftaddressid = ',
     selectedParentNFTAddressId,
   );
 
-  let parentId;
-  let parentAddress;
+  let ownNFTs;
+
+  const userProfile = await getUserProfile(userPub);
+
   if (selectedParentNFTAddressId) {
-    [parentAddress, parentId] = selectedParentNFTAddressId.split('_');
+    const userAccountAddress = userProfile.accountAddress;
+    const { address: parentAddress, id: parentId } = splitNFTAddressId(
+      selectedParentNFTAddressId,
+    );
+
+    ownNFTs = await getOwnNFTs(userAccountAddress, [
+      { address: parentAddress, id: parentId },
+    ]);
+    if (ownNFTs.length === 0) return [];
+
+    console.log('useNFTs: before splitNFTAddressId');
+
+    console.log('useNFTs: parentAddress = ', parentAddress);
+    console.log('useNFTs: parentId = ', parentId);
 
     const children = await getChildrenOfNestableNFT(parentId);
     console.log('useNFTs: children = ', children);
 
-    children.forEach((child) => {
-      const addressId = `${child.contractAddress.toString()}_${child.tokenId.toString()}`;
-      nftAddresses[addressId] = {};
-      console.log('useNFTs: push addressId = ', addressId);
-    });
+    const nfts = [];
+    for (const child of children) {
+      let addressId = constructNFTAddressId(
+        child.contractAddress.toString(),
+        child.tokenId.toString(),
+      );
+
+      const chainId = getChainIdFromChainIdAddress(parentAddress);
+      addressId = getChainIdAddressFromChainIdAndAddress(chainId, addressId);
+
+      const nft = await fetchNFT(userPub, addressId);
+      nfts.push(nft);
+      console.log('useNFTs: push nft = ', nft);
+    }
+
+    ownNFTs = nfts;
   } else {
-    if (process.env.NEXT_PUBLIC_IS_USE_FABSTIRDB === 'true')
-      nftAddresses = await loadNFTsStateFromFabstirDB();
-    else {
-      const state = await loadState();
-      nftAddresses = state.addresses.state;
-    }
+    ownNFTs = await fetchScopedNFTs(userPub, userProfile);
   }
 
-  console.log('useNFTs: fetchNFTs nftAddresses = ', nftAddresses);
-
-  const nfts = [];
-  for (const address_id in nftAddresses) {
-    console.log('useNFTs: address_id = ', address_id);
-    if (address_id === 'undefined_undefined') continue;
-
-    if (!selectedParentNFTAddressId) {
-      parentId = undefined;
-      parentAddress = undefined;
-    }
-
-    const [address, id] = address_id.split('_');
-    const parsedId = parseInt(id, 10);
-
-    let nftAddress;
-    let nftId;
-
-    // if any are nestableNFTs then use the first child as `nft`
-    console.log('useNFTs: address = ', address);
-    const isNestableNFT = await getIsNestableNFT(address);
-    console.log('useNFTs: isNestableNFT = ', isNestableNFT);
-
-    if (isNestableNFT) {
-      console.log('useNFTs: before childOf');
-      //const child = await contractNestableNFT.childOf(id, 0);
-      const child = await getChildOfNestableNFT(id, 0);
-      console.log('useNFTs: child = ', child);
-
-      nftAddress = child.contractAddress;
-      nftId = child.tokenId.toString();
-      parentId = parsedId;
-      parentAddress = address;
-    } else {
-      nftAddress = address;
-      nftId = parsedId;
-    }
-
-    // Initialize a new ethers Contract instance with the NFT address and provider
-    const contract = newReadOnlyContract(nftAddress, TipERC721.abi);
-
-    const name = await contract.name();
-    console.log('useNFTs: name = ', name);
-
-    const symbol = await contract.symbol();
-    const uri = await contract.tokenURI(nftId);
-
-    const owner = await contract.ownerOf(nftId);
-
-    // Call the getMetadata function to download the NFT metadata
-    const metadata = await getMetadata(uri, downloadFile);
-    console.log(`useNFTs: metadata = `, metadata);
-
-    const nft = {
-      address: nftAddress,
-      name,
-      symbol,
-      id: nftId,
-      owner,
-      isNestableNFT,
-      ...(metadata || {}),
-      ...(isNestableNFT ? { isNestableNFT } : {}),
-    };
-
-    if (parentAddress || selectedParentNFTAddressId) {
-      nft.parentAddress = parentAddress;
-    }
-
-    if (parentId || selectedParentNFTAddressId) {
-      {
-        nft.parentId = parentId;
-
-        const contractNestableNFT = newReadOnlyContract(
-          address,
-          FNFTNestable.abi,
-        );
-
-        nft.parentOwner = await contractNestableNFT.ownerOf(parentId);
-      }
-
-      if (isNestableNFT) {
-        const modelUris = await getModelUrisFromNestedNFT(
-          parentId,
-          newReadOnlyContract,
-          getChildrenOfNestableNFT,
-          downloadFile,
-        );
-        if (modelUris && modelUris.length > 0) {
-          nft.fileUrls.push(...modelUris);
-        }
-      }
-    }
-
-    nfts.push(nft);
-
-    console.log(`useNFTs: nft = `, nft);
-  }
-
-  console.log(`useNFTs: nfts = `, nfts);
-  return nfts;
+  console.log('fetchNFTs: ownNFTs from parent = ', ownNFTs);
+  const resultNFTs = await swapAnyNestableNFTWithFirstChild(
+    userPub,
+    ownNFTs,
+    getIsNestableNFT,
+    getChildrenOfNestableNFT,
+    selectedParentNFTAddressId,
+    newReadOnlyContract,
+    getChainIdFromChainIdAddress,
+    getChainIdAddressFromChainIdAndAddress,
+  );
+  console.log('fetchNFTs: ownNFTs from resultNFTs = ', resultNFTs);
+  return resultNFTs;
 };
 
-/**
- * Custom hook that fetches all the user's NFTs' metadata from the blockchain and downloads their images.
- *
- * @function
- * @param {Object} nftAddresses - An array of NFT addresses.
- * @returns {Object} - The query result from the useQuery hook, containing data and other properties.
- */
-export default function useNFTs() {
-  const customClientOptions = {};
-  const client = new S5Client(
-    process.env.NEXT_PUBLIC_PORTAL_URL,
-    customClientOptions,
-  );
+export default function useNFTs(userPub) {
+  const { getOwnNFTs } = useMintNFT();
+  const [getUserProfile] = useUserProfile();
 
-  // Use the usePortal hook to download the NFT images
-  const { downloadFile } = usePortal();
-
-  const { getChildrenOfNestableNFT, getIsNestableNFT, getChildOfNestableNFT } =
-    useMintNestableNFT();
+  const { getChildrenOfNestableNFT } = useMintNestableNFT();
+  const { getIsNestableNFT } = useReplaceNFT();
 
   const selectedParentNFTAddressId = useRecoilValue(selectedparentnftaddressid);
 
-  console.log(
-    'useNFTs: process.env.NEXT_PUBLIC_PORTAL_URL = ',
-    process.env.NEXT_PUBLIC_PORTAL_URL,
-  );
+  const {
+    newReadOnlyContract,
+    getChainIdFromChainIdAddress,
+    getChainIdAddressFromChainIdAndAddress,
+  } = useContractUtils();
 
-  const { newReadOnlyContract } = useContractUtils();
-
-  // Use the useQuery hook from react-query to fetch the NFT metadata
-  return useQuery(['nfts', selectedParentNFTAddressId], () => {
-    return fetchNFTs(
-      selectedParentNFTAddressId,
-      newReadOnlyContract,
-      downloadFile,
-      getIsNestableNFT,
-      getChildrenOfNestableNFT,
-      getChildOfNestableNFT,
-    );
+  return useQuery([userPub, 'nfts', selectedParentNFTAddressId], () => {
+    if (userPub !== null)
+      return fetchNFTs(
+        selectedParentNFTAddressId,
+        userPub,
+        getUserProfile,
+        getOwnNFTs,
+        getIsNestableNFT,
+        getChildrenOfNestableNFT,
+        newReadOnlyContract,
+        getChainIdFromChainIdAddress,
+        getChainIdAddressFromChainIdAndAddress,
+      );
+    else return [];
   });
 }

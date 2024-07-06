@@ -1,24 +1,18 @@
+/* This example requires Tailwind CSS v2.0+ */
 import React, { useCallback, useEffect, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useFormContext } from 'react-hook-form';
-import useTranscodeVideoS5 from '../hooks/useTranscodeVideoS5';
-import { useRecoilValue, useRecoilState } from 'recoil';
+import useTranscodeAudioS5 from '../hooks/useTranscodeAudioS5';
+import { useRecoilState } from 'recoil';
 import usePortal from '../hooks/usePortal';
+import { ffmpegprogressstate } from '../atoms/ffmpegAtom';
 import {
-  getBase64UrlEncryptedBlobHash,
   getKeyFromEncryptedCid,
   removeKeyFromEncryptedCid,
-  convertBytesToBase64url,
 } from '../utils/s5EncryptCIDHelper';
-import { ffmpegprogressstate } from '../atoms/ffmpegAtom';
-import { CheckIcon } from '@heroicons/react/24/solid';
+import { Input } from '../ui-components/input';
+import useNFTMedia from '../hooks/useNFTMedia';
 
-/**
- * ProgressBar Component
- * @param {Object} props - Properties passed to the component
- * @param {number} props.progressPercentage - The percentage of the progress to be displayed
- * @returns {JSX.Element} - Rendered ProgressBar component
- */
 const ProgressBar = ({ progressPercentage }) => {
   return (
     <div className="h-2 w-full bg-fabstir-blue">
@@ -34,16 +28,15 @@ const ProgressBar = ({ progressPercentage }) => {
   );
 };
 
-/**
- * DropVideoS5 Component
- * @param {Object} props - Properties passed to the component
- * @param {string} props.field - The field name
- * @param {string} props.twStyle - Tailwind CSS styles as a string
- * @param {string} props.text - Text to display in the dropzone
- * @param {Object} props.encKey - Encryption key reference
- * @returns {JSX.Element} - Rendered DropVideoS5 component
- */
-const DropVideoS5 = ({ field, twStyle, text, encKey }) => {
+const DropAudio = ({
+  field,
+  twStyle,
+  text,
+  encKey,
+  storageNetwork = process.env.NEXT_PUBLIC_S5,
+}) => {
+  // console.log('slide-over:genres = ', result?.genre_ids);
+  //  const [open, setOpen] = useState(true);
   const {
     watch,
     setValue,
@@ -52,48 +45,56 @@ const DropVideoS5 = ({ field, twStyle, text, encKey }) => {
 
   const watchUrl = watch(field);
 
-  const { uploadFile } = usePortal();
-  const { transcodeVideo } = useTranscodeVideoS5();
+  const { uploadFile } = usePortal(storageNetwork);
+  const { transcodeAudio } = useTranscodeAudioS5();
+
+  const { putMetadata } = useNFTMedia();
 
   const [ffmpegProgress, setFFMPEGProgress] =
     useRecoilState(ffmpegprogressstate);
 
   const onDrop = useCallback(async (acceptedFiles) => {
     // Do something with the files
-    console.log('DropVideoS5: acceptedFiles = ', acceptedFiles);
+    console.log('DropAudio: acceptedFiles = ', acceptedFiles);
 
     if (!acceptedFiles || acceptedFiles.length !== 1) {
       alert('Please upload single image only');
       return;
     }
 
-    const isEncrypted = process.env.NEXT_PUBLIC_DEFAULT_IS_ENCRYPT === 'true';
+    const isEncrypted = encKey ? true : false;
 
     const customOptions = { encrypt: isEncrypted };
     const file = acceptedFiles[0];
     const sourceCID = await uploadFile(file, customOptions);
 
     let key = '';
-    if (customOptions.encrypt) {
-      console.log('DropVideoS5: sourceCID = ', sourceCID);
+    if (
+      storageNetwork === process.env.NEXT_PUBLIC_S5 &&
+      customOptions.encrypt
+    ) {
+      console.log('DropAudio: sourceCID = ', sourceCID);
 
       key = getKeyFromEncryptedCid(sourceCID);
       encKey.current = key;
 
       const cidWithoutKey = removeKeyFromEncryptedCid(sourceCID);
-      console.log('DropVideoS5: cidWithoutKey= ', cidWithoutKey);
+      console.log('DropAudio: cidWithoutKey= ', cidWithoutKey);
 
-      setValue(field, cidWithoutKey);
+      await putMetadata(key, cidWithoutKey, []);
+      setValue(field, cidWithoutKey, true);
     } else {
       encKey.current = '';
-      setValue(field, sourceCID);
 
-      console.log('DropVideoS5: sourceCID = ', sourceCID);
+      await putMetadata(null, sourceCID, []);
+      setValue(field, sourceCID, false);
+
+      console.log('DropAudio: sourceCID = ', sourceCID);
     }
 
-    console.log('DropVideoS5: field = ', field);
+    console.log('DropAudio: field = ', field);
 
-    await transcodeVideo(sourceCID, isEncrypted, true);
+    await transcodeAudio(sourceCID, isEncrypted);
     setFFMPEGProgress(0);
   }, []);
 
@@ -104,12 +105,12 @@ const DropVideoS5 = ({ field, twStyle, text, encKey }) => {
       <div className="sm:col-span-3">
         <div
           {...getRootProps()}
-          className={`mt-8 flex flex-col ${twStyle} relative mx-auto rounded-md border-2 border-fabstir-gray bg-fabstir-dark-gray fill-current text-fabstir-light-gray shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:items-center sm:justify-center sm:text-center sm:text-sm`}
+          className={`mt-8 flex flex-col ${twStyle} relative mx-auto rounded-md border-2 border-fabstir-gray bg-fabstir-light-gray fill-current text-fabstir-dark-gray shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:items-center sm:justify-center sm:text-center sm:text-sm`}
         >
-          {!watchUrl && !ffmpegProgress ? (
+          {!watchUrl && !ffmpegProgress && (
             <div>
-              <input
-                {...getInputProps()}
+              <Input
+                inputProps={getInputProps()}
                 id="file-upload"
                 name="file-upload"
                 type="file"
@@ -136,18 +137,16 @@ const DropVideoS5 = ({ field, twStyle, text, encKey }) => {
                 </p>
               )}
 
-              {/* {transcodeVideoInfo?.isLoading && <p>Transcoding...</p>}
-              {transcodeVideoInfo?.isError && <p>Transcode error</p>} */}
+              {/* {transcodeAudioInfo?.isLoading && <p>Transcoding...</p>}
+              {transcodeAudioInfo?.isError && <p>Transcode error</p>} */}
             </div>
-          ) : (
-            <CheckIcon className="ml-2 w-6" />
           )}
 
           {ffmpegProgress > 0 &&
             ffmpegProgress < 1 &&
-            !transcodeVideoInfo?.isSuccess && (
+            !transcodeAudioInfo?.isSuccess && (
               <div
-                className={`flex flex-col ${twStyle} mx-auto rounded-md border-2 border-fabstir-gray bg-fabstir-dark-gray fill-current text-fabstir-light-gray shadow-sm sm:items-center sm:justify-center sm:text-center sm:text-sm`}
+                className={`flex flex-col ${twStyle} mx-auto rounded-md border-2 border-fabstir-gray bg-fabstir-light-gray fill-current text-fabstir-dark-gray shadow-sm sm:items-center sm:justify-center sm:text-center sm:text-sm`}
               >
                 <span className="">Transcoding, please wait...</span>
               </div>
@@ -162,4 +161,4 @@ const DropVideoS5 = ({ field, twStyle, text, encKey }) => {
   );
 };
 
-export default DropVideoS5;
+export default DropAudio;

@@ -1,0 +1,11 @@
+import { atom } from 'recoil';
+
+export const userpubbadgerequeststate = atom({
+  key: 'userPubBadgeRequestAtom',
+  default: null,
+});
+
+// export const userpasswordstate = atom({
+//   key: 'userPasswordAtom',
+//   default: null,
+// })

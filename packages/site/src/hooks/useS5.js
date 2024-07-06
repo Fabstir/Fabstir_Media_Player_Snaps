@@ -1,42 +1,13 @@
 import { S5Client } from '../../../../node_modules/s5client-js/dist/mjs/index';
+
 import {
   getKeyFromEncryptedCid,
   combineKeytoEncryptedCid,
   removeKeyFromEncryptedCid,
+  removeS5Prefix,
+  addS5Prefix,
 } from '../utils/s5EncryptCIDHelper';
-import { saveState, loadState } from '../utils';
-
-const fileExtensionsToContentTypes = {
-  aac: 'audio/aac',
-  aiff: 'audio/x-aiff',
-  amr: 'audio/amr',
-  avi: 'video/x-msvideo',
-  bmp: 'image/bmp',
-  css: 'text/css',
-  doc: 'application/msword',
-  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  gif: 'image/gif',
-  html: 'text/html',
-  jpeg: 'image/jpeg',
-  jpg: 'image/jpeg',
-  js: 'text/javascript',
-  json: 'application/json',
-  mp3: 'audio/mpeg',
-  mp4: 'video/mp4',
-  mpeg: 'video/mpeg',
-  ogg: 'audio/ogg',
-  pdf: 'application/pdf',
-  png: 'image/png',
-  ppt: 'application/vnd.ms-powerpoint',
-  pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-  rar: 'application/x-rar-compressed',
-  svg: 'image/svg+xml',
-  txt: 'text/plain',
-  wav: 'audio/wav',
-  xls: 'application/vnd.ms-excel',
-  xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  zip: 'application/zip',
-};
+import mime from 'mime/lite';
 
 /**
  * A custom React hook that returns the S5 network object.
@@ -51,20 +22,22 @@ export default function useS5net() {
     withCredentials: false,
   };
 
-  console.log(`useS5net: before new S5Client`);
   const client = new S5Client(
     process.env.NEXT_PUBLIC_PORTAL_URL,
     customClientOptions,
   );
-  console.log(`useS5net: after client = `, client);
 
   async function uploadFile(file, customOptions = {}) {
     console.log(`useS5net: uploadFile await client.uploadFile`);
     try {
-      const { cid, key, cidWithoutKey } = await client.uploadFile(
+      let { cid, key, cidWithoutKey } = await client.uploadFile(
         file,
         customOptions,
       );
+
+      cid = addS5Prefix(cid);
+      cidWithoutKey = addS5Prefix(cidWithoutKey);
+
       console.log(`useS5net: uploadFile customOptions  = `, customOptions);
       console.log(`useS5net: uploadFile cid  = `, cid);
 
@@ -72,28 +45,18 @@ export default function useS5net() {
         console.log(`useS5net: uploadFile key  = `, key);
         console.log(`useS5net: uploadFile cidWithoutKey  = `, cidWithoutKey);
 
-        if (key !== getKeyFromEncryptedCid(cid, file.size)) {
+        if (key !== getKeyFromEncryptedCid(cid)) {
           // Throw an error or handle it somehow
           throw new Error(
             `useS5net: key ${key} !== getKeyFromEncryptedCid(cid) ${getKeyFromEncryptedCid(
               cid,
-              file.size,
             )}`,
           );
         }
 
-        // if (cidWithoutKey !== removeKeyFromEncryptedCid(cid, file.size)) {
-        //   // Throw an error or handle it somehow
-        //   throw new Error(
-        //     `useS5net: cidWithoutKey ${cidWithoutKey} !== removeKeyFromEncryptedCid(cid) ${removeKeyFromEncryptedCid(
-        //       cid,
-        //       file.size
-        //     )}`
-        //   )
-        // }
-        const cidWithoutKey1 = removeKeyFromEncryptedCid(cid, file.size);
+        const cidWithoutKey1 = removeKeyFromEncryptedCid(cid);
 
-        if (cid !== combineKeytoEncryptedCid(key, cidWithoutKey1, file.size)) {
+        if (cid !== combineKeytoEncryptedCid(key, cidWithoutKey1)) {
           // Throw an error or handle it somehow
           throw new Error(
             `useS5net: cid ${cid} !== combineKeytoEncryptedCid(key, cidWithoutKey) ${combineKeytoEncryptedCid(
@@ -129,13 +92,18 @@ export default function useS5net() {
       customOptions,
     );
 
-    assert(key === getKeyFromEncryptedCid(cid));
-    assert(cidWithoutKey === removeKeyFromEncryptedCid(cid));
+    if (key !== getKeyFromEncryptedCid(cid)) {
+      throw new Error('Invalid key');
+    }
+
+    if (cidWithoutKey !== removeKeyFromEncryptedCid(cid)) {
+      throw new Error('Invalid cid without key');
+    }
 
     const fileExtension = acceptedFile.name?.split('.').pop(); // get file extension
     const cidWithExtension = cid + (fileExtension ? `.${fileExtension}` : '');
 
-    return cidWithExtension;
+    return addS5Prefix(cidWithExtension);
   }
 
   async function uploadDirectory(fileObjects, folderName, customOptions) {
@@ -144,7 +112,7 @@ export default function useS5net() {
       folderName,
       customOptions,
     );
-    return cid;
+    return addS5Prefix(cid);
   }
 
   /**
@@ -157,12 +125,14 @@ export default function useS5net() {
    */
   async function downloadFile(cid, customOptions) {
     try {
+      cid = removeS5Prefix(cid);
+
       let cidReq;
       console.log('downloadFile: inside');
 
-      if (customOptions.path) {
+      if (customOptions?.path) {
         console.log('downloadFile: before await client.getMetadata(cid)');
-        const metadata = await client.getMetadata(cid);
+        const metadata = await client.getMetadata(cid, customOptions.encrypt);
         console.log('downloadFile: metadata = ', metadata);
 
         cidReq = metadata?.paths[customOptions.path]?.cid;
@@ -189,9 +159,11 @@ export default function useS5net() {
 
   async function downloadFileAsArrayBuffer(cid) {
     try {
-      console.log('downloadFileAsArrayBuffer:', cid);
+      cid = removeS5Prefix(cid);
+
+      // console.log('downloadFileAsArrayBuffer:', cid)
       const url = await client.getCidUrl(cid);
-      console.log('downloadFileAsArrayBuffer:', url);
+      // console.log('downloadFileAsArrayBuffer:', url)
 
       const response = await fetch(url, {
         method: 'GET',
@@ -208,19 +180,21 @@ export default function useS5net() {
     }
   }
 
-  async function downloadFileWithFields(cid) {
+  async function downloadFileWithFields(cidOrig) {
     try {
+      const cid = removeS5Prefix(cidOrig);
+
       const fileExtension = cid?.split('.').pop(); // get file extension
 
-      console.log('downloadFileWithFields: before cid = ', cid);
+      // console.log('downloadFileWithFields: before cid = ', cid)
       const data = await downloadFileAsArrayBuffer(cid);
-      const contentType = fileExtensionsToContentTypes[fileExtension];
+      const contentType = mime.getType(fileExtension);
 
-      console.log('downloadFileWithFields: data = ', data);
+      // console.log('downloadFileWithFields: data = ', data)
       // const { metadata } = await client.getMetadata(cid)
       // console.log('downloadFileWithFields: = ', JSON.stringify(metadata))
 
-      const result = { data, contentType, metadata: '', cid };
+      const result = { data, contentType, metadata: '', cidOrig };
 
       return result;
     } catch (error) {
@@ -236,25 +210,6 @@ export default function useS5net() {
   }
 
   /**
-   * Downloads a file from the S5 network as an array buffer, and returns a blob URL for the file.
-   *
-   * @param {String} uri - The CID of the file to be downloaded.
-   * @returns {String} - The blob URL for the downloaded file.
-   */
-  async function getBlobUrl(uri) {
-    const { data, contentType } = await downloadFileWithFields(uri);
-    console.log('getBlobUrl: contentType = ', contentType);
-
-    if (!data) return;
-
-    const objectUrl = URL.createObjectURL(
-      new Blob([data], { type: contentType }),
-    );
-
-    return objectUrl;
-  }
-
-  /**
    * Downloads a large file from the S5 network.
    *
    * @param {String} cid - The CID of the file to be downloaded.
@@ -264,6 +219,8 @@ export default function useS5net() {
    */
   async function downloadLargeFile(cid, byteRange = null) {
     try {
+      cid = removeS5Prefix(cid);
+
       const url = await client.getCidUrl(cid);
       const headers = {};
 
@@ -299,9 +256,11 @@ export default function useS5net() {
   async function getPortalLinkUrl(cid, customOptions) {
     if (!cid) return cid;
 
+    cid = removeS5Prefix(cid);
+
     let url;
     if (customOptions?.path) {
-      const metadata = await client.getMetadata(cid);
+      const metadata = await client.getMetadata(cid, customOptions.encrypt);
       console.log('getPortalLinkUrl: metadata = ', metadata);
 
       const cid2 = metadata?.paths[customOptions.path]?.cid;
@@ -312,84 +271,26 @@ export default function useS5net() {
   }
 
   /**
-   * A boolean flag indicating whether a transcode is pending (being transcoded)
-   */
-  async function isTranscodePending(nftAddress) {
-    if (!nftAddress) return;
-
-    const state = await loadState();
-    const address = nftAddress;
-
-    return state.addresses.state[address]?.isTranscodePending;
-  }
-
-  /**
-   * Set the `isTranscodePending` to true when a transcode is pending (being transcoded)
-   * or false otherwise
+   * Downloads a file from the S5 network as an array buffer, and returns a blob URL for the file.
    *
-   * @param {Boolean} value - The new value for the `isTranscodePending` flag.
+   * @param {String} uri - The CID of the file to be downloaded.
+   * @returns {String} - The blob URL for the downloaded file.
    */
-  async function setTranscodePending(nftAddress) {
-    if (!nftAddress) return;
+  async function getBlobUrl(uri) {
+    if (!uri) return;
 
-    const state = await loadState();
-    const address = nftAddress;
+    uri = removeS5Prefix(uri);
 
-    state.addresses.state[address] = { isTranscodePending: true };
+    const { data, contentType } = await downloadFileWithFields(uri);
+    // console.log('getBlobUrl: contentType = ', contentType)
 
-    const addresses = state.addresses.state;
-    await saveState(addresses);
-  }
+    if (!data) return;
 
-  async function getTranscodedMetadata(cid) {
-    if (!cid) return cid;
+    const objectUrl = URL.createObjectURL(
+      new Blob([data], { type: contentType }),
+    );
 
-    const extensionIndex = cid.lastIndexOf('.');
-    const cidWithoutExtension =
-      extensionIndex === -1 ? cid : cid.slice(0, extensionIndex);
-
-    const transcodeUrl = `${process.env.NEXT_PUBLIC_TRANSCODER_CLIENT_URL}/get_transcoded/${cidWithoutExtension}`;
-    console.log('getTranscodedMetadata: transcoded url = ', transcodeUrl);
-
-    try {
-      const response = await fetch(transcodeUrl, { method: 'GET' });
-      console.log('getTranscodedMetadata: response = ', response);
-
-      if (!response.ok) {
-        console.log(
-          'getTranscodedMetadata: response.status = ',
-          response.status,
-        );
-        if (response.status === 404) {
-          // The job might not be completed yet.
-          return;
-        } else {
-          // There's an issue with the request itself, so throw an error to propagate the error to the caller.
-          console.error(
-            `getTranscodedMetadata: HTTP error: ${response.status}`,
-          );
-          throw new Error(
-            `getTranscodedMetadata: HTTP error: ${response.status}`,
-          );
-        }
-      } else {
-        const data = await response.json();
-        console.log('getTranscodedMetadata: data =', data);
-
-        console.log(
-          'getTranscodedMetadata: typeof data.metadata =',
-          typeof data.metadata,
-        );
-
-        const metadata = data.metadata ? JSON.parse(data.metadata) : null;
-        console.log('getTranscodedMetadata: metadata =', metadata);
-        return metadata;
-      }
-    } catch (error) {
-      // Network errors or other unexpected issues. Propagate the error to the caller.
-      console.error('getTranscodedMetadata: Unexpected error:', error);
-      throw error;
-    }
+    return objectUrl;
   }
 
   return {
@@ -400,11 +301,5 @@ export default function useS5net() {
     uploadDirectory,
     getPortalLinkUrl,
     getBlobUrl,
-    // getMetadata,
-    // putMetadata,
-    isTranscodePending,
-    setTranscodePending,
-    getTranscodedMetadata,
-    //    deleteTranscodePending,
   };
 }

@@ -8,8 +8,13 @@ import React, { useEffect } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import TokenAttributes from './TokenAttributes';
+import { Input } from '../ui-components/input';
 
-import { currentnftcategories } from '../atoms/nftSlideOverAtom';
+import {
+  currentnftcategories,
+  currentnftformstate,
+} from '../atoms/nftSlideOverAtom';
+import SimpleToggle from './SimpleToggle';
 
 // Tailwind CSS styles
 const twStyle = 'ml-8 grid gap-y-6 grid-cols-6 gap-x-5';
@@ -40,13 +45,26 @@ const NFTSlideOverLeft = ({
     handleSubmit,
     formState: { errors },
     setValue,
+    watch,
   } = useFormContext();
+
+  const [currentNFTForm, setCurrentNFTForm] =
+    useRecoilState(currentnftformstate);
 
   const currentNFTCategories = useRecoilValue(currentnftcategories);
 
   const userViewStyle = 'relative mx-auto grid gap-x-4 gap-y-8 grid-cols-6';
   console.log('NFTSlideOverLeft: submitText = ', submitText);
   console.log('NFTSlideOverLeft: handleSubmit = ', handleSubmit);
+
+  useEffect(() => {
+    if (currentNFTForm) {
+      reset(currentNFTForm);
+      setCurrentNFTForm('');
+    }
+    // if (subscriptionPlans.data.length > 1 && !getValues('subscriptionPlan'))
+    //   setValue('subscriptionPlan', subscriptionPlans[0])
+  }, []);
 
   return (
     <form
@@ -56,27 +74,36 @@ const NFTSlideOverLeft = ({
     >
       <div className="mx-auto max-w-lg lg:max-w-none">
         <section aria-labelledby="payment-heading">
-          <h2
-            id="payment-heading"
-            className="text-lg font-medium tracking-wider text-fabstir-white"
-          >
-            CREATE NFT
-          </h2>
+          <div className="flex justify-between">
+            <h2
+              id="payment-heading"
+              className="text-lg font-medium tracking-wider text-fabstir-light-gray"
+            >
+              CREATE NFT
+            </h2>
+            <div className="flex items-center gap-4">
+              <SimpleToggle
+                enabled={watch('isPublic')}
+                setEnabled={() => setValue('isPublic', !watch('isPublic'))}
+              />
+              <label>{watch('isPublic') ? 'Public' : 'Private'}</label>
+            </div>
+          </div>
 
           <div className="mt-6 grid grid-cols-3 gap-x-4 gap-y-6 sm:grid-cols-4">
             <div className="col-span-3 sm:col-span-4">
               <label
                 htmlFor="name"
-                className="block text-sm font-medium text-fabstir-light-gray"
+                className="block text-sm font-medium fabstir-black"
               >
                 Name
               </label>
-              <div className="mt-1 rounded-lg border-2 border-fabstir-gray">
+              <div className="mt-1 rounded-lg border-2 border-fabstir-white">
                 <input
                   type="text"
                   name="name"
                   {...register('name')}
-                  className="block w-full bg-fabstir-dark-gray"
+                  className="block w-full bg-fabstir-white"
                 />
               </div>
               <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
@@ -84,19 +111,19 @@ const NFTSlideOverLeft = ({
               </p>
             </div>
 
-            <div className="sm:col-span-2">
+            <div className="sm:col-span-1">
               <label
                 htmlFor="symbol"
-                className="block text-sm font-medium text-fabstir-light-gray"
+                className="block text-sm font-medium fabstir-black"
               >
                 Symbol
               </label>
-              <div className="mt-1 rounded-lg border-2 border-fabstir-gray">
+              <div className="mt-1 rounded-lg border-2 border-fabstir-white">
                 <input
                   type="text"
                   name="symbol"
                   {...register('symbol')}
-                  className="block w-full bg-fabstir-dark-gray sm:text-sm"
+                  className="block w-full bg-fabstir-white sm:text-sm"
                 />
               </div>
               <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
@@ -107,32 +134,72 @@ const NFTSlideOverLeft = ({
             <div className="sm:col-span-2">
               <label
                 htmlFor="supply"
-                className="block text-sm font-medium text-fabstir-light-gray"
+                className="block text-sm font-medium fabstir-black"
               >
                 Supply
               </label>
+              <div className="mt-1 rounded-lg border-2 border-fabstir-white">
+                <input
+                  type="number"
+                  id="supply"
+                  min="0"
+                  step="1"
+                  onKeyPress={(event) => {
+                    if (!/[0-9]/.test(event.key)) {
+                      event.preventDefault();
+                    }
+                  }}
+                  {...register('supply')}
+                  disabled={!watch('multiToken')}
+                  className="block w-full bg-fabstir-white sm:text-sm"
+                />
+              </div>
               <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
                 {errors.supply?.message}
               </p>
             </div>
+
+            <div className="col-span-1 ml-2 flex items-center">
+              <div className="rounded border-2 border-fabstir-white">
+                <input
+                  id="multiToken"
+                  type="checkbox"
+                  defaultChecked={false}
+                  {...register('multiToken')}
+                  className="h-4 w-4 rounded bg-fabstir-white text-indigo-600 focus:ring-indigo-500"
+                />
+              </div>
+              <div className="ml-2">
+                <label
+                  htmlFor="multiToken"
+                  className="text-sm font-medium fabstir-black"
+                >
+                  Collection
+                </label>
+              </div>
+              <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
+                {errors.multiToken?.message}
+              </p>
+            </div>
+
             <div className="sm:col-span-4">
               <div className="flex justify-between">
                 <label
                   htmlFor="summary"
-                  className="block text-sm font-medium text-fabstir-light-gray"
+                  className="block text-sm font-medium fabstir-black"
                 >
                   Summary
                 </label>
-                <span className="bg-fabstir-dark-gray text-sm text-fabstir-medium-light-gray">
+                <span className="text-sm text-fabstir-medium-light-gray">
                   Max. {summaryMax} characters
                 </span>
               </div>
-              <div className="mt-1 rounded-lg border-2 border-fabstir-gray">
+              <div className="mt-1 rounded-lg border-2 border-fabstir-white">
                 <textarea
                   name="summary"
                   rows={2}
                   {...register('summary')}
-                  className="block w-full bg-fabstir-dark-gray px-4 py-3"
+                  className="block w-full bg-fabstir-white px-4 py-3"
                   defaultValue={''}
                 />
               </div>
@@ -145,20 +212,20 @@ const NFTSlideOverLeft = ({
               <div className="flex justify-between">
                 <label
                   htmlFor="description"
-                  className="block text-sm font-medium text-fabstir-light-gray"
+                  className="block text-sm font-medium fabstir-black"
                 >
                   Description
                 </label>
-                <span className="bg-fabstir-dark-gray text-sm text-fabstir-medium-light-gray">
+                <span className="text-sm text-fabstir-medium-light-gray">
                   Max. {descriptionMax} characters
                 </span>
               </div>
-              <div className="mt-1 rounded-lg border-2 border-fabstir-gray">
+              <div className="mt-1 rounded-lg border-2 border-fabstir-white">
                 <textarea
                   name="description"
                   rows={4}
                   {...register('description')}
-                  className="block w-full bg-fabstir-dark-gray px-4 py-3"
+                  className="block w-full bg-fabstir-white px-4 py-3"
                   defaultValue={''}
                 />
               </div>
@@ -170,20 +237,19 @@ const NFTSlideOverLeft = ({
         </section>
 
         <section aria-labelledby="shipping-heading" className="mt-6">
-          <div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-3">
+          <div className="grid grid-cols-6 gap-x-2">
             <div className="sm:col-span-3">
               <label
                 htmlFor="type"
-                className="block text-sm font-medium text-fabstir-light-gray"
+                className="block text-sm font-medium fabstir-black"
               >
                 Type
               </label>
-              <div className="mt-1 rounded-lg border-2 border-fabstir-gray">
+              <div className="mt-1 rounded-lg border-2 border-fabstir-white">
                 <select
                   name="type"
-                  // value={userProfile.country}
                   {...register('type')}
-                  className="block w-full bg-fabstir-dark-gray sm:text-sm"
+                  className="block w-full bg-fabstir-white sm:text-sm"
                 >
                   <option>audio</option>
                   <option>image</option>
@@ -196,19 +262,18 @@ const NFTSlideOverLeft = ({
               </p>
             </div>
 
-            <div className="sm:col-span-3">
+            <div className="sm:col-span-2">
               <label
                 htmlFor="category"
-                className="block text-sm font-medium text-fabstir-light-gray"
+                className="block text-sm font-medium fabstir-black"
               >
                 Category
               </label>
-              <div className="mt-1 rounded-lg border-2 border-fabstir-gray">
+              <div className="mt-1 rounded-lg border-2 border-fabstir-white">
                 <select
                   name="category"
-                  // value={userProfile.country}
                   {...register('category')}
-                  className="sm:text-md block w-full bg-fabstir-dark-gray"
+                  className="sm:text-md block w-full bg-fabstir-white"
                 >
                   {currentNFTCategories.map((currentNFTCategory) => (
                     <option key={currentNFTCategory}>
@@ -222,24 +287,50 @@ const NFTSlideOverLeft = ({
               </p>
             </div>
 
-            <div className="sm:col-span-3">
-              <label
-                htmlFor="attributes"
-                className="block text-sm font-medium text-fabstir-light-gray"
-              >
-                Attributes
-              </label>
-              <div className="mt-1 rounded-lg border-2 border-dotted border-fabstir-gray p-4">
-                <TokenAttributes setValueTokenData={setValue} />
+            <div className="col-span-1 ml-2 flex items-center">
+              <div className="rounded border-2 border-fabstir-white">
+                <input
+                  id="deployed"
+                  type="checkbox"
+                  defaultChecked={false}
+                  {...register('deployed')}
+                  className="h-4 w-4 rounded bg-fabstir-white text-indigo-600 focus:ring-indigo-500"
+                />
               </div>
+              <div className="ml-2">
+                <label
+                  htmlFor="deployed"
+                  className="text-sm font-medium fabstir-black"
+                >
+                  Deploy
+                </label>
+              </div>
+              <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
+                {errors.deployed?.message}
+              </p>
             </div>
-            <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
-              {errors.attributes?.message}
-            </p>
           </div>
+
+          <div className="sm:col-span-3">
+            <label
+              htmlFor="attributes"
+              className="block text-sm font-medium fabstir-black"
+            >
+              Attributes
+            </label>
+            <div className="mt-1 rounded-lg border-2 border-dotted border-fabstir-white p-4">
+              <TokenAttributes
+                typeValue={watch('type')}
+                setValueTokenData={setValue}
+              />
+            </div>
+          </div>
+          <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
+            {errors.attributes?.message}
+          </p>
         </section>
 
-        <div className="mt-10 border-t border-fabstir-gray pt-8 sm:flex sm:items-center sm:justify-between">
+        <div className="mt-10 border-t border-fabstir-white pt-8 sm:flex sm:items-center sm:justify-between">
           <input
             type="submit"
             className="w-full rounded-md border border-transparent bg-fabstir-light-purple px-2 py-2 text-sm font-medium text-white shadow-sm hover:bg-fabstir-dark-purple focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50 sm:mr-6 bg-slate-800"

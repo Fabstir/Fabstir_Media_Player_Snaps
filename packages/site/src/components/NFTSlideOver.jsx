@@ -9,7 +9,10 @@ import useMintNFT from '../blockchain/useMintNFT';
 import useCreateNFT from '../hooks/useCreateNFT';
 import NFTSlideOverLeft from './NFTSlideOverLeft';
 import NFTSlideOverRight from './NFTSlideOverRight';
-import { currentnftmetadata } from '../atoms/nftMetaDataAtom';
+import { currentnftmetadata } from '../atoms/nftSlideOverAtom';
+import useUploadEncKey from '../hooks/useUploadEncKey';
+import { getNFTAddressId } from '../utils/nftUtils';
+import { userauthpubstate } from '../atoms/userAuthAtom';
 
 /**
  * Default values for the form fields.
@@ -20,15 +23,19 @@ let defaultFormValues = {
   address: '',
   symbol: '',
   supply: 1,
+  summary: '',
   description: '',
   type: '',
   category: '',
-  attributes: '',
+  attributes: [],
   genres: [],
   musicGenres: [],
   image: '',
+  lyricsUrl: '',
   multiToken: false,
   tokenise: false,
+  deployed: false,
+  isPublic: false,
 };
 
 /**
@@ -136,6 +143,11 @@ const NFTSlideOver = ({
         then: () => yup.array().min(1, 'At least 1 file is required'),
         otherwise: () => yup.array(),
       }),
+    animation_url: yup.string().notRequired(),
+    lyricsUrl: yup.string().notRequired(),
+    isPublic: yup.boolean().required('Choice of public or private is required'),
+    multiToken: yup.boolean().notRequired(),
+    deployed: yup.boolean().notRequired(),
   });
 
   /**
@@ -147,11 +159,14 @@ const NFTSlideOver = ({
     resolver: yupResolver(nftSchema),
   });
 
+  const userAuthPub = useRecoilValue(userauthpubstate);
+
   const { mutate: createNFT, ...createNFTInfo } = useCreateNFT();
   const { mintNFT } = useMintNFT();
 
   const [currentNFT, setCurrentNFT] = useRecoilState(currentnftmetadata);
 
+  const uploadEncKey = useUploadEncKey();
   const encKey = useRef('');
 
   const nft = useRef({});
@@ -174,16 +189,21 @@ const NFTSlideOver = ({
     setSubmitText('Creating...');
 
     if (data.type === 'video')
-      nft.current = { ...data, genres: data.genres ? [...data.genres] : [] };
+      nft.current = {
+        ...data,
+        creator: userAuthPub,
+        genres: data.genres ? [...data.genres] : [],
+      };
     else if (data.type === 'audio') {
       nft.current = {
         ...data,
+        creator: userAuthPub,
         genres: data.musicGenres ? [...data.musicGenres] : [],
       };
 
       if (nft.current.hasOwnProperty('musicGenres'))
         delete nft.current.musicGenres;
-    } else nft.current = { ...data };
+    } else nft.current = { ...data, creator: userAuthPub };
 
     delete nft.current.fileNames;
 
@@ -193,11 +213,11 @@ const NFTSlideOver = ({
     });
 
     try {
-      const { address, id, uri } = await mintNFT(nft.current);
+      const { address, id, uri } = await mintNFT(userAuthPub, nft.current);
 
       nft.current = {
         ...nft.current,
-        creator: null,
+        userPub: userAuthPub,
         address,
         id,
         uri,
@@ -208,11 +228,32 @@ const NFTSlideOver = ({
       return;
     }
 
+    if (!data.isPublic && encKey?.current) {
+      await uploadEncKey({
+        nftAddressId: getNFTAddressId(nft.current),
+        encKey: encKey?.current,
+      });
+    }
+
     createNFT({ ...nft.current, encKey: encKey.current });
 
-    methods.reset();
+    if (encKey) encKey.current = '';
+
+    methods.reset(initialValues);
     setOpen(false);
   }
+
+  // useEffect to react to changes in createNFTInfo.isSuccess
+  useEffect(() => {
+    if (createNFTInfo.isSuccess) {
+      setCurrentNFT(nft.current);
+      console.log(
+        'NFTSlideOver: createNFTInfo.isSuccess = ',
+        createNFTInfo.isSuccess,
+      );
+    }
+    // This effect should run whenever the isSuccess status changes
+  }, [createNFTInfo.isSuccess]);
 
   useEffect(() => {
     setCurrentNFT(nft.current);
@@ -235,12 +276,12 @@ const NFTSlideOver = ({
                 leaveTo="translate-x-full"
               >
                 <div
-                  className="bg-fabstir-white"
+                  className="bg-fabstir-light-gray"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {/* Background color split screen for large screens */}
                   <div
-                    className="fixed left-0 top-0 hidden h-full w-1/2 bg-fabstir-white lg:block"
+                    className="fixed left-0 top-0 hidden h-full w-1/2 bg-fabstir-light-gray lg:block"
                     aria-hidden="true"
                   />
                   <div

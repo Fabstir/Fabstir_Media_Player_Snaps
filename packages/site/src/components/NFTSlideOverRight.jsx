@@ -1,24 +1,31 @@
-/**
- * This module defines a React component that represents the right section of a slide-over panel for creating a new NFT (Non-Fungible Token).
- * It uses Tailwind CSS for styling and relies on several hooks and components from other modules.
- *
- * @module NFTSlideOverRight
- */
-import { Popover, Transition } from '@headlessui/react';
+/* This example requires Tailwind CSS v2.0+ */
+import {
+  Popover,
+  PopoverOverlay,
+  Transition,
+  TransitionChild,
+} from '@headlessui/react';
 import React, { Fragment, useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
+import DropAudio from './DropAudio';
 import DropFile from './DropFile';
 import DropImage from './DropImage';
-import DropVideoS5 from './DropVideoS5';
-import DropAudioS5 from './DropAudioS5';
+import DropSingleFile from './DropSingleFile';
+import DropVideo from './DropVideo';
+import { Input } from '../ui-components/input';
+import { Checkbox } from '../ui-components/checkbox';
+import { videoGenres, musicGenres } from '../utils/mediaAttributes';
+import { fetchVideoFormats } from '../utils/loadVideoFormats';
 
 /**
- * The NFTSlideOverRight component represents the right section of a slide-over panel for creating a new NFT.
+ * Renders a slide-over component for NFT (Non-Fungible Token) creation or editing, providing different asset upload options based on the NFT type.
+ * It supports uploading images, videos, audio files, and other file types. The component adapts its layout and available upload options
+ * based on the selected NFT type (e.g., video, audio, image, other). It also handles genre selection for video and audio NFTs.
  *
- * @param {Object} props - The properties passed to the component.
- * @param {string} props.encKey - The encryption key used for securing video files.
- *
- * @returns {JSX.Element} The JSX representation of the component.
+ * @component
+ * @param {Object} props - The component props.
+ * @param {string} props.encKey - Encryption key for encrypting uploaded files, if applicable.
+ * @returns {React.ReactElement} The NFTSlideOverRight component.
  */
 const NFTSlideOverRight = ({ encKey }) => {
   const {
@@ -28,132 +35,68 @@ const NFTSlideOverRight = ({ encKey }) => {
     formState: { errors },
   } = useFormContext();
 
+  console.log('NFTSlideOverRight: encKey = ', encKey);
+
+  //   const setNFTField = (field, value) =>
+  //   nft = { ...nft, [field]: value }
   const watchType = watch('type');
 
+  const [transcodeProgress, setTranscodeProgress] = useState(0);
+
   const [videoGenresSet, setVideoGenresSet] = useState(
-    new Set(getValues('genres')),
+    new Set(getValues('genre')),
+  );
+  const [musicGenresSet, setMusicGenresSet] = useState(
+    new Set(getValues('genre')),
   );
 
-  const [musicGenresSet, setMusicGenresSet] = useState(
-    new Set(getValues('musicGenres')),
-  );
+  const [animationUrlFormats, setAnimationUrlFormats] = useState([]);
+  const [videoFormats, setVideoFormats] = useState([]);
+
+  useEffect(() => {
+    if (watchType !== 'video') return;
+
+    const animationUrlFormatsPath = 'settings/animationUrlFormats.json';
+
+    const fetchFormats = async () => {
+      const { animationUrlFormats, videoFormats } = await fetchVideoFormats();
+      setAnimationUrlFormats(animationUrlFormats);
+      setVideoFormats(videoFormats);
+    };
+    fetchFormats();
+  }, [watchType]);
 
   useEffect(() => {
     return () => {};
   }, []);
 
-  const musicGenres = {
-    Acapella: 1,
-    African: 3,
-    'Alt country': 4,
-    'Alt Rock': 5,
-    Ambient: 6,
-    Bluegrass: 7,
-    Blues: 8,
-    "Children's": 9,
-    Classical: 10,
-    Country: 12,
-    Dance: 13,
-    Disco: 14,
-    Dubstep: 15,
-    'Easy listening': 16,
-    Electro: 17,
-    'Electronic dance': 18,
-    Electronic: 19,
-    Folk: 20,
-    Funk: 21,
-    Grunge: 22,
-    'Hardcore punk': 23,
-    'Heavy metal': 24,
-    'Hip hop': 25,
-    House: 26,
-    'Indie rock': 27,
-    Industrial: 28,
-    Instrumental: 29,
-    Jazz: 30,
-    'J-pop': 31,
-    'K-pop': 32,
-    Latin: 33,
-    Musical: 34,
-    'New-age': 36,
-    Opera: 37,
-    Pop: 38,
-    'Pop rock': 39,
-    'Progressive rock': 40,
-    'Psychedelic rock': 41,
-    'Punk rock': 42,
-    Reggae: 43,
-    Rock: 44,
-    'Rythum & blues': 45,
-    Soul: 46,
-    'Synth pop': 47,
-    Techno: 48,
-    Trance: 49,
-    World: 50,
+  const handle_FilmGenres = (genre) => {
+    const updatedGenres = new Set(videoGenresSet);
+    if (updatedGenres.has(genre)) updatedGenres.delete(genre);
+    else updatedGenres.add(genre);
+
+    setVideoGenresSet(updatedGenres);
+    setValue('genre', [...updatedGenres]);
   };
 
-  const genres = {
-    Action: 28,
-    Adventure: 12,
-    Animation: 16,
-    Comedy: 35,
-    Crime: 80,
-    Documentary: 99,
-    Drama: 18,
-    Family: 10751,
-    Fantasy: 14,
-    History: 36,
-    Horror: 27,
-    Kids: 10762,
-    Music: 10402,
-    Mystery: 9648,
-    News: 10763,
-    Reality: 10764,
-    Romance: 10749,
-    'Sci-Fi': 878,
-    Short: 10801,
-    Soap: 10766,
-    Talk: 10767,
-    'TV Movie': 10770,
-    'War & Politics': 10768,
-    Thriller: 53,
-    War: 10752,
-    Western: 37,
-  };
+  const handle_MusicGenres = (genre) => {
+    const updatedGenres = new Set(musicGenresSet);
+    if (updatedGenres.has(genre)) updatedGenres.delete(genre);
+    else updatedGenres.add(genre);
 
-  /**
-   * A handler function to manage the selection of film genres.
-   *
-   * @param {number} genreId - The ID of the selected genre.
-   */
-  const handle_FilmGenres = (genreId) => {
-    const theGenres = new Set(videoGenresSet);
-
-    if (theGenres.has(genreId)) theGenres.delete(genreId);
-    else theGenres.add(genreId);
-
-    setVideoGenresSet(theGenres);
-    setValue('genres', [...theGenres]);
-  };
-
-  const handle_MusicGenres = (genreId) => {
-    const theMusicGenres = new Set(musicGenresSet);
-    if (theMusicGenres.has(genreId)) theMusicGenres.delete(genreId);
-    else theMusicGenres.add(genreId);
-
-    setMusicGenresSet(theMusicGenres);
-    setValue('musicGenres', [...theMusicGenres]);
+    setMusicGenresSet(updatedGenres);
+    setValue('genre', [...updatedGenres]);
   };
 
   return (
     <section
       aria-labelledby="summary-heading"
-      className="bg-fabstir-dark-purple px-4 pb-10 pt-16 sm:px-6 lg:col-start-2 lg:row-start-1 lg:bg-transparent lg:px-0 lg:pb-16"
+      className="bg-fabstir-magenta-600 px-4 pb-10 pt-16 sm:px-6 lg:col-start-2 lg:row-start-1 lg:bg-transparent lg:px-0 lg:pb-16"
     >
       <div className="mx-auto max-w-lg lg:max-w-none">
         <h2
           id="summary-heading"
-          className="text-lg font-medium text-fabstir-white"
+          className="text-lg font-medium text-fabstir-light-gray"
         >
           Include assets...
         </h2>
@@ -165,48 +108,63 @@ const NFTSlideOverRight = ({ encKey }) => {
               twStyle="w-1/2 aspect-[1/1] rounded-xl"
               text="<NFT image (1:1)>"
             />
+            <div className="grid grid-cols-3 gap-4 sm:gap-7">
+              <div className="col-span-2">
+                <DropImage
+                  field="backdropImage"
+                  twStyle="aspect-[16/9]"
+                  text="<backdrop image (16:9)>"
+                />
+              </div>
 
-            <DropImage
-              field="backDropImage"
-              twStyle="w-1/2 aspect-[16/9]"
-              text="<backdrop image (16:9)>"
-            />
-
-            <DropImage
-              field="posterImage"
-              twStyle="w-1/4 aspect-[2/3]"
-              text="<poster image (2:3)>"
-              image="posterImage"
-            />
-
-            <DropVideoS5
-              field="video"
-              twStyle="w-2/3 aspect-[16/9]"
-              text="<video>"
-              encKey={encKey}
-            />
-
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-fabstir-light-gray">
+              <div className="col-span-1">
+                <DropImage
+                  field="posterImage"
+                  twStyle="aspect-[2/3]"
+                  text="<poster image (2:3)>"
+                  image="posterImage"
+                />
+              </div>
+            </div>
+            {animationUrlFormats?.length > 0 && (
+              <DropVideo
+                field="animation_url"
+                twStyle="w-1/2 aspect-[3/2]"
+                text="<trailer/short video>"
+                encKey={null}
+                videoFormats={animationUrlFormats}
+                storageNetwork={process.env.NEXT_PUBLIC_DEFAULT_STORAGE_NETWORK}
+              />
+            )}
+            {videoFormats?.length > 0 && (
+              <DropVideo
+                field="video"
+                twStyle="w-2/3 aspect-[16/9]"
+                text="<video>"
+                encKey={encKey}
+                videoFormats={videoFormats}
+              />
+            )}
+            <h2 className="mt-6 text-center text-2xl font-bold text-gray-700">
               Genres
             </h2>
             <div className="mt-3 flex grid grid-cols-5 justify-center">
-              {Object.entries(genres).map(([genre, genreId]) => (
+              {videoGenres.map((genre) => (
                 <li
                   className="form-check form-check-inline col-span-1 flex flex-1"
-                  key={genreId}
+                  key={genre}
                 >
                   <div>
-                    <input
-                      className="form-check-input float-left mr-2 mt-1 h-4 w-4 cursor-pointer appearance-none rounded-sm border border-gray-300 bg-fabstir-dark-gray bg-contain bg-center bg-no-repeat align-top transition duration-200  checked:border-gray-600 checked:bg-gray-600 focus:outline-none bg-white focus:outline-none"
-                      type="checkbox"
+                    <Checkbox
+                      className="form-check-input float-left mr-2 mt-1 h-4 w-4 cursor-pointer appearance-none rounded-sm border border-gray-300 bg-fabstir-dark-gray bg-contain bg-center bg-no-repeat align-top transition duration-200 checked:border-blue-600 checked:bg-blue-600 focus:outline-none"
                       id="inlineCheckbox1"
-                      checked={videoGenresSet?.has(genreId)}
-                      value={genreId}
-                      onChange={() => handle_FilmGenres(genreId)}
+                      checked={videoGenresSet?.has(genre)}
+                      value={genre}
+                      onChange={() => handle_FilmGenres(genre)}
                     />
                     <label
-                      className="form-check-label inline-block text-sm text-fabstir-light-gray"
-                      for="inlineCheckbox1"
+                      className="form-check-label inline-block text-sm text-fabstir-black"
+                      htmlFor="inlineCheckbox1"
                     >
                       {genre}
                     </label>
@@ -226,39 +184,53 @@ const NFTSlideOverRight = ({ encKey }) => {
             />
 
             <DropImage
-              field="backDropImage"
+              field="backdropImage"
               twStyle="w-2/3 aspect-[16/9]"
               text="<backdrop image (16:9)>"
             />
 
-            <DropAudioS5
+            <DropSingleFile
+              field="lyricsUrl"
+              twStyle="w-1/2 aspect-[3/2]"
+              text="<lyrics(.lrc)>"
+            />
+
+            <DropAudio
+              field="animation_url"
+              twStyle="w-1/2 aspect-[16/9]"
+              text="<sample/short audio>"
+              encKey={null}
+              storageNetwork={process.env.NEXT_PUBLIC_DEFAULT_STORAGE_NETWORK}
+            />
+
+            <DropAudio
               field="audio"
               twStyle="w-1/2 aspect-[16/9]"
               text="<audio>"
               encKey={encKey}
+              storageNetwork={process.env.NEXT_PUBLIC_S5}
             />
 
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-fabstir-light-gray">
+            <h2 className="mt-6 text-center text-3xl font-extrabold text-fabstir-dark-gray">
               Genres
             </h2>
             <div className="mt-3 flex grid grid-cols-4 justify-center">
-              {Object.entries(musicGenres).map(([genre, genreId]) => (
+              {musicGenres.map((genre) => (
                 <li
                   className="form-check form-check-inline col-span-1 flex flex-1"
-                  key={genreId}
+                  key={genre}
                 >
                   <div>
-                    <input
-                      className="form-check-input float-left mr-2 mt-1 h-4 w-4 cursor-pointer appearance-none rounded-sm border border-gray-300 bg-fabstir-dark-gray bg-contain bg-center bg-no-repeat align-top transition duration-200 checked:border-gray-600 checked:bg-gray-600 focus:outline-none bg-white"
-                      type="checkbox"
+                    <Checkbox
+                      className="form-check-input float-left mr-2 mt-1 h-4 w-4 cursor-pointer appearance-none rounded-sm border border-gray-300 bg-fabstir-dark-gray bg-contain bg-center bg-no-repeat align-top transition duration-200 checked:border-blue-600 checked:bg-blue-600 focus:outline-none"
                       id="inlineCheckbox1"
-                      checked={musicGenresSet?.has(genreId)}
-                      value={genreId}
-                      onChange={() => handle_MusicGenres(genreId)}
+                      checked={musicGenresSet?.has(genre)}
+                      value={genre}
+                      onChange={() => handle_MusicGenres(genre)}
                     />
                     <label
-                      className="form-check-label inline-block text-sm text-fabstir-light-gray"
-                      for="inlineCheckbox1"
+                      className="form-check-label inline-block text-sm text-fabstir-black"
+                      htmlFor="inlineCheckbox1"
                     >
                       {genre}
                     </label>
@@ -298,9 +270,9 @@ const NFTSlideOverRight = ({ encKey }) => {
         )}
 
         <Popover className="fixed inset-x-0 bottom-0 flex flex-col-reverse text-sm font-medium text-fabstir-light-gray lg:hidden">
-          <Transition.Root as={Fragment}>
+          <Transition as={Fragment}>
             <div>
-              <Transition.Child
+              <TransitionChild
                 as={Fragment}
                 enter="transition-opacity ease-linear duration-300"
                 enterFrom="opacity-0"
@@ -309,10 +281,10 @@ const NFTSlideOverRight = ({ encKey }) => {
                 leaveFrom="opacity-100"
                 leaveTo="opacity-0"
               >
-                <Popover.Overlay className="fixed inset-0 bg-black bg-opacity-25" />
-              </Transition.Child>
+                <PopoverOverlay className="fixed inset-0 bg-black bg-opacity-25" />
+              </TransitionChild>
 
-              <Transition.Child
+              <TransitionChild
                 as={Fragment}
                 enter="transition ease-in-out duration-300 transform"
                 enterFrom="translate-y-full"
@@ -320,9 +292,9 @@ const NFTSlideOverRight = ({ encKey }) => {
                 leave="transition ease-in-out duration-300 transform"
                 leaveFrom="translate-y-0"
                 leaveTo="translate-y-full"
-              ></Transition.Child>
+              ></TransitionChild>
             </div>
-          </Transition.Root>
+          </Transition>
         </Popover>
       </div>
     </section>

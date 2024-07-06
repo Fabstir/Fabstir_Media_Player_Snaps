@@ -1,5 +1,4 @@
 import { ChevronDoubleDownIcon } from '@heroicons/react/24/solid';
-import { TvIcon } from '@heroicons/react/24/solid';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { saveAs } from 'file-saver';
@@ -18,6 +17,18 @@ import NFTVideoJS from './NFTVideoJS';
 import useMintNestableNFT from '../blockchain/useMintNestableNFT';
 import RenderModel from './RenderModel';
 import { is3dmodelstate, iswasmreadystate } from '../atoms/renderStateAtom';
+import useEncKey from '../hooks/useEncKey';
+import { userauthpubstate } from '../atoms/userAuthAtom';
+import { userpubstate } from '../atoms/userAtom';
+import useNFTMedia from '../hooks/useNFTMedia';
+import MediaCaption from './MediaCaption';
+import useMintNFT from '../blockchain/useMintNFT';
+import useReplaceNFT from '../hooks/useReplaceNFT';
+import { constructNFTAddressId } from '../utils/nftUtils';
+import useDeleteNFT from '../hooks/useDeleteNFT';
+import { transfernftslideoverstate } from '../atoms/transferNFTOverAtom';
+import useUserProfile from '../hooks/useUserProfile';
+import { currentnftmetadata } from '../atoms/nftSlideOverAtom';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -47,6 +58,7 @@ const nftInformationDecorator = (information) => {
     .filter(
       (key) =>
         key !== 'name' &&
+        key !== 'symbol' &&
         key !== 'summary' &&
         key !== 'attributes' &&
         key !== 'multiToken' &&
@@ -68,8 +80,16 @@ const nftInformationDecorator = (information) => {
       output = appendNFTField(output, key, val);
     });
 
-  console.log('output = ', output);
-  return JSON.parse(JSON.stringify(output).trim());
+  // Sort the keys of the output object
+  const sortedOutput = Object.keys(JSON.parse(JSON.stringify(output).trim()))
+    .sort()
+    .reduce((acc, key) => {
+      acc[key] = output[key];
+      return acc;
+    }, {});
+
+  console.log('sortedOutput = ', sortedOutput);
+  return sortedOutput; // Return the sorted object directly
 };
 
 const twStyle = 'ml-8 grid gap-y-6 grid-cols-6 gap-x-5';
@@ -88,19 +108,26 @@ const twTextStyle = 'invisible';
  * @returns {JSX.Element} - The JSX element.
  */
 export default function DetailsSidebar({
-  currentNFT,
-  setCurrentNFT,
   width1,
   isTheatreMode,
   setIsTheatreMode,
   isScreenViewClosed,
   setIsScreenViewClosed,
+  isPlayClicked,
+  setIsPlayClicked,
 }) {
+  const userAuthPub = useRecoilValue(userauthpubstate);
+  const userPub = useRecoilValue(userpubstate);
+  const [currentNFT, setCurrentNFT] = useRecoilState(currentnftmetadata);
+
   const [nft, setNFT] = useState();
   const [fileUrls, setFileUrls] = useState(null);
 
   const [is3dModel, setIs3dModel] = useRecoilState(is3dmodelstate);
   const [isWasmReady, setIsWasmReady] = useRecoilState(iswasmreadystate);
+
+  const [openTransferNFTSliderOver, setOpenTransferNFTSliderOver] =
+    useRecoilState(transfernftslideoverstate);
 
   console.log('UserNFTView: inside DetailsSidebar');
   console.log('DetailsSidebar: nft = ', nft);
@@ -109,6 +136,9 @@ export default function DetailsSidebar({
   const [selectedSubscriptionPlans, setSelectedSubscriptionPlans] = useState(
     [],
   );
+  const { getNFTQuantity } = useMintNFT();
+  const [getUserProfile] = useUserProfile();
+
   const [openNFTMetaData, setOpenNFTMetaData] = useRecoilState(
     nftmetadataexpandstate,
   );
@@ -131,9 +161,73 @@ export default function DetailsSidebar({
     addChildToNestableNFT,
     removeChildFromNestableNFT,
     upgradeToNestableNFT,
+    getIsOwnNFT,
   } = useMintNestableNFT();
 
   const [selectedNFTs, setSelectedNFTs] = useRecoilState(nftsselectedaschild);
+
+  const getEncKey = useEncKey();
+  const [isPlay, setIsPlay] = useState(false);
+  const [nftQuantity, setNFTQuantity] = useState();
+  const [encKey, setEncKey] = useState();
+  const [mediaMetadata, setMediaMetadata] = useState();
+
+  const { getMetadataFromUser } = useNFTMedia();
+  const [playerCurrentTime, setPlayerCurrentTime] = useState(0);
+  const [nftToPlay, setNFTToPlay] = useState();
+  const { mutate: deleteNFT, ...deleteNFTInfo } = useDeleteNFT(userAuthPub);
+
+  const { upgradeNFTToParent, removeChildNFT, updateNFTToPointToParent } =
+    useReplaceNFT();
+
+  useEffect(() => {
+    (async () => {
+      console.log('DetailsSidebar: setEncKey inside nft = ', nft);
+      if (nft?.address && nft?.id) {
+        console.log(
+          'DetailsSidebar: setEncKey inside if (nft?.address && nft?.id)',
+        );
+
+        const encKey = await getEncKey(userPub, nft);
+
+        const cidWithoutKey = nft.video
+          ? nft.video
+          : nft.audio
+            ? nft.audio
+            : null;
+
+        if (cidWithoutKey) {
+          const mediaMetadata = await getMetadataFromUser(
+            userPub,
+            encKey,
+            cidWithoutKey,
+          );
+          setMediaMetadata(mediaMetadata);
+          console.log(
+            'checkIfUserSubscribedToNFT: mediaMetadata = ',
+            mediaMetadata,
+          );
+        }
+
+        if (userAuthPub === userPub) {
+          console.log('DetailsSidebar: setEncKey getEncKey');
+
+          if (!encKey) {
+            console.log('DetailsSidebar: setEncKey xx encKey = ', encKey);
+            console.log('DetailsSidebar: setEncKey xx nft = ', nft);
+          }
+
+          console.log('DetailsSidebar: setEncKey encKey = ', encKey);
+          const theEncKey = !encKey && encKey !== null ? null : encKey;
+          setEncKey(theEncKey);
+          console.log('DetailsSidebar: setEncKey theEncKey = ', theEncKey);
+        } else {
+          setEncKey(null);
+          console.log('DetailsSidebar: setEncKey = null');
+        }
+      }
+    })();
+  }, [nft, nft?.address, nft?.id]);
 
   useEffect(() => {
     console.log('DetailsSidebar: currentNFT = ', currentNFT);
@@ -200,6 +294,33 @@ export default function DetailsSidebar({
     })();
   }, [nft]);
 
+  useEffect(() => {
+    (async () => {
+      if (nft?.address && nft?.id) {
+        // if (nft?.isNestableNFT) {
+        //   const userProfile = await getUserProfile(userPub);
+
+        //   const isOwnNFT = await getIsOwnNFT(userProfile.accountAddress, {
+        //     address: nft.parentAddress,
+        //     id: nft.parentId,
+        //   });
+        //   console.log('DetailsSidebar: isOwnNFT = ', isOwnNFT);
+        // }
+
+        const quantity = nft?.isNestableNFT
+          ? 1
+          : await getNFTQuantity(userPub, nft); // stop gap until nestable NFT supports ERC-1155
+        setNFTQuantity(quantity);
+      } else setNFTQuantity(undefined);
+    })();
+  }, [nft, userPub]);
+
+  useEffect(() => {
+    // if (mediaMetadata && mediaMetadata.length > 0) {
+    setNFTToPlay(nft);
+    // }
+  }, [nft]);
+
   /**
    * Function to handle downloading a file from a given URI.
    * It determines the file name based on the key parameter and the URI.
@@ -248,9 +369,13 @@ export default function DetailsSidebar({
     );
     console.log('DetailsSidebar: handleUpgradeToNestableNFT: token id = ', id);
 
-    // now need to swap NFT address with nestable NFT address in Snaps state
-    const newAddress = `${address}_${id}`;
-    await replaceAddress(`${nft.address}_${nft.id}`, newAddress);
+    if (process.env.NEXT_PUBLIC_IS_USE_FABSTIRDB === 'true')
+      upgradeNFTToParent(nft, { address, id });
+    else {
+      // now need to swap NFT address with nestable NFT address in Snaps state
+      const newAddress = `${address}_${id}`;
+      await replaceAddress(`${nft.address}_${nft.id}`, newAddress);
+    }
 
     setCurrentNFT(null);
   }
@@ -321,10 +446,25 @@ export default function DetailsSidebar({
       nft.id,
     );
 
-    const newAddress = `${address}_${id}`;
-    await addAddress(newAddress);
+    if (process.env.NEXT_PUBLIC_IS_USE_FABSTIRDB === 'true') {
+      removeChildNFT(nft, { address: nft.parentAddress, id: nft.parentId });
 
-    setCurrentNFT(null);
+      const children = await getChildrenOfNestableNFT(nft.parentId);
+      if (children.length === 0) {
+        deleteNFT(
+          { address: nft.parentAddress, id: nft.parentId },
+          {
+            onSuccess: () => {
+              setCurrentNFT(null);
+            },
+          },
+        );
+      }
+    } else {
+      const newAddress = `${address}_${id}`;
+      await addAddress(newAddress);
+      setCurrentNFT(null);
+    }
   }
 
   /**
@@ -362,11 +502,22 @@ export default function DetailsSidebar({
 
       numberOfChildren++;
 
-      const addressId = `${selectedNFT.address}_${selectedNFT.id}`;
-      await removeAddress(addressId);
-      console.log(
-        `DetailsSidebar: handleSelectedToParent: removed address ${addressId} from Snaps state`,
-      );
+      if (process.env.NEXT_PUBLIC_IS_USE_FABSTIRDB === 'true') {
+        updateNFTToPointToParent(selectedNFT, {
+          address: nft.parentAddress,
+          id: nft.parentId,
+        });
+      } else {
+        const addressId = constructNFTAddressId(
+          selectedNFT.address,
+          selectedNFT.id,
+        );
+        console.log(
+          `DetailsSidebar: handleSelectedToParent: removed address ${addressId} from Snaps state`,
+        );
+
+        await removeAddress(addressId);
+      }
 
       removeFromNestableNFT(selectedNFT);
 
@@ -381,6 +532,18 @@ export default function DetailsSidebar({
   const isNFTSelected = selectedNFTs.some(
     (selectedNFT) => selectedNFT.address === nft?.address,
   );
+
+  useEffect(() => {
+    return () => {
+      console.log('DetailsSidebar: Component is unloading');
+    };
+  }, []); //
+
+  function handle_TransferNFT() {
+    console.log('DetailsSidebar: handle_TransferNFT');
+
+    setOpenTransferNFTSliderOver(true);
+  }
 
   return (
     <aside
@@ -431,99 +594,111 @@ export default function DetailsSidebar({
                     crossOrigin="anonymous"
                     style={{ visibility: is3dModel ? 'hidden' : 'visible' }}
                   />
-                </div>{' '}
-              </div>
-              <div className="mt-4 flex items-start justify-between">
-                <div>
-                  <div className="flex justify-between">
-                    <h2 className="text-lg font-medium text-fabstir-black">
-                      <span className="sr-only">Details for </span>
-                      {nft?.name}
-                    </h2>
-                    <p className="text-sm font-medium text-fabstir-light-gray">
-                      {nft?.price}
-                    </p>
-                  </div>
-                  <p className="mt-2 text-sm font-medium text-fabstir-light-gray/80">
-                    {nft?.summary}
-                  </p>
-                </div>
-                <div className="flex items-baseline">
-                  {/* <ArrowCircleUpIcon className="h-6 w-6" aria-hidden="true" /> */}
 
-                  <div onClick={() => setIsTheatreMode((prev) => !prev)}>
-                    <TvIcon
-                      className={classNames(
-                        'ml-2 w-5 hover:scale-125 hover:text-fabstir-white md:w-6 xl:w-7',
-                      )}
-                    />
-                  </div>
+                  {/* overlay */}
+                  {nft && nftImage && (
+                    <div className="pointer-events-none absolute bottom-0 left-0 z-20 m-5 w-fit bg-black bg-opacity-50 text-fabstir-white">
+                      <MediaCaption
+                        nft={nft}
+                        nftQuantity={nftQuantity?.toString()}
+                      />
+                    </div>
+                  )}
                 </div>
-                {/* <ArrowCircleUpIcon className="h-6 w-6" aria-hidden="true" /> */}
-                <span className="sr-only">Favorite</span>
               </div>
             </div>
           )}
 
-          {nft?.video && (
-            <div>
-              <div className="w-full overflow-hidden rounded-lg shadow-2xl shadow-fabstir-black/50">
-                <NFTVideoJS
-                  nft={nft}
-                  className="min-w-[256px] rounded-2xl bg-fabstir-dark-gray shadow-lg shadow-fabstir-black md:shadow-lg lg:shadow-xl xl:shadow-xl 2xl:shadow-xl 3xl:shadow-2xl"
-                />
-              </div>
-              <div className="mt-4 flex items-start justify-between">
-                <div>
-                  <div className="flex justify-between">
-                    <h2 className="text-lg font-medium text-fabstir-black">
-                      <span className="sr-only">Details for </span>
-                      {nft?.name}
-                    </h2>
-                    <p className="text-sm font-medium text-fabstir-light-gray">
-                      {nft?.price}
-                    </p>
+          {nft?.video &&
+            (encKey === null ||
+              (typeof encKey === 'string' && encKey.trim() !== '')) && (
+              <div>
+                <div className="w-full overflow-hidden rounded-lg shadow-2xl shadow-fabstir-black/50">
+                  <div className="relative">
+                    {nftToPlay ? (
+                      <NFTVideoJS
+                        nft={nft}
+                        setIsPlay={setIsPlay}
+                        className="3xl:shadow-2xl min-w-[256px] rounded-2xl bg-fabstir-dark-gray shadow-lg shadow-fabstir-black md:shadow-lg lg:shadow-xl xl:shadow-xl 2xl:shadow-xl"
+                        encKey={encKey}
+                        isPlayClicked={isPlayClicked}
+                        setIsPlayClicked={setIsPlayClicked}
+                        metadata={mediaMetadata}
+                      />
+                    ) : (
+                      <img
+                        src={nftImage}
+                        alt=""
+                        className="mx-auto object-cover"
+                        crossOrigin="anonymous"
+                      />
+                    )}
+                    {!isPlayClicked && (
+                      <div className="absolute bottom-2 left-0 z-20 m-5 w-fit bg-black bg-opacity-50 text-fabstir-white">
+                        <MediaCaption
+                          nft={nft}
+                          setIsPlayClicked={setIsPlayClicked}
+                          nftQuantity={nftQuantity?.toString()}
+                        />
+                      </div>
+                    )}
                   </div>
-                  <p className="mt-2 text-sm font-medium text-fabstir-light-gray/80">
-                    {nft?.summary}
-                  </p>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
           {nft?.audio && (
             <div>
               <div className="w-full overflow-hidden rounded-lg shadow-2xl shadow-fabstir-black/50">
-                <NFTAudioJS
-                  nft={nft}
-                  className="min-w-[256px] rounded-2xl bg-fabstir-dark-gray shadow-lg shadow-fabstir-black md:shadow-lg lg:shadow-xl xl:shadow-xl 2xl:shadow-xl 3xl:shadow-2xl"
-                />
-              </div>
-              <div className="mt-4 flex items-start justify-between">
-                <div>
-                  <div className="flex justify-between">
-                    <h2 className="text-lg font-medium text-fabstir-black">
-                      <span className="sr-only">Details for </span>
-                      {nft?.name}
-                    </h2>
-                    <p className="text-sm font-medium text-fabstir-light-gray">
-                      {nft?.price}
-                    </p>
+                <div className="relative inline-block">
+                  {nftToPlay ? (
+                    <NFTAudioJS
+                      nft={nft}
+                      playerCurrentTime={playerCurrentTime}
+                      className="3xl:shadow-2xl min-w-[256px] rounded-2xl bg-fabstir-dark-gray shadow-lg shadow-fabstir-black md:shadow-lg lg:shadow-xl xl:shadow-xl 2xl:shadow-xl"
+                    />
+                  ) : (
+                    <img
+                      src={nftImage}
+                      alt=""
+                      className="mx-auto object-cover"
+                      crossOrigin="anonymous"
+                    />
+                  )}
+
+                  <div className="pointer-events-none absolute bottom-2 left-0 z-20 m-5 w-fit bg-black bg-opacity-50 text-fabstir-white">
+                    <MediaCaption
+                      nft={nft}
+                      nftQuantity={nftQuantity?.toString()}
+                    />
                   </div>
-                  <p className="mt-2 text-sm font-medium text-fabstir-light-gray/80">
-                    {nft?.summary}
-                  </p>
                 </div>
               </div>
             </div>
           )}
         </div>
       )}
+      <div className="">
+        {userPub === userAuthPub && nftQuantity?.gt(0) && (
+          <div className="flex justify-between mt-4">
+            <div className="flex flex-1 justify-center">
+              <button
+                type="button"
+                onClick={async () => {
+                  await handle_TransferNFT();
+                }}
+                className="w-28 rounded-md border border-transparent bg-fabstir-light-gray px-4 py-2 text-sm font-medium tracking-wide shadow-sm shadow-fabstir-light-gray/50 hover:bg-fabstir-gray focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 text-fabstir-dark-gray"
+              >
+                Transfer
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
 
       <div className="">
         <div className="">
-          <h3 className="font-medium text-fabstir-light-gray">Information</h3>
+          <h3 className="font-medium text-fabstir-gray">Information</h3>
           <ChevronDoubleDownIcon
             className={
               'h-6 w-6 transform text-fabstir-light-gray transition duration-200 ease-in ' +
@@ -590,40 +765,52 @@ export default function DetailsSidebar({
           <div className="mt-2">
             <dl className="mt-2 divide-y divide-fabstir-divide-color1 border-b border-t border-fabstir-medium-light-gray">
               {nftInfoDecorated &&
-                Object.keys(nftInfoDecorated).map((key) => (
-                  <div
-                    key={key}
-                    className="flex justify-between py-3 text-sm font-medium"
-                  >
-                    <dt className="text-gray-500">
-                      {key}
-                      {'\u00A0'}
-                    </dt>
-                    <dd className="truncate text-fabstir-light-gray">
-                      {key.toLowerCase().endsWith('urls') ||
-                      key.toLowerCase().endsWith('uri') ? (
-                        <NFTFileUrls
-                          field={key}
-                          fileUrls={nftInfoDecorated[key]}
-                          handle_DownloadFile={handle_DownloadFile}
-                        />
-                      ) : Array.isArray(nftInfoDecorated[key]) ? (
-                        <div>{nftInfoDecorated[key].join(',')}</div>
-                      ) : (
-                        <div>{nftInfoDecorated[key]}</div>
-                      )}
-                    </dd>
-                  </div>
-                ))}
+                Object.entries(nftInfoDecorated).reduce((acc, [key, value]) => {
+                  // Filter out null, undefined, or empty array values
+                  if (
+                    value === null ||
+                    value === undefined ||
+                    (Array.isArray(value) && value.length === 0)
+                  ) {
+                    return acc;
+                  }
+
+                  const element = (
+                    <div
+                      key={key}
+                      className="flex justify-between py-3 text-sm font-medium"
+                    >
+                      <dt className="text-fabstir-gray">
+                        {key}
+                        {'\u00A0'}
+                      </dt>
+                      <dd className="truncate text-gray-500">
+                        {key.toLowerCase().endsWith('urls') ||
+                        key.toLowerCase().endsWith('uri') ? (
+                          <NFTFileUrls
+                            field={key}
+                            fileUrls={value}
+                            handle_DownloadFile={handle_DownloadFile}
+                          />
+                        ) : Array.isArray(value) ? (
+                          <div>{value.join(', ')}</div>
+                        ) : (
+                          <div>{value}</div>
+                        )}
+                      </dd>
+                    </div>
+                  );
+
+                  acc.push(element);
+                  return acc;
+                }, [])}
             </dl>
           </div>
 
           <div className="divide-y divide-fabstir-divide-color1">
             <div className="group my-4">
               <div className="mt-4 flex justify-between">
-                <h3 className="font-medium text-fabstir-light-gray">
-                  Attributes
-                </h3>
+                <h3 className="font-medium text-fabstir-gray">Attributes</h3>
                 <div className="flex flex-1 justify-end">
                   <ChevronDoubleDownIcon
                     className={
@@ -660,25 +847,28 @@ export default function DetailsSidebar({
               >
                 {nft?.attributes &&
                   Object.entries(nft?.attributes).map(([key, value]) => {
-                    return (
-                      <div
-                        key={key}
-                        className="flex justify-between py-3 text-sm font-medium"
-                      >
-                        <dt className="text-fabstir-light-gray">
-                          {key}
-                          {'\u00A0'}
-                        </dt>
-                        <dd
-                          className={
-                            'text-fabstir-light-gray ' +
-                            (openNFTAttributes ? '' : 'line-clamp-1')
-                          }
+                    if (value) {
+                      return (
+                        <div
+                          key={key}
+                          className="flex justify-between py-3 text-sm font-medium"
                         >
-                          {value}
-                        </dd>
-                      </div>
-                    );
+                          <dt className="text-fabstir-light-gray">
+                            {key}
+                            {'\u00A0'}
+                          </dt>
+                          <dd
+                            className={
+                              'text-fabstir-light-gray ' +
+                              (openNFTAttributes ? '' : 'line-clamp-1')
+                            }
+                          >
+                            {value}
+                          </dd>
+                        </div>
+                      );
+                    }
+                    return null;
                   })}
               </div>
             </div>

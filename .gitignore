@@ -122,3 +122,6 @@ packages/site/config.json
 
 # misc
 packages/site/assets/
+
+start-chrome-debug.bat
+*.xlsx
