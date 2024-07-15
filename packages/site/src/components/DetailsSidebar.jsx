@@ -29,6 +29,8 @@ import useDeleteNFT from '../hooks/useDeleteNFT';
 import { transfernftslideoverstate } from '../atoms/transferNFTOverAtom';
 import useUserProfile from '../hooks/useUserProfile';
 import { currentnftmetadata } from '../atoms/nftSlideOverAtom';
+import { Zero, One } from '@ethersproject/constants';
+import { selectedparentnftaddressid } from '../atoms/nestableNFTAtom';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -179,6 +181,7 @@ export default function DetailsSidebar({
 
   const { upgradeNFTToParent, removeChildNFT, updateNFTToPointToParent } =
     useReplaceNFT();
+  const selectedParentNFTAddressId = useRecoilValue(selectedparentnftaddressid);
 
   useEffect(() => {
     (async () => {
@@ -297,7 +300,7 @@ export default function DetailsSidebar({
   useEffect(() => {
     (async () => {
       if (nft?.address && nft?.id) {
-        // if (nft?.isNestableNFT) {
+        // if (nft?.isNestable) {
         //   const userProfile = await getUserProfile(userPub);
 
         //   const isOwnNFT = await getIsOwnNFT(userProfile.accountAddress, {
@@ -307,13 +310,13 @@ export default function DetailsSidebar({
         //   console.log('DetailsSidebar: isOwnNFT = ', isOwnNFT);
         // }
 
-        const quantity = nft?.isNestableNFT
-          ? 1
+        const quantity = nft?.isNestable
+          ? One
           : await getNFTQuantity(userPub, nft); // stop gap until nestable NFT supports ERC-1155
         setNFTQuantity(quantity);
       } else setNFTQuantity(undefined);
     })();
-  }, [nft, userPub]);
+  }, [nft, userPub, selectedParentNFTAddressId]);
 
   useEffect(() => {
     // if (mediaMetadata && mediaMetadata.length > 0) {
@@ -679,21 +682,23 @@ export default function DetailsSidebar({
         </div>
       )}
       <div className="">
-        {userPub === userAuthPub && nftQuantity?.gt(0) && (
-          <div className="flex justify-between mt-4">
-            <div className="flex flex-1 justify-center">
-              <button
-                type="button"
-                onClick={async () => {
-                  await handle_TransferNFT();
-                }}
-                className="w-28 rounded-md border border-transparent bg-fabstir-light-gray px-4 py-2 text-sm font-medium tracking-wide shadow-sm shadow-fabstir-light-gray/50 hover:bg-fabstir-gray focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 text-fabstir-dark-gray"
-              >
-                Transfer
-              </button>
+        {userPub === userAuthPub &&
+          !selectedParentNFTAddressId &&
+          nftQuantity?.gt(0) && (
+            <div className="flex justify-between mt-4">
+              <div className="flex flex-1 justify-center">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await handle_TransferNFT();
+                  }}
+                  className="w-28 rounded-md border border-transparent bg-fabstir-light-gray px-4 py-2 text-sm font-medium tracking-wide shadow-sm shadow-fabstir-light-gray/50 hover:bg-fabstir-gray focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 text-fabstir-dark-gray"
+                >
+                  Transfer
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
       </div>
 
       <div className="">

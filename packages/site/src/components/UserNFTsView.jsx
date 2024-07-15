@@ -3,6 +3,7 @@ import UserNFTView from './UserNFTView';
 import { ChevronDoubleLeftIcon } from '@heroicons/react/24/solid';
 import { useRecoilState } from 'recoil';
 import { selectedparentnftaddressid } from '../atoms/nestableNFTAtom';
+import { useRouter } from 'next/router';
 
 /**
  * UserNFTsView component to render the user's NFTs in a gallery view.
@@ -26,10 +27,14 @@ export default function UserNFTsView({
    * State to hold the NFTs.
    * @type {[Array, Function]}
    */
+  const router = useRouter();
   const [theNFTs, setTheNfts] = useState();
-
   const [selectedParentNFTAddressId, setSelectedParentNFTAddressId] =
     useRecoilState(selectedparentnftaddressid);
+
+  function handleBackToRoot() {
+    router.push('/');
+  }
 
   function handleUpToParent() {
     setSelectedParentNFTAddressId('');
@@ -37,13 +42,23 @@ export default function UserNFTsView({
 
   return (
     <>
-      {selectedParentNFTAddressId && (
+      {selectedParentNFTAddressId ? (
         <button
-          className="flex items-center mb-4 text-gray-500 hover:text-gray-700"
+          className="flex items-center text-gray-500 hover:text-gray-700 mb-10"
           onClick={handleUpToParent}
         >
           <ChevronDoubleLeftIcon className="h-6 w-6 mr-2" />
           Back to parent
+        </button>
+      ) : (
+        <button className="mb-8" onClick={handleBackToRoot}>
+          <div className="flex justify-center">
+            <ChevronDoubleLeftIcon
+              className="h-6 w-6 font-bold text-gray-500 lg:h-8 lg:w-8 pb-2"
+              aria-hidden="true"
+            />
+            Back to Root
+          </div>
         </button>
       )}
       <div className={`${twStyle} list-none`}>

@@ -22,7 +22,7 @@ export default function useReplaceNFT() {
 
     const updatedNewNFT = {
       ...newNFT,
-      isNestableNFT: true,
+      isNestable: true,
     };
 
     createNFT(updatedNewNFT);
@@ -86,7 +86,7 @@ export default function useReplaceNFT() {
   };
 
   const getIsNestableNFT = (nft) => {
-    return nft.isNestableNFT;
+    return nft.isNestable;
   };
 
   return {

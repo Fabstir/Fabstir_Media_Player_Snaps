@@ -263,7 +263,7 @@ export default function TokenAttributes({ typeValue, setValueTokenData }) {
                   <button
                     type="button"
                     onClick={() => remove(index)}
-                    className="mb-4 bg-fabstir-light-purple px-5"
+                    className="mb-4 bg-fabstir-light-gray px-5 border-fabstir-gray text-fabstir-dark-gray border-2 rounded-md"
                   >
                     Delete
                   </button>
@@ -293,14 +293,14 @@ export default function TokenAttributes({ typeValue, setValueTokenData }) {
             </div>
           </div>
 
-          <Button
+          <button
             type="button"
             onClick={handleSubmit}
-            color="fabstir-purple"
-            className="px-4 py-1 text-fabstir-light-gray-600"
+            color="fabstir-gray"
+            className="px-4 py-1 text-fabstir-dark-gray border-2 border-fabstir-gray rounded-md"
           >
             Append
-          </Button>
+          </button>
         </div>
       </section>
 

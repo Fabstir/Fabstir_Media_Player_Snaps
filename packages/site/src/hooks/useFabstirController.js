@@ -45,12 +45,17 @@ export default function useFabstirController() {
     console.log('submitKeyToController: exit');
   };
 
-  const retrieveKeyFromController = (userPub, creatorPub, nftAddressId) => {
+  const retrieveKeyFromController = (
+    userPub,
+    creatorPub,
+    nftAddressId,
+    parentAddressId,
+  ) => {
     return new Promise(async (resolve, reject) => {
       // Mark this function as async
       try {
         const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_FABSTIR_CONTROLLER_URL}/retrieve_key/${userPub}/${creatorPub}/${nftAddressId}`,
+          `${process.env.NEXT_PUBLIC_FABSTIR_CONTROLLER_URL}/retrieve_key/${userPub}/${creatorPub}/${nftAddressId}/${parentAddressId}`,
         );
 
         if (response.data && response.data.scrambleKeySEAPair) {

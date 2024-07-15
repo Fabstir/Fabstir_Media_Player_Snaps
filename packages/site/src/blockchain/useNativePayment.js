@@ -1,7 +1,16 @@
+import { BigNumber } from '@ethersproject/bignumber';
+import { parseUnits } from '@ethersproject/units';
 import useContractUtils from './useContractUtils';
+import { useContext } from 'react';
+import BlockchainContext from '../../state/BlockchainContext';
 
 export default function useNativePayment(signer) {
-  const { getAddressFromChainIdAddressForTransaction } = useContractUtils();
+  const {
+    getAddressFromChainIdAddressForTransaction,
+    getProviderFromProviders,
+  } = useContractUtils();
+  const blockchainContext = useContext(BlockchainContext);
+  const { connectedChainId } = blockchainContext;
 
   // Ensures the signer is correctly provided and alerts if not
   if (!signer) {
@@ -37,8 +46,23 @@ export default function useNativePayment(signer) {
     const transactionHashes = [];
     const transactionDetails = [];
 
+    const provider = getProviderFromProviders(connectedChainId);
+
+    const latestBlock = await provider.getBlock('latest');
+    const baseFeePerGas = BigNumber.from(latestBlock.baseFeePerGas);
+
+    // Calculate maxFeePerGas and maxPriorityFeePerGas
+    const maxPriorityFeePerGas = parseUnits('2', 'gwei'); // Example priority fee
+    const buffer = parseUnits('2', 'gwei'); // Example buffer
+    const maxFeePerGas = baseFeePerGas.add(maxPriorityFeePerGas).add(buffer);
+
     for (const [transactionData, address, gasEstimate] of transactions) {
-      const tx = { to: address, data: transactionData.data };
+      const tx = {
+        to: address,
+        data: transactionData.data,
+        maxFeePerGas: maxFeePerGas.toString(),
+        maxPriorityFeePerGas: maxPriorityFeePerGas.toString(),
+      };
       if (gasEstimate) {
         tx.gasLimit = gasEstimate;
       }

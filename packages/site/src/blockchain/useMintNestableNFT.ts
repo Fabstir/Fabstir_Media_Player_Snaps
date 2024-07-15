@@ -62,8 +62,8 @@ export default function useMintNestableNFT() {
 
   const mintNFT = useMintNFT();
   const getIsERC721Address = mintNFT?.getIsERC721Address;
-  const getIsERC721 = mintNFT?.getIsERC721;
-  const getIsERC1155 = mintNFT?.getIsERC1155;
+  const getIsERC721 = mintNFT.getIsERC721;
+  const getIsERC1155 = mintNFT.getIsERC1155;
 
   const [getUserProfile] = useUserProfile();
 
@@ -277,6 +277,13 @@ export default function useMintNestableNFT() {
       nestableContractAddress,
     );
 
+    const signer = smartAccountProvider.getSigner();
+    const signerAddress = await signer.getAddress();
+
+    if (await mintNFT.getIsOwnNFT(signerAddress, nft)) {
+      console.log('useMintNestableNFT: NFT is already owned by signer');
+    } else throw new Error('useMintNestableNFT: NFT is not owned by signer');
+
     const transactionNFTApprove = [
       await (nftContract as any).populateTransaction.approve(
         getAddressFromChainIdAddress(nestableContractAddress),
@@ -339,15 +346,21 @@ export default function useMintNestableNFT() {
     // Below section gets the signature from the user (signer provided in Biconomy Smart Account)
     // and also send the full op to attached bundler instance
     try {
-      await processTransactionBundle([
+      const { receipt } = await processTransactionBundle([
         transactionNFTApprove,
         transactionNestableNFTAddChild,
         transactionNestableNFTAcceptChild,
       ]);
-      return {
-        address: String(nestableNFTContractAddress), // Ensure the address is a string
-        id: parentId,
-      };
+
+      if (receipt.isSuccess) {
+        return {
+          address: String(nestableNFTContractAddress), // Ensure the address is a string
+          id: parentId,
+        };
+      } else
+        throw new Error(
+          'useMintNestableNFT: addChildToNestableNFT: Transaction failed',
+        );
     } catch (e) {
       const errorMessage = 'useMintNestableNFT: error received ';
       console.error(`${errorMessage} ${e.message}`);

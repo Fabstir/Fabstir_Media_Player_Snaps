@@ -39,8 +39,7 @@ export async function saveNFTtoState(address, nftState) {
  */
 export default function useCreateNFT() {
   const userAuthPub = useRecoilValue(userauthpubstate);
-  const { submitKeyToController, retrieveKeyFromController } =
-    useFabstirController();
+  const { submitKeyToController } = useFabstirController();
 
   const userPub = user?.is?.pub;
 
@@ -86,11 +85,6 @@ export default function useCreateNFT() {
 
       if (nft.encKey) {
         await submitKeyToController(userAuthPub, addressId, nft.encKey);
-        // const encKey = await retrieveKeyFromController(
-        //   userAuthPub,
-        //   newNFT.userPub,
-        //   addressId,
-        // );
 
         console.log('useCreateNFT: nft.encKey = ', nft.encKey);
         // console.log('useCreateNFT: encKey = ', encKey);

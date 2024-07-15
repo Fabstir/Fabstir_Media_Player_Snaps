@@ -55,12 +55,14 @@ import { currentnftmetadata } from '../src/atoms/nftSlideOverAtom';
 import { badgecreateslideoverstate } from '../src/atoms/badgeDetailsSlideOverFunctions';
 import { currentbadgecategories } from '../src/atoms/badgeSlideOverAtom';
 import { getNFTAddressId, splitNFTAddressId } from '../src/utils/nftUtils';
-import useNFTs from '../src/hooks/useNFTs';
+import useNFTs, { fetchScopedNFTs } from '../src/hooks/useNFTs';
 import { userpubstate } from '../src/atoms/userAtom';
 import useDeleteNFT from '../src/hooks/useDeleteNFT';
 import { userauthpubstate } from '../src/atoms/userAuthAtom';
 import useNFTMedia from '../src/hooks/useNFTMedia';
 import useUserProfile from '../src/hooks/useUserProfile';
+import useDeleteNestableNFT from '../src/hooks/useDeleteNestableNFT';
+import UserProfile from './profile';
 
 type Addresses = {
   [key: string]: any; // Replace `any` with the actual type of the values
@@ -154,8 +156,6 @@ const Index = () => {
   const [errorsImportKeys, setErrorsImportKeys] = useState<string>('');
   const [errorsExportKeys, setErrorsExportKeys] = useState<string>('');
   const {
-    newReadOnlyContract,
-    getTokenNumberOfDecimalPlacesChainIdAndTokenSymbol,
     getCurrencyContractAddresses,
     getCurrencyDecimalPlaces,
     getContractAddressesCurrencies,
@@ -173,6 +173,7 @@ const Index = () => {
   const { getIsNestableNFT } = mintNestableNFT;
 
   const { loginNative } = useNativeAuth();
+  const { deleteNestableNFT } = useDeleteNestableNFT();
 
   useEffect(() => {
     // Update the context value
@@ -290,11 +291,11 @@ const Index = () => {
 
         let nftJSON = {};
 
-        const isNestableNFT = await getIsNestableNFT(address);
-        if (!isNestableNFT) {
+        const isNestable = await getIsNestableNFT(address);
+        if (!isNestable) {
           await unlockVideoFromController(userAuthPub, address, id);
         } else {
-          let nft = { address, id, name: 'Nestable NFT', symbol: 'NNFT1' };
+          let nft = { address, id, isNestable: true };
 
           await unlockNestableKeysFromController(userAuthPub, nft);
         }
@@ -348,7 +349,12 @@ const Index = () => {
         if (process.env.NEXT_PUBLIC_IS_USE_FABSTIRDB === 'true') {
           const { address: theAddress, id } = splitNFTAddressId(address);
 
-          deleteNFT({ address: theAddress, id });
+          const isNestable = await getIsNestableNFT(theAddress);
+          if (!isNestable) {
+            deleteNFT({ address: theAddress, id });
+          } else {
+            await deleteNestableNFT({ address: theAddress, id });
+          }
         }
         delete newAddresses[address];
       }
@@ -455,10 +461,23 @@ const Index = () => {
 
   const loadAddresses = async () => {
     if (process.env.NEXT_PUBLIC_IS_USE_FABSTIRDB === 'true') {
-      const nftAddresses = nfts?.data?.reduce(
+      // const nftAddresses = nfts?.data?.reduce(
+      //   (acc: { [key: string]: {} }, nft: any) => {
+      //     const addressId = getNFTAddressId(nft);
+      //     acc[addressId] = {};
+      //     return acc;
+      //   },
+      //   {},
+      // );
+      const userProfile = await getUserProfile(userPub);
+      const nfts = await fetchScopedNFTs(userPub, userProfile);
+      const nftAddresses = nfts?.reduce(
         (acc: { [key: string]: {} }, nft: any) => {
-          const addressId = getNFTAddressId(nft);
-          acc[addressId] = {};
+          if (nft.parentId === undefined) {
+            // Only proceed if nft.parentId is not defined
+            const addressId = getNFTAddressId(nft);
+            acc[addressId] = {};
+          }
           return acc;
         },
         {},

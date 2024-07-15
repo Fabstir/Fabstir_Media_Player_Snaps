@@ -39,13 +39,13 @@ const swapAnyNestableNFTWithFirstChild = async (
     // if any are nestableNFTs then use the first child as `nft`
     console.log('useMintNFt: swapAnyParentWithFirstChild: nft = ', nft);
     const nftAddress = nft.address;
-    const isNestableNFT = await getIsNestableNFT(nft);
+    const isNestable = await getIsNestableNFT(nft);
     console.log(
-      'useMintNFt: swapAnyParentWithFirstChild: isNestableNFT = ',
-      isNestableNFT,
+      'useMintNFt: swapAnyParentWithFirstChild: isNestable = ',
+      isNestable,
     );
 
-    if (isNestableNFT) {
+    if (isNestable) {
       console.log(
         `useMintNFt: swapAnyParentWithFirstChild: nftAddress = ${nftAddress}`,
       );
@@ -81,7 +81,7 @@ const swapAnyNestableNFTWithFirstChild = async (
       if (parentId || selectedParentNFTAddressId) {
         childNFT.parentId = parentId;
 
-        if (isNestableNFT) {
+        if (isNestable) {
           const modelUris = await getModelUrisFromNestedNFT(
             userPub,
             parentId,
@@ -93,7 +93,7 @@ const swapAnyNestableNFTWithFirstChild = async (
         }
       }
 
-      updatedNFTs.push({ ...childNFT, isNestableNFT: true });
+      updatedNFTs.push({ ...childNFT, isNestable });
     } else {
       if (!nft.parentId || nft.parentId === parentId) updatedNFTs.push(nft);
     }
@@ -102,7 +102,7 @@ const swapAnyNestableNFTWithFirstChild = async (
   return updatedNFTs;
 };
 
-const fetchScopedNFTs = async (userPub, userProfile) => {
+export const fetchScopedNFTs = async (userPub, userProfile) => {
   console.log('useNFTs: timeout = ', process.env.NEXT_PUBLIC_GUN_TIMEOUT);
 
   const resultArray = await dbClientOnce(

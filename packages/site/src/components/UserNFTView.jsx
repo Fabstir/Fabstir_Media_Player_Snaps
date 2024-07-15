@@ -145,7 +145,7 @@ export default function UserNFTView({
           <></>
         )}
       </div>
-      {nft?.isNestableNFT && (
+      {nft?.isNestable && (
         <div className="absolute -top-8 right-0 p-1">
           <ArrowLongRightIcon className="h-8 w-8 text-fabstir-dark-gray" />
         </div>

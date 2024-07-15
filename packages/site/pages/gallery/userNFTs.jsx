@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { useRouter } from 'next/router';
 import { ArrowLongLeftIcon } from '@heroicons/react/24/solid';
 import { getNFTAddressId } from '../../src/utils/nftUtils';
 
@@ -196,12 +195,6 @@ export default function UserNFTs() {
     useCreateBadgeToTake();
 
   const { createUri } = useSendBadge();
-
-  const router = useRouter();
-
-  function handleBackToRoot() {
-    router.push('/');
-  }
 
   /////////////////////////////////////////////////////////
 
@@ -831,16 +824,6 @@ export default function UserNFTs() {
         clearOnSubmit
         setRerenderUserNFTs={setRerenderUserNFTs}
       />
-
-      <button className="my-2" onClick={handleBackToRoot}>
-        <div className="flex justify-center">
-          <ArrowLongLeftIcon
-            className="h-6 w-6 font-bold text-gray-500 lg:h-8 lg:w-8 pb-2"
-            aria-hidden="true"
-          />
-          Back to Root
-        </div>
-      </button>
 
       {currentNFT && (
         <TransferNFT

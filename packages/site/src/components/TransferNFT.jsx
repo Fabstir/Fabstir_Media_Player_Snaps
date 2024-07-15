@@ -1,7 +1,7 @@
 import { Dialog, Transition } from '@headlessui/react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { XIcon } from 'heroiconsv1/outline';
-import React, { Fragment, useEffect, useState } from 'react';
+import React, { Fragment, useContext, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import * as yup from 'yup';
@@ -14,8 +14,12 @@ import useMintNestableNFT from '../blockchain/useMintNestableNFT';
 import useContractUtils from '../blockchain/useContractUtils';
 import { Zero, One } from '@ethersproject/constants';
 import { currentnftmetadata } from '../atoms/nftSlideOverAtom';
+import BlockchainContext from '../../state/BlockchainContext';
 
 export default function TransferNFT({ nft, open, setOpen }) {
+  const blockchainContext = useContext(BlockchainContext);
+  const { connectedChainId } = blockchainContext;
+
   const userAuthPub = useRecoilValue(userauthpubstate);
 
   const [submitText, setSubmitText] = useState('Transfer');
@@ -25,6 +29,7 @@ export default function TransferNFT({ nft, open, setOpen }) {
   const { getChainIdAddressFromChainIdAndAddress, newReadOnlyContract } =
     useContractUtils();
   const [currentNFT, setCurrentNFT] = useRecoilState(currentnftmetadata);
+  const { getChildrenOfNestableNFT } = useMintNestableNFT();
 
   // quantity: yup
   // .number()
@@ -97,8 +102,12 @@ export default function TransferNFT({ nft, open, setOpen }) {
 
     (async () => {
       try {
-        let theNFT = nft.isNestableNFT
-          ? { address: nft.parentAddress, id: nft.parentId }
+        let theNFT = nft.isNestable
+          ? {
+              address: nft.parentAddress,
+              id: nft.parentId,
+              isNestable: true,
+            }
           : nft;
 
         const isTransferred = await transferNFT(
@@ -110,7 +119,8 @@ export default function TransferNFT({ nft, open, setOpen }) {
         // Should check that there is enough balance to do transfer
 
         if (isTransferred) {
-          if (theNFT.isNestableNFT) {
+          if (theNFT.isNestable) {
+            // Assumes nestaable NFT is ERC-721 for now
             getChildrenOfNestableNFT(theNFT.id).then(async (children) => {
               // Mark this function as async
               for (const child of children) {

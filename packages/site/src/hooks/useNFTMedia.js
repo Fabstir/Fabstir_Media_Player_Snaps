@@ -42,8 +42,7 @@ export default function useNFTMedia() {
     useContractUtils();
 
   const { downloadFile } = usePortal();
-  const { submitKeyToController, retrieveKeyFromController } =
-    useFabstirController();
+  const { retrieveKeyFromController } = useFabstirController();
   /**
    * Gets the metadata for a file or directory in the S5 network.
    *
@@ -452,7 +451,12 @@ export default function useNFTMedia() {
     return nftsMedia;
   };
 
-  const unlockVideoFromController = async (userPub, address, id) => {
+  const unlockVideoFromController = async (
+    userPub,
+    address,
+    id,
+    additionalMetaData = {},
+  ) => {
     const isERC721 = await getIsERC721Address(address);
     if (!isERC721) {
       const isERC1155 = await getIsERC1155({ address });
@@ -465,17 +469,29 @@ export default function useNFTMedia() {
     let nft = true
       ? await fetchNFTOnChain(addressId, newReadOnlyContract, downloadFile)
       : await fetchNFT1155OnChain(addressId, newReadOnlyContract, downloadFile);
-    nft = { ...nft, id };
+    nft = { ...nft, id, ...additionalMetaData };
     console.log('index: nft = ', nft);
 
     createNFT(nft);
 
-    const encKey = await retrieveKeyFromController(
-      userPub,
-      nft.creator,
-      addressId,
-    );
+    let encKey = null;
 
+    try {
+      let parentAddressId = '';
+      if (additionalMetaData.parentAddress && additionalMetaData.parentId) {
+        parentAddressId = constructNFTAddressId(
+          additionalMetaData.parentAddress,
+          additionalMetaData.parentId,
+        );
+      }
+
+      encKey = await retrieveKeyFromController(
+        userPub,
+        nft.creator,
+        addressId,
+        parentAddressId,
+      );
+    } catch (error) {}
     if (encKey) {
       await uploadEncKey({
         nftAddressId: addressId,
@@ -504,6 +520,8 @@ export default function useNFTMedia() {
   const unlockNestableKeysFromController = async (userPub, nft) => {
     if (await getIsNestableNFT(nft.address)) {
       {
+        createNFT(nft);
+
         getChildrenOfNestableNFT(nft.id).then(async (children) => {
           for (const child of children) {
             const nftAddress = getChainIdAddressFromChainIdAndAddress(
@@ -514,6 +532,7 @@ export default function useNFTMedia() {
               userPub,
               nftAddress,
               child.tokenId.toString(),
+              { parentId: nft.id, parentAddress: nft.address },
             );
           }
         });
