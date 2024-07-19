@@ -15,6 +15,7 @@ import useContractUtils from '../blockchain/useContractUtils';
 import { Zero, One } from '@ethersproject/constants';
 import { currentnftmetadata } from '../atoms/nftSlideOverAtom';
 import BlockchainContext from '../../state/BlockchainContext';
+import { useMintNestableERC1155NFT } from '../blockchain/useMintNestableERC1155NFT';
 
 export default function TransferNFT({ nft, open, setOpen }) {
   const blockchainContext = useContext(BlockchainContext);
@@ -24,12 +25,14 @@ export default function TransferNFT({ nft, open, setOpen }) {
 
   const [submitText, setSubmitText] = useState('Transfer');
 
-  const { getNFTQuantity, transferNFT } = useMintNFT();
+  const { getNFTQuantity, transferNFT, getIsERC721 } = useMintNFT();
   const { mutate: deleteNFT, ...deleteNFTInfo } = useDeleteNFT(userAuthPub);
   const { getChainIdAddressFromChainIdAndAddress, newReadOnlyContract } =
     useContractUtils();
   const [currentNFT, setCurrentNFT] = useRecoilState(currentnftmetadata);
   const { getChildrenOfNestableNFT } = useMintNestableNFT();
+  const { getChildrenOfNestableNFT: getChildrenOfNestableERC1155NFT } =
+    useMintNestableERC1155NFT();
 
   // quantity: yup
   // .number()
@@ -110,6 +113,14 @@ export default function TransferNFT({ nft, open, setOpen }) {
             }
           : nft;
 
+        let retrieveChildrenOfNestableNFT;
+        if (await getIsERC721(theNFT))
+          retrieveChildrenOfNestableNFT = getChildrenOfNestableNFT;
+        else retrieveChildrenOfNestableNFT = getChildrenOfNestableERC1155NFT;
+
+        const children1 = await retrieveChildrenOfNestableNFT(theNFT.id);
+        console.log('TransferNFT: children1 = ', children1);
+
         const isTransferred = await transferNFT(
           theNFT,
           data.recipientAccountAddress,
@@ -119,9 +130,17 @@ export default function TransferNFT({ nft, open, setOpen }) {
         // Should check that there is enough balance to do transfer
 
         if (isTransferred) {
+          const quantity = await getNFTQuantity(userAuthPub, nft);
+
           if (theNFT.isNestable) {
             // Assumes nestaable NFT is ERC-721 for now
-            getChildrenOfNestableNFT(theNFT.id).then(async (children) => {
+
+            if (await getIsERC721(theNFT))
+              retrieveChildrenOfNestableNFT = getChildrenOfNestableNFT;
+            else
+              retrieveChildrenOfNestableNFT = getChildrenOfNestableERC1155NFT;
+
+            retrieveChildrenOfNestableNFT(theNFT.id).then(async (children) => {
               // Mark this function as async
               for (const child of children) {
                 const nftAddress = getChainIdAddressFromChainIdAndAddress(
@@ -133,18 +152,17 @@ export default function TransferNFT({ nft, open, setOpen }) {
                   address: nftAddress,
                   id: child.tokenId.toString(),
                 };
-                deleteNFT(childNFT); // stop gap until nestable NFT supports ERC-1155
-              }
 
-              deleteNFT(theNFT);
-              setCurrentNFT(null);
+                if (quantity.eq(Zero)) {
+                  deleteNFT(childNFT); // stop gap until nestable NFT supports ERC-1155
+                }
+              }
             });
-          } else {
-            const quantity = await getNFTQuantity(userAuthPub, nft);
-            if (quantity.eq(Zero)) {
-              deleteNFT(nft);
-              setCurrentNFT(null);
-            }
+          }
+
+          if (quantity.eq(Zero)) {
+            deleteNFT(nft);
+            setCurrentNFT(null);
           }
 
           setSubmitText('NFT Transferred!');

@@ -31,6 +31,7 @@ import useUserProfile from '../hooks/useUserProfile';
 import { currentnftmetadata } from '../atoms/nftSlideOverAtom';
 import { Zero, One } from '@ethersproject/constants';
 import { selectedparentnftaddressid } from '../atoms/nestableNFTAtom';
+import { useMintNestableERC1155NFT } from '../blockchain/useMintNestableERC1155NFT';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -63,7 +64,6 @@ const nftInformationDecorator = (information) => {
         key !== 'symbol' &&
         key !== 'summary' &&
         key !== 'attributes' &&
-        key !== 'multiToken' &&
         key !== 'tokenise' &&
         key !== 'subscriptionPlan' &&
         key !== 'holders' &&
@@ -138,7 +138,8 @@ export default function DetailsSidebar({
   const [selectedSubscriptionPlans, setSelectedSubscriptionPlans] = useState(
     [],
   );
-  const { getNFTQuantity } = useMintNFT();
+  const { getIsERC721, getIsERC1155, getIsERC721Address, getIsERC1155Address } =
+    useMintNFT();
   const [getUserProfile] = useUserProfile();
 
   const [openNFTMetaData, setOpenNFTMetaData] = useRecoilState(
@@ -166,6 +167,15 @@ export default function DetailsSidebar({
     getIsOwnNFT,
   } = useMintNestableNFT();
 
+  const {
+    getChildrenOfNestableNFT: getChildrenOfNestableERC1155NFT,
+    addChildToNestableNFT: addChildToNestableERC1155NFT,
+    removeChildFromNestableNFT: removeChildFromNestableERC1155NFT,
+    upgradeToNestableNFT: upgradeToNestableERC1155NFT,
+    getIsOwnNFT: getIsOwnERC1155NFT,
+    getNFTQuantity,
+  } = useMintNestableERC1155NFT();
+
   const [selectedNFTs, setSelectedNFTs] = useRecoilState(nftsselectedaschild);
 
   const getEncKey = useEncKey();
@@ -182,6 +192,19 @@ export default function DetailsSidebar({
   const { upgradeNFTToParent, removeChildNFT, updateNFTToPointToParent } =
     useReplaceNFT();
   const selectedParentNFTAddressId = useRecoilValue(selectedparentnftaddressid);
+  const selectedParentNFTType = useRef();
+
+  useEffect(() => {
+    (async () => {
+      if (await getIsERC721Address(selectedParentNFTAddressId)) {
+        selectedParentNFTType.current = 'ERC721';
+      } else if (await getIsERC1155Address(selectedParentNFTAddressId)) {
+        selectedParentNFTType.current = 'ERC1155';
+      } else {
+        selectedParentNFTType.current = '';
+      }
+    })();
+  }, [selectedParentNFTAddressId]);
 
   useEffect(() => {
     (async () => {
@@ -310,9 +333,7 @@ export default function DetailsSidebar({
         //   console.log('DetailsSidebar: isOwnNFT = ', isOwnNFT);
         // }
 
-        const quantity = nft?.isNestable
-          ? One
-          : await getNFTQuantity(userPub, nft); // stop gap until nestable NFT supports ERC-1155
+        const quantity = await getNFTQuantity(userPub, nft); // stop gap until nestable NFT supports ERC-1155
         setNFTQuantity(quantity);
       } else setNFTQuantity(undefined);
     })();
@@ -364,19 +385,28 @@ export default function DetailsSidebar({
   async function handleUpgradeToNestableNFT() {
     if (!nft) return;
 
-    const { address, id } = await upgradeToNestableNFT(nft);
+    let addressId = {};
+
+    if (await getIsERC721(nft)) {
+      addressId = await upgradeToNestableNFT(nft);
+    } else if (await getIsERC1155(nft)) {
+      const amount = await getNFTQuantity(userAuthPub, nft);
+      addressId = await upgradeToNestableERC1155NFT(nft, amount);
+    } else
+      throw new Error(
+        'DetailsSidebar: handleUpgradeToNestableNFT: NFT is neither ERC721 nor ERC1155',
+      );
 
     console.log(
-      'DetailsSidebar: handleUpgradeToNestableNFT: address = ',
-      address,
+      'DetailsSidebar: handleUpgradeToNestableNFT: addressId = ',
+      addressId,
     );
-    console.log('DetailsSidebar: handleUpgradeToNestableNFT: token id = ', id);
 
     if (process.env.NEXT_PUBLIC_IS_USE_FABSTIRDB === 'true')
-      upgradeNFTToParent(nft, { address, id });
+      upgradeNFTToParent(nft, addressId);
     else {
       // now need to swap NFT address with nestable NFT address in Snaps state
-      const newAddress = `${address}_${id}`;
+      const newAddress = `${addressId.address}_${addressId.id}`;
       await replaceAddress(`${nft.address}_${nft.id}`, newAddress);
     }
 
@@ -443,11 +473,30 @@ export default function DetailsSidebar({
   async function handleRemoveFromNestableNFT() {
     if (!nft) return;
 
-    const { address, id } = await removeChildFromNestableNFT(
-      nft.parentId,
-      nft.address,
-      nft.id,
-    );
+    let addressId = {};
+
+    if (
+      (await getIsERC721(nft)) &&
+      selectedParentNFTType.current === 'ERC721'
+    ) {
+      addressId = await removeChildFromNestableNFT(
+        nft.parentId,
+        nft.address,
+        nft.id,
+      );
+    } else if (
+      (await getIsERC1155(nft)) &&
+      selectedParentNFTType.current === 'ERC1155'
+    ) {
+      addressId = await removeChildFromNestableERC1155NFT(
+        nft.parentId,
+        nft.address,
+        nft.id,
+      );
+    } else
+      throw new Error(
+        'DetailsSidebar: handleUpgradeToNestableNFT: NFT is neither ERC721 nor ERC1155',
+      );
 
     if (process.env.NEXT_PUBLIC_IS_USE_FABSTIRDB === 'true') {
       removeChildNFT(nft, { address: nft.parentAddress, id: nft.parentId });
@@ -464,10 +513,20 @@ export default function DetailsSidebar({
         );
       }
     } else {
-      const newAddress = `${address}_${id}`;
+      const newAddress = `${address.address}_${address.id}`;
       await addAddress(newAddress);
       setCurrentNFT(null);
     }
+  }
+
+  async function filterNFTsByType(nfts, typeChecker) {
+    // Map each NFT to a promise that resolves to true or false based on the type check
+    const checks = await Promise.all(
+      nfts.map(async (nft) => await typeChecker(nft)),
+    );
+
+    // Filter the NFTs based on the checks
+    return nfts.filter((_, index) => checks[index]);
   }
 
   /**
@@ -494,14 +553,37 @@ export default function DetailsSidebar({
       numberOfChildren,
     );
 
-    const theSelectedNFTs = [...selectedNFTs];
+    let theSelectedNFTs;
 
-    for (const selectedNFT of theSelectedNFTs) {
-      const nestableNFT = await addChildToNestableNFT(
-        nft.parentId,
-        0,
-        selectedNFT,
+    if (selectedParentNFTType.current === 'ERC721') {
+      theSelectedNFTs = await filterNFTsByType(selectedNFTs, getIsERC721);
+    } else if (selectedParentNFTType.current === 'ERC1155') {
+      theSelectedNFTs = await filterNFTsByType(selectedNFTs, getIsERC1155);
+    } else {
+      throw new Error(
+        'handleSelectedToParent: selectedParentNFTType.current is neither ERC721 nor ERC1155',
       );
+    }
+
+    let nestableNFT;
+    for (const selectedNFT of theSelectedNFTs) {
+      if (selectedParentNFTType.current === 'ERC721') {
+        nestableNFT = await addChildToNestableNFT(
+          nft.parentId,
+          numberOfChildren,
+          selectedNFT,
+        );
+      } else if (selectedParentNFTType.current === 'ERC1155') {
+        nestableNFT = await addChildToNestableERC1155NFT(
+          nft.parentId,
+          numberOfChildren,
+          selectedNFT,
+          [],
+        );
+      } else
+        throw new Error(
+          'handleSelectedToParent: selectedParentNFTType.current is neither ERC721 nor ERC1155',
+        );
 
       numberOfChildren++;
 

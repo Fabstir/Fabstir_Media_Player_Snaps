@@ -158,7 +158,7 @@ export default function TokenAttributes({ typeValue, setValueTokenData }) {
       <div ref={dropdownRef} className="relative inline-block w-full">
         <input
           readOnly
-          className="w-full truncate bg-fabstir-light-gray py-2 pl-2 pr-8 text-fabstir-light-gray"
+          className="w-full truncate bg-fabstir-light-gray py-2 pl-2 pr-8 text-fabstir-dark-gray"
           value={selectedValue || ''}
           title={selectedValue || ''}
           onClick={() => setIsOpen(!isOpen)}
@@ -168,7 +168,7 @@ export default function TokenAttributes({ typeValue, setValueTokenData }) {
           onClick={() => setIsOpen(!isOpen)}
         />
         {isOpen && (
-          <div className="absolute z-10 w-full border-2 border-fabstir-gray bg-fabstir-gray-700">
+          <div className="absolute z-10 w-full border-2 border-fabstir-gray bg-fabstir-light-gray">
             {options.map((option) => {
               return (
                 <div
@@ -214,7 +214,7 @@ export default function TokenAttributes({ typeValue, setValueTokenData }) {
       {/* <span className="counter">Render Count: {renderCount}</span> */}
       <div>
         <ul>
-          <div className="mt-1 rounded-lg bg-fabstir-light-gray text-fabstir-light-gray">
+          <div className="mt-1 rounded-lg bg-fabstir-light-gray text-fabstir-dark-gray">
             {/* <input {...register('type')} placeholder="Type" /> */}
             {fields.map((item, index) => {
               return (

@@ -94,14 +94,14 @@ export const NFTVideoJS = ({
 
       if (!nft.video) return;
 
-      const prog_index_m3u8_url = await getVideoLinkS5({
+      const videoSources = await getVideoLinkS5({
         key: encKey,
         cidWithoutKey: nft.video,
         metadata,
       });
-      //      if (!prog_index_m3u8_url) return
+      //      if (!videoSources) return
 
-      if (prog_index_m3u8_url !== undefined) setMainSource(prog_index_m3u8_url);
+      if (videoSources !== undefined) setMainSource(videoSources);
 
       const sampleSources = nft.animation_url
         ? await getVideoLinkS5({
@@ -113,7 +113,7 @@ export const NFTVideoJS = ({
       setTrailerSource(sampleSources);
 
       console.log('NFTVideoJS: nft.name useEffect getVideoLink');
-      console.log('NFTVideoJS: prog_index_m3u8_url = ', prog_index_m3u8_url);
+      console.log('NFTVideoJS: videoSources = ', videoSources);
 
       let nftImage;
       if (nft?.backdropImage) nftImage = await getBlobUrl(nft.backdropImage);
@@ -122,7 +122,7 @@ export const NFTVideoJS = ({
 
       console.log('NFTVideoJS: nft.name useEffect getBlobUrl');
 
-      console.log('NFTVideoJS: prog_index_m3u8_url= ', prog_index_m3u8_url);
+      console.log('NFTVideoJS: videoSources= ', videoSources);
 
       const theOptions = {
         // lookup the options in the docs for more options

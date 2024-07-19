@@ -10,7 +10,6 @@ import { encryptWithKey, decryptWithKey } from '../utils/cryptoUtils';
 import { useRecoilValue } from 'recoil';
 import { userauthpubstate } from '../atoms/userAuthAtom';
 import useEncKey from './useEncKey';
-import useMintNestableNFT from '../blockchain/useMintNestableNFT';
 import useMintNFT from '../blockchain/useMintNFT';
 import useCreateNFT from './useCreateNFT';
 import { getNFTAddressId, constructNFTAddressId } from '../utils/nftUtils';
@@ -34,7 +33,6 @@ export default function useNFTMedia() {
   const userAuthPub = useRecoilValue(userauthpubstate);
   const getEncKey = useEncKey();
 
-  const { getIsNestableNFT, getChildrenOfNestableNFT } = useMintNestableNFT();
   const { getIsERC721Address, getIsERC1155 } = useMintNFT();
   const { mutate: createNFT, ...createNFTInfo } = useCreateNFT();
   const uploadEncKey = useUploadEncKey();
@@ -466,7 +464,7 @@ export default function useNFTMedia() {
 
     const addressId = constructNFTAddressId(address, id);
 
-    let nft = true
+    let nft = isERC721
       ? await fetchNFTOnChain(addressId, newReadOnlyContract, downloadFile)
       : await fetchNFT1155OnChain(addressId, newReadOnlyContract, downloadFile);
     nft = { ...nft, id, ...additionalMetaData };
@@ -517,7 +515,12 @@ export default function useNFTMedia() {
     }
   };
 
-  const unlockNestableKeysFromController = async (userPub, nft) => {
+  const unlockNestableKeysFromController = async (
+    userPub,
+    nft,
+    getIsNestableNFT,
+    getChildrenOfNestableNFT,
+  ) => {
     if (await getIsNestableNFT(nft.address)) {
       {
         createNFT(nft);

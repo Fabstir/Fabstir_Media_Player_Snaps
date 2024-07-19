@@ -151,7 +151,6 @@ export default function useMintNFT() {
     //   delete nftMetaData.symbol;
     // }
     delete nftMetaData.supply;
-    delete nftMetaData.multiToken;
     delete nftMetaData.members;
     delete nftMetaData.address;
     delete nftMetaData.tokenise;
@@ -456,6 +455,30 @@ export default function useMintNFT() {
 
   // call ERC-165 supportsInterface
   // return true if interface ERC-1155 is supported
+  const getIsERC1155Address = async (nftAddress: string): Promise<boolean> => {
+    if (!nftAddress) return false;
+
+    const iERC165 = newReadOnlyContract(nftAddress, IERC165.abi);
+
+    console.log('getIsERC1155Address: before getIsERC1155Address result');
+
+    let result;
+    try {
+      result = await iERC165.supportsInterface(erc1155InterfaceId);
+      // Handle success, e.g., console.log(result);
+    } catch (error) {
+      console.error(
+        'getIsERC1155Address: Error checking if the contract supports ERC1155 interface:',
+        error,
+      );
+    }
+    console.log('getIsERC1155Address: getIsERC1155Address result = ', result);
+
+    return result;
+  };
+
+  // call ERC-165 supportsInterface
+  // return true if interface ERC-1155 is supported
   const getIsERC1155 = async (nft: any) => {
     if (!nft?.address) return false;
 
@@ -548,6 +571,7 @@ export default function useMintNFT() {
             recipientAccountAddress,
             nft.id,
             quantity,
+            [],
           ),
           nftAddress,
         ],
@@ -595,6 +619,7 @@ export default function useMintNFT() {
     mintNFT,
     getIsERC721,
     getIsERC721Address,
+    getIsERC1155Address,
     getIsERC1155,
     getIsOwnNFT,
     getOwnNFTs,

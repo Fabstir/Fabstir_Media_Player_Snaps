@@ -63,6 +63,7 @@ import useNFTMedia from '../src/hooks/useNFTMedia';
 import useUserProfile from '../src/hooks/useUserProfile';
 import useDeleteNestableNFT from '../src/hooks/useDeleteNestableNFT';
 import UserProfile from './profile';
+import { useMintNestableERC1155NFT } from '../src/blockchain/useMintNestableERC1155NFT';
 
 type Addresses = {
   [key: string]: any; // Replace `any` with the actual type of the values
@@ -109,8 +110,7 @@ const Index = () => {
     setConnectedChainId,
   } = blockchainContext;
 
-  const useMintNFTResult = useMintNFT();
-  if (!useMintNFTResult) throw new Error('useMintNFTResult is undefined');
+  const { getIsERC721Address } = useMintNFT();
 
   const userPub = useRecoilValue(userpubstate);
   const nfts = useNFTs(userPub);
@@ -170,7 +170,11 @@ const Index = () => {
   const mintNestableNFT = useMintNestableNFT();
   if (!mintNestableNFT) throw new Error('mintNestableNFT is undefined');
 
-  const { getIsNestableNFT } = mintNestableNFT;
+  const { getIsNestableNFT, getChildrenOfNestableNFT } = useMintNestableNFT();
+  const {
+    getIsNestableNFT: getIsNestableERC1155NFT,
+    getChildrenOfNestableNFT: getChildrenOfNestableERC1155NFT,
+  } = useMintNestableERC1155NFT();
 
   const { loginNative } = useNativeAuth();
   const { deleteNestableNFT } = useDeleteNestableNFT();
@@ -291,13 +295,34 @@ const Index = () => {
 
         let nftJSON = {};
 
-        const isNestable = await getIsNestableNFT(address);
-        if (!isNestable) {
-          await unlockVideoFromController(userAuthPub, address, id);
-        } else {
-          let nft = { address, id, isNestable: true };
+        if (await getIsERC721Address(address)) {
+          const isNestable = await getIsNestableNFT(address);
+          if (!isNestable) {
+            await unlockVideoFromController(userAuthPub, address, id);
+          } else {
+            let nft = { address, id, isNestable: true };
 
-          await unlockNestableKeysFromController(userAuthPub, nft);
+            await unlockNestableKeysFromController(
+              userAuthPub,
+              nft,
+              getIsNestableNFT,
+              getChildrenOfNestableNFT,
+            );
+          }
+        } else {
+          const isNestable = await getIsNestableERC1155NFT(address);
+          if (!isNestable) {
+            await unlockVideoFromController(userAuthPub, address, id);
+          } else {
+            let nft = { address, id, isNestable: true, multiToken: true };
+
+            await unlockNestableKeysFromController(
+              userAuthPub,
+              nft,
+              getIsNestableERC1155NFT,
+              getChildrenOfNestableERC1155NFT,
+            );
+          }
         }
 
         console.log('index: handleAddAddress: nftJSON = ', nftJSON);

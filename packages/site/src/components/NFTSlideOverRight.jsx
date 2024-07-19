@@ -127,23 +127,71 @@ const NFTSlideOverRight = ({ encKey }) => {
               </div>
             </div>
             {animationUrlFormats?.length > 0 && (
-              <DropVideo
-                field="animation_url"
-                twStyle="w-1/2 aspect-[3/2]"
-                text="<trailer/short video>"
-                encKey={null}
-                videoFormats={animationUrlFormats}
-                storageNetwork={process.env.NEXT_PUBLIC_DEFAULT_STORAGE_NETWORK}
-              />
+              <div className="grid grid-cols-3 gap-4 sm:gap-7">
+                <div className="col-span-2 w-2/3">
+                  <DropVideo
+                    field="animation_url"
+                    twStyle="aspect-[3/2]"
+                    text="<trailer/short video>"
+                    encKey={null}
+                    videoFormats={animationUrlFormats}
+                    storageNetwork={
+                      process.env.NEXT_PUBLIC_DEFAULT_STORAGE_NETWORK
+                    }
+                  />
+                </div>
+                <div className="col-span-1 col-start-3">
+                  <div className="flex flex-1 flex-col">
+                    <DropAudio
+                      field="animationAudioUrls"
+                      twStyle="aspect-[3/2]"
+                      text="<audio languages>"
+                      encKey={null}
+                      storageNetwork={
+                        process.env.NEXT_PUBLIC_DEFAULT_STORAGE_NETWORK
+                      }
+                    />
+                    <DropFile
+                      field="animationSubtitlesUrl"
+                      twStyle="aspect-[3/2]"
+                      text="<subtitles(.vtt)>"
+                    />
+                  </div>
+                </div>
+              </div>
             )}
             {videoFormats?.length > 0 && (
-              <DropVideo
-                field="video"
-                twStyle="w-2/3 aspect-[16/9]"
-                text="<video>"
-                encKey={encKey}
-                videoFormats={videoFormats}
-              />
+              <div className="grid grid-cols-3 gap-4 sm:gap-7">
+                {/* Ensure the parent div is a flex container */}
+                <div className="col-span-2">
+                  <DropVideo
+                    field="video"
+                    twStyle="aspect-[16/9]" // Ensure it grows to fill 2/3 of the space
+                    text="<video>"
+                    encKey={encKey}
+                    videoFormats={videoFormats}
+                  />
+                </div>
+                <div className="col-span-1 col-start-3">
+                  {/* This div should take up the remaining 1/3 */}
+                  <div className="flex flex-1 flex-col">
+                    <DropAudio
+                      field="audioUrls"
+                      twStyle="aspect-[16/9]" // Ensure it takes full width of its parent
+                      text="<audio languages>"
+                      encKey={null}
+                      storageNetwork={
+                        process.env.NEXT_PUBLIC_DEFAULT_STORAGE_NETWORK
+                      }
+                    />
+                    <DropFile
+                      field="subtitlesUrl"
+                      twStyle="aspect-[3/2]" // Ensure it takes full width of its parent
+                      text="<subtitles(.vtt)>"
+                    />
+                  </div>
+                </div>
+              </div>
             )}
             <h2 className="mt-6 text-center text-2xl font-bold text-gray-700">
               Genres

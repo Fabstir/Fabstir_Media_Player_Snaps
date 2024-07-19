@@ -20,10 +20,13 @@ export default function useReplaceNFT() {
 
     createNFT(updatedNFT);
 
-    const updatedNewNFT = {
+    let updatedNewNFT = {
       ...newNFT,
       isNestable: true,
     };
+
+    if (oldNFT.multiToken)
+      updatedNewNFT = { ...updatedNewNFT, multiToken: oldNFT.multiToken };
 
     createNFT(updatedNewNFT);
 

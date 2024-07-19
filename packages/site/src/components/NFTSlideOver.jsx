@@ -32,10 +32,13 @@ let defaultFormValues = {
   musicGenres: [],
   image: '',
   lyricsUrl: '',
+  subtitlesUrl: '',
+  audioUrls: '',
   multiToken: false,
   tokenise: false,
   deployed: false,
   isPublic: false,
+  isNestable: false,
 };
 
 /**
@@ -145,9 +148,12 @@ const NFTSlideOver = ({
       }),
     animation_url: yup.string().notRequired(),
     lyricsUrl: yup.string().notRequired(),
+    subtitlesUrl: yup.string().notRequired(),
+    audioUrls: yup.string().notRequired(),
     isPublic: yup.boolean().required('Choice of public or private is required'),
     multiToken: yup.boolean().notRequired(),
     deployed: yup.boolean().notRequired(),
+    isNestable: yup.boolean().notRequired(),
   });
 
   /**

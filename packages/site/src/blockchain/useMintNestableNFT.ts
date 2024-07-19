@@ -60,11 +60,7 @@ export default function useMintNestableNFT() {
     getChainIdAddressFromChainIdAndAddress,
   } = useContractUtils();
 
-  const mintNFT = useMintNFT();
-  const getIsERC721Address = mintNFT?.getIsERC721Address;
-  const getIsERC721 = mintNFT.getIsERC721;
-  const getIsERC1155 = mintNFT.getIsERC1155;
-
+  const { getIsERC721Address, getIsERC721, getIsERC1155 } = useMintNFT();
   const [getUserProfile] = useUserProfile();
 
   const accountAbstractionPayment = useAccountAbstractionPayment(
@@ -280,7 +276,7 @@ export default function useMintNestableNFT() {
     const signer = smartAccountProvider.getSigner();
     const signerAddress = await signer.getAddress();
 
-    if (await mintNFT.getIsOwnNFT(signerAddress, nft)) {
+    if (await getIsOwnNFT(signerAddress, nft)) {
       console.log('useMintNestableNFT: NFT is already owned by signer');
     } else throw new Error('useMintNestableNFT: NFT is not owned by signer');
 
@@ -684,16 +680,6 @@ export default function useMintNestableNFT() {
         console.error(`getIsOwnNFT: Failed to get owner of token: ${error}`);
         // Handle the error appropriately here
       }
-    } else if (await getIsERC1155(nft)) {
-      const tipERC1155 = newReadOnlyContract(nft.address, TipERC1155.abi);
-      try {
-        isOwnNFT = (await tipERC1155.balanceOf(userAccountAddress, nft.id)) > 0;
-      } catch (error) {
-        console.error(
-          `getIsOwnNFT: Failed to get whether owner of token: ${error}`,
-        );
-        // Handle the error appropriately here
-      }
     }
 
     console.log('getIsOwnNFT: isOwnNFT = ', isOwnNFT);
@@ -711,12 +697,6 @@ export default function useMintNestableNFT() {
     } else if (await getIsERC721(nft)) {
       const isOwnNFT = await getIsOwnNFT(userAuthProfile.accountAddress, nft);
       if (isOwnNFT) quantity = 1;
-    } else if (await getIsERC1155(nft)) {
-      const tipERC1155 = newReadOnlyContract(nft.address, TipERC1155.abi);
-      quantity = await tipERC1155.balanceOf(
-        userAuthProfile.accountAddress,
-        nft.id,
-      );
     }
 
     console.log('getNFTQuantity: quantity = ', quantity);

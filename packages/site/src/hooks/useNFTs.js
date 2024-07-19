@@ -14,12 +14,14 @@ import useMintNestableNFT from '../blockchain/useMintNestableNFT';
 import useReplaceNFT from './useReplaceNFT.js';
 import useContractUtils from '../blockchain/useContractUtils';
 import { parseArrayProperties } from '../utils/stringifyProperties';
+import { useMintNestableERC1155NFT } from '../blockchain/useMintNestableERC1155NFT';
 
 const swapAnyNestableNFTWithFirstChild = async (
   userPub,
   nfts,
   getIsNestableNFT,
-  getChildrenOfNestableNFT,
+  getChildrenOfNestable721NFT,
+  getChildrenOfNestable1155NFT,
   selectedParentNFTAddressId,
   newReadOnlyContract,
   getChainIdFromChainIdAddress,
@@ -85,7 +87,9 @@ const swapAnyNestableNFTWithFirstChild = async (
           const modelUris = await getModelUrisFromNestedNFT(
             userPub,
             parentId,
-            getChildrenOfNestableNFT,
+            childNFT.multiToken
+              ? getChildrenOfNestableERC1155NFT
+              : getChildrenOfNestableERC721NFT,
           );
           if (modelUris && modelUris.length > 0) {
             childNFT.fileUrls.push(...modelUris);
@@ -95,7 +99,8 @@ const swapAnyNestableNFTWithFirstChild = async (
 
       updatedNFTs.push({ ...childNFT, isNestable });
     } else {
-      if (!nft.parentId || nft.parentId === parentId) updatedNFTs.push(nft);
+      if (!nft.parentId || Number(nft.parentId) === Number(parentId))
+        updatedNFTs.push(nft);
     }
   }
 
@@ -168,10 +173,12 @@ export const fetchNFTs = async (
   getUserProfile,
   getOwnNFTs,
   getIsNestableNFT,
-  getChildrenOfNestableNFT,
+  getChildrenOfNestable721NFT,
+  getChildrenOfNestable1155NFT,
   newReadOnlyContract,
   getChainIdFromChainIdAddress,
   getChainIdAddressFromChainIdAndAddress,
+  getIsERC1155Address,
 ) => {
   console.log('useNFTs: userPub = ', userPub);
 
@@ -200,7 +207,9 @@ export const fetchNFTs = async (
     console.log('useNFTs: parentAddress = ', parentAddress);
     console.log('useNFTs: parentId = ', parentId);
 
-    const children = await getChildrenOfNestableNFT(parentId);
+    const children = (await getIsERC1155Address(parentAddress))
+      ? await getChildrenOfNestable1155NFT(parentId)
+      : await getChildrenOfNestable721NFT(parentId);
     console.log('useNFTs: children = ', children);
 
     const nfts = [];
@@ -228,7 +237,8 @@ export const fetchNFTs = async (
     userPub,
     ownNFTs,
     getIsNestableNFT,
-    getChildrenOfNestableNFT,
+    getChildrenOfNestable721NFT,
+    getChildrenOfNestable1155NFT,
     selectedParentNFTAddressId,
     newReadOnlyContract,
     getChainIdFromChainIdAddress,
@@ -239,10 +249,14 @@ export const fetchNFTs = async (
 };
 
 export default function useNFTs(userPub) {
-  const { getOwnNFTs } = useMintNFT();
+  const { getOwnNFTs, getIsERC1155Address } = useMintNFT();
   const [getUserProfile] = useUserProfile();
 
-  const { getChildrenOfNestableNFT } = useMintNestableNFT();
+  const { getChildrenOfNestableNFT: getChildrenOfNestable721NFT } =
+    useMintNestableNFT();
+  const { getChildrenOfNestableNFT: getChildrenOfNestable1155NFT } =
+    useMintNestableERC1155NFT();
+
   const { getIsNestableNFT } = useReplaceNFT();
 
   const selectedParentNFTAddressId = useRecoilValue(selectedparentnftaddressid);
@@ -261,10 +275,12 @@ export default function useNFTs(userPub) {
         getUserProfile,
         getOwnNFTs,
         getIsNestableNFT,
-        getChildrenOfNestableNFT,
+        getChildrenOfNestable721NFT,
+        getChildrenOfNestable1155NFT,
         newReadOnlyContract,
         getChainIdFromChainIdAddress,
         getChainIdAddressFromChainIdAndAddress,
+        getIsERC1155Address,
       );
     else return [];
   });
