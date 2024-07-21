@@ -15,7 +15,9 @@ import mime from 'mime/lite';
  * @returns {Object} - The S5 network object.
  */
 export default function useS5net() {
-  const headers = {};
+  const headers = {
+    'Content-Type': 'text/plain; charset=UTF-8',
+  };
   const customClientOptions = {
     authToken: process.env.NEXT_PUBLIC_PORTAL_AUTH_TOKEN,
     headers,

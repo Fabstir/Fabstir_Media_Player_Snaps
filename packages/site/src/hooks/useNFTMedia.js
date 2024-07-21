@@ -22,9 +22,14 @@ import { fetchNFTOnChain, fetchNFT1155OnChain } from '../hooks/useNFT';
 import useFabstirController from './useFabstirController';
 
 /**
- * A custom React hook that returns the S5 network object.
+ * Custom React hook for fetching and managing NFT media data.
  *
- * @returns {Object} - The S5 network object.
+ * This hook is designed to abstract the complexities involved in fetching and managing media data
+ * associated with Non-Fungible Tokens (NFTs). It provides a simplified interface for retrieving media
+ * information, handling loading states, and managing errors that may occur during the data fetching process.
+ * Ideal for use in components that display NFT media or require information about NFT assets.
+ *
+ * @returns {Object} An object containing NFT media data, loading state, and any errors encountered.
  */
 export default function useNFTMedia() {
   const blockchainContext = useContext(BlockchainContext);
@@ -84,6 +89,27 @@ export default function useNFTMedia() {
       console.error('Failed to parse metaData:', error);
       return {};
     }
+  }
+
+  /**
+   * Checks if the provided metadata contains any media entries
+   *
+   * This function iterates through an array of metadata objects,
+   * and determines if there is at least one entry without a 'kind' property defined. It is useful
+   * for identifying metadata entries that are not additional VideoJS foreign audio or subtitle tracks
+   * and assumes therefore that they are media format entries.
+   *
+   * @param {Array<Object>} metaData - An array of metadata objects to be checked.
+   * @returns {boolean} Returns `true` if there is at least one metadata entry without a 'kind' property, otherwise `false`.
+   */
+  function hasMetadataMedia(metaData) {
+    if (!metaData || metaData.length === 0) return false;
+
+    for (const mediaFormat of metaData) {
+      if (!mediaFormat.kind) return true;
+    }
+
+    return false;
   }
 
   /**
@@ -260,7 +286,8 @@ export default function useNFTMedia() {
 
         const metadata = data.metadata ? JSON.parse(data.metadata) : null;
         console.log('getTranscodedMetadata: metadata =', metadata);
-        return metadata;
+
+        return Object.values(metadata);
       }
     } catch (error) {
       // Network errors or other unexpected issues. Propagate the error to the caller.
@@ -269,6 +296,17 @@ export default function useNFTMedia() {
     }
   }
 
+  /**
+   * Asynchronously retrieves the transcoding progress of a given task.
+   *
+   * This function is designed to query the status of a video transcoding task by its unique identifier (taskId).
+   * It can be used in applications that require monitoring the progress of video processing operations, such as
+   * converting video formats or resolutions. This is particularly useful in platforms that manage or distribute
+   * digital media content, allowing for real-time updates on transcoding tasks.
+   *
+   * @param {string} taskId - The unique identifier of the transcoding task.
+   * @returns {Promise<number>} A promise that resolves to the current progress of the transcoding task, represented as a percentage.
+   */
   async function getTranscodeProgress(taskId) {
     if (!taskId) return;
 
@@ -374,7 +412,8 @@ export default function useNFTMedia() {
   }
 
   /**
-   * Gets the metadata for a file or directory in the S5 network.
+   * Gets the metadata for a media file or directory from a particular user.
+   * With a valid key, the metadata is decrypted and returned.
    *
    * @param {String} cid - The CID of the file or directory.
    * @returns {Promise} - A promise that resolves with the metadata object.
@@ -449,6 +488,17 @@ export default function useNFTMedia() {
     return nftsMedia;
   };
 
+  /**
+   * Asynchronously unlocks a video from its controller.
+   *
+   * This function is designed to interact with a smart contract or a controller to unlock access to a
+   * video. It is typically used in scenarios where video content is locked behind a paywall or requires
+   * specific permissions to access. The unlocking process may involve transactions on the blockchain,
+   * verifying ownership of tokens, or other forms of digital rights management.
+   *
+   * @async
+   * @returns {Promise<void>} A promise that resolves once the video has been successfully unlocked.
+   */
   const unlockVideoFromController = async (
     userPub,
     address,
@@ -515,6 +565,17 @@ export default function useNFTMedia() {
     }
   };
 
+  /**
+   * Asynchronously unlocks nestable keys from a controller.
+   *
+   * This function is designed to interact with a controller (e.g., a smart contract) to unlock access to
+   * nestable keys. These keys may be used to access or modify nested structures within a digital asset,
+   * such as a nestable NFT. The unlocking process may involve blockchain transactions, verifying ownership
+   * of certain tokens, or other forms of digital rights management.
+   *
+   * @async
+   * @returns {Promise<void>} A promise that resolves once the nestable keys have been successfully unlocked.
+   */
   const unlockNestableKeysFromController = async (
     userPub,
     nft,
@@ -548,6 +609,7 @@ export default function useNFTMedia() {
   return {
     getMetadata,
     putMetadata,
+    hasMetadataMedia,
     getNFTsMedia,
     putNFTsMedia,
     getTranscodePending,

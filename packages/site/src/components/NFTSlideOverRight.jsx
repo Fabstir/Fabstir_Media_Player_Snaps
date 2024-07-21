@@ -127,8 +127,8 @@ const NFTSlideOverRight = ({ encKey }) => {
               </div>
             </div>
             {animationUrlFormats?.length > 0 && (
-              <div className="grid grid-cols-3 gap-4 sm:gap-7">
-                <div className="col-span-2 w-2/3">
+              <div className="grid grid-cols-4 gap-4 sm:gap-7">
+                <div className="col-span-2">
                   <DropVideo
                     field="animation_url"
                     twStyle="aspect-[3/2]"
@@ -140,23 +140,25 @@ const NFTSlideOverRight = ({ encKey }) => {
                     }
                   />
                 </div>
-                <div className="col-span-1 col-start-3">
-                  <div className="flex flex-1 flex-col">
-                    <DropAudio
-                      field="animationAudioUrls"
-                      twStyle="aspect-[3/2]"
-                      text="<audio languages>"
-                      encKey={null}
-                      storageNetwork={
-                        process.env.NEXT_PUBLIC_DEFAULT_STORAGE_NETWORK
-                      }
-                    />
-                    <DropFile
-                      field="animationSubtitlesUrl"
-                      twStyle="aspect-[3/2]"
-                      text="<subtitles(.vtt)>"
-                    />
-                  </div>
+                <div className="col-span-1">
+                  <DropAudio
+                    field="animationAudioUrls"
+                    twStyle="aspect-[3/2]"
+                    text="<audio languages>"
+                    encKey={null}
+                    storageNetwork={
+                      process.env.NEXT_PUBLIC_DEFAULT_STORAGE_NETWORK
+                    }
+                  />
+                </div>
+                <div className="col-span-1">
+                  <DropFile
+                    field="animationSubtitlesUrl"
+                    fieldName="fileNames"
+                    twStyle="w-2/3 aspect-[2/3]"
+                    text="<subtitles(.vtt)>"
+                    maxNumberOfFiles={100}
+                  />
                 </div>
               </div>
             )}
@@ -186,8 +188,10 @@ const NFTSlideOverRight = ({ encKey }) => {
                     />
                     <DropFile
                       field="subtitlesUrl"
-                      twStyle="aspect-[3/2]" // Ensure it takes full width of its parent
+                      fieldName="fileNames"
+                      twStyle="w-2/3 aspect-[2/3]"
                       text="<subtitles(.vtt)>"
+                      maxNumberOfFiles={100}
                     />
                   </div>
                 </div>

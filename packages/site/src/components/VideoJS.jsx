@@ -1,24 +1,26 @@
 import React, { useEffect, useRef, useState } from 'react';
 import videojs from 'video.js';
-import '../../../../node_modules/video.js/dist/video-js.css';
-import { SpeakerXMarkIcon, SpeakerWaveIcon } from 'heroiconsv2/24/outline';
+import 'video.js/dist/video-js.css';
+import { SpeakerXMarkIcon, SpeakerWaveIcon } from '@heroicons/react/24/outline';
 
 /**
- * VideoJS is a React component that integrates the Video.js library for video playback. It supports both video and audio media types,
- * allows for the dynamic switching of video sources based on user interaction, and provides a custom mute/unmute button with hover effects.
- * The component initializes a Video.js player instance, configures it based on the provided options, and manages its lifecycle within the React component's lifecycle.
- * It also handles the logic for playing a trailer source on hover when the main video is not playing and switches back to the main source when the video is clicked to play.
- * Additionally, it includes logic for muting and unmuting the player with a custom button and dynamically loads the videojs-resolution-switcher plugin for resolution switching.
+ * Renders a VideoJS player component with configurable options.
  *
- * @param {Object} props - The component props.
- * @param {Object} props.options - Configuration options for the Video.js player.
- * @param {Function} props.onReady - Callback function that is called when the Video.js player is ready.
- * @param {boolean} props.isAudio - Flag to indicate if the current media is audio. Adjusts UI accordingly.
- * @param {string} props.trailerSource - The source URL of the trailer video. Used for hover play functionality.
- * @param {string} props.mainSource - The source URL of the main video or audio.
- * @param {boolean} props.isPlayClicked - State to control play/pause based on user interaction outside the component.
- * @param {Function} props.setIsPlayClicked - Setter function for the `isPlayClicked` state.
- * @returns {React.ReactElement} The rendered component.
+ * This component integrates VideoJS to provide a rich video or audio player experience. It supports
+ * dynamic source switching between a trailer and the main content, based on user interaction. Additionally,
+ * it allows for the inclusion of subtitle tracks for both the trailer and the main content.
+ *
+ * @param {Object} props - The properties passed to the VideoJS component.
+ * @param {Object} props.options - The configuration options for the VideoJS player.
+ * @param {Function} props.onReady - Callback function that is called when the player is ready.
+ * @param {boolean} props.isAudio - Determines if the player should be in audio mode.
+ * @param {string} props.trailerSource - The source URL of the trailer video or audio.
+ * @param {string} props.mainSource - The source URL of the main video or audio content.
+ * @param {boolean} props.isPlayClicked - State to track if play has been clicked, used to switch sources.
+ * @param {Function} props.setIsPlayClicked - Function to update the isPlayClicked state.
+ * @param {Array<Object>} props.trailerSubtitleTracks - Subtitle tracks for the trailer.
+ * @param {Array<Object>} props.mainSubtitleTracks - Subtitle tracks for the main content.
+ * @returns {JSX.Element} The VideoJS player component.
  */
 const VideoJS = ({
   options,
@@ -28,12 +30,26 @@ const VideoJS = ({
   mainSource,
   isPlayClicked,
   setIsPlayClicked,
+  trailerSubtitleTracks,
+  mainSubtitleTracks,
 }) => {
   const videoRef = useRef(null);
   const playerRef = useRef(null);
   const [isMuted, setIsMuted] = useState(true);
   const isMouseOverUnmute = useRef(false);
 
+  /**
+   * Chooses the video source based on the play button click status.
+   *
+   * This function determines which video source to use (main content or trailer) based on whether the
+   * play button has been clicked. It is designed to switch the video source from the trailer to the main
+   * content once the user initiates playback.
+   *
+   * @param {boolean} isPlayClicked - A boolean indicating if the play button has been clicked.
+   * @param {string} mainSource - The URL of the main video content.
+   * @param {string} trailerSource - The URL of the trailer video content.
+   * @returns {string} The URL of the video source to be used.
+   */
   const chooseSource = (isPlayClicked, mainSource, trailerSource) => {
     return mainSource && trailerSource
       ? isPlayClicked
@@ -44,7 +60,18 @@ const VideoJS = ({
         : trailerSource;
   };
 
-  // Initialize or update the player
+  const chooseSubtitleTracks = (isPlayClicked, mainTracks, trailerTracks) => {
+    return isPlayClicked ? mainTracks : trailerTracks;
+  };
+
+  /**
+   * Initializes and configures the VideoJS player.
+   *
+   * This function is responsible for setting up the VideoJS player within the component. It includes
+   * configuration steps such as loading the video or audio source, applying subtitles if available,
+   * and attaching event listeners for player events. This setup is crucial for ensuring that the player
+   * behaves as expected in different scenarios, such as switching between the trailer and the main content.
+   */
   const setupPlayer = () => {
     if (videoRef.current && !playerRef.current) {
       const videoElement = videoRef.current;
@@ -68,11 +95,17 @@ const VideoJS = ({
             );
           }
 
-          options.sources = mainSource;
-
           const player = (playerRef.current = videojs(
             videoElement,
-            options,
+            {
+              ...options,
+              sources: chooseSource(isPlayClicked, mainSource, trailerSource),
+              tracks: chooseSubtitleTracks(
+                isPlayClicked,
+                mainSubtitleTracks,
+                trailerSubtitleTracks,
+              ),
+            },
             () => {
               videojs.log('player is ready');
               onReady && onReady(player);
@@ -86,6 +119,61 @@ const VideoJS = ({
                   'VideoJS: Plugin has not been registered to the player',
                 );
               }
+
+              player.ready(() => {
+                const subtitleButton = player.controlBar.addChild('button', {
+                  clickHandler: function () {
+                    const currentTracks = player.textTracks();
+                    const menu = player.createMenu();
+
+                    menu.addItem(
+                      new videojs.MenuItem(player, {
+                        label: 'Off',
+                        selected: true,
+                        clickHandler: () => {
+                          currentTracks.forEach((track) => {
+                            track.mode = 'disabled';
+                          });
+                          player.trigger('texttrackchange');
+                        },
+                      }),
+                    );
+
+                    for (let i = 0; i < currentTracks.length; i++) {
+                      const track = currentTracks[i];
+                      if (
+                        track.kind === 'subtitles' ||
+                        track.kind === 'captions'
+                      ) {
+                        menu.addItem(
+                          new videojs.MenuItem(player, {
+                            label: track.label,
+                            selected: track.mode === 'showing',
+                            clickHandler: () => {
+                              currentTracks.forEach((t) => {
+                                t.mode = t === track ? 'showing' : 'disabled';
+                              });
+                              player.trigger('texttrackchange');
+                            },
+                          }),
+                        );
+                      }
+                    }
+
+                    const menuButton = new videojs.MenuButton(player, {
+                      menu: menu,
+                    });
+                    menuButton.el().appendChild(menu.el());
+                    this.appendChild(menuButton.el());
+
+                    // Prevent menu from closing immediately
+                    menuButton.on('click', function (event) {
+                      event.stopPropagation();
+                    });
+                  },
+                  text: 'Subtitles',
+                });
+              });
             },
           ));
 
@@ -113,22 +201,12 @@ const VideoJS = ({
 
   useEffect(() => {
     if (playerRef.current) {
-      // Attach play and pause event listeners to handle play state
-      // playerRef.current.on('play', () => {
-      //   if (!isPlayClicked) {
-      //     // Prevents setting isPlayClicked to true if the play event was triggered by hover
-      //     setIsPlayClicked(true)
-      //   }
-      // })
-
       playerRef.current.on('ended', () => {
-        // Consider what should happen when the video ends. Should isPlayClicked be false?
         setIsPlayClicked(false);
       });
     }
 
     return () => {
-      // Cleanup event listeners
       if (playerRef.current) {
         playerRef.current.off('play');
         playerRef.current.off('pause');
@@ -148,23 +226,22 @@ const VideoJS = ({
         playerRef.current = null;
       }
     };
-  }, []); // Run once on mount
+  }, []);
 
   useEffect(() => {
     if (!trailerSource) return;
 
-    // Hover logic to play/pause trailer
     const videoElement = videoRef.current;
     let hoverTimeout;
 
     if (!isPlayClicked && videoElement) {
       const playTrailer = () => {
         console.log('VideoJS1: playTrailer called');
-        // Delay playing the trailer to minimize flickering
         hoverTimeout = setTimeout(() => {
-          if (!isPlayClicked) {
+          if (!isPlayClicked && playerRef.current) {
             console.log('VideoJS1: play1');
             playerRef.current.src(trailerSource);
+            updateSubtitleTracks(trailerSubtitleTracks);
             playerRef.current.play();
           }
         }, 400);
@@ -173,8 +250,12 @@ const VideoJS = ({
       const pauseTrailer = () => {
         if (!isPlayClicked) {
           console.log('VideoJS1: pauseTrailer called');
-          clearTimeout(hoverTimeout); // Prevent delayed play action if mouse leaves early
-          if (!isMouseOverUnmute.current && !isPlayClicked) {
+          clearTimeout(hoverTimeout);
+          if (
+            !isMouseOverUnmute.current &&
+            !isPlayClicked &&
+            playerRef.current
+          ) {
             console.log(
               'VideoJS1: pauseTrailer: currentTime',
               playerRef.current.currentTime(),
@@ -194,19 +275,61 @@ const VideoJS = ({
         };
       }
     }
-  }, [isPlayClicked, trailerSource, options]); // React to changes in isPlayClicked
+  }, [isPlayClicked, trailerSource, trailerSubtitleTracks, options]);
+
+  /**
+   * Updates the subtitle tracks for the VideoJS player.
+   *
+   * This function is responsible for dynamically updating the subtitle tracks of the VideoJS player instance.
+   * It can be used to add, remove, or modify the subtitle tracks based on user interaction or other criteria.
+   * This is particularly useful for applications that need to support multiple languages or provide additional
+   * accessibility features.
+   *
+   * @param {Array<Object>} tracks - An array of subtitle track objects to be updated in the player. Each object
+   *                                 should contain properties required by VideoJS for subtitle tracks, such as
+   *                                 src (source URL), kind, label, and srclang (language code).
+   */
+  const updateSubtitleTracks = (tracks) => {
+    if (playerRef.current) {
+      const currentTracks = playerRef.current.textTracks();
+
+      // Remove existing tracks
+      for (let i = currentTracks.length - 1; i >= 0; i--) {
+        playerRef.current.removeRemoteTextTrack(currentTracks[i]);
+      }
+
+      // Add new tracks
+      tracks?.forEach((track) => {
+        playerRef.current.addRemoteTextTrack(track, false);
+      });
+    }
+  };
 
   useEffect(() => {
     if (playerRef.current) {
       const newSource = chooseSource(isPlayClicked, mainSource, trailerSource);
+      const newTracks = chooseSubtitleTracks(
+        isPlayClicked,
+        mainSubtitleTracks,
+        trailerSubtitleTracks,
+      );
+
       playerRef.current.src(newSource);
+      updateSubtitleTracks(newTracks);
+
       if (isPlayClicked) {
         console.log('VideoJS1: play damn mainSource', mainSource);
         console.log('VideoJS1: play2');
         playerRef.current.play();
       }
     }
-  }, [isPlayClicked, mainSource, trailerSource, options]);
+  }, [
+    isPlayClicked,
+    mainSource,
+    trailerSource,
+    mainSubtitleTracks,
+    trailerSubtitleTracks,
+  ]);
 
   useEffect(() => {
     if (!trailerSource) return;
@@ -215,13 +338,11 @@ const VideoJS = ({
     if (videoPlayerEl && playerRef.current) {
       const handleMouseEnter = () => {
         if (!isPlayClicked) {
-          // Hide control bar if the main video is not playing
           playerRef.current.controlBar.hide();
         }
       };
       const handleMouseLeave = () => {
         if (!isPlayClicked) {
-          // Optionally, hide control bar on mouse leave if needed
           playerRef.current.controlBar.hide();
         }
       };
@@ -240,13 +361,11 @@ const VideoJS = ({
     if (!trailerSource) return;
 
     if (playerRef.current) {
-      // Listen to the 'ended' event for mainSource
       playerRef.current.on('ended', () => {
         if (isPlayClicked) {
-          // Check if the ended source was mainSource
-          setIsPlayClicked(false); // Reset playClicked to switch to trailerSource
-          // Switch to trailerSource and seek to the last known time
+          setIsPlayClicked(false);
           playerRef.current.src(trailerSource);
+          updateSubtitleTracks(trailerSubtitleTracks);
         }
       });
     }
@@ -256,24 +375,22 @@ const VideoJS = ({
         playerRef.current.off('ended');
       }
     };
-  }, [isPlayClicked, trailerSource, setIsPlayClicked, options]);
+  }, [isPlayClicked, trailerSource, setIsPlayClicked, trailerSubtitleTracks]);
 
   useEffect(() => {
-    // Assuming playerRef.current is already initialized at this point
     const isInitiallyMuted = playerRef.current
       ? playerRef.current.muted()
       : true;
-    setIsMuted(isInitiallyMuted); // Initialize mute state based on player's current state
+    setIsMuted(isInitiallyMuted);
   }, []);
 
   useEffect(() => {
     if (!trailerSource) return;
 
     if (playerRef.current) {
-      // Unmute when switching to mainSource, respect mute state for trailerSource
       playerRef.current.muted(isPlayClicked ? false : isMuted);
     }
-  }, [isPlayClicked, isMuted, options]);
+  }, [isPlayClicked, isMuted, trailerSource]);
 
   const UnmuteButton = () => (
     <div className="absolute bottom-7 right-6 z-20">
@@ -286,7 +403,7 @@ const VideoJS = ({
           width: '40px',
           height: '40px',
           borderRadius: '50%',
-          backgroundColor: 'rgba(75, 85, 99, 0.5)', // This is Tailwind's gray-700 at 50% opacity
+          backgroundColor: 'rgba(75, 85, 99, 0.5)',
           backdropFilter: 'blur(10px)',
           border: 'none',
           cursor: 'pointer',
@@ -321,18 +438,17 @@ const VideoJS = ({
 
   const stopVideo = () => {
     if (playerRef.current) {
-      playerRef.current.pause(); // Pause the video
-      playerRef.current.currentTime(0); // Reset the time to the beginning
+      playerRef.current.pause();
+      playerRef.current.currentTime(0);
       setIsPlayClicked(false);
     }
   };
 
-  // When leaving this page, setIsPlayClicked to false
   useEffect(() => {
     setIsPlayClicked(false);
 
     return () => {
-      stopVideo(); // Stop the video when the component is about to unmount or when dependencies change
+      stopVideo();
     };
   }, [options]);
 

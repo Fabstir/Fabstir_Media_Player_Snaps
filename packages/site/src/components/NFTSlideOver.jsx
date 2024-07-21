@@ -13,6 +13,7 @@ import { currentnftmetadata } from '../atoms/nftSlideOverAtom';
 import useUploadEncKey from '../hooks/useUploadEncKey';
 import { getNFTAddressId } from '../utils/nftUtils';
 import { userauthpubstate } from '../atoms/userAuthAtom';
+import useNFTMedia from '../hooks/useNFTMedia';
 
 /**
  * Default values for the form fields.
@@ -32,7 +33,8 @@ let defaultFormValues = {
   musicGenres: [],
   image: '',
   lyricsUrl: '',
-  subtitlesUrl: '',
+  animationSubtitlesUrl: [],
+  subtitlesUrl: [],
   audioUrls: '',
   multiToken: false,
   tokenise: false,
@@ -79,6 +81,8 @@ const NFTSlideOver = ({
   clearOnSubmit,
   setRerenderUserNFTs,
 }) => {
+  const { putMetadata } = useNFTMedia();
+
   const summaryMax = 250;
   const descriptionMax = 4000;
   const symbolMax = 10;
@@ -147,8 +151,9 @@ const NFTSlideOver = ({
         otherwise: () => yup.array(),
       }),
     animation_url: yup.string().notRequired(),
+    animationSubtitlesUrl: yup.array().notRequired(),
     lyricsUrl: yup.string().notRequired(),
-    subtitlesUrl: yup.string().notRequired(),
+    subtitlesUrl: yup.array().notRequired(),
     audioUrls: yup.string().notRequired(),
     isPublic: yup.boolean().required('Choice of public or private is required'),
     multiToken: yup.boolean().notRequired(),
@@ -182,6 +187,27 @@ const NFTSlideOver = ({
   useEffect(() => {
     setSubmitText('Create NFT');
   }, [open, setSubmitText]);
+
+  function getCidArrayToSubtitleTracks(cidArray) {
+    const subtitleTracks = [];
+    cidArray.forEach((cid) => {
+      const filename = cid.split('<<')[1].split('>>')[0];
+      const srclang = filename.substring(
+        filename.lastIndexOf('_') + 1,
+        filename.lastIndexOf('.'),
+      );
+      const label = srclang;
+
+      subtitleTracks.push({
+        kind: 'subtitles',
+        cid,
+        srclang,
+        label,
+      });
+    });
+
+    return subtitleTracks;
+  }
 
   /**
    * The function to handle form submission.
@@ -241,7 +267,26 @@ const NFTSlideOver = ({
       });
     }
 
-    createNFT({ ...nft.current, encKey: encKey.current });
+    if (data.animation_url && data.animationSubtitlesUrl?.length > 0) {
+      const animationSubtitleTracksArray = getCidArrayToSubtitleTracks(
+        data.animationSubtitlesUrl,
+      );
+      await putMetadata(null, data.animation_url, animationSubtitleTracksArray);
+    } else delete nft.current.animationSubtitlesUrl;
+
+    if (data.video && data.subtitlesUrl?.length > 0) {
+      const subtitleTracksArray = getCidArrayToSubtitleTracks(
+        data.subtitlesUrl,
+      );
+      await putMetadata(
+        encKey?.current ? encKey?.current : null,
+        data.video,
+        subtitleTracksArray,
+      );
+    } else delete nft.current.subtitlesUrl;
+
+    const nftMetadata = { ...nft.current, encKey: encKey.current };
+    createNFT(nftMetadata);
 
     if (encKey) encKey.current = '';
 

@@ -67,7 +67,7 @@ const DropVideo = ({
   const { uploadFile } = usePortal(storageNetwork);
   const { transcodeVideo } = useTranscodeVideo();
 
-  const { putMetadata, getTranscodeProgress } = useNFTMedia();
+  const { getTranscodeProgress } = useNFTMedia();
 
   const [ffmpegProgress, setFFMPEGProgress] = useState(0);
   const intervalRef = useRef(); // Create a ref to store the interval ID
@@ -101,11 +101,9 @@ const DropVideo = ({
       console.log('DropVideo: cidWithoutKey = ', cidWithoutKey);
       console.log('DropVideo: key = ', key);
 
-      await putMetadata(key, cidWithoutKey, []);
       setValue(field, cidWithoutKey, true);
     } else {
       const sourceCIDWithoutExtension = removeExtensionFromCid(sourceCID);
-      await putMetadata(null, sourceCIDWithoutExtension, []);
       setValue(field, sourceCIDWithoutExtension, false);
 
       console.log(
