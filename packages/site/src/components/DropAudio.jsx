@@ -1,8 +1,8 @@
 /* This example requires Tailwind CSS v2.0+ */
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useFormContext } from 'react-hook-form';
-import useTranscodeAudioS5 from '../hooks/useTranscodeAudioS5';
+import useTranscodeAudio from '../hooks/useTranscodeAudio';
 import { useRecoilState } from 'recoil';
 import usePortal from '../hooks/usePortal';
 import { ffmpegprogressstate } from '../atoms/ffmpegAtom';
@@ -13,6 +13,8 @@ import {
 import { Input } from '../ui-components/input';
 import useNFTMedia from '../hooks/useNFTMedia';
 
+const PROGRESS_UPDATE_INTERVAL = 500;
+
 const ProgressBar = ({ progressPercentage }) => {
   return (
     <div className="h-2 w-full bg-fabstir-blue">
@@ -20,19 +22,34 @@ const ProgressBar = ({ progressPercentage }) => {
         style={{ width: `${progressPercentage}%` }}
         className={`h-full ${
           progressPercentage < 70
-            ? 'bg-fabstir-pink-500'
-            : ' bg-fabstir-pink-400'
+            ? 'bg-fabstir-gray'
+            : 'bg-fabstir-medium-dark-gray'
         }`}
       ></div>
     </div>
   );
 };
 
+/**
+ * `DropAudio` is a React component that renders an audio dropzone interface. It allows users to drag and drop audio files,
+ * supporting specific formats, and performs actions based on the dropped content. The component can be styled using Tailwind CSS
+ * and is configurable via props.
+ *
+ * @component
+ * @param {Object} props - The props for the DropAudio component.
+ * @param {Object} props.field - The formik field object to manage form data.
+ * @param {string} props.twStyle - Tailwind CSS classes to apply custom styling.
+ * @param {string} props.text - Text to display within the dropzone area.
+ * @param {string} props.encKey - Encryption key for securing the audio files.
+ * @param {Array<string>} props.audioFormats - List of supported audio formats (e.g., ['mp3', 'wav']).
+ * @param {string} [props.storageNetwork=process.env.NEXT_PUBLIC_S5] - The storage network to use, defaults to the value of `NEXT_PUBLIC_S5` environment variable.
+ */
 const DropAudio = ({
   field,
   twStyle,
   text,
   encKey,
+  audioFormats,
   storageNetwork = process.env.NEXT_PUBLIC_S5,
 }) => {
   // console.log('slide-over:genres = ', result?.genre_ids);
@@ -46,12 +63,14 @@ const DropAudio = ({
   const watchUrl = watch(field);
 
   const { uploadFile } = usePortal(storageNetwork);
-  const { transcodeAudio } = useTranscodeAudioS5();
+  const { transcodeAudio } = useTranscodeAudio();
 
-  const { putMetadata } = useNFTMedia();
+  const { getTranscodeProgress } = useNFTMedia();
 
-  const [ffmpegProgress, setFFMPEGProgress] =
-    useRecoilState(ffmpegprogressstate);
+  const [ffmpegProgress, setFFMPEGProgress] = useState(0);
+  const intervalRef = useRef(); // Create a ref to store the interval ID
+
+  const [progressMessage, setProgressMessage] = useState('');
 
   const onDrop = useCallback(async (acceptedFiles) => {
     // Do something with the files
@@ -81,12 +100,12 @@ const DropAudio = ({
       const cidWithoutKey = removeKeyFromEncryptedCid(sourceCID);
       console.log('DropAudio: cidWithoutKey= ', cidWithoutKey);
 
-      await putMetadata(key, cidWithoutKey, []);
+      // await putMetadata(key, cidWithoutKey, []);
       setValue(field, cidWithoutKey, true);
     } else {
       encKey.current = '';
 
-      await putMetadata(null, sourceCID, []);
+      // await putMetadata(null, sourceCID, []);
       setValue(field, sourceCID, false);
 
       console.log('DropAudio: sourceCID = ', sourceCID);
@@ -94,8 +113,37 @@ const DropAudio = ({
 
     console.log('DropAudio: field = ', field);
 
-    await transcodeAudio(sourceCID, isEncrypted);
+    const taskId = await transcodeAudio(
+      sourceCID,
+      isEncrypted,
+      true,
+      audioFormats,
+    );
     setFFMPEGProgress(0);
+    setProgressMessage('Uploading...');
+
+    // Use the ref to store the interval ID
+    intervalRef.current = setInterval(async () => {
+      const progress = await getTranscodeProgress(taskId);
+      setFFMPEGProgress(progress);
+
+      if (progress > 0) setProgressMessage('Transcoding in progress...');
+
+      console.log('DropAudio: progress = ', progress);
+
+      if (progress >= 100) {
+        clearInterval(intervalRef.current); // Clear interval using the ref
+      }
+    }, PROGRESS_UPDATE_INTERVAL); // The interval time
+  }, []);
+
+  useEffect(() => {
+    // Cleanup function to clear the interval when the component unmounts
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
   }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
@@ -142,18 +190,22 @@ const DropAudio = ({
             </div>
           )}
 
-          {ffmpegProgress > 0 &&
-            ffmpegProgress < 1 &&
-            !transcodeAudioInfo?.isSuccess && (
-              <div
-                className={`flex flex-col ${twStyle} mx-auto rounded-md border-2 border-fabstir-gray bg-fabstir-light-gray fill-current text-fabstir-dark-gray shadow-sm sm:items-center sm:justify-center sm:text-center sm:text-sm`}
-              >
-                <span className="">Transcoding, please wait...</span>
-              </div>
-            )}
-
+          {progressMessage && ffmpegProgress < 100 && (
+            <div
+              className={`flex flex-col ${twStyle} mx-auto rounded-md border-2 border-fabstir-gray bg-fabstir-light-gray fill-current text-fabstir-dark-gray shadow-sm sm:items-center sm:justify-center sm:text-center sm:text-sm  w-2/3`}
+            >
+              <span>{progressMessage}</span>
+            </div>
+          )}
+          {ffmpegProgress === 100 && (
+            <div
+              className={`flex flex-col ${twStyle} mx-auto rounded-md border-2 border-fabstir-gray bg-fabstir-light-gray fill-current text-fabstir-dark-gray shadow-sm sm:items-center sm:justify-center sm:text-center sm:text-sm  w-2/3`}
+            >
+              <span>Transcode completed!</span>
+            </div>
+          )}
           <div className="absolute bottom-0 w-full">
-            <ProgressBar progressPercentage={ffmpegProgress * 100} />
+            <ProgressBar progressPercentage={ffmpegProgress} />
           </div>
         </div>
       </div>

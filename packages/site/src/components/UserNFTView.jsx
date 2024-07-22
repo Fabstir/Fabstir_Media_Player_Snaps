@@ -89,8 +89,8 @@ export default function UserNFTView({
         const linkUrl = await getBlobUrl(nft.posterImage);
         setNFTPosterImage(linkUrl);
       }
-      if (nft.type === 'audio' && nft?.backDropImage) {
-        const linkUrl = await getBlobUrl(nft.backDropImage);
+      if (nft.type === 'audio' && nft?.backdropImage) {
+        const linkUrl = await getBlobUrl(nft.backdropImage);
         setNFTBackDropImage(linkUrl);
       }
     })();

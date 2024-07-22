@@ -181,8 +181,8 @@ const VideoJS = ({
           player.addClass('vjs-matrix');
           if (isAudio) player.audioOnlyMode(isAudio);
 
-          player.muted(true);
-          setIsMuted(true);
+          player.muted(!isAudio);
+          setIsMuted(!isAudio);
 
           player.controlBar.hide();
         })
@@ -380,12 +380,12 @@ const VideoJS = ({
   useEffect(() => {
     const isInitiallyMuted = playerRef.current
       ? playerRef.current.muted()
-      : true;
+      : !isAudio;
     setIsMuted(isInitiallyMuted);
   }, []);
 
   useEffect(() => {
-    if (!trailerSource) return;
+    //if (!trailerSource) return;
 
     if (playerRef.current) {
       playerRef.current.muted(isPlayClicked ? false : isMuted);

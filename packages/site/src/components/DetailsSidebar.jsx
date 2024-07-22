@@ -32,6 +32,7 @@ import { currentnftmetadata } from '../atoms/nftSlideOverAtom';
 import { Zero, One } from '@ethersproject/constants';
 import { selectedparentnftaddressid } from '../atoms/nestableNFTAtom';
 import { useMintNestableERC1155NFT } from '../blockchain/useMintNestableERC1155NFT';
+import NFTAudioLyrics from './NFTAudioLyrics';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -732,35 +733,48 @@ export default function DetailsSidebar({
               </div>
             )}
 
-          {nft?.audio && (
-            <div>
-              <div className="w-full overflow-hidden rounded-lg shadow-2xl shadow-fabstir-black/50">
-                <div className="relative inline-block">
-                  {nftToPlay ? (
-                    <NFTAudioJS
-                      nft={nft}
-                      playerCurrentTime={playerCurrentTime}
-                      className="3xl:shadow-2xl min-w-[256px] rounded-2xl bg-fabstir-dark-gray shadow-lg shadow-fabstir-black md:shadow-lg lg:shadow-xl xl:shadow-xl 2xl:shadow-xl"
-                    />
-                  ) : (
-                    <img
-                      src={nftImage}
-                      alt=""
-                      className="mx-auto object-cover"
-                      crossOrigin="anonymous"
-                    />
-                  )}
-
-                  <div className="pointer-events-none absolute bottom-2 left-0 z-20 m-5 w-fit bg-black bg-opacity-50 text-fabstir-white">
-                    <MediaCaption
-                      nft={nft}
-                      nftQuantity={nftQuantity?.toString()}
-                    />
+          {nft?.audio &&
+            (encKey === null ||
+              (typeof encKey === 'string' && encKey.trim() !== '')) && (
+              <div>
+                <div className="w-full overflow-hidden rounded-lg shadow-2xl shadow-fabstir-black/50">
+                  <div className="relative">
+                    {nftToPlay ? (
+                      <NFTAudioJS
+                        nft={nft}
+                        setIsPlay={setIsPlay}
+                        className="3xl:shadow-2xl min-w-[256px] rounded-2xl bg-fabstir-dark-gray shadow-lg shadow-fabstir-black md:shadow-lg lg:shadow-xl xl:shadow-xl 2xl:shadow-xl"
+                        encKey={encKey}
+                        isPlayClicked={isPlayClicked}
+                        setIsPlayClicked={setIsPlayClicked}
+                        metadata={mediaMetadata}
+                        setPlayerCurrentTime={setPlayerCurrentTime}
+                      />
+                    ) : (
+                      <img
+                        src={nftImage}
+                        alt=""
+                        className="mx-auto object-cover"
+                        crossOrigin="anonymous"
+                      />
+                    )}
+                    {!isPlayClicked && (
+                      <div className="absolute bottom-2 left-0 z-20 m-5 w-fit bg-black bg-opacity-50 text-fabstir-white">
+                        <MediaCaption
+                          nft={nft}
+                          setIsPlayClicked={setIsPlayClicked}
+                          nftQuantity={nftQuantity?.toString()}
+                        />
+                      </div>
+                    )}
                   </div>
+                  <NFTAudioLyrics
+                    nft={nft}
+                    playerCurrentTime={playerCurrentTime}
+                  />
                 </div>
               </div>
-            </div>
-          )}
+            )}
         </div>
       )}
       <div className="">

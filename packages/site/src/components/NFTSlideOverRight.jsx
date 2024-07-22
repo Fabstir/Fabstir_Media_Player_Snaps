@@ -15,7 +15,7 @@ import DropVideo from './DropVideo';
 import { Input } from '../ui-components/input';
 import { Checkbox } from '../ui-components/checkbox';
 import { videoGenres, musicGenres } from '../utils/mediaAttributes';
-import { fetchVideoFormats } from '../utils/loadVideoFormats';
+import { fetchMediaFormats } from '../utils/loadMediaFormats';
 
 /**
  * Renders a slide-over component for NFT (Non-Fungible Token) creation or editing, providing different asset upload options based on the NFT type.
@@ -52,16 +52,19 @@ const NFTSlideOverRight = ({ encKey }) => {
 
   const [animationUrlFormats, setAnimationUrlFormats] = useState([]);
   const [videoFormats, setVideoFormats] = useState([]);
+  const [audioFormats, setAudioFormats] = useState([]);
 
   useEffect(() => {
-    if (watchType !== 'video') return;
+    if (watchType !== 'video' && watchType !== 'audio') return;
 
     const animationUrlFormatsPath = 'settings/animationUrlFormats.json';
 
     const fetchFormats = async () => {
-      const { animationUrlFormats, videoFormats } = await fetchVideoFormats();
+      const { animationUrlFormats, videoFormats, audioFormats } =
+        await fetchMediaFormats();
       setAnimationUrlFormats(animationUrlFormats);
       setVideoFormats(videoFormats);
+      setAudioFormats(audioFormats);
     };
     fetchFormats();
   }, [watchType]);
@@ -146,6 +149,7 @@ const NFTSlideOverRight = ({ encKey }) => {
                     twStyle="aspect-[3/2]"
                     text="<audio languages>"
                     encKey={null}
+                    audioFormats={audioFormats}
                     storageNetwork={
                       process.env.NEXT_PUBLIC_DEFAULT_STORAGE_NETWORK
                     }
@@ -182,6 +186,7 @@ const NFTSlideOverRight = ({ encKey }) => {
                       twStyle="aspect-[16/9]" // Ensure it takes full width of its parent
                       text="<audio languages>"
                       encKey={null}
+                      audioFormats={audioFormats}
                       storageNetwork={
                         process.env.NEXT_PUBLIC_DEFAULT_STORAGE_NETWORK
                       }
@@ -247,21 +252,29 @@ const NFTSlideOverRight = ({ encKey }) => {
               text="<lyrics(.lrc)>"
             />
 
-            <DropAudio
-              field="animation_url"
-              twStyle="w-1/2 aspect-[16/9]"
-              text="<sample/short audio>"
-              encKey={null}
-              storageNetwork={process.env.NEXT_PUBLIC_DEFAULT_STORAGE_NETWORK}
-            />
+            {audioFormats?.length > 0 && (
+              <div>
+                <DropAudio
+                  field="animation_url"
+                  twStyle="w-1/2 aspect-[16/9]"
+                  text="<sample/short audio>"
+                  encKey={null}
+                  audioFormats={audioFormats}
+                  storageNetwork={
+                    process.env.NEXT_PUBLIC_DEFAULT_STORAGE_NETWORK
+                  }
+                />
 
-            <DropAudio
-              field="audio"
-              twStyle="w-1/2 aspect-[16/9]"
-              text="<audio>"
-              encKey={encKey}
-              storageNetwork={process.env.NEXT_PUBLIC_S5}
-            />
+                <DropAudio
+                  field="audio"
+                  twStyle="w-1/2 aspect-[16/9]"
+                  text="<audio>"
+                  encKey={encKey}
+                  audioFormats={audioFormats}
+                  storageNetwork={process.env.NEXT_PUBLIC_S5}
+                />
+              </div>
+            )}
 
             <h2 className="mt-6 text-center text-3xl font-extrabold text-fabstir-dark-gray">
               Genres

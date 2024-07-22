@@ -1,6 +1,15 @@
 import { removeKeyFromEncryptedCid } from '../utils/s5EncryptCIDHelper';
 import useNFTMedia from './useNFTMedia';
 
+/**
+ * `useTranscodeVideo` is a custom React hook designed to facilitate video transcoding operations within a React application.
+ * It provides the necessary logic and state management to perform video transcoding, track the transcoding process status,
+ * and handle any errors that may arise during the operation. This hook simplifies integrating video transcoding functionalities
+ * by abstracting the complex processes involved and exposing a straightforward interface for use in components.
+ *
+ * @returns {Object} An object containing properties and functions related to the video transcoding process, including the current
+ * state of transcoding operations, any error messages, and functions to initiate and manage transcoding tasks.
+ */
 export default function useTranscodeVideo() {
   const { setTranscodePending } = useNFTMedia();
 
@@ -17,7 +26,7 @@ export default function useTranscodeVideo() {
     console.log('useTranscodeVideo: url = ', url);
 
     try {
-      const response = await fetch(url, { method: 'POST' });
+      const response = await fetch(url, { method: 'GET' });
       const data = await response.json();
       console.log('useTranscodeVideo: data =', data);
 

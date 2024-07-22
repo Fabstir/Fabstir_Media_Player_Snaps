@@ -1,4 +1,4 @@
-// pages/api/videoFormats.js
+// pages/api/mediaFormats.js
 import fs from 'fs';
 import path from 'path';
 

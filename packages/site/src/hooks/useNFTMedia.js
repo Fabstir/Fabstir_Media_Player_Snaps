@@ -112,6 +112,28 @@ export default function useNFTMedia() {
     return false;
   }
 
+  function hasVideoMedia(metaData) {
+    if (!metaData || metaData.length === 0) return false;
+
+    for (const mediaFormat of metaData) {
+      if (!mediaFormat.kind && mediaFormat.type.startsWith('video/'))
+        return true;
+    }
+
+    return false;
+  }
+
+  function hasAudioMedia(metaData) {
+    if (!metaData || metaData.length === 0) return false;
+
+    for (const mediaFormat of metaData) {
+      if (!mediaFormat.kind && mediaFormat.type.startsWith('audio/'))
+        return true;
+    }
+
+    return false;
+  }
+
   /**
    * Updates the metadata for a file or directory in the S5 network.
    *
@@ -610,6 +632,8 @@ export default function useNFTMedia() {
     getMetadata,
     putMetadata,
     hasMetadataMedia,
+    hasVideoMedia,
+    hasAudioMedia,
     getNFTsMedia,
     putNFTsMedia,
     getTranscodePending,

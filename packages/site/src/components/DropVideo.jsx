@@ -72,6 +72,8 @@ const DropVideo = ({
   const [ffmpegProgress, setFFMPEGProgress] = useState(0);
   const intervalRef = useRef(); // Create a ref to store the interval ID
 
+  const [progressMessage, setProgressMessage] = useState('');
+
   const onDrop = useCallback(async (acceptedFiles) => {
     // Do something with the files
     console.log('DropVideo: acceptedFiles = ', acceptedFiles);
@@ -121,6 +123,7 @@ const DropVideo = ({
       videoFormats,
     );
     setFFMPEGProgress(0);
+    setProgressMessage('Uploading...');
 
     // Use the ref to store the interval ID
     intervalRef.current = setInterval(async () => {
@@ -189,18 +192,18 @@ const DropVideo = ({
               {transcodeVideoInfo?.isError && <p>Transcode error</p>} */}
             </div>
           )}
-          {ffmpegProgress > 0 && ffmpegProgress < 100 && (
+          {progressMessage && ffmpegProgress < 100 && (
             <div
-              className={`flex flex-col ${twStyle} mx-auto rounded-md border-2 border-fabstir-gray bg-fabstir-light-gray fill-current text-fabstir-dark-gray shadow-sm sm:items-center sm:justify-center sm:text-center sm:text-sm`}
+              className={`flex flex-col ${twStyle} mx-auto rounded-md border-2 border-fabstir-gray bg-fabstir-light-gray fill-current text-fabstir-dark-gray shadow-sm sm:items-center sm:justify-center sm:text-center sm:text-sm w-2/3`}
             >
-              <span className="">Transcoding, please wait...</span>
+              <span>{progressMessage}</span>
             </div>
           )}
           {ffmpegProgress === 100 && (
             <div
-              className={`flex flex-col ${twStyle} mx-auto rounded-md border-2 border-fabstir-gray bg-fabstir-light-gray fill-current text-fabstir-dark-gray shadow-sm sm:items-center sm:justify-center sm:text-center sm:text-sm`}
+              className={`flex flex-col ${twStyle} mx-auto rounded-md border-2 border-fabstir-gray bg-fabstir-light-gray fill-current text-fabstir-dark-gray shadow-sm sm:items-center sm:justify-center sm:text-center sm:text-sm w-2/3`}
             >
-              <span className="">Transcode completed!</span>
+              <span>Transcode completed!</span>
             </div>
           )}
           <div className="absolute bottom-0 w-full">

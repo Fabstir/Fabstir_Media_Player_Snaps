@@ -84,9 +84,7 @@ export const NFTVideoJS = ({
   };
 
   const separateSubtitlesFromSources = (sources) => {
-    const videoSources = sources.filter(
-      (source) => !source.kind || !source.kind,
-    );
+    const videoSources = sources.filter((source) => !source.kind);
     const subtitleTracks = sources
       .filter((source) => source.kind === 'subtitles')
       .map((subtitle) => ({

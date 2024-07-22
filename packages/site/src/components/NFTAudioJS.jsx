@@ -2,22 +2,7 @@ import React, { useRef, useState } from 'react';
 import 'video.js/dist/video-js.css';
 import usePortal from '../hooks/usePortal';
 import VideoJS from './VideoJS';
-import useAudioLinkS5 from '../hooks/useAudioLinkS5';
-
-/**
- * @param {object} object - object with sorted integer keys
- * @param {number} index - index to look up
- */
-function getValueForLowestKey(object, index) {
-  let returned = object[0];
-
-  for (const key in object) {
-    if (object[key].time > index) break;
-    returned = object[key];
-  }
-
-  return returned;
-}
+import useAudioLink from '../hooks/useAudioLink';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -26,24 +11,20 @@ function classNames(...classes) {
 export const NFTAudioJS = ({
   nft,
   setIsPlay,
-  bgColourLyrics = 'bg-black',
-  highlightColourLyrics = 'bg-white',
+  encKey,
+  isPlayClicked,
+  setIsPlayClicked,
+  metadata,
+  setPlayerCurrentTime,
 }) => {
-  const audioRef = React.useRef(null);
-  const playerRef = React.useRef(null);
+  const getAudioLink = useAudioLink();
 
-  const getAudioLinkS5 = useAudioLinkS5();
-
-  const { getBlobUrl, downloadFile, getPortalType } = usePortal();
+  const { getBlobUrl, getPortalType } = usePortal();
   const [options, setOptions] = useState();
-
-  const [lyricsKeys, setLyricsKeys] = useState();
-  const [lyricsIndexDisplay, setLyricsIndexDisplay] = useState();
-  const [lyrics, setLyrics] = useState();
+  const [trailerSource, setTrailerSource] = useState();
+  const [mainSource, setMainSource] = useState();
 
   const scrollable = useRef(null);
-
-  const [playerCurrentTime, setPlayerCurrentTime] = useState(0);
 
   const handlePlayerReady = (player) => {
     console.log('test: ScreenView handlePlayerReady');
@@ -77,87 +58,66 @@ export const NFTAudioJS = ({
       player.bigPlayButton.hide();
     });
 
-    player.on('timeupdate', () => {
-      setPlayerCurrentTime(player.currentTime());
-    });
+    if (setPlayerCurrentTime) {
+      player.on('timeupdate', () => {
+        setPlayerCurrentTime(player.currentTime());
+      });
+    }
 
     player.on('dispose', () => {
       console.log('player will dispose');
     });
+
+    player.on('resolutionchange', function () {
+      console.info('Source changed to %s', player.src());
+    });
+  };
+
+  const separateSubtitlesFromSources = (sources) => {
+    const audioSources = sources.filter((source) => !source.kind);
+    const subtitleTracks = sources
+      .filter((source) => source.kind === 'subtitles')
+      .map((subtitle) => ({
+        kind: 'subtitles',
+        src: subtitle.src,
+        srclang: subtitle.srclang,
+        label: subtitle.label,
+      }));
+    return { audioSources, subtitleTracks };
   };
 
   React.useEffect(() => {
+    if (!nft && !encKey && !metadata) return;
+
+    setIsPlayClicked(false);
     (async () => {
-      if (nft.lyricsUrl) {
-        const theLyricsDownload = await downloadFile(nft.lyricsUrl);
-        const theLyricsSplit = theLyricsDownload.split(/\r?\n/);
-
-        // Need to filter out any lines that don't have times.
-        // Extract times as key and the rest of line as value
-        // Convert key to seconds
-        const theLyricsKeys = [];
-        const theLyrics = [' ', ' ', ' ', ' '];
-
-        let counter = 0;
-        for (const idx in theLyricsSplit) {
-          const lyricSplit = theLyricsSplit[idx];
-          if (
-            lyricSplit.charAt(0) !== '[' ||
-            lyricSplit.charAt(3) !== ':' ||
-            lyricSplit.charAt(9) !== ']'
-          )
-            continue;
-
-          const minutes = Number(lyricSplit.substring(1, 2));
-          const seconds = Number(lyricSplit.substring(4, 8));
-          const time = minutes * 60 + seconds;
-
-          const lyric = lyricSplit.substring(10);
-
-          theLyricsKeys.push({ time, counter });
-          theLyrics.push(lyric);
-
-          counter++;
-        }
-
-        setLyricsKeys(theLyricsKeys);
-        setLyrics(theLyrics);
-      }
-    })();
-  }, []);
-
-  React.useEffect(() => {
-    if (!nft) return;
-    (async () => {
-      let prog_index_m3u8_url = await getAudioLinkS5({
-        nft,
+      const mainAudioData = await getAudioLink({
+        key: encKey,
+        cidWithoutKey: nft.audio,
+        metadata,
       });
 
-      if (
-        !prog_index_m3u8_url ||
-        prog_index_m3u8_url.length === 0 ||
-        !prog_index_m3u8_url[0].src
-      )
-        return;
+      if (mainAudioData) {
+        const { audioSources, subtitleTracks } =
+          separateSubtitlesFromSources(mainAudioData);
+        setMainSource(audioSources);
+        // if (setMainSubtitleTracks) setMainSubtitleTracks(subtitleTracks);
+      }
 
-      //prog_index_m3u8_url[0].src = prog_index_m3u8_url[0].src + '.flac'
-      // const prog_index_m3u8_url = await getVideoLink({
-      //   encKey,
-      //   dirLink: nft.audio,
-      // })
+      if (nft.animation_url) {
+        const trailerData = await getAudioLink({
+          key: null,
+          cidWithoutKey: nft.animation_url,
+        });
 
-      console.log('DetailsSidebar: nft.audio1 = ', nft.audio);
-      console.log('test4: nft.audio1 = ', nft.audio);
-      console.log('test4: prog_index_m3u8_url = ', prog_index_m3u8_url);
-
-      // console.log(
-      //   'DetailsSidebar: prog_index_m3u8_url nft.audio = ',
-      //   nft.audio
-      // )
-      console.log(
-        'DetailsSidebar: prog_index_m3u8_url = ',
-        prog_index_m3u8_url,
-      );
+        if (trailerData) {
+          const { audioSources, subtitleTracks } =
+            separateSubtitlesFromSources(trailerData);
+          setTrailerSource(audioSources);
+          // if (setTrailerSubtitleTracks)
+          //   setTrailerSubtitleTracks(subtitleTracks);
+        }
+      }
 
       let nftImage;
       if (nft && nft.image) nftImage = await getBlobUrl(nft.image);
@@ -167,7 +127,7 @@ export const NFTAudioJS = ({
         // lookup the options in the docs for more options
         autoplay: false,
         controls: true,
-        bigPlayButton: true,
+        bigPlayButton: false,
         responsive: true,
         fluid: true,
         height: 1080,
@@ -181,14 +141,8 @@ export const NFTAudioJS = ({
             withCredentials: true,
           },
         },
-        // techOrder: ['vlc', 'html5', 'flash'],
-        sources: [
-          {
-            src: prog_index_m3u8_url[0].src,
-            type: 'audio/flac',
-          },
-        ],
-        // portalType: getPortalType(nft.audio),
+        portalType: getPortalType(nft.audio),
+        preload: 'none',
       };
       setOptions(theOptions);
     })();
@@ -197,40 +151,15 @@ export const NFTAudioJS = ({
   return (
     <div>
       {options && (
-        <VideoJS options={options} onReady={handlePlayerReady} isAudio={true} />
-      )}
-
-      {nft.lyricsUrl && (
-        <div className="py-5">
-          <div className="relative h-44 overflow-hidden">
-            <div
-              className={classNames(
-                bgColourLyrics,
-                'absolute -inset-x-5 -top-5 h-12 blur-lg',
-              )}
-            ></div>
-            <div
-              className={classNames(
-                highlightColourLyrics,
-                'absolute top-1/2 h-12 w-full -translate-y-1/2 mix-blend-overlay blur-md',
-              )}
-            ></div>
-            <pre className="font-open-sans scroll-hidden ref={scrollable} h-full overflow-auto text-center tracking-wide text-white/60 scrollbar-hide">
-              <div>
-                {lyricsIndexDisplay?.map((key, index) => (
-                  <p key={`${key}-${index}`}>{lyrics[key]}</p>
-                ))}
-              </div>
-
-              <div
-                className={classNames(
-                  bgColourLyrics,
-                  'absolute -inset-x-5 -bottom-5 h-12 blur-lg',
-                )}
-              ></div>
-            </pre>
-          </div>
-        </div>
+        <VideoJS
+          options={options}
+          trailerSource={trailerSource}
+          mainSource={mainSource}
+          onReady={handlePlayerReady}
+          isPlayClicked={isPlayClicked}
+          setIsPlayClicked={setIsPlayClicked}
+          isAudio={true}
+        />
       )}
     </div>
   );

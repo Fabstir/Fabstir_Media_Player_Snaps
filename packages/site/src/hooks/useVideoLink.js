@@ -6,10 +6,13 @@ import useNFTMedia from './useNFTMedia';
 import useIPFS from './useIPFS';
 
 /**
- * A custom React hook that returns the video link for a given video cid to S5.
+ * `useVideoLink` is a custom React hook designed to manage and provide video links for playback within a React application.
+ * This hook encapsulates the logic for fetching, processing, and updating the state of video links based on specific inputs
+ * or conditions. It simplifies the integration of video playback functionalities by abstracting the complex processes involved
+ * and exposing a straightforward interface for use in components.
  *
- * @param {String} videoId - The ID of the video.
- * @returns {String} - The video link.
+ * @returns {Object} An object containing the video link state and any associated utility functions, facilitating easy access
+ * and manipulation of video links for playback.
  */
 export default function useVideoLink() {
   const portNumber = parseInt(window.location.port, 10);
@@ -22,7 +25,7 @@ export default function useVideoLink() {
     putMetadata,
     deleteTranscodePending,
     getTranscodePending,
-    hasMetadataMedia,
+    hasVideoMedia,
   } = useNFTMedia();
 
   const getPlayerSources = (metadata) => {
@@ -88,12 +91,11 @@ export default function useVideoLink() {
   async function processVideoLink(metadata, key, cid, cidWithoutKey) {
     let videoUrl = null;
 
-    // Step 2: Extract the code block into the new function
-    if (!hasMetadataMedia(metadata)) {
+    if (!hasVideoMedia(metadata)) {
       metadata = await getMetadata(key, cidWithoutKey);
       console.log('useVideoLink: metadata =', metadata);
 
-      if (!hasMetadataMedia(metadata)) {
+      if (!hasVideoMedia(metadata)) {
         console.log(
           'useVideoLink: const transcodedMetadata = await getTranscodedMetadata(cid)',
         );
@@ -125,7 +127,7 @@ export default function useVideoLink() {
         }
       }
 
-      if (hasMetadataMedia(metadata)) videoUrl = getPlayerSources(metadata);
+      if (hasVideoMedia(metadata)) videoUrl = getPlayerSources(metadata);
     } else {
       videoUrl = getPlayerSources(metadata);
     }
