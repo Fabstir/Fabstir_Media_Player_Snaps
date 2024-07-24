@@ -34,8 +34,9 @@ let defaultFormValues = {
   image: '',
   lyricsUrl: '',
   animationSubtitlesUrl: [],
+  animationAudioUrls: [],
   subtitlesUrl: [],
-  audioUrls: '',
+  audioUrls: [],
   multiToken: false,
   tokenise: false,
   deployed: false,
@@ -152,9 +153,10 @@ const NFTSlideOver = ({
       }),
     animation_url: yup.string().notRequired(),
     animationSubtitlesUrl: yup.array().notRequired(),
+    animationAudioUrls: yup.array().notRequired(),
     lyricsUrl: yup.string().notRequired(),
     subtitlesUrl: yup.array().notRequired(),
-    audioUrls: yup.string().notRequired(),
+    audioUrls: yup.array().notRequired(),
     isPublic: yup.boolean().required('Choice of public or private is required'),
     multiToken: yup.boolean().notRequired(),
     deployed: yup.boolean().notRequired(),
@@ -207,6 +209,28 @@ const NFTSlideOver = ({
     });
 
     return subtitleTracks;
+  }
+
+  function getCidArrayToAudioTracks(cidArray) {
+    const audioTracks = [];
+    cidArray.forEach((cid) => {
+      const filename = cid.split('<<')[1].split('>>')[0];
+      const language = filename.substring(
+        filename.lastIndexOf('_') + 1,
+        filename.lastIndexOf('.'),
+      );
+      const label = language;
+
+      audioTracks.push({
+        kind: 'audio',
+        cid,
+        language,
+        label,
+        isTranscodePending: true,
+      });
+    });
+
+    return audioTracks;
   }
 
   /**
@@ -267,23 +291,49 @@ const NFTSlideOver = ({
       });
     }
 
+    // trailer/sample video
+    let trailerTracksArray = [];
     if (data.animation_url && data.animationSubtitlesUrl?.length > 0) {
-      const animationSubtitleTracksArray = getCidArrayToSubtitleTracks(
+      trailerTracksArray = getCidArrayToSubtitleTracks(
         data.animationSubtitlesUrl,
       );
-      await putMetadata(null, data.animation_url, animationSubtitleTracksArray);
     } else delete nft.current.animationSubtitlesUrl;
 
-    if (data.video && data.subtitlesUrl?.length > 0) {
-      const subtitleTracksArray = getCidArrayToSubtitleTracks(
-        data.subtitlesUrl,
-      );
+    if (data.video && data.animationAudioUrls?.length > 0) {
+      trailerTracksArray = [
+        ...trailerTracksArray,
+        ...getCidArrayToAudioTracks(data.animationAudioUrls),
+      ];
+    } else delete nft.current.animationAudioUrls;
+
+    if (trailerTracksArray.length > 0) {
       await putMetadata(
         encKey?.current ? encKey?.current : null,
         data.video,
-        subtitleTracksArray,
+        trailerTracksArray,
       );
+    }
+
+    // main video
+    let tracksArray = [];
+    if (data.video && data.subtitlesUrl?.length > 0) {
+      tracksArray = getCidArrayToSubtitleTracks(data.subtitlesUrl);
     } else delete nft.current.subtitlesUrl;
+
+    if (data.video && data.audioUrls?.length > 0) {
+      tracksArray = [
+        ...tracksArray,
+        ...getCidArrayToAudioTracks(data.audioUrls),
+      ];
+    } else delete nft.current.audioUrls;
+
+    if (tracksArray.length > 0) {
+      await putMetadata(
+        encKey?.current ? encKey?.current : null,
+        data.video,
+        tracksArray,
+      );
+    }
 
     const nftMetadata = { ...nft.current, encKey: encKey.current };
     createNFT(nftMetadata);

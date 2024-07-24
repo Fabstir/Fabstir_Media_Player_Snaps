@@ -4,12 +4,11 @@ import 'video.js/dist/video-js.css';
 import { SpeakerXMarkIcon, SpeakerWaveIcon } from '@heroicons/react/24/outline';
 
 /**
- * Renders a VideoJS player component with configurable options.
+ * `VideoJS` is a React component that renders a VideoJS player with configurable options. This component integrates VideoJS
+ * to provide a rich video or audio player experience. It supports dynamic source switching between a trailer and the main content
+ * based on user interaction. Additionally, it allows for the inclusion of subtitle and audio tracks for both the trailer and the main content.
  *
- * This component integrates VideoJS to provide a rich video or audio player experience. It supports
- * dynamic source switching between a trailer and the main content, based on user interaction. Additionally,
- * it allows for the inclusion of subtitle tracks for both the trailer and the main content.
- *
+ * @component
  * @param {Object} props - The properties passed to the VideoJS component.
  * @param {Object} props.options - The configuration options for the VideoJS player.
  * @param {Function} props.onReady - Callback function that is called when the player is ready.
@@ -20,6 +19,8 @@ import { SpeakerXMarkIcon, SpeakerWaveIcon } from '@heroicons/react/24/outline';
  * @param {Function} props.setIsPlayClicked - Function to update the isPlayClicked state.
  * @param {Array<Object>} props.trailerSubtitleTracks - Subtitle tracks for the trailer.
  * @param {Array<Object>} props.mainSubtitleTracks - Subtitle tracks for the main content.
+ * @param {Array<Object>} props.trailerAudioTracks - Audio tracks for the trailer.
+ * @param {Array<Object>} props.mainAudioTracks - Audio tracks for the main content.
  * @returns {JSX.Element} The VideoJS player component.
  */
 const VideoJS = ({
@@ -30,6 +31,8 @@ const VideoJS = ({
   mainSource,
   isPlayClicked,
   setIsPlayClicked,
+  trailerAudioTracks,
+  mainAudioTracks,
   trailerSubtitleTracks,
   mainSubtitleTracks,
 }) => {
@@ -37,6 +40,11 @@ const VideoJS = ({
   const playerRef = useRef(null);
   const [isMuted, setIsMuted] = useState(true);
   const isMouseOverUnmute = useRef(false);
+  const [currentResolution, setCurrentResolution] = useState('');
+  const [isChangingResolution, setIsChangingResolution] = useState(false);
+
+  const [audioSrc, setAudioSrc] = useState(null);
+  const audioRef = useRef(null);
 
   /**
    * Chooses the video source based on the play button click status.
@@ -64,6 +72,341 @@ const VideoJS = ({
     return isPlayClicked ? mainTracks : trailerTracks;
   };
 
+  const chooseAudioTracks = (isPlayClicked, mainTracks, trailerTracks) => {
+    const tracks = isPlayClicked ? mainTracks : trailerTracks;
+
+    if (!tracks || tracks.length === 0) return [];
+
+    let idx = 0;
+    if (currentResolution && mainSource) {
+      idx = mainSource.findIndex(
+        (source) => source.label === currentResolution,
+      );
+      if (idx === -1) idx = 0;
+    }
+
+    const numberOfTracksPerAudio = tracks.filter(
+      (track) => track.language === tracks[0].language,
+    ).length;
+    const audioTracks = tracks.filter(
+      (track, index) => index % numberOfTracksPerAudio === idx,
+    );
+
+    return audioTracks;
+  };
+
+  const addAudioTrackButton = (player) => {
+    const MenuButton = videojs.getComponent('MenuButton');
+    const MenuItem = videojs.getComponent('MenuItem');
+
+    class AudioTrackMenuItem extends MenuItem {
+      constructor(player, options) {
+        super(player, {
+          ...options,
+          selectable: true,
+          selected: options.track.enabled,
+        });
+        this.track = options.track;
+      }
+
+      handleClick(event) {
+        super.handleClick(event);
+        const tracks = this.player_.audioTracks();
+        console.log(
+          'VideoJS: All audio tracks:',
+          JSON.stringify(tracks, null, 2),
+        );
+        console.log(
+          'VideoJS: Selected track:',
+          JSON.stringify(this.track, null, 2),
+        );
+
+        for (let i = 0; i < tracks.length; i++) {
+          const track = tracks[i];
+          if (track.label === this.track.label) {
+            track.enabled = true;
+            this.selected(true);
+            console.log(
+              `VideoJS: Enabling track: ${track.label}, enabled: ${track.enabled}`,
+            );
+
+            const mainTrack = chooseAudioTracks(
+              true,
+              mainAudioTracks,
+              null,
+            )?.find((track) => track.label === this.track.label);
+
+            if (mainTrack?.src) {
+              const currentTime = this.player_.currentTime(); // Store current time
+              setAudioSrc(mainTrack.src);
+
+              // Use setTimeout to ensure the audio source is set before playing
+              setTimeout(() => {
+                if (audioRef.current) {
+                  audioRef.current.currentTime = currentTime; // Set the correct time
+                  audioRef.current
+                    .play()
+                    .catch((e) => console.error('Audio play failed:', e));
+                }
+              }, 0);
+            }
+          } else {
+            track.enabled = false;
+            this.selected(false);
+          }
+        }
+        this.player_.trigger('audiotrackchange', this.track);
+      }
+
+      update() {
+        const selected = this.track.enabled;
+        this.selected(selected);
+        this.el_.style.backgroundColor = selected
+          ? 'rgba(255, 255, 255, 0.75)'
+          : 'rgba(0, 0, 0, 0.5)';
+        this.el_.style.color = selected ? '#000' : '#fff';
+      }
+    }
+
+    class AudioTrackButton extends MenuButton {
+      constructor(player, options = {}) {
+        super(player, options);
+        this.addClass('vjs-audio-button');
+        this.updateButtonTitle();
+      }
+
+      createEl() {
+        const el = super.createEl();
+        return el;
+      }
+
+      createItems() {
+        const items = [];
+        const tracks = this.player_.audioTracks();
+
+        if (!tracks) {
+          return items;
+        }
+
+        for (let i = 0; i < tracks.length; i++) {
+          const track = tracks[i];
+          items.push(
+            new AudioTrackMenuItem(this.player_, {
+              track: track,
+              label: track.label || track.language || 'Unknown',
+            }),
+          );
+        }
+
+        return items;
+      }
+
+      updateButtonTitle() {
+        const tracks = this.player_.audioTracks();
+        let currentTrack = null;
+        for (let i = 0; i < tracks.length; i++) {
+          if (tracks[i].enabled) {
+            currentTrack = tracks[i];
+            break;
+          }
+        }
+        const title = currentTrack ? currentTrack.label : 'Audio Track';
+        this.el().setAttribute('title', title);
+        console.log('Button title updated to:', title);
+      }
+
+      handleMenuItemClick(item) {
+        super.handleMenuItemClick(item);
+        this.updateButtonTitle();
+      }
+    }
+
+    videojs.registerComponent('AudioTrackButton', AudioTrackButton);
+
+    const audioButton = player.controlBar.addChild(
+      'AudioTrackButton',
+      {},
+      player.controlBar.children_.length - 1,
+    );
+
+    // Ensure the button is always visible when there are audio tracks
+    if (audioButton && audioButton.el() && player.audioTracks().length > 0) {
+      audioButton.el().style.display = 'flex';
+    }
+
+    // // Enable the first audio track by default
+    // const audioTracks = player.audioTracks();
+    // if (audioTracks.length > 0) {
+    //   audioTracks[0].enabled = true;
+    //   audioButton.updateButtonTitle();
+    // }
+
+    player.on('audiotrackchange', (event, changedTrack) => {
+      console.log('Audio track changed to:', changedTrack.label);
+      const audioTrackButton = player.controlBar.getChild('AudioTrackButton');
+      if (audioTrackButton) {
+        audioTrackButton.updateButtonTitle();
+        const items = audioTrackButton.menu.children();
+        for (let i = 0; i < items.length; i++) {
+          items[i].update();
+        }
+      }
+
+      // Log the current state of audio tracks
+      const tracks = player.audioTracks();
+      console.log('Current audio tracks:');
+      for (let i = 0; i < tracks.length; i++) {
+        console.log(
+          `Track ${i}: label = ${tracks[i].label}, enabled = ${tracks[i].enabled}`,
+        );
+      }
+    });
+
+    // Force an update of the button title after a short delay
+    setTimeout(() => {
+      const audioTrackButton = player.controlBar.getChild('AudioTrackButton');
+      if (audioTrackButton) {
+        audioTrackButton.updateButtonTitle();
+      }
+    }, 100);
+  };
+
+  const addResolutionButton = (player) => {
+    const ResolutionMenuItem = videojs.extend(
+      videojs.getComponent('MenuItem'),
+      {
+        constructor: function (player, options) {
+          videojs.getComponent('MenuItem').call(this, player, options);
+          this.selected(this.options_.src === player.currentSrc());
+        },
+        handleClick: function (event) {
+          const currentTime = player.currentTime();
+          const wasPlaying = !player.paused();
+
+          // Find the matching source object
+          const newSource = player.options_.sources.find(
+            (source) => source.label === this.options_.label,
+          );
+
+          if (newSource) {
+            setIsChangingResolution(true);
+
+            // Remove the poster
+            player.poster('');
+            //player.posterImage = false;
+
+            // Store the current playback rate
+            const playbackRate = player.playbackRate();
+
+            player.src({
+              label: newSource.label,
+              src: newSource.src,
+              type: newSource.type,
+            });
+
+            player.one('loadedmetadata', () => {
+              player.currentTime(currentTime);
+              player.playbackRate(playbackRate);
+              if (wasPlaying) {
+                player.play();
+              }
+
+              setIsChangingResolution(false);
+            });
+
+            player.load();
+            player.play();
+
+            player.trigger('resolutionchange', this.options_.label);
+          } else {
+            console.error(
+              'No matching source found for resolution:',
+              this.options_.label,
+            );
+          }
+        },
+      },
+    );
+
+    const ResolutionMenuButton = videojs.extend(
+      videojs.getComponent('MenuButton'),
+      {
+        constructor: function (player, options) {
+          videojs.getComponent('MenuButton').call(this, player, options);
+          this.controlText('Quality');
+          this.el().classList.add('vjs-resolution-button');
+          this.updateButtonText();
+        },
+        createItems: function () {
+          return player.options_.sources.map((source) => {
+            return new ResolutionMenuItem(player, {
+              label: source.label || source.res,
+              src: source.src,
+            });
+          });
+        },
+        updateButtonText: function () {
+          const currentSrc = this.player().currentSource();
+          const label = currentSrc.label || currentSrc.res || 'Auto';
+          this.el().querySelector('.vjs-icon-placeholder').textContent = label;
+        },
+        handleClick: function (event) {
+          // Show/hide menu on click
+          if (this.menu.hasClass('vjs-lock-showing')) {
+            this.menu.unlockShowing();
+          } else {
+            this.menu.lockShowing();
+          }
+          this.updateButtonText();
+        },
+      },
+    );
+
+    videojs.registerComponent('ResolutionMenuButton', ResolutionMenuButton);
+    return player.controlBar.addChild(
+      'ResolutionMenuButton',
+      {},
+      player.controlBar.children_.length - 1,
+    );
+  };
+
+  useEffect(() => {
+    if (playerRef.current) {
+      const style = document.createElement('style');
+      style.textContent = `
+        .video-js .vjs-audio-button {
+          display: flex !important;
+          align-items: center;
+          justify-content: center;
+          width: 3em;
+          cursor: pointer;
+        }
+        .video-js .vjs-audio-button .vjs-icon-placeholder {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 100%;
+          height: 100%;
+        }
+        .video-js .vjs-audio-button .vjs-icon-placeholder::before {
+          content: "\\f109";  /* This is the VideoJS icon code for headphones */
+          font-family: VideoJS;
+          font-size: 1.8em;
+          line-height: 1.67;
+        }
+      `;
+      playerRef.current.el().appendChild(style);
+    }
+  }, []);
+
+  const removeDefaultAudioButton = (player) => {
+    const defaultAudioButton = player.controlBar.getChild('audioTrackButton');
+    if (defaultAudioButton) {
+      player.controlBar.removeChild(defaultAudioButton);
+      console.log('Removed default audio button');
+    }
+  };
+
   /**
    * Initializes and configures the VideoJS player.
    *
@@ -80,136 +423,156 @@ const VideoJS = ({
       console.log('VideoJS: initializePlayer called');
       window.videojs = videojs;
 
-      import('videojs-resolution-switcher')
-        .then((module) => {
-          const videojsResolutionSwitcher = module.default;
+      const player = videojs(videoElement, {
+        ...options,
+        sources: chooseSource(isPlayClicked, mainSource, trailerSource),
+      });
 
-          if (typeof videojsResolutionSwitcher === 'function') {
-            videojs.registerPlugin(
-              'videoJsResolutionSwitcher',
-              videojsResolutionSwitcher,
-            );
-          } else {
-            console.error(
-              'VideoJS: videojs-resolution-switcher is not a function.',
-            );
-          }
+      playerRef.current = player;
 
-          const player = (playerRef.current = videojs(
-            videoElement,
-            {
-              ...options,
-              sources: chooseSource(isPlayClicked, mainSource, trailerSource),
-              tracks: chooseSubtitleTracks(
-                isPlayClicked,
-                mainSubtitleTracks,
-                trailerSubtitleTracks,
-              ),
-            },
-            () => {
-              videojs.log('player is ready');
-              onReady && onReady(player);
-              if (player.videoJsResolutionSwitcher) {
-                player.videoJsResolutionSwitcher({
-                  default: 'high',
-                  dynamicLabel: true,
-                });
-              } else {
-                console.error(
-                  'VideoJS: Plugin has not been registered to the player',
-                );
-              }
+      player.ready(() => {
+        console.log('VideoJS: Player is ready');
 
-              player.ready(() => {
-                const subtitleButton = player.controlBar.addChild('button', {
-                  clickHandler: function () {
-                    const currentTracks = player.textTracks();
-                    const menu = player.createMenu();
+        // Remove the default audio button
+        removeDefaultAudioButton(player);
 
-                    menu.addItem(
-                      new videojs.MenuItem(player, {
-                        label: 'Off',
-                        selected: true,
-                        clickHandler: () => {
-                          currentTracks.forEach((track) => {
-                            track.mode = 'disabled';
-                          });
-                          player.trigger('texttrackchange');
-                        },
-                      }),
-                    );
+        // Set up audio
+        const audioTracks = chooseAudioTracks(
+          true,
+          mainAudioTracks,
+          trailerAudioTracks,
+        );
+        console.log(
+          'VideoJS: Adding audio tracks:',
+          JSON.stringify(audioTracks, null, 2),
+        );
 
-                    for (let i = 0; i < currentTracks.length; i++) {
-                      const track = currentTracks[i];
-                      if (
-                        track.kind === 'subtitles' ||
-                        track.kind === 'captions'
-                      ) {
-                        menu.addItem(
-                          new videojs.MenuItem(player, {
-                            label: track.label,
-                            selected: track.mode === 'showing',
-                            clickHandler: () => {
-                              currentTracks.forEach((t) => {
-                                t.mode = t === track ? 'showing' : 'disabled';
-                              });
-                              player.trigger('texttrackchange');
-                            },
-                          }),
-                        );
-                      }
-                    }
+        if (audioTracks.length > 0) {
+          console.log(
+            'VideoJS: Setting initial audio source:',
+            audioTracks[0].src,
+          );
+          setAudioSrc(audioTracks[0].src);
 
-                    const menuButton = new videojs.MenuButton(player, {
-                      menu: menu,
-                    });
-                    menuButton.el().appendChild(menu.el());
-                    this.appendChild(menuButton.el());
+          // Enable the first audio track by default
+          audioTracks[0].enabled = true;
+        } else {
+          console.log('VideoJS: No audio tracks available');
+        }
 
-                    // Prevent menu from closing immediately
-                    menuButton.on('click', function (event) {
-                      event.stopPropagation();
-                    });
-                  },
-                  text: 'Subtitles',
-                });
-              });
-            },
-          ));
-
-          console.log('VideoJS: player', player);
-          player.addClass('vjs-matrix');
-          if (isAudio) player.audioOnlyMode(isAudio);
-
-          player.muted(!isAudio);
-          setIsMuted(!isAudio);
-
-          player.controlBar.hide();
-        })
-        .catch((error) => {
-          console.error('Error loading videojs-resolution-switcher:', error);
+        audioTracks.forEach((track) => {
+          const newTrack = new videojs.AudioTrack({
+            id: track.id,
+            kind: track.kind,
+            label: track.label,
+            language: track.language,
+            enabled: track === audioTracks[0], // Enable only the first track
+          });
+          player.audioTracks().addTrack(newTrack);
         });
+
+        console.log(
+          'VideoJS: Audio tracks after adding:',
+          player.audioTracks(),
+        );
+
+        // Add our custom audio button
+        addAudioTrackButton(player);
+
+        addResolutionButton(player);
+
+        onReady && onReady(player);
+      });
+
+      console.log('VideoJS: player', player);
+      player.addClass('vjs-matrix');
+      if (isAudio) player.audioOnlyMode(isAudio);
+
+      player.muted(false); // Ensure the player is not muted
+      setIsMuted(false);
+
+      player.controlBar.hide();
     }
 
-    if (playerRef.current) {
-      if (isPlayClicked) {
-        console.log('VideoJS1: play3');
-        playerRef.current.play();
-      }
+    if (playerRef.current && isPlayClicked) {
+      console.log('VideoJS1: play3');
+      playerRef.current.play();
     }
   };
 
   useEffect(() => {
     if (playerRef.current) {
+      playerRef.current.on('play', () => {
+        console.log('VideoJS1: play');
+      });
+
       playerRef.current.on('ended', () => {
+        playerRef.current.poster(options?.poster); // Show the poster when the video ends
+        //        player.posterImage = true;
+
+        setIsPlayClicked(false);
+      });
+
+      console.log('VideoJS: Attaching event listeners');
+
+      playerRef.current.on('play', () => {
+        console.log('VideoJS: Video started playing');
+        if (audioRef.current) {
+          audioRef.current
+            .play()
+            .then(() => console.log('VideoJS: Audio play successful'))
+            .catch((e) => console.error('VideoJS: Audio play failed:', e));
+        }
+      });
+
+      playerRef.current.on('pause', () => {
+        console.log('VideoJS: Video paused');
+        if (audioRef.current) {
+          audioRef.current.pause();
+        }
+      });
+
+      playerRef.current.on('seeking', () => {
+        console.log('VideoJS: Video seeking');
+        if (audioRef.current) {
+          audioRef.current.currentTime = playerRef.current.currentTime();
+        }
+      });
+
+      playerRef.current.on('volumechange', () => {
+        console.log('VideoJS: Volume changed');
+        if (audioRef.current) {
+          audioRef.current.volume = playerRef.current.volume();
+          audioRef.current.muted = playerRef.current.muted();
+        }
+      });
+
+      playerRef.current.on('resolutionchange', (event, newResolution) => {
+        console.log('Resolution changed to:', newResolution);
+        setCurrentResolution(newResolution);
+        const resolutionButton = playerRef.current.controlBar.getChild(
+          'ResolutionMenuButton',
+        );
+        if (resolutionButton) {
+          resolutionButton.updateButtonText();
+        }
+      });
+
+      playerRef.current.on('ended', () => {
+        console.log('VideoJS: Video ended');
+        playerRef.current.poster(options?.poster);
         setIsPlayClicked(false);
       });
     }
 
     return () => {
       if (playerRef.current) {
+        console.log('VideoJS: Removing event listeners');
         playerRef.current.off('play');
         playerRef.current.off('pause');
+        playerRef.current.off('seeking');
+        playerRef.current.off('volumechange');
+        playerRef.current.off('resolutionchange');
         playerRef.current.off('ended');
       }
     };
@@ -363,6 +726,7 @@ const VideoJS = ({
     if (playerRef.current) {
       playerRef.current.on('ended', () => {
         if (isPlayClicked) {
+          playerRef.current.poster(options?.poster);
           setIsPlayClicked(false);
           playerRef.current.src(trailerSource);
           updateSubtitleTracks(trailerSubtitleTracks);
@@ -423,6 +787,9 @@ const VideoJS = ({
           if (player) {
             const currentMuteState = player.muted();
             player.muted(!currentMuteState);
+            if (audioRef.current) {
+              audioRef.current.muted = !currentMuteState;
+            }
             setIsMuted(!currentMuteState);
           }
         }}
@@ -440,17 +807,33 @@ const VideoJS = ({
     if (playerRef.current) {
       playerRef.current.pause();
       playerRef.current.currentTime(0);
+      playerRef.current.poster(options?.poster);
       setIsPlayClicked(false);
     }
   };
 
   useEffect(() => {
+    playerRef.current.poster(options?.poster);
     setIsPlayClicked(false);
 
     return () => {
       stopVideo();
     };
   }, [options]);
+
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.onloadedmetadata = () => {
+        console.log('VideoJS: Audio metadata loaded');
+      };
+      audioRef.current.onplay = () => {
+        console.log('VideoJS: Audio started playing');
+      };
+      audioRef.current.onerror = (e) => {
+        console.error('VideoJS: Audio error:', e);
+      };
+    }
+  }, [audioSrc]);
 
   return (
     <div data-vjs-player className="relative">
@@ -459,6 +842,15 @@ const VideoJS = ({
         className="video-js vjs-big-play-centered h-full w-full"
         poster={options?.poster}
       ></video>
+      <audio
+        ref={audioRef}
+        src={audioSrc}
+        onLoadedMetadata={() => console.log('VideoJS: Audio metadata loaded')}
+        onPlay={() => console.log('VideoJS: Audio started playing')}
+        onPause={() => console.log('VideoJS: Audio paused')}
+        onError={(e) => console.error('VideoJS: Audio error:', e.target.error)}
+        autoPlay={false}
+      />
       {trailerSource && !isPlayClicked && <UnmuteButton />}
     </div>
   );

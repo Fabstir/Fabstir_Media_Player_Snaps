@@ -1,4 +1,3 @@
-/* This example requires Tailwind CSS v2.0+ */
 import React from 'react';
 import { Switch } from '../ui-components/switch';
 

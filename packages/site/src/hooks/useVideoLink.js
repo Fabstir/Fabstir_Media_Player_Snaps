@@ -43,7 +43,7 @@ export default function useVideoLink() {
           src = `${process.env.NEXT_PUBLIC_IPFS_GATEWAY}/ipfs/${cid}`;
         } else {
           const cid = removeS5Prefix(videoFormat.cid);
-          src = `${process.env.NEXT_PUBLIC_S5_PORTAL_STREAMING_URL}:${portNumber}/s5/blob/${cid}?mediaType=video%2Fmp4`;
+          src = `${process.env.NEXT_PUBLIC_S5_PORTAL_STREAMING_URL}:${portNumber}/s5/blob/${cid}?mediaType=${videoFormat.type}`;
         }
 
         const source = {
@@ -52,6 +52,22 @@ export default function useVideoLink() {
           label: videoFormat.label,
           res: videoFormat.res,
         };
+        sources.push(source);
+      } else if (videoFormat.kind === 'audio') {
+        let src;
+        if (videoFormat.cid.startsWith(process.env.NEXT_PUBLIC_IPFS_PREFIX)) {
+          src = removeIPFSPrefix(videoFormat.cid);
+          src = `${process.env.NEXT_PUBLIC_IPFS_GATEWAY}/ipfs/${src}`;
+        } else {
+          src = removeS5Prefix(videoFormat.cid);
+          src = `${process.env.NEXT_PUBLIC_S5_PORTAL_STREAMING_URL}:${portNumber}/s5/blob/${src}?mediaType=${videoFormat.type}`;
+        }
+
+        let source = {
+          ...videoFormat,
+          src,
+        };
+        delete source.cid;
         sources.push(source);
       } else if (videoFormat.kind === 'subtitles') {
         let src;
@@ -75,6 +91,50 @@ export default function useVideoLink() {
     return sources;
   };
 
+  const hasMetadataTracksTranscodePending = (metadata) => {
+    if (!Array.isArray(metadata)) {
+      return false;
+    }
+
+    const isHasMetadataTracksTranscodePending = metadata.some(
+      (videoFormat) => videoFormat.isTranscodePending,
+    );
+    return isHasMetadataTracksTranscodePending;
+  };
+
+  async function updateMetadataTracksWithTranscoded(metadata) {
+    const updatedMetadata = [];
+    let isUpdated = false;
+    for (const videoFormat of metadata) {
+      if (videoFormat.isTranscodePending) {
+        const transcodePending = await getTranscodePending(videoFormat.cid);
+        if (transcodePending?.taskId) {
+          const transcodedMetadata = await getTranscodedMetadata(
+            transcodePending.taskId,
+          );
+          if (transcodedMetadata && transcodedMetadata.length > 0) {
+            // Spread the transcodedMetadata array into the updatedMetadata array
+            let updatedAudioTrack = { ...videoFormat };
+            delete updatedAudioTrack.isTranscodePending;
+            delete updatedAudioTrack.cid;
+
+            let updatedAudioTracks = transcodedMetadata.map((track) => {
+              return { ...updatedAudioTrack, ...track };
+            });
+
+            updatedMetadata.push(...updatedAudioTracks);
+            deleteTranscodePending(videoFormat.cid);
+            isUpdated = true;
+            continue; // Skip the rest of the loop and proceed with the next videoFormat
+          }
+        }
+      }
+      // If transcodedMetadata is undefined, null, or an empty array, or if isTranscodePending is false
+      updatedMetadata.push(videoFormat);
+    }
+    return { updatedMetadata, isUpdated };
+  }
+
   /**
    * Processes a video link by updating its metadata and determining the video URL.
    * If the metadata does not contain media information, it attempts to fetch and update the metadata using the provided key and cidWithoutKey.
@@ -91,8 +151,20 @@ export default function useVideoLink() {
   async function processVideoLink(metadata, key, cid, cidWithoutKey) {
     let videoUrl = null;
 
+    // Replace any isTranscodePending with transcoded metadata
+    let isUpdatedMetadataToWrite = false;
+    if (hasMetadataTracksTranscodePending(metadata)) {
+      const { updatedMetadata, isUpdated } =
+        await updateMetadataTracksWithTranscoded(metadata);
+      isUpdatedMetadataToWrite = isUpdated;
+
+      if (isUpdated) metadata = updatedMetadata;
+    }
+
+    // If video media has no metadata, fetch metadata
     if (!hasVideoMedia(metadata)) {
-      metadata = await getMetadata(key, cidWithoutKey);
+      //      metadata = await getMetadata(key, cidWithoutKey);
+
       console.log('useVideoLink: metadata =', metadata);
 
       if (!hasVideoMedia(metadata)) {
@@ -122,15 +194,22 @@ export default function useVideoLink() {
               metadata,
             );
             await putMetadata(key, cidWithoutKey, metadata);
+            isUpdatedMetadataToWrite = false;
             deleteTranscodePending(cidWithoutKey);
           }
         }
       }
 
+      // Update with urls to transcoded videos
       if (hasVideoMedia(metadata)) videoUrl = getPlayerSources(metadata);
     } else {
+      // Update with urls to transcoded videos
       videoUrl = getPlayerSources(metadata);
     }
+
+    if (isUpdatedMetadataToWrite)
+      // Ensure that any audio tracks that have been transcoded are written to storage
+      await putMetadata(key, cidWithoutKey, metadata);
 
     return videoUrl;
   }

@@ -117,7 +117,7 @@ export const NFTAudioJS = ({
           // if (setTrailerSubtitleTracks)
           //   setTrailerSubtitleTracks(subtitleTracks);
         }
-      }
+      } else setTrailerSource(null);
 
       let nftImage;
       if (nft && nft.image) nftImage = await getBlobUrl(nft.image);

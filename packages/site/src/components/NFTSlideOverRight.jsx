@@ -1,4 +1,3 @@
-/* This example requires Tailwind CSS v2.0+ */
 import {
   Popover,
   PopoverOverlay,
@@ -16,6 +15,7 @@ import { Input } from '../ui-components/input';
 import { Checkbox } from '../ui-components/checkbox';
 import { videoGenres, musicGenres } from '../utils/mediaAttributes';
 import { fetchMediaFormats } from '../utils/loadMediaFormats';
+import DropMultipleAudio from './DropMultipleAudio';
 
 /**
  * Renders a slide-over component for NFT (Non-Fungible Token) creation or editing, providing different asset upload options based on the NFT type.
@@ -144,8 +144,9 @@ const NFTSlideOverRight = ({ encKey }) => {
                   />
                 </div>
                 <div className="col-span-1">
-                  <DropAudio
+                  <DropMultipleAudio
                     field="animationAudioUrls"
+                    fieldName="audioFileNames"
                     twStyle="aspect-[3/2]"
                     text="<audio languages>"
                     encKey={null}
@@ -153,6 +154,7 @@ const NFTSlideOverRight = ({ encKey }) => {
                     storageNetwork={
                       process.env.NEXT_PUBLIC_DEFAULT_STORAGE_NETWORK
                     }
+                    maxNumberOfFiles={100}
                   />
                 </div>
                 <div className="col-span-1">
@@ -181,8 +183,9 @@ const NFTSlideOverRight = ({ encKey }) => {
                 <div className="col-span-1 col-start-3">
                   {/* This div should take up the remaining 1/3 */}
                   <div className="flex flex-1 flex-col">
-                    <DropAudio
+                    <DropMultipleAudio
                       field="audioUrls"
+                      fieldName="audioFileNames"
                       twStyle="aspect-[16/9]" // Ensure it takes full width of its parent
                       text="<audio languages>"
                       encKey={null}
@@ -190,6 +193,7 @@ const NFTSlideOverRight = ({ encKey }) => {
                       storageNetwork={
                         process.env.NEXT_PUBLIC_DEFAULT_STORAGE_NETWORK
                       }
+                      maxNumberOfFiles={100}
                     />
                     <DropFile
                       field="subtitlesUrl"

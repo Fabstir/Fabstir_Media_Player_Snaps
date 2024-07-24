@@ -60,7 +60,17 @@ Fabstir Media Player is not only able to mint ERC721 NFT tokens but ERC7401 nest
 Any video NFT from OpenSea, Rariable or from any other NFT marketplace, that all have severe limitations; the video can usually be to a maximum length of 2-3 minutes. Importing NFTs into Fabstir Media Player allows them to have video lengths of many gigabytes in size, including 4k videos.
 By upgrading a standard ERC721 NFT to an ERC7401 nestable NFT then Fabstir Media Players allows for video NFTs, without those video length limitations, to be minted and added to the same ERC7401 as a child NFT. A use case for this is to perhaps have the NFT on whatever marketplace that shows the first NFT's video as the film trailer and then come to Fabstir Media Player to watch the full video from the second child video NFT. Another use case is to use the nestable NFT as a structure that houses a TV series where all the child video NFTs are individual video NFT episodes. Nestable NFTs are much cheaper to transfer too as only the parent ERC7401 token need to be transferred to the new owner; as references to the child NFTs are not affected, and whoever owns the parent nestable NFT automatically owns its children as specified by the ERC7401 smart contract.
 
-This project was uses [Next.js](https://nextjs.org/).
+After converting an ERC1155 NFT to nestable then other ERC1155 NFTs can be selected (via 'add to selection' button) and then added to the nestable as children by clicking the nestblae NFT's 'add to parent' button. This will fail for any selected NFTs whose balance is less than that of the nestable NFT. For those with more balance then only the amount up to this balance will be added as children to the nestable NFT. This structure allows a specified amount of the root nestable ERC1155 NFT to be transferred and all its children will still be attached to this root and hence owned by the receiver, each to the same amount as the root.
+
+## Extensive video support
+
+There is support for multiple subtitles per video. For foreign language subtitles, it is recommended to end the file name with an '_' followed by ISO 639 language codes. With 'my_film_subtitle_en.vtt' for example, the characters after the last '_' represents the language code for English. 'en' will be displayed as a selectable menu item in the 'cc' dropdown list along with any other language codes from other subtitle files that were also uploaded.
+
+There is support for multiple audio tracks per video. For foreign audio tracks, it is recommended to end the file name with an '_' followed by ISO 639 language codes. With 'my_film_audio_fr.vtt' for example, the characters after the last '_' represents the French language code. 'fr' will be displayed as a selectable menu item in the audio dropdown list along with any other language codes from other subtitle files that were also uploaded. Note that behind the scenes, audio files are transcoded to different bit rates to allow for smoother playback and bandwidth optimisation.
+
+## Extensive audio support
+
+As with video NFTs, audio NFTs can have both sample audio and main audio. The former would be unencrypted and compatible for playback with most NFT market places, the latter can be encrypted, have a much higher bitrate and can be played back using Fabstir Media Player.
 
 ## 3d renderer
 

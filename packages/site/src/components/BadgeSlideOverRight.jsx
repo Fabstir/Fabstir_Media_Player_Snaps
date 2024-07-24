@@ -1,4 +1,3 @@
-/* This example requires Tailwind CSS v2.0+ */
 import { Popover, Transition } from '@headlessui/react';
 import React, { Fragment, useState } from 'react';
 import { useFormContext } from 'react-hook-form';

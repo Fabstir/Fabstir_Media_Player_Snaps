@@ -38,6 +38,8 @@ export const NFTVideoJS = ({
 
   const [trailerSource, setTrailerSource] = useState();
   const [mainSource, setMainSource] = useState();
+  const [trailerAudioTracks, setTrailerAudioTracks] = useState([]);
+  const [mainAudioTracks, setMainAudioTracks] = useState([]);
   const [trailerSubtitleTracks, setTrailerSubtitleTracks] = useState([]);
   const [mainSubtitleTracks, setMainSubtitleTracks] = useState([]);
 
@@ -81,6 +83,12 @@ export const NFTVideoJS = ({
     player.on('resolutionchange', function () {
       console.info('Source changed to %s', player.src());
     });
+
+    // player.on('*', function (event) {
+    //   if (event.type.includes('resolution')) {
+    //     console.log('Resolution-related event:', event.type);
+    //   }
+    // });
   };
 
   const separateSubtitlesFromSources = (sources) => {
@@ -93,7 +101,18 @@ export const NFTVideoJS = ({
         srclang: subtitle.srclang,
         label: subtitle.label,
       }));
-    return { videoSources, subtitleTracks };
+
+    const audioTracks = sources
+      .filter((source) => source.kind === 'audio')
+      .map((audio) => ({
+        kind: 'audio',
+        src: audio.src,
+        language: audio.language,
+        label: audio.language,
+        enabled: false,
+      }));
+
+    return { videoSources, audioTracks, subtitleTracks };
   };
 
   useEffect(() => {
@@ -118,9 +137,10 @@ export const NFTVideoJS = ({
       });
 
       if (mainVideoData) {
-        const { videoSources, subtitleTracks } =
+        const { videoSources, audioTracks, subtitleTracks } =
           separateSubtitlesFromSources(mainVideoData);
         setMainSource(videoSources);
+        setMainAudioTracks(audioTracks);
         setMainSubtitleTracks(subtitleTracks);
       }
 
@@ -131,12 +151,13 @@ export const NFTVideoJS = ({
         });
 
         if (trailerData) {
-          const { videoSources, subtitleTracks } =
+          const { videoSources, audioTracks, subtitleTracks } =
             separateSubtitlesFromSources(trailerData);
           setTrailerSource(videoSources);
+          setTrailerAudioTracks(audioTracks);
           setTrailerSubtitleTracks(subtitleTracks);
         }
-      }
+      } else setTrailerSource(null);
 
       console.log('NFTVideoJS: nft.name useEffect getVideoLink');
       console.log('NFTVideoJS: mainSource = ', mainSource);
@@ -192,6 +213,8 @@ export const NFTVideoJS = ({
           onReady={handlePlayerReady}
           isPlayClicked={isPlayClicked}
           setIsPlayClicked={setIsPlayClicked}
+          trailerAudioTracks={trailerAudioTracks}
+          mainAudioTracks={mainAudioTracks}
           trailerSubtitleTracks={trailerSubtitleTracks}
           mainSubtitleTracks={mainSubtitleTracks}
         />

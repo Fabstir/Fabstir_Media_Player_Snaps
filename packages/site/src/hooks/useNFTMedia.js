@@ -260,7 +260,7 @@ export default function useNFTMedia() {
     user.get('transcodes_pending').get(cid).put(transcodePendingScrambled);
   }
 
-  async function deleteTranscodePending(cid) {
+  function deleteTranscodePending(cid) {
     if (!cid) return;
 
     cid = removeExtension(cid);

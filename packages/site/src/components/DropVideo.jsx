@@ -1,4 +1,3 @@
-/* This example requires Tailwind CSS v2.0+ */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useFormContext } from 'react-hook-form';
@@ -87,6 +86,8 @@ const DropVideo = ({
 
     const customOptions = { encrypt: isEncrypted };
     const file = acceptedFiles[0];
+
+    setProgressMessage('Uploading...');
     const sourceCID = await uploadFile(file, customOptions);
 
     let key = '';
@@ -123,12 +124,15 @@ const DropVideo = ({
       videoFormats,
     );
     setFFMPEGProgress(0);
-    setProgressMessage('Uploading...');
+    setProgressMessage('Queued for transcoding...');
 
     // Use the ref to store the interval ID
     intervalRef.current = setInterval(async () => {
       const progress = await getTranscodeProgress(taskId);
       setFFMPEGProgress(progress);
+      console.log('DropVideo: ffmpegProgress = ', progress);
+
+      if (progress > 0) setProgressMessage('Transcoding in progress...');
 
       console.log('DropVideo: progress = ', progress);
 
@@ -158,7 +162,7 @@ const DropVideo = ({
           {...getRootProps()}
           className={`mt-8 flex flex-col ${twStyle} relative mx-auto rounded-md border-2 border-fabstir-gray bg-fabstir-light-gray fill-current text-fabstir-dark-gray shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:items-center sm:justify-center sm:text-center sm:text-sm`}
         >
-          {!watchUrl && !ffmpegProgress && (
+          {!watchUrl && !ffmpegProgress && !progressMessage && (
             <div>
               <Input
                 inputProps={getInputProps()}
