@@ -1,5 +1,7 @@
 import { ChevronDoubleDownIcon } from '@heroicons/react/24/solid';
+import { PencilIcon } from 'heroiconsv2/24/outline';
 import React, { useEffect, useRef, useState } from 'react';
+import { user } from '../user';
 
 import { saveAs } from 'file-saver';
 import { useRecoilState, useRecoilValue } from 'recoil';
@@ -24,7 +26,7 @@ import useNFTMedia from '../hooks/useNFTMedia';
 import MediaCaption from './MediaCaption';
 import useMintNFT from '../blockchain/useMintNFT';
 import useReplaceNFT from '../hooks/useReplaceNFT';
-import { constructNFTAddressId } from '../utils/nftUtils';
+import { constructNFTAddressId, getUniqueKeyFromNFT } from '../utils/nftUtils';
 import useDeleteNFT from '../hooks/useDeleteNFT';
 import { transfernftslideoverstate } from '../atoms/transferNFTOverAtom';
 import useUserProfile from '../hooks/useUserProfile';
@@ -33,6 +35,15 @@ import { Zero, One } from '@ethersproject/constants';
 import { selectedparentnftaddressid } from '../atoms/nestableNFTAtom';
 import { useMintNestableERC1155NFT } from '../blockchain/useMintNestableERC1155NFT';
 import NFTAudioLyrics from './NFTAudioLyrics';
+import TeamUserView from './TeamUserView';
+import { useRouter } from 'next/router';
+import {
+  isupdateteamsstate,
+  teamsstate,
+  updatenftwithteamsstate,
+  updateteamsstate,
+} from '../atoms/teamsAtom';
+import { stringifyArrayProperties } from '../utils/stringifyProperties';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -132,6 +143,8 @@ export default function DetailsSidebar({
   const [openTransferNFTSliderOver, setOpenTransferNFTSliderOver] =
     useRecoilState(transfernftslideoverstate);
 
+  const [teams, setTeams] = useRecoilState(teamsstate);
+
   console.log('UserNFTView: inside DetailsSidebar');
   console.log('DetailsSidebar: nft = ', nft);
   console.log('UserNFTs: nft = ', nft);
@@ -195,6 +208,12 @@ export default function DetailsSidebar({
   const selectedParentNFTAddressId = useRecoilValue(selectedparentnftaddressid);
   const selectedParentNFTType = useRef();
 
+  const [updateNFTWithTeams, setUpdateNFTWithTeams] = useRecoilState(
+    updatenftwithteamsstate,
+  );
+  const [isUpdateTeams, setIsUpdateTeams] = useRecoilState(isupdateteamsstate);
+  const router = useRouter();
+
   useEffect(() => {
     (async () => {
       if (await getIsERC721Address(selectedParentNFTAddressId)) {
@@ -206,6 +225,36 @@ export default function DetailsSidebar({
       }
     })();
   }, [selectedParentNFTAddressId]);
+
+  useEffect(() => {
+    if (isUpdateTeams && updateNFTWithTeams) {
+      console.log('DetailsSidebar: updateNFTWithTeams = ', updateNFTWithTeams);
+
+      const nft = {
+        ...updateNFTWithTeams,
+        teamsName: teams.teamsName,
+        teams: teams.teams,
+      };
+      setCurrentNFT(nft);
+      setNFT(nft);
+
+      const updatedNFT = stringifyArrayProperties(nft);
+      const addressId = getUniqueKeyFromNFT(updatedNFT);
+      user
+        .get('nfts')
+        .get(addressId)
+        .put(updatedNFT, function (ack) {
+          if (ack.err) {
+            console.error('DetailsSidebar: Error writing data:', ack.err);
+          } else {
+            console.log('DetailsSidebar: newNFT.address = ', newNFT.address);
+          }
+        });
+
+      setUpdateNFTWithTeams(null);
+      setIsUpdateTeams(false);
+    }
+  }, [updateNFTWithTeams, isUpdateTeams]);
 
   useEffect(() => {
     (async () => {
@@ -631,6 +680,15 @@ export default function DetailsSidebar({
     setOpenTransferNFTSliderOver(true);
   }
 
+  function handleEditTeams() {
+    console.log('DetailsSidebar: handleEditTeams');
+
+    setTeams({ teamsName: nft.teamsName, teams: nft.teams });
+    setUpdateNFTWithTeams(nft);
+
+    router.push(`/teams`);
+  }
+
   return (
     <aside
       className={classNames(
@@ -863,7 +921,87 @@ export default function DetailsSidebar({
             </div>
           )}
 
+          <div className="group">
+            {nft?.teamsName && (
+              <div className="flex items-center justify-between mt-6">
+                <h2 className="text-2xl font-semibold tracking-tight text-fabstir-dark-gray sm:text-xl">
+                  {nft?.teamsName}
+                </h2>
+
+                {userPub === userAuthPub && (
+                  <button
+                    onClick={handleEditTeams}
+                    className="ml-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  >
+                    <PencilIcon className="w-5 h-5 text-fabstir-gray hover:text-dark-gray" />
+                  </button>
+                )}
+              </div>
+            )}
+
+            {nft?.teams?.length > 0 && (
+              <div className="mt-4">
+                {nft.teams.map((team, index) => {
+                  const allImagesUndefinedOrNull = team?.users?.every(
+                    (user) => user.image === undefined || user.image === null,
+                  );
+
+                  return (
+                    <div key={index}>
+                      {allImagesUndefinedOrNull ? (
+                        <div className="flex items-center">
+                          <span className="pr-3 text-lg text-fabstir-gray">
+                            {team.name}
+                          </span>
+                          {team?.users?.reduce((acc, user, index) => {
+                            if (index > 0) {
+                              acc.push(
+                                <span key={`comma-${index}`} className="px-1">
+                                  ,
+                                </span>,
+                              );
+                            }
+                            acc.push(
+                              <div
+                                key={user?.userPub}
+                                className="flex items-center"
+                              >
+                                <TeamUserView user={user} isReadOnly={true} />
+                              </div>,
+                            );
+                            return acc;
+                          }, [])}
+                        </div>
+                      ) : (
+                        <div className="mt-4">
+                          <div className="relative z-0 mb-1 mt-4 flex items-center justify-between">
+                            <span className="justify-start whitespace-nowrap pr-3 text-lg text-fabstir-gray">
+                              {team.name}
+                            </span>
+                            <div className="w-full border-t border-fabstir-divide-color1" />
+                          </div>
+
+                          <div className="flex flex-wrap space-x-4 space-y-2">
+                            {team.users?.map((user) => (
+                              <div key={user?.userPub} className="m-2">
+                                <TeamUserView user={user} isReadOnly={true} />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
           <div className="mt-2">
+            <h2 className="text-2xl font-semibold tracking-tight text-fabstir-dark-gray sm:text-xl mt-6">
+              Metadata
+            </h2>
+
             <dl className="mt-2 divide-y divide-fabstir-divide-color1 border-b border-t border-fabstir-medium-light-gray">
               {nftInfoDecorated &&
                 Object.entries(nftInfoDecorated).reduce((acc, [key, value]) => {
@@ -911,7 +1049,9 @@ export default function DetailsSidebar({
           <div className="divide-y divide-fabstir-divide-color1">
             <div className="group my-4">
               <div className="mt-4 flex justify-between">
-                <h3 className="font-medium text-fabstir-gray">Attributes</h3>
+                <h3 className="font-medium text-fabstir-dark-gray">
+                  Attributes
+                </h3>
                 <div className="flex flex-1 justify-end">
                   <ChevronDoubleDownIcon
                     className={

@@ -2,7 +2,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import React, { Fragment, useEffect, useRef } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useRecoilState, useRecoilValue } from 'recoil';
+import { useRecoilState, useRecoilValue, useResetRecoilState } from 'recoil';
 import * as yup from 'yup';
 
 import useMintNFT from '../blockchain/useMintNFT';
@@ -14,6 +14,7 @@ import useUploadEncKey from '../hooks/useUploadEncKey';
 import { getNFTAddressId } from '../utils/nftUtils';
 import { userauthpubstate } from '../atoms/userAuthAtom';
 import useNFTMedia from '../hooks/useNFTMedia';
+import { teamsstate } from '../atoms/teamsAtom';
 
 /**
  * Default values for the form fields.
@@ -83,6 +84,8 @@ const NFTSlideOver = ({
   setRerenderUserNFTs,
 }) => {
   const { putMetadata } = useNFTMedia();
+  const [teams, setTeams] = useRecoilState(teamsstate);
+  const resetTeams = useResetRecoilState(teamsstate);
 
   const summaryMax = 250;
   const descriptionMax = 4000;
@@ -335,8 +338,14 @@ const NFTSlideOver = ({
       );
     }
 
-    const nftMetadata = { ...nft.current, encKey: encKey.current };
+    const nftMetadata = {
+      ...nft.current,
+      encKey: encKey.current,
+      teams: teams.teams,
+      teamsName: teams.teamsName,
+    };
     createNFT(nftMetadata);
+    resetTeams();
 
     if (encKey) encKey.current = '';
 

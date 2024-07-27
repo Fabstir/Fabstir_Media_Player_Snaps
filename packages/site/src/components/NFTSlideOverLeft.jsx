@@ -8,7 +8,8 @@ import React, { useEffect } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import TokenAttributes from './TokenAttributes';
-import { Input } from '../ui-components/input';
+import { UsersIcon } from 'heroiconsv1/outline';
+import Link from 'next/link';
 
 import {
   currentnftcategories,
@@ -45,7 +46,9 @@ const NFTSlideOverLeft = ({
     handleSubmit,
     formState: { errors },
     setValue,
+    getValues,
     watch,
+    reset,
   } = useFormContext();
 
   const [currentNFTForm, setCurrentNFTForm] =
@@ -310,6 +313,27 @@ const NFTSlideOverLeft = ({
               </p>
             </div>
           </div>
+
+          <br />
+          <div className="">
+            <Link
+              href="/teams"
+              onClick={() => {
+                setCurrentNFTForm(getValues());
+              }}
+            >
+              <div className="flex flex-1 flex-row">
+                <div className="text-fabstir-dark-gray">
+                  Team/Credits:&nbsp;
+                </div>
+                <UsersIcon
+                  className="mr-2 h-6 w-6 text-fabstir-white transition duration-100 hover:scale-125 hover:bg-fabstir-gray-700 hover:text-fabstir-white focus:outline-none focus:ring-2 focus:ring-fabstir-gray"
+                  aria-hidden="true"
+                />
+              </div>
+            </Link>
+          </div>
+          <br />
 
           <div className="sm:col-span-3">
             <label
