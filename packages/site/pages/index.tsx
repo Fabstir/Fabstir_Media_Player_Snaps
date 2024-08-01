@@ -190,8 +190,6 @@ const Index = () => {
 
   console.log('index: Object.keys(process.env) =', Object.keys(process.env));
 
-  const theCurrencies = ['DAI']; // Add other currencies as needed
-
   useEffect(() => {
     const theCurrentBadgeCategories = [
       'access pass',
@@ -703,6 +701,8 @@ const Index = () => {
         </Button>
       )}
       <br />
+
+      {/* Area to view gallery NFTs that a user owns, to mint and play them */}
       <Link href="/gallery/userNFTs">
         <Button
           color="white"
@@ -712,6 +712,7 @@ const Index = () => {
         </Button>
       </Link>
 
+      {/* Page where a user can set up playlists of their content */}
       <Link href="/playlists">
         <Button
           color="white"
@@ -721,12 +722,23 @@ const Index = () => {
         </Button>
       </Link>
 
+      {/* Page where a user can edit their profile */}
       <Link href="/profile">
         <Button
           color="white"
           className="ml-4 p-1 text-2xl font-semibold dark:bg-gray-200 bg-gray-200 mt-4"
         >
           <p className="text-lg p-1 font-bold">Profile</p>
+        </Button>
+      </Link>
+
+      {/* Page where user defines what access permissions to their NFTs to give other users */}
+      <Link href="/permissions">
+        <Button
+          color="white"
+          className="ml-4 p-1 text-2xl font-semibold dark:bg-gray-200 bg-gray-200 mt-4"
+        >
+          <p className="text-lg p-1 font-bold">Permissions</p>
         </Button>
       </Link>
 

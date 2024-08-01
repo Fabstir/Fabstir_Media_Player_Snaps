@@ -44,6 +44,7 @@ import {
   updateteamsstate,
 } from '../atoms/teamsAtom';
 import { stringifyArrayProperties } from '../utils/stringifyProperties';
+import TeamsView from './TeamsView';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -233,7 +234,7 @@ export default function DetailsSidebar({
       const nft = {
         ...updateNFTWithTeams,
         teamsName: teams.teamsName,
-        teams: teams.teams,
+        teams: [...(teams.teams || [])],
       };
       setCurrentNFT(nft);
       setNFT(nft);
@@ -247,7 +248,10 @@ export default function DetailsSidebar({
           if (ack.err) {
             console.error('DetailsSidebar: Error writing data:', ack.err);
           } else {
-            console.log('DetailsSidebar: newNFT.address = ', newNFT.address);
+            console.log(
+              'DetailsSidebar: updatedNFT.address = ',
+              updatedNFT.address,
+            );
           }
         });
 
@@ -683,7 +687,7 @@ export default function DetailsSidebar({
   function handleEditTeams() {
     console.log('DetailsSidebar: handleEditTeams');
 
-    setTeams({ teamsName: nft.teamsName, teams: nft.teams });
+    setTeams({ teamsName: nft.teamsName, teams: { ...nft.teams } });
     setUpdateNFTWithTeams(nft);
 
     router.push(`/teams`);
@@ -939,62 +943,7 @@ export default function DetailsSidebar({
               </div>
             )}
 
-            {nft?.teams?.length > 0 && (
-              <div className="mt-4">
-                {nft.teams.map((team, index) => {
-                  const allImagesUndefinedOrNull = team?.users?.every(
-                    (user) => user.image === undefined || user.image === null,
-                  );
-
-                  return (
-                    <div key={index}>
-                      {allImagesUndefinedOrNull ? (
-                        <div className="flex items-center">
-                          <span className="pr-3 text-lg text-fabstir-gray">
-                            {team.name}
-                          </span>
-                          {team?.users?.reduce((acc, user, index) => {
-                            if (index > 0) {
-                              acc.push(
-                                <span key={`comma-${index}`} className="px-1">
-                                  ,
-                                </span>,
-                              );
-                            }
-                            acc.push(
-                              <div
-                                key={user?.userPub}
-                                className="flex items-center"
-                              >
-                                <TeamUserView user={user} isReadOnly={true} />
-                              </div>,
-                            );
-                            return acc;
-                          }, [])}
-                        </div>
-                      ) : (
-                        <div className="mt-4">
-                          <div className="relative z-0 mb-1 mt-4 flex items-center justify-between">
-                            <span className="justify-start whitespace-nowrap pr-3 text-lg text-fabstir-gray">
-                              {team.name}
-                            </span>
-                            <div className="w-full border-t border-fabstir-divide-color1" />
-                          </div>
-
-                          <div className="flex flex-wrap space-x-4 space-y-2">
-                            {team.users?.map((user) => (
-                              <div key={user?.userPub} className="m-2">
-                                <TeamUserView user={user} isReadOnly={true} />
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+            <TeamsView teams={nft?.teams} />
           </div>
 
           <div className="mt-2">

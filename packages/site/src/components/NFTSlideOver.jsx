@@ -341,11 +341,10 @@ const NFTSlideOver = ({
     const nftMetadata = {
       ...nft.current,
       encKey: encKey.current,
-      teams: teams.teams,
+      teams: [...(teams.teams || [])],
       teamsName: teams.teamsName,
     };
     createNFT(nftMetadata);
-    resetTeams();
 
     if (encKey) encKey.current = '';
 
@@ -366,8 +365,18 @@ const NFTSlideOver = ({
   }, [createNFTInfo.isSuccess]);
 
   useEffect(() => {
-    setCurrentNFT(nft.current);
-    if (createNFTInfo.isSuccess) setRerenderUserNFTs((prev) => prev + 1);
+    if (createNFTInfo.isSuccess) {
+      if (teams?.teams?.length > 0) {
+        setCurrentNFT({
+          ...nft.current,
+          teamsName: teams.teamsName,
+          teams: [...(teams.teams || [])],
+        });
+      } else setCurrentNFT(nft.current);
+
+      resetTeams();
+      setRerenderUserNFTs((prev) => prev + 1);
+    }
   }, [createNFTInfo.isSuccess]);
 
   return (

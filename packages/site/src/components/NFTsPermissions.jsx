@@ -5,9 +5,12 @@ import { Input } from '../ui-components/input';
 import { v4 as uuidv4 } from 'uuid';
 import { generateUsername } from 'unique-username-generator';
 import usePortal from '../hooks/usePortal';
-import TeamUserView from './TeamUserView';
+import PermissionUserView from './PermissionUserView';
 import { useRecoilValue } from 'recoil';
 import { userauthpubstate } from '../atoms/userAuthAtom';
+import useNFTPermissions from '../hooks/useNFTPermissions';
+import { getNFTAddressId } from '../utils/nftUtils';
+import useCreateMarketItem from '../blockchain/useCreateMarketItem';
 
 const sortOptions = [
   { name: 'Most Popular', href: '#', current: true },
@@ -33,7 +36,7 @@ function classNames(...classes) {
  * @param {Function} props.handleDeleteTeam - Callback function to handle deleting the team.
  * @returns {JSX.Element} The rendered component displaying the team information.
  */
-export default function Team({
+export default function NFTsPermissions({
   theTeam,
   index,
   handleUpdateTeam,
@@ -58,7 +61,12 @@ export default function Team({
     userName: generateUsername('', 0, 15),
   });
 
+  const { getEncKeyForUser, putEncKeyForUser, deleteEncKeyForUser } =
+    useNFTPermissions();
+
   const { uploadFile, getBlobUrl } = usePortal();
+
+  const { removeMarketItem } = useCreateMarketItem();
 
   const nameMax = 30;
 
@@ -95,6 +103,26 @@ export default function Team({
         ...team,
         users: [newUser],
       });
+    }
+
+    if (
+      newUser.saleRoyaltyRatio > 0 &&
+      newUser.amount > 0 &&
+      newUser.price > 0
+    ) {
+      await sellNFT(
+        userPub,
+        newUser.amount,
+        newUser.price,
+        newUser.saleRoyaltyFee,
+      );
+    }
+
+    if (newUser.subscriptionRoyaltyRatio > 0) {
+      // Give any user given permissions an entry in NFT permissions
+      const encKey = await getEncKey(userAuthPub, currentNFT);
+      const nftAddressId = getNFTAddressId(currentNFT);
+      await putEncKeyForUser(nftAddressId, newUser.userPub, encKey);
     }
 
     setIsReadOnlyArray((prev) => {
@@ -171,7 +199,12 @@ export default function Team({
    * @function
    * @param {string} memberPub - The public identifier of the team member to be removed.
    */
-  function handleSubmit_RemoveTeamMember(memberPub) {
+  async function handleSubmit_RemoveTeamMember(memberPub) {
+    const user = team.users.find((user) => user.userPub === memberPub);
+    if (user.saleRoyaltyRatio > 0 && user.amount > 0 && user.price > 0) {
+      await removeMarketItem(userPub, user.amount, user.price);
+    }
+
     setTeam({
       name: team.name,
       users: team.users?.filter((user) => user.userPub !== memberPub),
@@ -246,7 +279,7 @@ export default function Team({
           <div className="z-0 rounded-lg bg-fabstir-light-gray p-4 pb-0 shadow-lg">
             <TeamView
               team={team}
-              TeamUserView={TeamUserView}
+              TeamUserView={PermissionUserView}
               isReadOnlyArray={isReadOnlyArray}
               handleEditMember={handleEditMember}
               isPublic={isTeamPublic}
@@ -292,9 +325,8 @@ export default function Team({
       </div>
       {!isReadOnly && (
         <div className="mt-16">
-          <TeamUserView
+          <PermissionUserView
             user={user}
-            userAuthPub={userAuthPub}
             isReadOnly={false}
             handleSubmit_SaveTeamMember={(newUser) =>
               handleSubmit_SaveTeamMember(

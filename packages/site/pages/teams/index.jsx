@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { PlusIcon, PencilIcon } from 'heroiconsv2/24/outline';
 import { useNavigate } from 'react-router-dom';
 import { useRecoilState, useRecoilValue } from 'recoil';
@@ -13,6 +13,7 @@ function classNames(...classes) {
 /**
  * `Teams` is a React functional component that renders a list teams. This component is designed to display
  * information about various teams, including details such as team names, members, and other relevant data.
+ * It is this teams system that is used for media content credits listing.
  *
  * @component
  * @returns {JSX.Element} The rendered list or grid of teams.
@@ -21,8 +22,13 @@ export default function Teams() {
   const router = useRouter();
   //  navigate(-1)
   const [teams, setTeams] = useRecoilState(teamsstate);
-  const [isUpdateTeamsState, setIsUpdateTeamsState] =
-    useRecoilState(isupdateteamsstate);
+  const [isUpdateTeams, setIsUpdateTeams] = useRecoilState(isupdateteamsstate);
+
+  const [isReadOnly, setIsReadOnly] = useState(true);
+
+  const toggleReadOnly = () => {
+    setIsReadOnly(!isReadOnly);
+  };
 
   /**
    * Updates a specific team in the list of teams at the given index. This function creates a new state object with the updated team
@@ -86,7 +92,7 @@ export default function Teams() {
   };
 
   const handleExitTeams = (e) => {
-    setIsUpdateTeamsState(true);
+    setIsUpdateTeams(true);
     router.push(`/gallery/userNFTs`);
   };
 
@@ -98,13 +104,20 @@ export default function Teams() {
             <h2 className="text-center text-3xl font-extrabold tracking-tight text-fabstir-dark-gray sm:text-4xl">
               {teams.teamsName}
             </h2>
-            <input
-              type="text"
-              value={teams.teamsName}
-              onChange={handleInputChange}
-              className="mt-4 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-fabstir-dark-gray placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="Edit team name"
-            />
+            <div className="flex items-center mt-4 w-full">
+              <input
+                type="text"
+                value={teams.teamsName}
+                onChange={handleInputChange}
+                className="flex-grow rounded-md border border-gray-300 px-3 py-2 text-sm text-fabstir-dark-gray placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="Edit team name"
+                readOnly={isReadOnly}
+              />
+              <PencilIcon
+                className="ml-2 h-5 w-5 text-gray-500 cursor-pointer"
+                onClick={toggleReadOnly}
+              />
+            </div>
           </div>
           <p className="text-center text-xl text-fabstir-dark-gray">
             Risus velit condimentum vitae tincidunt tincidunt. Mauris ridiculus
@@ -126,6 +139,7 @@ export default function Teams() {
           <Team
             theTeam={team}
             index={index}
+            initialIsReadOnly={team.users !== undefined}
             handleUpdateTeam={handleUpdateTeam}
             handleDeleteTeam={handleDeleteTeam}
           />

@@ -16,6 +16,7 @@ import { Checkbox } from '../ui-components/checkbox';
 import { videoGenres, musicGenres } from '../utils/mediaAttributes';
 import { fetchMediaFormats } from '../utils/loadMediaFormats';
 import DropMultipleAudio from './DropMultipleAudio';
+import { useRouter } from 'next/router';
 
 /**
  * Renders a slide-over component for NFT (Non-Fungible Token) creation or editing, providing different asset upload options based on the NFT type.
@@ -37,11 +38,46 @@ const NFTSlideOverRight = ({ encKey }) => {
 
   console.log('NFTSlideOverRight: encKey = ', encKey);
 
-  //   const setNFTField = (field, value) =>
-  //   nft = { ...nft, [field]: value }
-  const watchType = watch('type');
+  // const watchType = watch('type');
 
-  const [transcodeProgress, setTranscodeProgress] = useState(0);
+  const router = useRouter();
+  const [watchType, setWatchType] = useState('');
+
+  // This section fixes the issue where retrieving the watch value 'type' immediately after the component mounts returns undefined.
+  // by adding a slight delay before the retrieval.
+  /////////////////////
+
+  useEffect(() => {
+    const subscription = watch((value, { name }) => {
+      if (name === 'type') {
+        setWatchType(value.type);
+      }
+    });
+
+    // Delay the initial type value retrieval
+    setTimeout(() => {
+      setWatchType(getValues('type'));
+    }, 0);
+
+    return () => subscription.unsubscribe();
+  }, [watch, getValues]);
+
+  useEffect(() => {
+    // Handle route change to reset the type state
+    const handleRouteChange = () => {
+      // Delay the type value retrieval on route change
+      setTimeout(() => {
+        setWatchType(getValues('type'));
+      }, 0);
+    };
+
+    router.events.on('routeChangeComplete', handleRouteChange);
+
+    return () => {
+      router.events.off('routeChangeComplete', handleRouteChange);
+    };
+  }, [router.events, getValues]);
+  /////////////////////
 
   const [videoGenresSet, setVideoGenresSet] = useState(
     new Set(getValues('genre')),

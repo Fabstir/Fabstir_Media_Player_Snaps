@@ -13,26 +13,27 @@ import TeamUserView from './TeamUserView';
  * @component
  * @param {Object} props - The properties passed to the TeamView component.
  * @param {Object} props.team - The team object containing team details.
- * @param {boolean} props.isReadOnly - A flag indicating whether the view is read-only.
+ * @param {Array} props.isReadOnlyArray - An array indicating which parts of the team view are read-only.
+ * @param {Function} props.handleEditMember - Callback function to handle editing a team member.
  * @param {boolean} props.isPublic - A flag indicating whether the team is public.
  * @param {Function} props.setIsPublic - Callback function to toggle the team's public visibility.
- * @param {Function} props.handleAltName - Callback function to handle changes to the team's alternate name.
- * @param {Function} props.handleAltRole - Callback function to handle changes to the team's alternate role.
- * @param {Function} props.handleAlias - Callback function to handle changes to the team's alias.
+ * @param {JSX.Element} props.TeamUserView - The component used to display individual team members.
+ * @param {Function} props.handleSubmit_SaveTeamMember - Callback function to handle saving a team member.
  * @param {Function} props.handleSubmit_RemoveTeamMember - Callback function to handle removing a team member.
+ * @param {boolean} props.isTeamReadOnly - A flag indicating whether the entire team view is read-only.
  * @returns {JSX.Element} The rendered component displaying the team view.
  */
 export default function TeamView({
   team,
-  isReadOnly,
+  isReadOnlyArray,
+  handleEditMember,
   isPublic,
   setIsPublic,
-  handleAltName,
-  handleAltRole,
-  handleAlias,
+  TeamUserView,
+  handleSubmit_SaveTeamMember,
   handleSubmit_RemoveTeamMember,
+  isTeamReadOnly,
 }) {
-  //  console.log('TeamView: team.users = ', team.users)
   const userAuthPub = useRecoilValue(userauthpubstate);
 
   return (
@@ -40,16 +41,18 @@ export default function TeamView({
       {team?.users?.length > 0 && (
         <div className="relative flex justify-between space-y-8 pb-5 sm:space-y-12">
           <ul className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-4 md:grid-cols-6 md:gap-x-6 lg:max-w-5xl lg:grid-cols-7 lg:gap-x-10 lg:gap-x-6 lg:gap-y-12 lg:gap-y-14 xl:max-w-7xl xl:grid-cols-8">
-            {team?.users?.map((user) => (
+            {team?.users?.map((user, index) => (
               <li key={user?.userPub}>
                 <TeamUserView
                   user={user}
                   userAuthPub={userAuthPub}
-                  isReadOnly={isReadOnly}
-                  handleAltName={handleAltName}
-                  handleAltRole={handleAltRole}
-                  handleAlias={handleAlias}
+                  isReadOnly={isReadOnlyArray[index]}
+                  handleEditMember={() => handleEditMember(index)}
+                  handleSubmit_SaveTeamMember={(newUser) =>
+                    handleSubmit_SaveTeamMember(newUser, index)
+                  }
                   handleSubmit_RemoveTeamMember={handleSubmit_RemoveTeamMember}
+                  showEditButton={!isTeamReadOnly}
                 />
               </li>
             ))}

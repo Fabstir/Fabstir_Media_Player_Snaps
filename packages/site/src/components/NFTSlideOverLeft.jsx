@@ -16,6 +16,8 @@ import {
   currentnftformstate,
 } from '../atoms/nftSlideOverAtom';
 import SimpleToggle from './SimpleToggle';
+import { teamsstate } from '../atoms/teamsAtom';
+import TeamsView from './TeamsView';
 
 // Tailwind CSS styles
 const twStyle = 'ml-8 grid gap-y-6 grid-cols-6 gap-x-5';
@@ -53,6 +55,7 @@ const NFTSlideOverLeft = ({
 
   const [currentNFTForm, setCurrentNFTForm] =
     useRecoilState(currentnftformstate);
+  const [teams, setTeams] = useRecoilState(teamsstate);
 
   const currentNFTCategories = useRecoilValue(currentnftcategories);
 
@@ -319,12 +322,16 @@ const NFTSlideOverLeft = ({
             <Link
               href="/teams"
               onClick={() => {
+                // setTeams({
+                //   teamsName: nft.teamsName || 'Teams',
+                //   teams: nft.teams,
+                // });
                 setCurrentNFTForm(getValues());
               }}
             >
               <div className="flex flex-1 flex-row">
-                <div className="text-fabstir-dark-gray">
-                  Team/Credits:&nbsp;
+                <div className="text-fabstir-dark-gray text-lg">
+                  {teams.teamsName}&nbsp;
                 </div>
                 <UsersIcon
                   className="mr-2 h-6 w-6 text-fabstir-white transition duration-100 hover:scale-125 hover:bg-fabstir-gray-700 hover:text-fabstir-white focus:outline-none focus:ring-2 focus:ring-fabstir-gray"
@@ -332,6 +339,8 @@ const NFTSlideOverLeft = ({
                 />
               </div>
             </Link>
+
+            <TeamsView teams={teams.teams} />
           </div>
           <br />
 
