@@ -5,7 +5,6 @@ import { Input } from '../ui-components/input';
 import { v4 as uuidv4 } from 'uuid';
 import { generateUsername } from 'unique-username-generator';
 import usePortal from '../hooks/usePortal';
-import TeamUserView from './TeamUserView';
 import { useRecoilValue } from 'recoil';
 import { userauthpubstate } from '../atoms/userAuthAtom';
 
@@ -22,16 +21,18 @@ function classNames(...classes) {
 }
 
 /**
- * `Team` is a React functional component that renders information about a single team. This component is designed to display
- * details such as the team name, members, and other relevant data. It receives various props to customize its behavior and appearance.
+ * `Team` is a React functional component that renders the details and members of a team.
+ * This component provides a user interface for viewing and managing team information,
+ * including the ability to edit team details and manage team members.
  *
  * @component
  * @param {Object} props - The properties passed to the Team component.
- * @param {Object} props.theTeam - The team object containing team details.
- * @param {number} props.index - The index of the team in the list.
- * @param {Function} props.handleUpdateTeam - Callback function to handle updating the team.
- * @param {Function} props.handleDeleteTeam - Callback function to handle deleting the team.
- * @returns {JSX.Element} The rendered component displaying the team information.
+ * @param {Object} props.team - The team object containing team details.
+ * @param {boolean} props.isReadOnly - A flag indicating whether the view is read-only.
+ * @param {Function} props.handleEditTeam - Callback function to handle editing the team details.
+ * @param {Function} props.handleAddMember - Callback function to handle adding a new team member.
+ * @param {Function} props.handleRemoveMember - Callback function to handle removing a team member.
+ * @returns {JSX.Element} The rendered component displaying the team details and members.
  */
 export default function Team({
   theTeam,
@@ -39,6 +40,7 @@ export default function Team({
   handleUpdateTeam,
   handleDeleteTeam,
   initialIsReadOnly = true,
+  TeamUserView,
 }) {
   const userAuthPub = useRecoilValue(userauthpubstate);
   const [isTeamPublic, setIsTeamPublic] = useState([]);
@@ -211,7 +213,7 @@ export default function Team({
                   isReadOnly
                     ? 'bg-fabstir-dark-purple'
                     : 'bg-fabstir-gray-700 shadow-[inset_0_-1px_0px_hsla(0,0%,100%,0.25),inset_0_1px_1px_hsla(0,0%,0%,0.15)]',
-                  'w-96 rounded-md border-2 border-fabstir-gray p-2 text-lg font-semibold text-fabstir-dark-gray focus:border-indigo-500 focus:ring-indigo-500',
+                  'rounded-md border-2 border-fabstir-gray p-2 text-lg font-semibold text-fabstir-dark-gray focus:border-indigo-500 focus:ring-indigo-500 w-60',
                 )}
                 placeholder=""
                 aria-describedby="altName"
@@ -293,7 +295,6 @@ export default function Team({
       {!isReadOnly && (
         <div className="mt-16">
           <TeamUserView
-            user={user}
             userAuthPub={userAuthPub}
             isReadOnly={false}
             handleSubmit_SaveTeamMember={(newUser) =>

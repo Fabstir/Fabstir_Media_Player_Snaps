@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 import { SpeakerXMarkIcon, SpeakerWaveIcon } from '@heroicons/react/24/outline';
+import { trailermutestate } from '../atoms/nftPlayerAtom';
+import { useRecoilState } from 'recoil';
 
 /**
  * `VideoJS` is a React component that renders a VideoJS player with configurable options. This component integrates VideoJS
@@ -38,13 +40,16 @@ const VideoJS = ({
 }) => {
   const videoRef = useRef(null);
   const playerRef = useRef(null);
-  const [isMuted, setIsMuted] = useState(true);
+  const [isMuted, setIsMuted] = useRecoilState(trailermutestate);
+  const [isMainMuted, setIsMainMuted] = useState(false);
   const isMouseOverUnmute = useRef(false);
   const [currentResolution, setCurrentResolution] = useState('');
   const [isChangingResolution, setIsChangingResolution] = useState(false);
 
   const [audioSrc, setAudioSrc] = useState(null);
   const audioRef = useRef(null);
+
+  console.log('test: VideoJS: isPlayClicked', isPlayClicked);
 
   /**
    * Chooses the video source based on the play button click status.
@@ -488,36 +493,31 @@ const VideoJS = ({
       player.addClass('vjs-matrix');
       if (isAudio) player.audioOnlyMode(isAudio);
 
-      player.muted(false); // Ensure the player is not muted
-      setIsMuted(false);
+      player.muted(isMuted); // Ensure the player is not muted
 
       player.controlBar.hide();
-    }
-
-    if (playerRef.current && isPlayClicked) {
-      console.log('VideoJS1: play3');
-      playerRef.current.play();
     }
   };
 
   useEffect(() => {
+    const handleVolumeChange = () => {
+      console.log('VideoJS: Volume changed');
+      if (isPlayClicked && audioRef.current) {
+        const isMuted = playerRef.current.muted();
+        audioRef.current.muted = isMuted;
+        setIsMainMuted(isMuted);
+      }
+    };
+
     if (playerRef.current) {
       playerRef.current.on('play', () => {
         console.log('VideoJS1: play');
       });
 
-      playerRef.current.on('ended', () => {
-        playerRef.current.poster(options?.poster); // Show the poster when the video ends
-        //        player.posterImage = true;
-
-        setIsPlayClicked(false);
-      });
-
-      console.log('VideoJS: Attaching event listeners');
-
       playerRef.current.on('play', () => {
         console.log('VideoJS: Video started playing');
-        if (audioRef.current) {
+        if (audioRef.current && isPlayClicked) {
+          audioRef.current.muted = isMainMuted;
           audioRef.current
             .play()
             .then(() => console.log('VideoJS: Audio play successful'))
@@ -539,13 +539,7 @@ const VideoJS = ({
         }
       });
 
-      playerRef.current.on('volumechange', () => {
-        console.log('VideoJS: Volume changed');
-        if (audioRef.current) {
-          audioRef.current.volume = playerRef.current.volume();
-          audioRef.current.muted = playerRef.current.muted();
-        }
-      });
+      playerRef.current.on('volumechange', handleVolumeChange);
 
       playerRef.current.on('resolutionchange', (event, newResolution) => {
         console.log('Resolution changed to:', newResolution);
@@ -557,12 +551,6 @@ const VideoJS = ({
           resolutionButton.updateButtonText();
         }
       });
-
-      playerRef.current.on('ended', () => {
-        console.log('VideoJS: Video ended');
-        playerRef.current.poster(options?.poster);
-        setIsPlayClicked(false);
-      });
     }
 
     return () => {
@@ -571,12 +559,12 @@ const VideoJS = ({
         playerRef.current.off('play');
         playerRef.current.off('pause');
         playerRef.current.off('seeking');
-        playerRef.current.off('volumechange');
+        playerRef.current.off('volumechange', handleVolumeChange);
         playerRef.current.off('resolutionchange');
         playerRef.current.off('ended');
       }
     };
-  }, [setIsPlayClicked, isPlayClicked, options]);
+  }, [isPlayClicked, options]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -605,6 +593,8 @@ const VideoJS = ({
             console.log('VideoJS1: play1');
             playerRef.current.src(trailerSource);
             updateSubtitleTracks(trailerSubtitleTracks);
+            audioRef.current.muted = isMuted;
+            playerRef.current.muted(isMuted);
             playerRef.current.play();
           }
         }, 400);
@@ -638,7 +628,7 @@ const VideoJS = ({
         };
       }
     }
-  }, [isPlayClicked, trailerSource, trailerSubtitleTracks, options]);
+  }, [isPlayClicked, trailerSource, trailerSubtitleTracks, options, isMuted]);
 
   /**
    * Updates the subtitle tracks for the VideoJS player.
@@ -683,6 +673,8 @@ const VideoJS = ({
       if (isPlayClicked) {
         console.log('VideoJS1: play damn mainSource', mainSource);
         console.log('VideoJS1: play2');
+        audioRef.current.muted = isMainMuted;
+        playerRef.current.muted(isMainMuted);
         playerRef.current.play();
       }
     }
@@ -730,6 +722,10 @@ const VideoJS = ({
           setIsPlayClicked(false);
           playerRef.current.src(trailerSource);
           updateSubtitleTracks(trailerSubtitleTracks);
+          audioRef.current.muted = isMainMuted;
+
+          audioRef.current.pause(); // Pause the audio
+          audioRef.current.currentTime = 0; // Reset the playback time to the beginning
         }
       });
     }
@@ -742,21 +738,16 @@ const VideoJS = ({
   }, [isPlayClicked, trailerSource, setIsPlayClicked, trailerSubtitleTracks]);
 
   useEffect(() => {
-    const isInitiallyMuted = playerRef.current
-      ? playerRef.current.muted()
-      : !isAudio;
-    setIsMuted(isInitiallyMuted);
-  }, []);
+    if (playerRef.current && isPlayClicked) {
+      //      audioRef.current.volume = playerRef.current.volume();
+      //      console.log('VideoJS: Setting volume:', volume);
 
-  useEffect(() => {
-    //if (!trailerSource) return;
-
-    if (playerRef.current) {
-      playerRef.current.muted(isPlayClicked ? false : isMuted);
+      playerRef.current.muted(isMainMuted);
+      audioRef.current.muted = isMainMuted;
     }
-  }, [isPlayClicked, isMuted, trailerSource]);
+  }, [isPlayClicked]);
 
-  const UnmuteButton = () => (
+  const UnmuteButton = ({ isMuted }) => (
     <div className="absolute bottom-7 right-6 z-20">
       <button
         id="unmute-button"
@@ -785,7 +776,8 @@ const VideoJS = ({
         onClick={() => {
           const player = playerRef.current;
           if (player) {
-            const currentMuteState = player.muted();
+            const currentMuteState = isMuted;
+            console.log('VideoJS: isPlayerClicked', isPlayClicked);
             player.muted(!currentMuteState);
             if (audioRef.current) {
               audioRef.current.muted = !currentMuteState;
@@ -851,7 +843,7 @@ const VideoJS = ({
         onError={(e) => console.error('VideoJS: Audio error:', e.target.error)}
         autoPlay={false}
       />
-      {trailerSource && !isPlayClicked && <UnmuteButton />}
+      {trailerSource && !isPlayClicked && <UnmuteButton isMuted={isMuted} />}
     </div>
   );
 };

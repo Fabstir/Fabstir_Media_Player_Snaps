@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { PlusIcon, PencilIcon } from 'heroiconsv2/24/outline';
-import { useNavigate } from 'react-router-dom';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import Team from '../../src/components/Team';
 import { isupdateteamsstate, teamsstate } from '../../src/atoms/teamsAtom';
 import { useRouter } from 'next/router';
+import TeamUserView from '../../src/components/TeamUserView';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -139,6 +139,7 @@ export default function Teams() {
           <Team
             theTeam={team}
             index={index}
+            TeamUserView={TeamUserView}
             initialIsReadOnly={team.users !== undefined}
             handleUpdateTeam={handleUpdateTeam}
             handleDeleteTeam={handleDeleteTeam}

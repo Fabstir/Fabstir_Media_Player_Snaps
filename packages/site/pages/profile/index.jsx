@@ -11,6 +11,7 @@ import { useRouter } from 'next/router';
 import { useRecoilState } from 'recoil';
 import * as yup from 'yup';
 import { ChevronDownIcon } from 'heroiconsv2/24/outline';
+import { ChevronDoubleLeftIcon } from '@heroicons/react/24/solid';
 
 import { userauthpubstate } from '../../src/atoms/userAuthAtom';
 import useCreateUser from '../../src/hooks/useCreateUser';
@@ -418,7 +419,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
       <div ref={dropdownRef} className="relative inline-block w-full">
         <input
           readOnly
-          className="w-full truncate bg-fabstir-dark-gray py-2 pl-2 pr-8 text-fabstir-light-gray"
+          className="w-full truncate bg-fabstir-white py-2 pl-2 pr-8 text-fabstir-dark-gray"
           value={selectedValue?.join(', ') || ''}
           title={selectedValue?.join(', ') || ''}
           onClick={() => setIsOpen(!isOpen)}
@@ -428,13 +429,13 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
           onClick={() => setIsOpen(!isOpen)}
         />
         {isOpen && (
-          <div className="absolute z-10 w-full border-2 border-fabstir-gray bg-fabstir-gray-700">
+          <div className="absolute z-10 w-full border-2 border-fabstir-gray bg-white">
             {options.map((option) => {
               return (
                 <div
                   key={option}
-                  className={`p-2 hover:bg-gray-100 ${
-                    selectedValue?.includes(option) ? 'bg-fabstir-gray-500' : ''
+                  className={`p-2 hover:bg-light-gray ${
+                    selectedValue?.includes(option) ? 'bg-fabstir-gray' : ''
                   }`}
                   onClick={() => handleSelect(option)}
                 >
@@ -475,9 +476,22 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
     router.back();
   };
 
+  function handleBackToRoot() {
+    router.push('/');
+  }
+
   return (
     <div className="h-screen">
-      <div className="mx-auto grid max-w-3xl grid-cols-1 bg-fabstir-gray-700 p-12">
+      <button className="mt-6 ml-4" onClick={handleBackToRoot}>
+        <div className="flex justify-center">
+          <ChevronDoubleLeftIcon
+            className="h-6 w-6 font-bold text-gray-500 lg:h-8 lg:w-8 pb-2"
+            aria-hidden="true"
+          />
+          Back to Root
+        </div>
+      </button>
+      <div className="mx-auto grid max-w-3xl grid-cols-1 bg-fabstir-gray-700">
         <form
           onSubmit={handleSubmit(handlesubmit_save)}
           className="space-y-8 divide-y divide-fabstir-gray"
@@ -485,10 +499,10 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
           <div className="space-y-8 divide-y divide-fabstir-gray">
             <div>
               <div>
-                <h3 className="text-lg font-medium leading-6 text-fabstir-light-gray">
+                <h3 className="text-2xl font-medium leading-6 text-fabstir-dark-gray">
                   Profile
                 </h3>
-                <p className="mt-1 text-sm text-fabstir-light-gray">
+                <p className="mt-1 text-sm text-fabstir-dark-gray">
                   This information will be displayed publicly so be careful what
                   you share.
                 </p>
@@ -497,7 +511,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                 <div className="mt-4 sm:col-span-4">
                   <label
                     htmlFor="userName"
-                    className="block text-sm font-medium text-fabstir-light-gray"
+                    className="block text-sm font-medium text-fabstir-dark-gray"
                   >
                     Username
                   </label>
@@ -508,7 +522,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                       autoComplete="given-name"
                       readOnly={inputReadOnly}
                       register={register('userName')}
-                      className="block w-full rounded-md border-fabstir-gray bg-fabstir-dark-gray shadow-sm focus:border-fabstir-focus-colour1 focus:ring-fabstir-focus-colour1 sm:text-sm"
+                      className="block w-full rounded-md border-fabstir-gray bg-fabstir-white shadow-sm focus:border-fabstir-focus-colour1 focus:ring-fabstir-focus-colour1 sm:text-sm"
                     />
                   </div>
                   <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
@@ -520,10 +534,10 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
 
                 <div className="mt-4 sm:col-span-6">
                   <div>
-                    <h3 className="text-lg font-medium leading-6 text-fabstir-light-gray">
+                    <h3 className="text-lg font-medium leading-6 text-fabstir-dark-gray">
                       About
                     </h3>
-                    <p className="mt-1 text-sm text-fabstir-light-gray">
+                    <p className="mt-1 text-sm text-fabstir-dark-gray">
                       Write a few sentences about yourself.
                     </p>
                   </div>
@@ -535,7 +549,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                       rows={3}
                       readOnly={inputReadOnly}
                       register={register('about')}
-                      className="block w-full rounded-md border border-fabstir-gray bg-fabstir-dark-gray shadow-sm focus:border-fabstir-focus-colour1 focus:ring-fabstir-focus-colour1 sm:text-sm"
+                      className="block w-full rounded-md border border-fabstir-gray bg-fabstir-white shadow-sm focus:border-fabstir-focus-colour1 focus:ring-fabstir-focus-colour1 sm:text-sm text-fabstir-dark-gray"
                       defaultValue={''}
                     />
                   </div>
@@ -550,7 +564,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                   <div className="">
                     <label
                       htmlFor="photo"
-                      className="block text-sm font-medium text-fabstir-light-gray"
+                      className="block text-sm font-medium text-fabstir-dark-gray"
                     >
                       Photo
                     </label>
@@ -565,7 +579,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                       </span>
                       <button
                         type="button"
-                        className="hover:bg-fabstir-gary ml-5 rounded-md border border-fabstir-gray bg-fabstir-dark-gray px-3 py-2 text-sm font-medium leading-4 text-fabstir-light-gray shadow-sm focus:outline-none focus:ring-2 focus:ring-fabstir-focus-colour1 focus:ring-offset-2"
+                        className="hover:bg-fabstir-gary ml-5 rounded-md border border-fabstir-gray bg-fabstir-white px-3 py-2 text-sm font-medium leading-4 text-fabstir-dark-gray shadow-sm focus:outline-none focus:ring-2 focus:ring-fabstir-focus-colour1 focus:ring-offset-2"
                       >
                         Change
                       </button>
@@ -578,7 +592,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                   <div className="sm:col-span-3">
                     <label
                       htmlFor="role"
-                      className="block text-sm font-medium text-fabstir-light-gray"
+                      className="block text-sm font-medium text-fabstir-dark-gray"
                     >
                       Role(s)
                     </label>
@@ -598,13 +612,13 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                 <div className="sm:col-span-6">
                   <label
                     htmlFor="cover-photo"
-                    className="block text-sm font-medium text-fabstir-light-gray"
+                    className="block text-sm font-medium text-fabstir-dark-gray"
                   >
                     Cover photo
                   </label>
                   <div
                     {...getRootProps()}
-                    className="mt-1 flex justify-center rounded-md border-2 border-dashed border-fabstir-gray bg-fabstir-dark-gray px-6 pb-6 pt-5"
+                    className="mt-1 flex justify-center rounded-md border-2 border-dashed border-fabstir-gray bg-fabstir-white px-6 pb-6 pt-5"
                   >
                     <div className="space-y-1 text-center">
                       <svg
@@ -651,10 +665,10 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
 
             <div className="pt-8">
               <div>
-                <h3 className="text-lg font-medium leading-6 text-fabstir-light-gray">
+                <h3 className="text-lg font-medium leading-6 text-fabstir-dark-gray">
                   Personal Information
                 </h3>
-                <p className="mt-1 text-sm text-fabstir-light-gray">
+                <p className="mt-1 text-sm text-fabstir-dark-gray">
                   Use a permanent address where you can receive mail.
                 </p>
               </div>
@@ -662,7 +676,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                 <div className="sm:col-span-3">
                   <label
                     htmlFor="firstName"
-                    className="block text-sm font-medium text-fabstir-light-gray"
+                    className="block text-sm font-medium text-fabstir-dark-gray"
                   >
                     First name
                   </label>
@@ -673,7 +687,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                       autoComplete="given-name"
                       readOnly={inputReadOnly}
                       register={register('firstName')}
-                      className="block w-full rounded-md border-fabstir-gray bg-fabstir-dark-gray shadow-sm focus:border-fabstir-focus-colour1 focus:ring-fabstir-focus-colour1 sm:text-sm"
+                      className="block w-full rounded-md border-fabstir-gray bg-fabstir-white shadow-sm focus:border-fabstir-focus-colour1 focus:ring-fabstir-focus-colour1 sm:text-sm"
                     />
                   </div>
                   <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
@@ -684,7 +698,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                 <div className="sm:col-span-3">
                   <label
                     htmlFor="lastName"
-                    className="block text-sm font-medium text-fabstir-light-gray"
+                    className="block text-sm font-medium text-fabstir-dark-gray"
                   >
                     Last name
                   </label>
@@ -695,7 +709,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                       autoComplete="family-name"
                       readOnly={inputReadOnly}
                       register={register('lastName')}
-                      className="block w-full rounded-md bg-fabstir-dark-gray shadow-sm focus:border-fabstir-focus-colour1 focus:ring-fabstir-focus-colour1 sm:text-sm text-black"
+                      className="block w-full rounded-md bg-fabstir-white shadow-sm focus:border-fabstir-focus-colour1 focus:ring-fabstir-focus-colour1 sm:text-sm text-black"
                     />
                   </div>
                   <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
@@ -706,7 +720,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                 <div className="sm:col-span-5">
                   <label
                     htmlFor="company"
-                    className="block text-sm font-medium text-fabstir-light-gray"
+                    className="block text-sm font-medium text-fabstir-dark-gray"
                   >
                     Company
                   </label>
@@ -717,7 +731,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                       autoComplete="company"
                       readOnly={inputReadOnly}
                       register={register('company')}
-                      className="block w-full rounded-md border-fabstir-gray bg-fabstir-dark-gray shadow-sm focus:border-fabstir-focus-colour1 focus:ring-fabstir-focus-colour1 sm:text-sm"
+                      className="block w-full rounded-md border-fabstir-gray bg-fabstir-white shadow-sm focus:border-fabstir-focus-colour1 focus:ring-fabstir-focus-colour1 sm:text-sm"
                     />
                   </div>
                   <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
@@ -728,19 +742,19 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                 <div className="sm:col-span-6">
                   <label
                     htmlFor="accountAddress"
-                    className="block text-sm font-medium text-fabstir-light-gray"
+                    className="block text-sm font-medium text-fabstir-dark-gray"
                   >
                     Account
                   </label>
 
                   <div className="flex flex-1">
                     <div className="mr-4 w-full">
-                      <div className="mt-1 rounded-md border-2 border-fabstir-gray bg-fabstir-dark-gray p-2 text-fabstir-light-gray">
+                      <div className="mt-1 rounded-md border-2 border-fabstir-gray bg-fabstir-white p-2 text-fabstir-dark-gray">
                         {getValues(`accountAddress`)}
                       </div>
                     </div>
 
-                    {/* <div className="rounded-md border border-fabstir-gray bg-fabstir-dark-gray px-4 py-2 text-sm font-medium text-fabstir-light-gray shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-fabstir-focus-colour1 focus:ring-offset-2">
+                    {/* <div className="rounded-md border border-fabstir-gray bg-fabstir-white px-4 py-2 text-sm font-medium text-fabstir-dark-gray shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-fabstir-focus-colour1 focus:ring-offset-2">
                       Use Wallet Address
                     </div> */}
                   </div>
@@ -749,14 +763,14 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                 <div className="sm:col-span-6">
                   <label
                     htmlFor="userPub"
-                    className="block text-sm font-medium text-fabstir-light-gray"
+                    className="block text-sm font-medium text-fabstir-dark-gray"
                   >
                     Public Key
                   </label>
 
                   <div className="mr-4 mt-1 flex w-full flex-1 rounded-md border-2 border-fabstir-gray">
                     <div
-                      className="block w-full truncate rounded-md border-fabstir-gray bg-fabstir-dark-gray p-2 text-fabstir-light-gray shadow-sm focus:border-fabstir-focus-colour1 focus:ring-fabstir-focus-colour1 sm:text-sm"
+                      className="block w-full truncate rounded-md border-fabstir-gray bg-fabstir-white p-2 text-fabstir-dark-gray shadow-sm focus:border-fabstir-focus-colour1 focus:ring-fabstir-focus-colour1 sm:text-sm"
                       title={userPub} // Tooltip added here
                     >
                       {userPub}
@@ -767,7 +781,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                 <div className="sm:col-span-4">
                   <label
                     htmlFor="email"
-                    className="block text-sm font-medium text-fabstir-light-gray"
+                    className="block text-sm font-medium text-fabstir-dark-gray"
                   >
                     Email address
                   </label>
@@ -778,7 +792,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                       autoComplete="email"
                       readOnly={inputReadOnly}
                       register={register('emailAddress')}
-                      className="block w-full rounded-md border-fabstir-gray bg-fabstir-dark-gray shadow-sm focus:border-fabstir-focus-colour1 focus:ring-fabstir-focus-colour1 sm:text-sm"
+                      className="block w-full rounded-md border-fabstir-gray bg-fabstir-white shadow-sm focus:border-fabstir-focus-colour1 focus:ring-fabstir-focus-colour1 sm:text-sm"
                     />
                   </div>
                   <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
@@ -789,7 +803,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                 <div className="sm:col-span-3">
                   <label
                     htmlFor="country"
-                    className="block text-sm font-medium text-fabstir-light-gray"
+                    className="block text-sm font-medium text-fabstir-dark-gray"
                   >
                     Country
                   </label>
@@ -799,7 +813,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                       id="country"
                       autoComplete="country"
                       register={register('country')}
-                      className="block w-full rounded-md border-fabstir-gray bg-fabstir-dark-gray shadow-sm focus:border-fabstir-focus-colour1 focus:ring-fabstir-focus-colour1 sm:text-sm"
+                      className="block w-full rounded-md border-fabstir-gray bg-fabstir-white shadow-sm focus:border-fabstir-focus-colour1 focus:ring-fabstir-focus-colour1 sm:text-sm"
                     >
                       {countries.map((country) => (
                         <option key={country}>{country}</option>
@@ -814,7 +828,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                 <div className="col-start-1 sm:col-span-6">
                   <label
                     htmlFor="street-address"
-                    className="block text-sm font-medium text-fabstir-light-gray"
+                    className="block text-sm font-medium text-fabstir-dark-gray"
                   >
                     Street address
                   </label>
@@ -825,7 +839,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                       autoComplete="street-address"
                       readOnly={inputReadOnly}
                       register={register('streetAddress')}
-                      className="block w-full rounded-md border-fabstir-gray bg-fabstir-dark-gray shadow-sm focus:border-fabstir-focus-colour1 focus:ring-fabstir-focus-colour1 sm:text-sm"
+                      className="block w-full rounded-md border-fabstir-gray bg-fabstir-white shadow-sm focus:border-fabstir-focus-colour1 focus:ring-fabstir-focus-colour1 sm:text-sm"
                     />
                   </div>
                   <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
@@ -836,7 +850,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                 <div className="sm:col-span-2">
                   <label
                     htmlFor="city"
-                    className="block text-sm font-medium text-fabstir-light-gray"
+                    className="block text-sm font-medium text-fabstir-dark-gray"
                   >
                     City
                   </label>
@@ -846,7 +860,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                       autoComplete="address-level2"
                       readOnly={inputReadOnly}
                       register={register('city')}
-                      className="block w-full rounded-md border-fabstir-gray bg-fabstir-dark-gray shadow-sm focus:border-fabstir-focus-colour1 focus:ring-fabstir-focus-colour1 sm:text-sm"
+                      className="block w-full rounded-md border-fabstir-gray bg-fabstir-white shadow-sm focus:border-fabstir-focus-colour1 focus:ring-fabstir-focus-colour1 sm:text-sm"
                     />
                   </div>
                   <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
@@ -857,7 +871,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                 <div className="sm:col-span-2">
                   <label
                     htmlFor="region"
-                    className="block text-sm font-medium text-fabstir-light-gray"
+                    className="block text-sm font-medium text-fabstir-dark-gray"
                   >
                     State / Province
                   </label>
@@ -868,7 +882,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                       autoComplete="address-level1"
                       readOnly={inputReadOnly}
                       register={register('region')}
-                      className="block w-full rounded-md border-fabstir-gray bg-fabstir-dark-gray shadow-sm focus:border-fabstir-focus-colour1 focus:ring-fabstir-focus-colour1 sm:text-sm"
+                      className="block w-full rounded-md border-fabstir-gray bg-fabstir-white shadow-sm focus:border-fabstir-focus-colour1 focus:ring-fabstir-focus-colour1 sm:text-sm"
                     />
                   </div>
                   <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
@@ -879,7 +893,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                 <div className="sm:col-span-2">
                   <label
                     htmlFor="postal-code"
-                    className="block text-sm font-medium text-fabstir-light-gray"
+                    className="block text-sm font-medium text-fabstir-dark-gray"
                   >
                     ZIP / Postal code
                   </label>
@@ -890,7 +904,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                       autoComplete="postal-code"
                       readOnly={inputReadOnly}
                       register={register('zipPostcode')}
-                      className="block w-full rounded-md border-fabstir-gray bg-fabstir-dark-gray shadow-sm focus:border-fabstir-focus-colour1 focus:ring-fabstir-focus-colour1 sm:text-sm"
+                      className="block w-full rounded-md border-fabstir-gray bg-fabstir-white shadow-sm focus:border-fabstir-focus-colour1 focus:ring-fabstir-focus-colour1 sm:text-sm"
                     />
                   </div>
                   <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
@@ -906,13 +920,13 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
               <button
                 type="button"
                 onClick={handleBack}
-                className="rounded-md border border-fabstir-gray bg-fabstir-dark-gray px-4 py-2 text-sm font-medium text-fabstir-light-gray shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-fabstir-focus-colour1 focus:ring-offset-2"
+                className="rounded-md border border-fabstir-gray bg-fabstir-white px-4 py-2 text-sm font-medium text-fabstir-dark-gray shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-fabstir-focus-colour1 focus:ring-offset-2"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="ml-3 inline-flex justify-center rounded-md border border-transparent bg-fabstir-action-colour1 px-4 py-2 text-sm font-medium text-fabstir-light-gray shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-fabstir-focus-colour1 focus:ring-offset-2"
+                className="ml-3 inline-flex justify-center rounded-md border border-transparent bg-fabstir-action-colour1 px-4 py-2 text-sm font-medium text-fabstir-dark-gray shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-fabstir-focus-colour1 focus:ring-offset-2"
               >
                 {!userPub ? 'Sign Up' : submitText}
               </button>

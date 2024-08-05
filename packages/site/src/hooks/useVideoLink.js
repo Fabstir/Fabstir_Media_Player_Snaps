@@ -163,7 +163,7 @@ export default function useVideoLink() {
 
     // If video media has no metadata, fetch metadata
     if (!hasVideoMedia(metadata)) {
-      //      metadata = await getMetadata(key, cidWithoutKey);
+      metadata = await getMetadata(key, cidWithoutKey);
 
       console.log('useVideoLink: metadata =', metadata);
 

@@ -712,16 +712,6 @@ const Index = () => {
         </Button>
       </Link>
 
-      {/* Page where a user can set up playlists of their content */}
-      <Link href="/playlists">
-        <Button
-          color="white"
-          className="ml-4 p-1 text-2xl font-semibold dark:bg-gray-200 bg-gray-200 mt-4"
-        >
-          <p className="text-lg p-1 font-bold">Playlists</p>
-        </Button>
-      </Link>
-
       {/* Page where a user can edit their profile */}
       <Link href="/profile">
         <Button

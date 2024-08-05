@@ -8,7 +8,7 @@ import React, { useEffect } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import TokenAttributes from './TokenAttributes';
-import { UsersIcon } from 'heroiconsv1/outline';
+import { UsersIcon, ShareIcon } from 'heroiconsv1/outline';
 import Link from 'next/link';
 
 import {
@@ -18,6 +18,7 @@ import {
 import SimpleToggle from './SimpleToggle';
 import { teamsstate } from '../atoms/teamsAtom';
 import TeamsView from './TeamsView';
+import { permissionsstate } from '../atoms/permissionsAtom';
 
 // Tailwind CSS styles
 const twStyle = 'ml-8 grid gap-y-6 grid-cols-6 gap-x-5';
@@ -56,6 +57,7 @@ const NFTSlideOverLeft = ({
   const [currentNFTForm, setCurrentNFTForm] =
     useRecoilState(currentnftformstate);
   const [teams, setTeams] = useRecoilState(teamsstate);
+  const [permissions, setPermissions] = useRecoilState(permissionsstate);
 
   const currentNFTCategories = useRecoilValue(currentnftcategories);
 
@@ -319,28 +321,52 @@ const NFTSlideOverLeft = ({
 
           <br />
           <div className="">
-            <Link
-              href="/teams"
-              onClick={() => {
-                // setTeams({
-                //   teamsName: nft.teamsName || 'Teams',
-                //   teams: nft.teams,
-                // });
-                setCurrentNFTForm(getValues());
-              }}
-            >
-              <div className="flex flex-1 flex-row">
-                <div className="text-fabstir-dark-gray text-lg">
-                  {teams.teamsName}&nbsp;
+            <div className="">
+              <Link
+                href="/teams"
+                onClick={() => {
+                  // setTeams({
+                  //   teamsName: nft.teamsName || 'Teams',
+                  //   teams: nft.teams,
+                  // });
+                  setCurrentNFTForm(getValues());
+                }}
+              >
+                <div className="flex flex-1 flex-row">
+                  <div className="text-fabstir-dark-gray text-lg">
+                    {teams.teamsName}&nbsp;
+                  </div>
+                  <UsersIcon
+                    className="h-6 w-6 text-fabstir-white transition duration-100 hover:scale-125 hover:bg-fabstir-gray-700 hover:text-fabstir-white focus:outline-none focus:ring-2 focus:ring-fabstir-gray"
+                    aria-hidden="true"
+                  />
                 </div>
-                <UsersIcon
-                  className="mr-2 h-6 w-6 text-fabstir-white transition duration-100 hover:scale-125 hover:bg-fabstir-gray-700 hover:text-fabstir-white focus:outline-none focus:ring-2 focus:ring-fabstir-gray"
-                  aria-hidden="true"
-                />
-              </div>
-            </Link>
+              </Link>
+              <TeamsView teams={teams.teams} />
 
-            <TeamsView teams={teams.teams} />
+              <Link
+                href="/permissions"
+                onClick={() => {
+                  // setTeams({
+                  //   teamsName: nft.teamsName || 'Teams',
+                  //   teams: nft.teams,
+                  // });
+                  setCurrentNFTForm(getValues());
+                }}
+              >
+                <div className="flex flex-1 flex-row">
+                  <div className="text-fabstir-dark-gray text-lg mr-1">
+                    Permissions
+                  </div>
+                  <ShareIcon
+                    className="h-6 w-6 text-fabstir-white transition duration-100 hover:scale-125 hover:bg-fabstir-gray-700 hover:text-fabstir-white focus:outline-none focus:ring-2 focus:ring-fabstir-gray"
+                    aria-hidden="true"
+                  />
+                </div>
+              </Link>
+
+              <TeamsView teams={permissions} />
+            </div>
           </div>
           <br />
 

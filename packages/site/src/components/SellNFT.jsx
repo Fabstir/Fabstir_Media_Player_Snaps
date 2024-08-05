@@ -137,6 +137,10 @@ export default function SellNFT({ nft, open, setOpen, setRerender }) {
     (async () => {
       try {
         let marketItemId;
+
+        // If the reseller fee ratio is greater or equal to the platform fee
+        // then seller's item is listed on the marketplace permissionlessly
+        // else listing is pending and up to the platform owner to accept or reject the listing
         if (await getIsERC721(nft)) {
           const result = await createMarketNFT721Item(
             marketAddress,

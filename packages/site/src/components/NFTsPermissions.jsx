@@ -327,6 +327,7 @@ export default function NFTsPermissions({
         <div className="mt-16">
           <PermissionUserView
             user={user}
+            userAuthPub={userAuthPub}
             isReadOnly={false}
             handleSubmit_SaveTeamMember={(newUser) =>
               handleSubmit_SaveTeamMember(

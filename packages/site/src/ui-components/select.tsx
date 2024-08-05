@@ -1,5 +1,8 @@
-import { Select as HeadlessSelect, type SelectProps as HeadlessSelectProps } from '@headlessui/react'
-import { clsx } from 'clsx'
+import {
+  Select as HeadlessSelect,
+  type SelectProps as HeadlessSelectProps,
+} from '@headlessui/react';
+import { clsx } from 'clsx';
 
 export function Select({ className, multiple, ...props }: HeadlessSelectProps) {
   return (
@@ -40,13 +43,13 @@ export function Select({ className, multiple, ...props }: HeadlessSelectProps) {
           '[&_optgroup]:font-semibold',
 
           // Typography
-          'text-base/6 text-zinc-950 placeholder:text-zinc-500 sm:text-sm/6 dark:text-white dark:*:text-white',
+          'text-base/6 text-zinc-950 placeholder:text-zinc-500 sm:text-sm/6 dark:text-zinc-800 dark:*:text-zinc-800',
 
           // Border
           'border border-zinc-950/10 data-[hover]:border-zinc-950/20 dark:border-white/10 dark:data-[hover]:border-white/20',
 
           // Background color
-          'bg-transparent dark:bg-white/5 dark:*:bg-zinc-800',
+          'bg-transparent dark:bg-white/5 dark:*:bg-fabstir-white',
 
           // Hide default focus styles
           'focus:outline-none',
@@ -66,11 +69,21 @@ export function Select({ className, multiple, ...props }: HeadlessSelectProps) {
             aria-hidden="true"
             fill="none"
           >
-            <path d="M5.75 10.75L8 13L10.25 10.75" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M10.25 5.25L8 3L5.75 5.25" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+            <path
+              d="M5.75 10.75L8 13L10.25 10.75"
+              strokeWidth={1.5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M10.25 5.25L8 3L5.75 5.25"
+              strokeWidth={1.5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
         </span>
       )}
     </span>
-  )
+  );
 }

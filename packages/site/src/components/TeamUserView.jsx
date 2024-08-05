@@ -15,15 +15,17 @@ function classNames(...classes) {
 }
 
 /**
- * TeamUserView component.
+ * `TeamUserView` is a React functional component that displays the details of a user within a team.
+ * This component provides a user interface for viewing and managing individual team member details.
  *
- * This component displays the details of a user within a team.
- * The user may just exist as details inputted or may be already a Fabstir user
- *
- * @param {Object} props - The component props.
+ * @component
+ * @param {Object} props - The properties passed to the TeamUserView component.
  * @param {Object} props.user - The user object containing user details.
  * @param {Object} props.team - The team object containing team details.
- * @returns {JSX.Element} The rendered TeamUserView component.
+ * @param {boolean} props.isReadOnly - A flag indicating whether the view is read-only.
+ * @param {Function} props.handleEditUser - Callback function to handle editing the user's details.
+ * @param {Function} props.handleRemoveUser - Callback function to handle removing the user from the team.
+ * @returns {JSX.Element} The rendered component displaying the user's details within the team.
  */
 export default function TeamUserView({
   user,
@@ -99,6 +101,7 @@ export default function TeamUserView({
     reset,
     setValue,
     getValues,
+    watch,
   } = useForm({
     defaultValues: user || defaultUser,
     resolver: yupResolver(userSchema),
@@ -124,17 +127,17 @@ export default function TeamUserView({
 
   function handleCancel() {
     setIsEditable(false);
-    reset(defaultUser);
+    reset(user || defaultUser);
   }
 
   useEffect(() => {
-    if (user.image) {
+    if (watch('image')) {
       (async () => {
-        const linkUrl = await getBlobUrl(user.image);
+        const linkUrl = await getBlobUrl(watch('image'));
         setImageUrl(linkUrl);
       })();
     }
-  }, []);
+  }, [watch('image')]);
 
   const onDrop = useCallback(
     async (acceptedFiles) => {
@@ -168,11 +171,21 @@ export default function TeamUserView({
         <form onSubmit={handleSubmit(handleSave)}>
           <>
             {isEditable ? (
-              <div
-                {...getRootProps()}
-                className="mt-1 flex justify-center rounded-md border-2 border-dashed border-fabstir-gray bg-fabstir-light-gray px-6 pb-6 pt-5"
-              >
-                {!imageUrl ? (
+              <>
+                {imageUrl && (
+                  <div className="mb-2">
+                    <img
+                      className="h-20 w-20 rounded-full shadow-md lg:h-24 lg:w-24"
+                      src={imageUrl}
+                      alt=""
+                      crossOrigin="anonymous"
+                    />
+                  </div>
+                )}
+                <div
+                  {...getRootProps()}
+                  className="mt-1 flex justify-center rounded-md border-2 border-dashed border-fabstir-gray bg-fabstir-light-gray px-2 pb-6 pt-5"
+                >
                   <div className="space-y-1 text-center">
                     <svg
                       className="mx-auto h-12 w-12 text-gray-400"
@@ -194,7 +207,7 @@ export default function TeamUserView({
                         htmlFor="file-upload"
                         className="relative cursor-pointer rounded-md font-medium text-fabstir-hover-colour1 focus-within:outline-none focus-within:ring-2 focus-within:ring-fabstir-focus-colour1 focus-within:ring-offset-2 hover:text-fabstir-focus-colour1"
                       >
-                        <span>Upload a file</span>
+                        <span>Upload or drag and drop</span>
                         <Input
                           inputProps={getInputProps()}
                           id="file-upload"
@@ -204,30 +217,16 @@ export default function TeamUserView({
                           className="sr-only"
                         />
                       </label>
-                      <p className="pl-1">or drag and drop</p>
                     </div>
 
                     <p className="text-xs text-gray-500">
                       PNG, JPG, GIF up to 10MB
                     </p>
                   </div>
-                ) : (
-                  <div
-                    className={`mx-auto mt-8 flex flex-col rounded-md border-2 border-fabstir-gray bg-fabstir-light-gray fill-current text-fabstir-dark-gray shadow-sm sm:items-center sm:justify-center sm:text-center sm:text-sm`}
-                  >
-                    <span className="">
-                      <img
-                        src={imageUrl}
-                        alt=""
-                        className="object-cover"
-                        crossOrigin="anonymous"
-                      />
-                    </span>
-                  </div>
-                )}
-              </div>
+                </div>
+              </>
             ) : (
-              <>
+              <div className="relative group flex justify-center items-center">
                 {imageUrl && (
                   <img
                     className="h-20 w-20 rounded-full shadow-md lg:h-24 lg:w-24"
@@ -236,7 +235,7 @@ export default function TeamUserView({
                     crossOrigin="anonymous"
                   />
                 )}
-                {!isReadOnly &&
+                {showEditButton &&
                   user?.userPub !== userAuthPub &&
                   handleSubmit_RemoveTeamMember && (
                     <div
@@ -246,7 +245,7 @@ export default function TeamUserView({
                       }}
                       className={classNames(
                         imageUrl
-                          ? 'absolute left-[28px] top-[28px] lg:left-[32px] lg:top-[32px] opacity-0 duration-300 group-hover:opacity-100'
+                          ? 'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 duration-300 opacity-0 group-hover:opacity-100'
                           : 'mb-2',
                         'text-md z-10 flex w-fit rounded-full border-none bg-fabstir-gray bg-opacity-75 font-semibold text-fabstir-gray',
                       )}
@@ -257,7 +256,7 @@ export default function TeamUserView({
                       />
                     </div>
                   )}
-              </>
+              </div>
             )}
 
             <div className="col-span-3 sm:col-span-4">
@@ -392,13 +391,13 @@ export default function TeamUserView({
               <button
                 type="button"
                 onClick={handleCancel}
-                className="w-full rounded-md border border-transparent bg-fabstir-light-purple px-4 py-2 text-sm text-fabstir-dark-gray shadow-md hover:bg-fabstir-dark-gray focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50"
+                className="w-full rounded-md border border-transparent bg-fabstir-light-purple px-4 py-2 text-sm text-fabstir-dark-gray shadow-md hover:bg-fabstir-gray focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="w-full rounded-md border border-transparent bg-fabstir-light-gray px-4 py-2 text-sm text-fabstir-dark-gray shadow-md hover:bg-fabstir-dark-purple focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50"
+                className="w-full rounded-md border border-transparent bg-fabstir-light-gray px-4 py-2 text-sm text-fabstir-dark-gray shadow-md hover:bg-fabstir-gray focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50"
               >
                 Save Member
               </button>
@@ -407,7 +406,7 @@ export default function TeamUserView({
             <button
               type="button"
               onClick={handleEdit}
-              className="w-full rounded-md border border-transparent bg-fabstir-light-gray px-4 py-2 text-sm text-fabstir-dark-gray shadow-sm hover:bg-fabstir-dark-gray focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50 flex items-center justify-center"
+              className="w-full rounded-md border border-transparent bg-fabstir-light-gray px-4 py-2 text-sm text-fabstir-dark-gray shadow-sm hover:bg-fabstir-gray focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50 flex items-center justify-center"
             >
               <PencilIcon className="h-5 w-5 mr-2" aria-hidden="true" />
               Edit

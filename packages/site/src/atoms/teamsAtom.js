@@ -2,7 +2,7 @@ import { atom } from 'recoil';
 
 export const teamsstate = atom({
   key: 'teamsStateAtom',
-  default: { teamsName: 'Teams', teams: [] },
+  default: { teamsName: 'Teams/Credits', teams: [] },
 });
 
 export const updatenftwithteamsstate = atom({
