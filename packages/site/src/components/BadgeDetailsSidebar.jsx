@@ -397,12 +397,14 @@ export default function BadgeDetailsSidebar({
                         (userAuthPubAddress === owner ||
                           minter === AddressZero ||
                           userAuthPubAddress === minter))) && (
-                      <button
+                      <Button
                         type="submit"
-                        className="w-full rounded-md border border-transparent bg-fabstir-light-purple px-4 py-2 text-sm font-medium tracking-wide text-fabstir-light-gray shadow-sm shadow-fabstir-light-purple/50 hover:bg-fabstir-lighter-purple focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                        variant="primary"
+                        size="medium"
+                        className="w-full rounded-md border border-transparent px-4 py-2 text-sm font-medium tracking-wide"
                       >
                         {function1Name}
-                      </button>
+                      </Button>
                     )}
                 </form>
               ) : (
@@ -414,8 +416,9 @@ export default function BadgeDetailsSidebar({
                         (userAuthPubAddress === owner ||
                           minter === AddressZero ||
                           userAuthPubAddress === minter))) && (
-                      <button
-                        type="button"
+                      <Button
+                        variant="primary"
+                        size="medium"
                         onClick={() => {
                           (async () => {
                             await badgeDetailsFunction1(badge, nft);
@@ -424,17 +427,18 @@ export default function BadgeDetailsSidebar({
                             if (setRerender2) setRerender2((prev) => prev + 2);
                           })();
                         }}
-                        className="w-full rounded-md border border-transparent bg-fabstir-light-purple px-4 py-2 text-sm font-medium tracking-wide text-fabstir-light-gray shadow-sm shadow-fabstir-light-purple/50 hover:bg-fabstir-lighter-purple focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                        className="w-full rounded-md border border-transparent px-4 py-2 text-sm font-medium tracking-wide"
                       >
                         {function1Name}
-                      </button>
+                      </Button>
                     )}
                 </>
               )}
 
               {badgeDetailsFunction2 && badgeDetailsFunction2Name && (
-                <button
-                  type="button"
+                <Button
+                  variant="primary"
+                  size="medium"
                   onClick={() => {
                     (async () => {
                       await badgeDetailsFunction2(badge, nft);
@@ -443,10 +447,10 @@ export default function BadgeDetailsSidebar({
                       if (setRerender2) setRerender2((prev) => prev + 2);
                     })();
                   }}
-                  className="ml-3 w-full rounded-md border border-transparent bg-fabstir-light-purple px-4 py-2 text-sm font-medium tracking-wide text-fabstir-light-gray shadow-sm shadow-fabstir-light-purple/50 hover:bg-fabstir-lighter-purple focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                  className="ml-3 w-full rounded-md border border-transparent px-4 py-2 text-sm font-medium tracking-wide"
                 >
                   {badgeDetailsFunction2Name}
-                </button>
+                </Button>
               )}
             </div>
           </div>

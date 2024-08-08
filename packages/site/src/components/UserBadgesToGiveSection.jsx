@@ -11,6 +11,7 @@ import UserBadgesView from './UserBadgesView';
 import { badgetogiveslideoverstate } from '../atoms/badgeDetailsSlideOverFunctions';
 import { userauthpubstate } from '../atoms/userAuthAtom';
 import useBadgesToGive from '../hooks/useBadgesToGive';
+import { Button } from '../ui-components/button';
 
 const appendBadgeField = (old, field, value) => ({ ...old, [field]: value });
 
@@ -52,31 +53,37 @@ export default function UserBadgesToGiveSection({
             </h1>
 
             {userPub === userAuthPub && (
-              <button
-                type="button"
+              <Button
+                variant="primary"
+                size="medium"
                 onClick={() => setOpenBadge(true)}
-                className="f-full focus:ring-fabstir-colour1 m-3 flex items-center justify-center rounded-full bg-fabstir-blue p-1 px-2 text-fabstir-light-gray shadow-lg  hover:bg-fabstir-white focus:outline-none focus:ring-2"
+                className="f-full m-3 flex items-center justify-center rounded-full p-1 px-2"
               >
                 <PlusSmIconOutline
                   className="h-6 w-6 focus:ring-0"
                   aria-hidden="true"
                 />
                 <span className="sr-only">Create badge</span>
-              </button>
+              </Button>
             )}
 
             <div className="ml-6 flex items-center rounded-lg p-0.5 sm:hidden">
-              <button type="button" className="rounded-md p-1.5">
+              <Button
+                variant="primary"
+                size="medium"
+                className="rounded-md p-1.5"
+              >
                 <ViewListIcon className="h-5 w-5" aria-hidden="true" />
                 <span className="sr-only">Use list view</span>
-              </button>
-              <button
-                type="button"
-                className="ml-0.5 rounded-md p-1.5 text-gray-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+              </Button>
+              <Button
+                variant="primary"
+                size="medium"
+                className="ml-0.5 rounded-md p-1.5"
               >
                 <ViewGridIconSolid className="h-5 w-5" aria-hidden="true" />
                 <span className="sr-only">Use grid view</span>
-              </button>
+              </Button>
             </div>
           </div>
 

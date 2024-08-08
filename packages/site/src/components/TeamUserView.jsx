@@ -388,29 +388,35 @@ export default function TeamUserView({
 
           {isEditable ? (
             <div className="flex space-x-2">
-              <button
+              <Button
                 type="button"
+                variant="primary"
+                size="medium"
                 onClick={handleCancel}
-                className="w-full rounded-md border border-transparent bg-fabstir-light-purple px-4 py-2 text-sm text-fabstir-dark-gray shadow-md hover:bg-fabstir-gray focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50"
+                className="w-full rounded-md border border-transparent px-4 py-2 text-sm shadow-md"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
-                className="w-full rounded-md border border-transparent bg-fabstir-light-gray px-4 py-2 text-sm text-fabstir-dark-gray shadow-md hover:bg-fabstir-gray focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50"
+                variant="primary"
+                size="medium"
+                className="w-full rounded-md border border-transparent px-4 py-2 text-sm shadow-md"
               >
                 Save Member
-              </button>
+              </Button>
             </div>
           ) : showEditButton ? (
-            <button
+            <Button
               type="button"
+              variant="primary"
+              size="medium"
               onClick={handleEdit}
-              className="w-full rounded-md border border-transparent bg-fabstir-light-gray px-4 py-2 text-sm text-fabstir-dark-gray shadow-sm hover:bg-fabstir-gray focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50 flex items-center justify-center"
+              className="w-full rounded-md border border-transparent px-4 py-2 text-sm shadow-sm flex items-center justify-center"
             >
               <PencilIcon className="h-5 w-5 mr-2" aria-hidden="true" />
               Edit
-            </button>
+            </Button>
           ) : (
             <></>
           )}

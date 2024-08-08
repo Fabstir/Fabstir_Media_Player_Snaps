@@ -16,6 +16,7 @@ import { Zero, One } from '@ethersproject/constants';
 import { currentnftmetadata } from '../atoms/nftSlideOverAtom';
 import BlockchainContext from '../../state/BlockchainContext';
 import { useMintNestableERC1155NFT } from '../blockchain/useMintNestableERC1155NFT';
+import { Button } from '../ui-components/button';
 
 export default function TransferNFT({ nft, open, setOpen }) {
   const blockchainContext = useContext(BlockchainContext);
@@ -217,14 +218,15 @@ export default function TransferNFT({ nft, open, setOpen }) {
                         {/* {result?.media_type} */}
                       </Dialog.Title>
                       <div className="ml-3 flex h-7 items-center">
-                        <button
-                          type="button"
-                          className="rounded-md bg-fabstir-medium-dark-gray text-fabstir-light-gray hover:text-gray-500 focus:ring-2 focus:ring-indigo-500"
+                        <Button
+                          variant="primary"
+                          size="medium"
+                          className="rounded-md"
                           onClick={() => setOpen(false)}
                         >
                           <span className="sr-only">Close panel</span>
                           <XIcon className="h-6 w-6" aria-hidden="true" />
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -282,12 +284,14 @@ export default function TransferNFT({ nft, open, setOpen }) {
                       </div>
 
                       <div className="justify-center sm:col-span-2 sm:col-start-3">
-                        <button
+                        <Button
                           type="submit"
-                          className="mt-2 inline-flex w-full justify-center rounded-md border border-transparent bg-fabstir-action-colour1 px-4 py-2 text-sm font-medium text-fabstir-light-gray shadow-sm hover:bg-fabstir-hover-colour1 focus:outline-none focus:ring-2 focus:ring-fabstir-focus-colour1 focus:ring-offset-2 bg-fabstir-medium-dark-gray"
+                          variant="primary"
+                          size="medium"
+                          className="mt-2 inline-flex w-full justify-center rounded-md border border-transparent px-4 py-2 text-sm font-medium"
                         >
                           {submitText}
-                        </button>
+                        </Button>
                       </div>
                     </form>
                   </div>

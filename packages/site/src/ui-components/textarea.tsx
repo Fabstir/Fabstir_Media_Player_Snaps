@@ -1,60 +1,60 @@
-import {
-  Textarea as HeadlessTextarea,
-  type TextareaProps as HeadlessTextareaProps,
-} from '@headlessui/react';
+import React from 'react';
 import { clsx } from 'clsx';
-import { cn } from '../utils/cn';
+import { UseFormRegister, FieldValues } from 'react-hook-form';
 
-export function Textarea({ className, ...props }: HeadlessTextareaProps) {
+type TextareaProps = {
+  label?: string;
+  placeholder?: string;
+  className?: string;
+  rows?: number;
+  error?: string;
+  name: string;
+  register?: UseFormRegister<FieldValues>;
+} & Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'name'>;
+
+export const Textarea: React.FC<TextareaProps> = ({
+  label,
+  placeholder,
+  className,
+  rows = 4,
+  error,
+  name,
+  register,
+  ...props
+}) => {
   return (
-    <span
-      data-slot="control"
-      className={cn([
-        // Basic layout
-        'relative block w-full',
-
-        // Background color + shadow applied to inset pseudo element, so shadow blends with border in light mode
-        'before:absolute before:inset-px before:rounded-[calc(theme(borderRadius.lg)-1px)] before:bg-white before:shadow',
-
-        // Background color is moved to control and shadow is removed in dark mode so hide `before` pseudo
-        'dark:before:hidden',
-
-        // Focus ring
-        'after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:ring-inset after:ring-transparent sm:after:focus-within:ring-2 sm:after:focus-within:ring-blue-500',
-
-        // Disabled state
-        'has-[[data-disabled]]:opacity-50 before:has-[[data-disabled]]:bg-zinc-950/5 before:has-[[data-disabled]]:shadow-none',
-
-        className,
-      ])}
-    >
-      <HeadlessTextarea
-        className={cn([
-          // Basic layout
-          'relative block h-full w-full appearance-none rounded-lg px-[calc(theme(spacing[3.5])-1px)] py-[calc(theme(spacing[2.5])-1px)] sm:px-[calc(theme(spacing.3)-1px)] sm:py-[calc(theme(spacing[1.5])-1px)]',
-
-          // Typography
-          'text-base/6 text-zinc-950 placeholder:text-zinc-500 sm:text-sm/6 dark:text-zinc-800',
-
-          // Border
-          'border border-zinc-950/10 data-[hover]:border-zinc-950/20 dark:border-white/10 dark:data-[hover]:border-white/20',
-
-          // Background color
-          'bg-transparent dark:bg-white/5',
-
-          // Hide default focus styles
-          'focus:outline-none',
-
-          // Invalid state
-          'data-[invalid]:border-red-500 data-[invalid]:data-[hover]:border-red-500 data-[invalid]:dark:border-red-600 data-[invalid]:data-[hover]:dark:border-red-600',
-
-          // Disabled state
-          'disabled:border-zinc-950/20 disabled:dark:border-white/15 disabled:dark:bg-white/[2.5%] dark:data-[hover]:disabled:border-white/15',
-
-          className,
-        ])}
+    <div className={clsx('relative', className)}>
+      {label && (
+        <label
+          htmlFor={name}
+          className="block text-sm font-medium text-copy dark:text-dark-copy mb-1"
+        >
+          {label}
+        </label>
+      )}
+      <textarea
         {...props}
+        {...register}
+        rows={rows}
+        placeholder={placeholder}
+        className={clsx(
+          'w-full rounded-md',
+          'bg-foreground dark:bg-dark-foreground',
+          'text-copy dark:text-dark-copy',
+          'placeholder-copy-lighter dark:placeholder-dark-copy-lighter',
+          'border border-border dark:border-dark-border',
+          'focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-dark-primary focus:border-primary dark:focus:border-dark-primary',
+          'disabled:bg-background disabled:dark:bg-dark-background disabled:cursor-not-allowed disabled:opacity-75',
+          error
+            ? 'border-error dark:border-dark-error'
+            : 'hover:border-primary dark:hover:border-dark-primary',
+          'transition-colors duration-200',
+          'px-4 py-2 sm:text-sm',
+        )}
       />
-    </span>
+      {error && (
+        <p className="mt-1 text-sm text-error dark:text-dark-error">{error}</p>
+      )}
+    </div>
   );
-}
+};

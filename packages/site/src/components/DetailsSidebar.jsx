@@ -45,6 +45,7 @@ import {
 } from '../atoms/teamsAtom';
 import { stringifyArrayProperties } from '../utils/stringifyProperties';
 import TeamsView from './TeamsView';
+import { Button } from '../ui-components/button';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -845,15 +846,16 @@ export default function DetailsSidebar({
           nftQuantity?.gt(0) && (
             <div className="flex justify-between mt-4">
               <div className="flex flex-1 justify-center">
-                <button
-                  type="button"
+                <Button
+                  variant="primary"
+                  size="medium"
                   onClick={async () => {
                     await handle_TransferNFT();
                   }}
-                  className="w-28 rounded-md border border-transparent bg-fabstir-light-gray px-4 py-2 text-sm font-medium tracking-wide shadow-sm shadow-fabstir-light-gray/50 hover:bg-fabstir-gray focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 text-fabstir-dark-gray"
+                  className="w-28 rounded-md border border-transparent px-4 py-2 text-sm font-medium tracking-wide"
                 >
                   Transfer
-                </button>
+                </Button>
               </div>
             </div>
           )}
@@ -882,46 +884,56 @@ export default function DetailsSidebar({
         >
           {!nft?.parentId ? (
             <div className="mt-2 flex flex-1 flex-row justify-between">
-              <button
-                className="bg-blue-100 p-1 text-sm"
+              <Button
+                className="p-1 text-sm"
+                variant="primary"
+                size="medium"
                 onClick={handleUpgradeToNestableNFT}
               >
                 Upgrade to Nestable
-              </button>
+              </Button>
 
               {isNFTSelected ? (
-                <button
-                  className="bg-blue-100 p-1 text-sm"
+                <Button
+                  className="p-1 text-sm"
+                  variant="primary"
+                  size="medium"
                   onClick={handleRemoveFromNestableNFT}
                 >
                   Remove from select
-                </button>
+                </Button>
               ) : (
-                <button
-                  className="bg-blue-100 p-1 text-sm"
+                <Button
+                  className="p-1 text-sm"
+                  variant="primary"
+                  size="medium"
                   onClick={handleAddToNestableNFT}
                 >
                   Add to selected
-                </button>
+                </Button>
               )}
             </div>
           ) : selectedNFTs?.length > 0 ? (
             <div className="mt-2 flex flex-1 flex-row justify-between">
-              <button
-                className="bg-blue-100 p-1 text-sm"
+              <Button
+                className="p-1 text-sm"
+                variant="primary"
+                size="medium"
                 onClick={handleSelectedToParent}
               >
                 Add selected to Parent
-              </button>
+              </Button>
             </div>
           ) : (
             <div className="mt-2 flex flex-1 flex-row justify-between">
-              <button
-                className="bg-blue-100 p-1 text-sm"
+              <Button
+                className="p-1 text-sm"
+                variant="primary"
+                size="medium"
                 onClick={handleRemoveFromNestableNFT}
               >
                 Remove from Parent
-              </button>
+              </Button>
             </div>
           )}
 
@@ -933,12 +945,14 @@ export default function DetailsSidebar({
                 </h2>
 
                 {userPub === userAuthPub && (
-                  <button
+                  <Button
                     onClick={handleEditTeams}
+                    variant="primary"
+                    size="medium"
                     className="ml-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                   >
                     <PencilIcon className="w-5 h-5 text-fabstir-gray hover:text-dark-gray" />
-                  </button>
+                  </Button>
                 )}
               </div>
             )}
@@ -1036,15 +1050,15 @@ export default function DetailsSidebar({
                 }`}
               >
                 {nft?.attributes &&
-                  Object.entries(nft?.attributes).map(([key, value]) => {
+                  nft.attributes.map(({ key, value }, index) => {
                     if (value) {
                       return (
                         <div
-                          key={key}
+                          key={index}
                           className="flex justify-between py-3 text-sm font-medium"
                         >
                           <dt className="text-fabstir-light-gray">
-                            {key}
+                            {openNFTAttributes ? key : key + ':'}
                             {'\u00A0'}
                           </dt>
                           <dd
@@ -1053,7 +1067,7 @@ export default function DetailsSidebar({
                               (openNFTAttributes ? '' : 'line-clamp-1')
                             }
                           >
-                            {value}
+                            {Array.isArray(value) ? value.join(', ') : value}
                           </dd>
                         </div>
                       );

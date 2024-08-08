@@ -2,6 +2,7 @@ import { MinusIcon, PlusIcon } from '@heroicons/react/24/solid';
 import React, { useEffect, useRef } from 'react';
 import { useRecoilState } from 'recoil';
 import { currentnftmetadata } from '../atoms/nftSlideOverAtom';
+import { Button } from '../ui-components/button';
 
 /**
  * A utility function to concatenate class names.
@@ -55,9 +56,11 @@ export default function ThumbnailArt({
           'shadow-md shadow-fabstir-black/50',
         )}
       >
-        <button
+        <Button
           type="button"
-          className="block focus:outline-none h-fit m-0 p-0"
+          variant="primary"
+          size="medium"
+          className="block h-fit m-0 p-0"
         >
           <img src={nftImage} alt="" crossOrigin="anonymous" />
 
@@ -89,7 +92,7 @@ export default function ThumbnailArt({
               />
             </div>
           )}
-        </button>
+        </Button>
       </div>
       <div className="text-left">
         <p

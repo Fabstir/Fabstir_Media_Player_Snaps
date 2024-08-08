@@ -1,40 +1,98 @@
-import { clsx } from 'clsx'
-import { Link } from './link'
+import React from 'react';
+import { clsx } from 'clsx';
+import Link from 'next/link';
 
-export function Text({ className, ...props }: React.ComponentPropsWithoutRef<'p'>) {
+type TextProps = {
+  as?: 'p' | 'span' | 'div' | 'input';
+  className?: string;
+  children?: React.ReactNode;
+} & React.HTMLAttributes<
+  HTMLParagraphElement | HTMLSpanElement | HTMLDivElement | HTMLInputElement
+>;
+
+export const Text: React.FC<TextProps> = ({
+  as: Component = 'p',
+  className,
+  children,
+  ...props
+}) => {
   return (
-    <p
+    <Component
+      className={clsx(
+        'text-copy dark:text-dark-copy',
+        Component === 'input' &&
+          'bg-foreground dark:bg-dark-foreground border border-border dark:border-dark-border rounded-md',
+        className,
+      )}
       {...props}
-      data-slot="text"
-      className={clsx(className, 'text-base/6 text-zinc-500 sm:text-sm/6 dark:text-zinc-400')}
-    />
-  )
-}
+    >
+      {children}
+    </Component>
+  );
+};
 
-export function TextLink({ className, ...props }: React.ComponentPropsWithoutRef<typeof Link>) {
+type StrongProps = {
+  children: React.ReactNode;
+  className?: string;
+} & React.HTMLAttributes<HTMLElement>;
+
+export const Strong: React.FC<StrongProps> = ({
+  children,
+  className,
+  ...props
+}) => {
+  return (
+    <strong
+      className={clsx(
+        'font-semibold text-copy-dark dark:text-dark-copy-dark',
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </strong>
+  );
+};
+
+type TextLinkProps = {
+  children: React.ReactNode;
+  href: string;
+  className?: string;
+} & Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'href'>;
+
+export const TextLink: React.FC<TextLinkProps> = ({
+  children,
+  href,
+  className,
+  ...props
+}) => {
   return (
     <Link
-      {...props}
+      href={href}
       className={clsx(
+        'text-primary hover:text-primary-dark dark:text-dark-primary dark:hover:text-dark-primary-light',
+        'underline transition-colors duration-200',
         className,
-        'text-zinc-950 underline decoration-zinc-950/50 data-[hover]:decoration-zinc-950 dark:text-white dark:decoration-white/50 dark:data-[hover]:decoration-white'
       )}
-    />
-  )
-}
+      {...props}
+    >
+      {children}
+    </Link>
+  );
+};
 
-export function Strong({ className, ...props }: React.ComponentPropsWithoutRef<'strong'>) {
-  return <strong {...props} className={clsx(className, 'font-medium text-zinc-950 dark:text-white')} />
-}
+type CodeProps = React.ComponentPropsWithoutRef<'code'>;
 
-export function Code({ className, ...props }: React.ComponentPropsWithoutRef<'code'>) {
+export const Code: React.FC<CodeProps> = ({ className, ...props }) => {
   return (
     <code
       {...props}
       className={clsx(
+        'rounded border px-0.5 text-sm font-medium sm:text-[0.8125rem]',
+        'border-border bg-background text-copy',
+        'dark:border-dark-border dark:bg-dark-background dark:text-dark-copy',
         className,
-        'rounded border border-zinc-950/10 bg-zinc-950/[2.5%] px-0.5 text-sm font-medium text-zinc-950 sm:text-[0.8125rem] dark:border-white/20 dark:bg-white/5 dark:text-white'
       )}
     />
-  )
-}
+  );
+};

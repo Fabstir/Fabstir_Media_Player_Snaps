@@ -21,6 +21,7 @@ import useMarketKeys from '../hooks/useMarketKeys';
 import useEncKey from '../hooks/useEncKey';
 import { process_env } from '../utils/process_env';
 import { user } from '../components/user';
+import { Button } from '../ui-components/button';
 
 /**
  * `SellNFT` is a React functional component that provides an interface for selling an NFT.
@@ -252,14 +253,15 @@ export default function SellNFT({ nft, open, setOpen, setRerender }) {
                         {/* {result?.media_type} */}
                       </Dialog.Title>
                       <div className="ml-3 flex h-7 items-center">
-                        <button
-                          type="button"
-                          className="rounded-md bg-fabstir-dark-gray text-gray-400 hover:text-gray-500 focus:ring-2 focus:ring-indigo-500"
+                        <Button
+                          variant="primary"
+                          size="medium"
+                          className="rounded-md"
                           onClick={() => setOpen(false)}
                         >
                           <span className="sr-only">Close panel</span>
                           <XIcon className="h-6 w-6" aria-hidden="true" />
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -357,12 +359,14 @@ export default function SellNFT({ nft, open, setOpen, setRerender }) {
                         </p>
                       </div>
                       <div className="justify-center sm:col-span-2 sm:col-start-3">
-                        <button
+                        <Button
                           type="submit"
-                          className="mt-2 inline-flex w-full justify-center rounded-md border border-transparent bg-fabstir-action-colour1 px-4 py-2 text-sm font-medium text-fabstir-white shadow-sm hover:bg-fabstir-hover-colour1 focus:outline-none focus:ring-2 focus:ring-fabstir-focus-colour1 focus:ring-offset-2"
+                          variant="primary"
+                          size="medium"
+                          className="mt-2 inline-flex w-full justify-center rounded-md border border-transparent px-4 py-2 text-sm font-medium"
                         >
                           {submitText}
-                        </button>
+                        </Button>
                       </div>
                     </form>
                   </div>

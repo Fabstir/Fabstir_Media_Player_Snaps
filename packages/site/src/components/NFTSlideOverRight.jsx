@@ -253,7 +253,7 @@ const NFTSlideOverRight = ({ encKey }) => {
                 >
                   <div>
                     <Checkbox
-                      className="form-check-input float-left mr-2 mt-1 h-4 w-4 cursor-pointer appearance-none rounded-sm border border-gray-300 bg-fabstir-dark-gray bg-contain bg-center bg-no-repeat align-top transition duration-200 checked:border-blue-600 checked:bg-blue-600 focus:outline-none"
+                      className="form-check-input float-left mr-2 mt-1 h-4 w-4 cursor-pointer appearance-none rounded-sm border bg-contain bg-center bg-no-repeat align-top transition duration-200"
                       id="inlineCheckbox1"
                       checked={videoGenresSet?.has(genre)}
                       value={genre}

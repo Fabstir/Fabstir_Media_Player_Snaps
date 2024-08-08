@@ -1,89 +1,167 @@
-import {
-  Select as HeadlessSelect,
-  type SelectProps as HeadlessSelectProps,
-} from '@headlessui/react';
+import React, { useState, useRef, useEffect } from 'react';
 import { clsx } from 'clsx';
+import { UseFormRegisterReturn } from 'react-hook-form';
+import { ChevronDownIcon } from '@heroicons/react/20/solid';
 
-export function Select({ className, multiple, ...props }: HeadlessSelectProps) {
-  return (
-    <span
-      data-slot="control"
-      className={clsx([
-        className,
+type SelectProps = {
+  options: { value: string; label: string }[];
+  label?: string;
+  className?: string;
+  error?: string;
+  value?: string | string[];
+  onChange?: (value: string | string[]) => void;
+  multiple?: boolean;
+} & Omit<
+  React.SelectHTMLAttributes<HTMLSelectElement>,
+  'onChange' | 'multiple'
+> & {
+    register?: UseFormRegisterReturn;
+  };
 
-        // Basic layout
-        'group relative block w-full',
-
-        // Background color + shadow applied to inset pseudo element, so shadow blends with border in light mode
-        'before:absolute before:inset-px before:rounded-[calc(theme(borderRadius.lg)-1px)] before:bg-white before:shadow',
-
-        // Background color is moved to control and shadow is removed in dark mode so hide `before` pseudo
-        'dark:before:hidden',
-
-        // Focus ring
-        'after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:ring-inset after:ring-transparent sm:after:has-[[data-focus]]:ring-2 sm:after:has-[[data-focus]]:ring-blue-500',
-
-        // Disabled state
-        'has-[[data-disabled]]:opacity-50 before:has-[[data-disabled]]:bg-zinc-950/5 before:has-[[data-disabled]]:shadow-none',
-      ])}
-    >
-      <HeadlessSelect
-        multiple={multiple}
-        {...props}
-        className={clsx([
-          // Basic layout
-          'relative block w-full appearance-none rounded-lg py-[calc(theme(spacing[2.5])-1px)] sm:py-[calc(theme(spacing[1.5])-1px)]',
-
-          // Horizontal padding
-          multiple
-            ? 'px-[calc(theme(spacing[3.5])-1px)] sm:px-[calc(theme(spacing.3)-1px)]'
-            : 'pl-[calc(theme(spacing[3.5])-1px)] pr-[calc(theme(spacing.10)-1px)] sm:pl-[calc(theme(spacing.3)-1px)] sm:pr-[calc(theme(spacing.9)-1px)]',
-
-          // Options (multi-select)
-          '[&_optgroup]:font-semibold',
-
-          // Typography
-          'text-base/6 text-zinc-950 placeholder:text-zinc-500 sm:text-sm/6 dark:text-zinc-800 dark:*:text-zinc-800',
-
-          // Border
-          'border border-zinc-950/10 data-[hover]:border-zinc-950/20 dark:border-white/10 dark:data-[hover]:border-white/20',
-
-          // Background color
-          'bg-transparent dark:bg-white/5 dark:*:bg-fabstir-white',
-
-          // Hide default focus styles
-          'focus:outline-none',
-
-          // Invalid state
-          'data-[invalid]:border-red-500 data-[invalid]:data-[hover]:border-red-500 data-[invalid]:dark:border-red-600 data-[invalid]:data-[hover]:dark:border-red-600',
-
-          // Disabled state
-          'data-[disabled]:border-zinc-950/20 data-[disabled]:opacity-100 dark:data-[hover]:data-[disabled]:border-white/15 data-[disabled]:dark:border-white/15 data-[disabled]:dark:bg-white/[2.5%]',
-        ])}
-      />
-      {!multiple && (
-        <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-          <svg
-            className="size-5 stroke-zinc-500 group-has-[[data-disabled]]:stroke-zinc-600 sm:size-4 dark:stroke-zinc-400 forced-colors:stroke-[CanvasText]"
-            viewBox="0 0 16 16"
-            aria-hidden="true"
-            fill="none"
-          >
-            <path
-              d="M5.75 10.75L8 13L10.25 10.75"
-              strokeWidth={1.5}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M10.25 5.25L8 3L5.75 5.25"
-              strokeWidth={1.5}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </span>
-      )}
-    </span>
+export const Select: React.FC<SelectProps> = ({
+  options,
+  label,
+  className,
+  error,
+  register,
+  value,
+  onChange,
+  multiple = false,
+  ...props
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedOptions, setSelectedOptions] = useState<
+    { value: string; label: string }[]
+  >(
+    multiple
+      ? options.filter(
+          (option) => Array.isArray(value) && value.includes(option.value),
+        )
+      : options.filter((option) => option.value === value),
   );
-}
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleSelect = (option: { value: string; label: string }) => {
+    let newSelectedOptions;
+    if (multiple) {
+      newSelectedOptions = selectedOptions.some((o) => o.value === option.value)
+        ? selectedOptions.filter((o) => o.value !== option.value)
+        : [...selectedOptions, option];
+    } else {
+      newSelectedOptions = [option];
+      setIsOpen(false);
+    }
+    setSelectedOptions(newSelectedOptions);
+
+    if (onChange) {
+      onChange(
+        multiple
+          ? newSelectedOptions.map((o) => o.value)
+          : newSelectedOptions[0].value,
+      );
+    }
+    if (register && register.onChange) {
+      const event = {
+        target: {
+          name: register.name,
+          value: multiple
+            ? newSelectedOptions.map((o) => o.value)
+            : newSelectedOptions[0].value,
+        },
+      } as React.ChangeEvent<HTMLSelectElement>;
+      register.onChange(event);
+    }
+  };
+
+  return (
+    <div ref={containerRef} className={clsx('relative', className)}>
+      {label && (
+        <label
+          htmlFor={props.id}
+          className="block text-sm font-medium text-copy dark:text-dark-copy mb-1"
+        >
+          {label}
+        </label>
+      )}
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          className={clsx(
+            'w-full rounded-md',
+            'bg-foreground dark:bg-dark-foreground',
+            'text-copy dark:text-dark-copy text-left',
+            'border border-border dark:border-dark-border',
+            'focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-dark-primary focus:border-primary dark:focus:border-dark-primary',
+            'disabled:bg-background disabled:dark:bg-dark-background disabled:cursor-not-allowed disabled:opacity-75',
+            error
+              ? 'border-error dark:border-dark-error'
+              : 'hover:border-primary dark:hover:border-dark-primary',
+            'transition-colors duration-200',
+            'px-4 py-2 pr-8 sm:text-sm',
+          )}
+        >
+          {selectedOptions.length > 0
+            ? selectedOptions.map((o) => o.label).join(', ')
+            : 'Select...'}
+          <ChevronDownIcon
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 w-5 h-5 text-copy-light dark:text-dark-copy-light pointer-events-none"
+            aria-hidden="true"
+          />
+        </button>
+        {isOpen && (
+          <ul
+            className={clsx(
+              'absolute z-10 mt-1 w-full rounded-md shadow-lg',
+              'bg-foreground dark:bg-dark-foreground',
+              'border border-border dark:border-dark-border',
+              'max-h-60 overflow-auto',
+            )}
+          >
+            {options.map((option) => (
+              <li
+                key={option.value}
+                onClick={() => handleSelect(option)}
+                className={clsx(
+                  'cursor-pointer select-none relative py-2 pl-3 pr-9',
+                  'hover:bg-primary/10 dark:hover:bg-dark-primary/10',
+                  'text-copy dark:text-dark-copy',
+                  selectedOptions.some((o) => o.value === option.value) &&
+                    'bg-primary/20 dark:bg-dark-primary/20',
+                )}
+              >
+                {option.label}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+      {error && (
+        <p className="mt-1 text-sm text-error dark:text-dark-error">{error}</p>
+      )}
+      <select {...register} {...props} multiple={multiple} className="sr-only">
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+};

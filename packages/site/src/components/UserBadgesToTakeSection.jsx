@@ -11,6 +11,7 @@ import { badgetotakeslideoverstate } from '../atoms/badgeDetailsSlideOverFunctio
 import { userauthpubstate } from '../atoms/userAuthAtom';
 import useBadgesToGive from '../hooks/useBadgesToGive';
 import useBadgesToTake from '../hooks/useBadgesToTake';
+import { Button } from '../ui-components/button';
 
 const tabs = [
   { name: 'Recently Added', href: '#', current: true },
@@ -85,17 +86,22 @@ export default function UserBadgesToTakeSection({
                 </h1>
 
                 <div className="ml-6 flex items-center rounded-lg p-0.5 sm:hidden">
-                  <button type="button" className="rounded-md p-1.5">
+                  <Button
+                    variant="primary"
+                    size="medium"
+                    className="rounded-md p-1.5"
+                  >
                     <ViewListIcon className="h-5 w-5" aria-hidden="true" />
                     <span className="sr-only">Use list view</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="ml-0.5 rounded-md p-1.5 text-gray-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="medium"
+                    className="ml-0.5 rounded-md p-1.5"
                   >
                     <ViewGridIconSolid className="h-5 w-5" aria-hidden="true" />
                     <span className="sr-only">Use grid view</span>
-                  </button>
+                  </Button>
                 </div>
               </div>
 

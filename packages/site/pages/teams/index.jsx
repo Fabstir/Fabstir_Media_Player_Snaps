@@ -5,6 +5,7 @@ import Team from '../../src/components/Team';
 import { isupdateteamsstate, teamsstate } from '../../src/atoms/teamsAtom';
 import { useRouter } from 'next/router';
 import TeamUserView from '../../src/components/TeamUserView';
+import { Button } from '../../src/ui-components/button';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -126,13 +127,15 @@ export default function Teams() {
         </div>
 
         <div className="mt-4 flex flex-1 justify-center">
-          <button
+          <Button
             type="submit"
+            variant="primary"
+            size="medium"
             onClick={(e) => handleExitTeams(e)}
-            className="mx-auto flex items-center justify-center whitespace-nowrap rounded-md bg-fabstir-action-colour1 p-4 font-bold tracking-wide text-fabstir-dark-gray shadow-md shadow-fabstir-action-colour1 hover:bg-fabstir-hover-colour1 focus:bg-fabstir-focus-colour1"
+            className="mx-auto flex items-center justify-center whitespace-nowrap rounded-md p-4 font-bold tracking-wide"
           >
             Back to My Page
-          </button>
+          </Button>
         </div>
 
         {teams?.teams?.map((team, index) => (

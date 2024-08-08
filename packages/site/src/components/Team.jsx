@@ -7,6 +7,7 @@ import { generateUsername } from 'unique-username-generator';
 import usePortal from '../hooks/usePortal';
 import { useRecoilValue } from 'recoil';
 import { userauthpubstate } from '../atoms/userAuthAtom';
+import { Button } from '../ui-components/button';
 
 const sortOptions = [
   { name: 'Most Popular', href: '#', current: true },
@@ -263,29 +264,35 @@ export default function Team({
             <form>
               <div className="mt-4 flex flex-1 justify-center">
                 <span className="flex flex-row space-x-4">
-                  <button
+                  <Button
                     type="submit"
+                    variant="primary"
+                    size="medium"
                     onClick={(e) => handleSubmit_Cancel(e)}
-                    className="mx-auto flex items-center justify-center whitespace-nowrap rounded-md bg-fabstir-action-colour1 p-4 font-bold tracking-wide text-fabstir-dark-gray shadow-md shadow-fabstir-action-colour1 hover:bg-fabstir-hover-colour1 focus:bg-fabstir-focus-colour1"
+                    className="mx-auto flex items-center justify-center whitespace-nowrap rounded-md p-4 font-bold tracking-wide shadow-md"
                   >
                     Cancel
-                  </button>
+                  </Button>
 
-                  <button
+                  <Button
                     type="submit"
+                    variant="primary"
+                    size="medium"
                     onClick={(e) => handleSubmit_DeleteTeam(e)}
-                    className="mx-auto flex items-center justify-center whitespace-nowrap rounded-md bg-fabstir-action-colour1 p-4 font-bold tracking-wide text-fabstir-dark-gray shadow-md shadow-fabstir-action-colour1 hover:bg-fabstir-hover-colour1 focus:bg-fabstir-focus-colour1"
+                    className="mx-auto flex items-center justify-center whitespace-nowrap rounded-md p-4 font-bold tracking-wide shadow-md"
                   >
                     Delete Team
-                  </button>
+                  </Button>
 
-                  <button
+                  <Button
                     type="submit"
+                    variant="primary"
+                    size="medium"
                     onClick={(e) => handleSubmit_ConfirmTeam(e)}
-                    className="mx-auto flex items-center justify-center whitespace-nowrap rounded-md bg-fabstir-action-colour1 p-4 font-bold tracking-wide text-fabstir-dark-gray shadow-md shadow-fabstir-action-colour1 hover:bg-fabstir-hover-colour1 focus:bg-fabstir-focus-colour1"
+                    className="mx-auto flex items-center justify-center whitespace-nowrap rounded-md p-4 font-bold tracking-wide shadow-md"
                   >
                     Confirm Team
-                  </button>
+                  </Button>
                 </span>
               </div>
             </form>

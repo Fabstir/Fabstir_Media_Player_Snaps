@@ -1,99 +1,67 @@
-import clsx from 'clsx'
-import type React from 'react'
-import { Button } from './button'
+import {
+  ArrowLongLeftIcon,
+  ArrowLongRightIcon,
+} from '@heroicons/react/20/solid';
+import { clsx } from 'clsx';
+import Link from 'next/link';
 
 export function Pagination({
-  'aria-label': ariaLabel = 'Page navigation',
-  className,
-  ...props
-}: React.ComponentPropsWithoutRef<'nav'>) {
-  return <nav aria-label={ariaLabel} {...props} className={clsx(className, 'flex gap-x-2')} />
-}
-
-export function PaginationPrevious({
-  href = null,
-  children = 'Previous',
-}: {
-  href?: string | null
-  children?: React.ReactNode
-}) {
-  return (
-    <span className="grow basis-0">
-      <Button {...(href === null ? { disabled: true } : { href })} plain aria-label="Previous page">
-        <svg className="stroke-current" data-slot="icon" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-          <path
-            d="M2.75 8H13.25M2.75 8L5.25 5.5M2.75 8L5.25 10.5"
-            strokeWidth={1.5}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-        {children}
-      </Button>
-    </span>
-  )
-}
-
-export function PaginationNext({
-  href = null,
-  children = 'Next',
-}: {
-  href?: string | null
-  children?: React.ReactNode
-}) {
-  return (
-    <span className="flex grow basis-0 justify-end">
-      <Button {...(href === null ? { disabled: true } : { href })} plain aria-label="Next page">
-        {children}
-        <svg className="stroke-current" data-slot="icon" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-          <path
-            d="M13.25 8L2.75 8M13.25 8L10.75 10.5M13.25 8L10.75 5.5"
-            strokeWidth={1.5}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </Button>
-    </span>
-  )
-}
-
-export function PaginationList({ children }: { children: React.ReactNode }) {
-  return <span className="hidden items-baseline gap-x-2 sm:flex">{children}</span>
-}
-
-export function PaginationPage({
   href,
-  children,
-  current = false,
+  page,
+  pageCount,
+  count,
 }: {
-  href: string
-  children: string
-  current?: boolean
+  href: string;
+  page: number;
+  pageCount: number;
+  count: number;
 }) {
   return (
-    <Button
-      href={href}
-      plain
-      aria-label={`Page ${children}`}
-      aria-current={current ? 'page' : undefined}
-      className={clsx(
-        'min-w-[2.25rem] before:absolute before:-inset-px before:rounded-lg',
-        current && 'before:bg-zinc-950/5 dark:before:bg-white/10'
-      )}
-    >
-      <span className="-mx-0.5">{children}</span>
-    </Button>
-  )
-}
-
-export function PaginationGap() {
-  return (
-    <div
-      aria-hidden="true"
-      className="w-[2.25rem] select-none text-center text-sm/6 font-semibold text-zinc-950 dark:text-white"
-    >
-      &hellip;
-    </div>
-  )
+    <nav className="flex items-center justify-between border-t border-border dark:border-dark-border px-4 sm:px-0">
+      <div className="-mt-px flex w-0 flex-1">
+        {page > 1 && (
+          <Link
+            href={`${href}${page - 1}`}
+            className="inline-flex items-center border-t-2 border-transparent pt-4 pr-1 text-sm font-medium text-copy-light dark:text-dark-copy-light hover:border-border dark:hover:border-dark-border hover:text-copy dark:hover:text-dark-copy"
+          >
+            <ArrowLongLeftIcon
+              className="mr-3 h-5 w-5 text-copy-light dark:text-dark-copy-light"
+              aria-hidden="true"
+            />
+            Previous
+          </Link>
+        )}
+      </div>
+      <div className="hidden md:-mt-px md:flex">
+        {[...Array(pageCount)].map((_, i) => (
+          <Link
+            key={i}
+            href={`${href}${i + 1}`}
+            className={clsx(
+              i + 1 === page
+                ? 'border-primary dark:border-dark-primary text-primary dark:text-dark-primary'
+                : 'border-transparent text-copy-light dark:text-dark-copy-light hover:text-copy dark:hover:text-dark-copy hover:border-border dark:hover:border-dark-border',
+              'inline-flex items-center border-t-2 px-4 pt-4 text-sm font-medium',
+            )}
+          >
+            {i + 1}
+          </Link>
+        ))}
+      </div>
+      <div className="-mt-px flex w-0 flex-1 justify-end">
+        {page < pageCount && (
+          <Link
+            href={`${href}${page + 1}`}
+            className="inline-flex items-center border-t-2 border-transparent pt-4 pl-1 text-sm font-medium text-copy-light dark:text-dark-copy-light hover:border-border dark:hover:border-dark-border hover:text-copy dark:hover:text-dark-copy"
+          >
+            Next
+            <ArrowLongRightIcon
+              className="ml-3 h-5 w-5 text-copy-light dark:text-dark-copy-light"
+              aria-hidden="true"
+            />
+          </Link>
+        )}
+      </div>
+    </nav>
+  );
 }

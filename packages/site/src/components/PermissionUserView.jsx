@@ -8,6 +8,7 @@ import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import useCreateMarketItem from '../blockchain/useCreateMarketItem';
 import useUserProfile from '../hooks/useUserProfile';
+import { Button } from '../ui-components/button';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -379,29 +380,33 @@ export default function PermissionUserView({
 
           {isEditable ? (
             <div className="flex space-x-2">
-              <button
-                type="button"
+              <Button
+                variant="primary"
+                size="medium"
                 onClick={handleCancel}
-                className="w-full rounded-md border border-transparent bg-fabstir-light-purple px-4 py-2 text-sm text-fabstir-dark-gray shadow-md hover:bg-fabstir-gray focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50"
+                className="w-full rounded-md border border-transparent px-4 py-2"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
-                className="w-full rounded-md border border-transparent bg-fabstir-light-gray px-4 py-2 text-sm text-fabstir-dark-gray shadow-md hover:bg-fabstir-gray focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50"
+                variant="primary"
+                size="medium"
+                className="w-full rounded-md border border-transparent px-4 py-2"
               >
                 Save Member
-              </button>
+              </Button>
             </div>
           ) : showEditButton ? (
-            <button
-              type="button"
+            <Button
               onClick={handleEdit}
-              className="w-full rounded-md border border-transparent bg-fabstir-light-gray px-4 py-2 text-sm text-fabstir-dark-gray shadow-sm hover:bg-fabstir-gray focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50 flex items-center justify-center"
+              variant="primary"
+              size="medium"
+              className="w-full rounded-md border border-transparent px-4 py-2 text-sm flex items-center justify-center"
             >
               <PencilIcon className="h-5 w-5 mr-2" aria-hidden="true" />
               Edit
-            </button>
+            </Button>
           ) : (
             <></>
           )}

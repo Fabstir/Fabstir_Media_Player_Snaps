@@ -23,6 +23,8 @@ import { Textarea } from '../../src/ui-components/textarea';
 import { countries } from '../../src/utils/mediaAttributes';
 import { Checkbox } from '../../src/ui-components/checkbox';
 import { Switch } from '../../src/ui-components/switch';
+import { Button } from '../../src/ui-components/button';
+import { Text, Code, TextLink } from '../../src/ui-components/text';
 
 const defaultAvatarImage = '/images/no_avatar.svg';
 
@@ -380,87 +382,26 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
     useDropzone({ onDrop: onDrop3 });
 
   const CustomDropdown = ({ options, name, control, defaultValue }) => {
-    const [isOpen, setIsOpen] = useState(false);
-    const [selectedValue, setSelectedValue] = useState(defaultValue);
-    const dropdownRef = useRef(null);
-
-    const handleSelect = (option) => {
-      const selectedValues = Array.isArray(selectedValue) ? selectedValue : [];
-      const isSelected = selectedValues.includes(option);
-
-      // Update the selection: add if not selected, remove if already selected
-      const updatedValues = isSelected
-        ? selectedValues.filter((val) => val !== option)
-        : [...selectedValues, option];
-
-      setSelectedValue(updatedValues);
-      setIsOpen(false);
-    };
-
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-
-    // Update form state when selectedValue changes
-    useEffect(() => {
-      setValue(name, selectedValue);
-    }, [selectedValue, setValue, name]);
-
-    useEffect(() => {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-      };
-    }, []);
-
     return (
-      <div ref={dropdownRef} className="relative inline-block w-full">
-        <input
-          readOnly
-          className="w-full truncate bg-fabstir-white py-2 pl-2 pr-8 text-fabstir-dark-gray"
-          value={selectedValue?.join(', ') || ''}
-          title={selectedValue?.join(', ') || ''}
-          onClick={() => setIsOpen(!isOpen)}
-        />
-        <ChevronDownIcon
-          className="absolute right-2 top-1/2 h-5 w-5 -translate-y-1/2 transform cursor-pointer"
-          onClick={() => setIsOpen(!isOpen)}
-        />
-        {isOpen && (
-          <div className="absolute z-10 w-full border-2 border-fabstir-gray bg-white">
-            {options.map((option) => {
-              return (
-                <div
-                  key={option}
-                  className={`p-2 hover:bg-light-gray ${
-                    selectedValue?.includes(option) ? 'bg-fabstir-gray' : ''
-                  }`}
-                  onClick={() => handleSelect(option)}
-                >
-                  {option}
-                </div>
-              );
-            })}
-          </div>
-        )}
+      <div className="relative inline-block w-full">
         <Controller
           name={name}
           control={control}
+          defaultValue={defaultValue}
           render={({ field }) => (
-            <select
+            <Select
               {...field}
-              className="hidden"
-              multiple
-              value={selectedValue || []}
-            >
-              {options.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
+              options={options.map((option) => ({
+                value: option,
+                label: option,
+              }))}
+              multiple={true}
+              value={field.value || []}
+              onChange={(value) => {
+                field.onChange(value);
+              }}
+              className="block w-full bg-fabstir-white py-2 pl-2 pr-8 text-fabstir-dark-gray"
+            />
           )}
         />
       </div>
@@ -482,15 +423,21 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
 
   return (
     <div className="h-screen">
-      <button className="mt-6 ml-4" onClick={handleBackToRoot}>
-        <div className="flex justify-center">
-          <ChevronDoubleLeftIcon
-            className="h-6 w-6 font-bold text-gray-500 lg:h-8 lg:w-8 pb-2"
-            aria-hidden="true"
-          />
-          Back to Root
-        </div>
-      </button>
+      <div className="flex justify-start ml-4">
+        <TextLink
+          className="mt-6"
+          href="/"
+          // onClick={handleBackToRoot}
+        >
+          <div className="flex items-center">
+            <ChevronDoubleLeftIcon
+              className="h-6 w-6 font-bold text-gray-500 lg:h-8 lg:w-8 mr-2"
+              aria-hidden="true"
+            />
+            <span>Back to Root</span>
+          </div>
+        </TextLink>
+      </div>
       <div className="mx-auto grid max-w-3xl grid-cols-1 bg-fabstir-gray-700">
         <form
           onSubmit={handleSubmit(handlesubmit_save)}
@@ -577,12 +524,13 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                           crossOrigin="anonymous"
                         />
                       </span>
-                      <button
-                        type="button"
-                        className="hover:bg-fabstir-gary ml-5 rounded-md border border-fabstir-gray bg-fabstir-white px-3 py-2 text-sm font-medium leading-4 text-fabstir-dark-gray shadow-sm focus:outline-none focus:ring-2 focus:ring-fabstir-focus-colour1 focus:ring-offset-2"
+                      <Button
+                        variant="primary"
+                        size="medium"
+                        className="ml-5 rounded-md border px-3 py-2 text-sm font-medium leading-4"
                       >
                         Change
-                      </button>
+                      </Button>
                     </div>
                     <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
                       {errors.image?.message}
@@ -748,11 +696,14 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                   </label>
 
                   <div className="flex flex-1">
-                    <div className="mr-4 w-full">
+                    <Code className="p-2 text-md px-2">
+                      {getValues(`accountAddress`)}
+                    </Code>
+                    {/* <div className="mr-4 w-full">
                       <div className="mt-1 rounded-md border-2 border-fabstir-gray bg-fabstir-white p-2 text-fabstir-dark-gray">
                         {getValues(`accountAddress`)}
                       </div>
-                    </div>
+                    </div> */}
 
                     {/* <div className="rounded-md border border-fabstir-gray bg-fabstir-white px-4 py-2 text-sm font-medium text-fabstir-dark-gray shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-fabstir-focus-colour1 focus:ring-offset-2">
                       Use Wallet Address
@@ -768,14 +719,16 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                     Public Key
                   </label>
 
-                  <div className="mr-4 mt-1 flex w-full flex-1 rounded-md border-2 border-fabstir-gray">
+                  <Code className="p-2 text-md px-2">{userPub}</Code>
+
+                  {/* <div className="mr-4 mt-1 flex w-full flex-1 rounded-md border-2 border-fabstir-gray">
                     <div
                       className="block w-full truncate rounded-md border-fabstir-gray bg-fabstir-white p-2 text-fabstir-dark-gray shadow-sm focus:border-fabstir-focus-colour1 focus:ring-fabstir-focus-colour1 sm:text-sm"
                       title={userPub} // Tooltip added here
                     >
                       {userPub}
                     </div>
-                  </div>
+                  </div> */}
                 </div>
 
                 <div className="sm:col-span-4">
@@ -807,18 +760,17 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                   >
                     Country
                   </label>
-                  <div className="mt-1 rounded-md border-2 border-fabstir-gray">
+                  <div className="mt-1 rounded-md border-2">
                     <Select
-                      type="text"
                       id="country"
-                      autoComplete="country"
+                      options={countries.map((country) => ({
+                        value: country,
+                        label: country,
+                      }))}
                       register={register('country')}
-                      className="block w-full rounded-md border-fabstir-gray bg-fabstir-white shadow-sm focus:border-fabstir-focus-colour1 focus:ring-fabstir-focus-colour1 sm:text-sm"
-                    >
-                      {countries.map((country) => (
-                        <option key={country}>{country}</option>
-                      ))}
-                    </Select>
+                      error={errors.country?.message}
+                      className="block w-full rounded-md sm:text-sm"
+                    />{' '}
                   </div>
                   <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
                     {errors.country?.message}
@@ -917,19 +869,22 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
 
           <div className="pt-5">
             <div className="flex justify-end">
-              <button
-                type="button"
+              <Button
+                variant="primary"
+                size="medium"
                 onClick={handleBack}
-                className="rounded-md border border-fabstir-gray bg-fabstir-white px-4 py-2 text-sm font-medium text-fabstir-dark-gray shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-fabstir-focus-colour1 focus:ring-offset-2"
+                className="rounded-md px-4 py-2 text-sm font-medium"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
-                className="ml-3 inline-flex justify-center rounded-md border border-transparent bg-fabstir-action-colour1 px-4 py-2 text-sm font-medium text-fabstir-dark-gray shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-fabstir-focus-colour1 focus:ring-offset-2"
+                variant="primary"
+                size="medium"
+                className="ml-3 inline-flex justify-center rounded-md border border-transparent px-4 py-2 text-sm font-medium"
               >
                 {!userPub ? 'Sign Up' : submitText}
-              </button>
+              </Button>
             </div>
           </div>
         </form>

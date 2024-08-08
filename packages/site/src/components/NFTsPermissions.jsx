@@ -11,6 +11,7 @@ import { userauthpubstate } from '../atoms/userAuthAtom';
 import useNFTPermissions from '../hooks/useNFTPermissions';
 import { getNFTAddressId } from '../utils/nftUtils';
 import useCreateMarketItem from '../blockchain/useCreateMarketItem';
+import { Button } from '../ui-components/button';
 
 const sortOptions = [
   { name: 'Most Popular', href: '#', current: true },
@@ -294,29 +295,35 @@ export default function NFTsPermissions({
             <form>
               <div className="mt-4 flex flex-1 justify-center">
                 <span className="flex flex-row space-x-4">
-                  <button
+                  <Button
                     type="submit"
+                    variant="primary"
+                    size="medium"
                     onClick={(e) => handleSubmit_Cancel(e)}
                     className="mx-auto flex items-center justify-center whitespace-nowrap rounded-md bg-fabstir-action-colour1 p-4 font-bold tracking-wide text-fabstir-dark-gray shadow-md shadow-fabstir-action-colour1 hover:bg-fabstir-hover-colour1 focus:bg-fabstir-focus-colour1"
                   >
                     Cancel
-                  </button>
+                  </Button>
 
-                  <button
+                  <Button
                     type="submit"
+                    variant="primary"
+                    size="medium"
                     onClick={(e) => handleSubmit_DeleteTeam(e)}
                     className="mx-auto flex items-center justify-center whitespace-nowrap rounded-md bg-fabstir-action-colour1 p-4 font-bold tracking-wide text-fabstir-dark-gray shadow-md shadow-fabstir-action-colour1 hover:bg-fabstir-hover-colour1 focus:bg-fabstir-focus-colour1"
                   >
                     Delete Team
-                  </button>
+                  </Button>
 
-                  <button
+                  <Button
                     type="submit"
+                    variant="primary"
+                    size="medium"
                     onClick={(e) => handleSubmit_ConfirmTeam(e)}
                     className="mx-auto flex items-center justify-center whitespace-nowrap rounded-md bg-fabstir-action-colour1 p-4 font-bold tracking-wide text-fabstir-dark-gray shadow-md shadow-fabstir-action-colour1 hover:bg-fabstir-hover-colour1 focus:bg-fabstir-focus-colour1"
                   >
                     Confirm Team
-                  </button>
+                  </Button>
                 </span>
               </div>
             </form>

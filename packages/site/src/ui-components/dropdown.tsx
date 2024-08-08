@@ -1,203 +1,79 @@
-'use client'
+import React, { Fragment } from 'react';
+import { Menu, Transition } from '@headlessui/react';
+import { ChevronDownIcon } from '@heroicons/react/20/solid';
+import { clsx } from 'clsx';
 
-import {
-  Description as HeadlessDescription,
-  Label as HeadlessLabel,
-  Menu as HeadlessMenu,
-  MenuButton as HeadlessMenuButton,
-  MenuHeading as HeadlessMenuHeading,
-  MenuItem as HeadlessMenuItem,
-  MenuItems as HeadlessMenuItems,
-  MenuSection as HeadlessMenuSection,
-  MenuSeparator as HeadlessMenuSeparator,
-  Transition as HeadlessTransition,
-  type DescriptionProps as HeadlessDescriptionProps,
-  type LabelProps as HeadlessLabelProps,
-  type MenuHeadingProps as HeadlessMenuHeadingProps,
-  type MenuItemProps as HeadlessMenuItemProps,
-  type MenuItemsProps as HeadlessMenuItemsProps,
-  type MenuProps as HeadlessMenuProps,
-  type MenuSectionProps as HeadlessMenuSectionProps,
-  type MenuSeparatorProps as HeadlessMenuSeparatorProps,
-} from '@headlessui/react'
-import clsx from 'clsx'
-import type React from 'react'
-import { Fragment } from 'react'
-import { Button } from './button'
-import { Link } from './link'
+type DropdownItem = {
+  label: string;
+  onClick: () => void;
+};
 
-export function Dropdown(props: HeadlessMenuProps) {
-  return <HeadlessMenu {...props} />
-}
+type DropdownProps = {
+  label: string;
+  items: DropdownItem[];
+  className?: string;
+};
 
-export function DropdownButton<T extends React.ElementType = typeof Button>(
-  props: React.ComponentProps<typeof HeadlessMenuButton<T>>
-) {
-  return <HeadlessMenuButton as={Button} {...props} />
-}
-
-export function DropdownMenu({
-  anchor = 'bottom',
-  ...props
-}: { anchor?: NonNullable<HeadlessMenuItemsProps['anchor']>['to'] } & Omit<HeadlessMenuItemsProps, 'anchor'>) {
-  return (
-    <HeadlessTransition as={Fragment} leave="duration-100 ease-in" leaveTo="opacity-0">
-      <HeadlessMenuItems
-        {...props}
-        anchor={{
-          to: anchor,
-          gap: 'var(--anchor-gap)',
-          offset: 'var(--anchor-offset)',
-          padding: 'var(--anchor-padding)',
-        }}
-        className={clsx(
-          props.className,
-
-          // Anchor positioning
-          '[--anchor-gap:theme(spacing.2)] [--anchor-padding:theme(spacing.3)] data-[anchor~=end]:[--anchor-offset:4px] data-[anchor~=start]:[--anchor-offset:-4px]',
-
-          // Base styles
-          'isolate w-max rounded-xl p-1',
-
-          // Invisible border that is only visible in `forced-colors` mode for accessibility purposes
-          'outline outline-1 outline-transparent focus:outline-none',
-
-          // Handle scrolling when menu won't fit in viewport
-          'overflow-y-auto',
-
-          // Popover background
-          'bg-white/75 backdrop-blur-xl dark:bg-zinc-800/75',
-
-          // Shadows
-          'shadow-lg ring-1 ring-zinc-950/10 dark:ring-inset dark:ring-white/10',
-
-          // Define grid at the menu level if subgrid is supported
-          'supports-[grid-template-columns:subgrid]:grid supports-[grid-template-columns:subgrid]:grid-cols-[auto_1fr_1.5rem_0.5rem_auto]'
-        )}
-      />
-    </HeadlessTransition>
-  )
-}
-
-export function DropdownItem(props: { href?: string } & HeadlessMenuItemProps<'button'>) {
-  return (
-    <HeadlessMenuItem
-      as={props.href ? Link : 'button'}
-      type={props.href ? undefined : 'button'}
-      {...props}
-      className={clsx(
-        props.className,
-
-        // Base styles
-        'group cursor-default rounded-lg px-3.5 py-2.5 focus:outline-none sm:px-3 sm:py-1.5',
-
-        // Text styles
-        'text-left text-base/6 text-zinc-950 sm:text-sm/6 dark:text-white forced-colors:text-[CanvasText]',
-
-        // Focus
-        'data-[focus]:bg-blue-500 data-[focus]:text-white',
-
-        // Disabled state
-        'data-[disabled]:opacity-50',
-
-        // Forced colors mode
-        'forced-color-adjust-none forced-colors:data-[focus]:bg-[Highlight] forced-colors:data-[focus]:text-[HighlightText] forced-colors:[&>[data-slot=icon]]:data-[focus]:text-[HighlightText]',
-
-        // Use subgrid when available but fallback to an explicit grid layout if not
-        'col-span-full grid grid-cols-[auto_1fr_1.5rem_0.5rem_auto] items-center supports-[grid-template-columns:subgrid]:grid-cols-subgrid',
-
-        // Icon
-        '[&>[data-slot=icon]]:col-start-1 [&>[data-slot=icon]]:row-start-1 [&>[data-slot=icon]]:mr-2.5 [&>[data-slot=icon]]:size-5 sm:[&>[data-slot=icon]]:mr-2 [&>[data-slot=icon]]:sm:size-4',
-        '[&>[data-slot=icon]]:text-zinc-500 [&>[data-slot=icon]]:data-[focus]:text-white [&>[data-slot=icon]]:dark:text-zinc-500 [&>[data-slot=icon]]:data-[focus]:dark:text-white'
-      )}
-    />
-  )
-}
-
-export function DropdownHeader({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
-  return <div {...props} className={clsx(className, 'col-span-5 px-3.5 pb-1 pt-2.5 sm:px-3')} />
-}
-
-export function DropdownSection({ className, ...props }: HeadlessMenuSectionProps) {
-  return (
-    <HeadlessMenuSection
-      {...props}
-      className={clsx(
-        className,
-        // Define grid at the section level instead of the item level if subgrid is supported
-        'col-span-full supports-[grid-template-columns:subgrid]:grid supports-[grid-template-columns:subgrid]:grid-cols-[auto_1fr_1.5rem_0.5rem_auto]'
-      )}
-    />
-  )
-}
-
-export function DropdownHeading({ className, ...props }: HeadlessMenuHeadingProps) {
-  return (
-    <HeadlessMenuHeading
-      {...props}
-      className={clsx(
-        className,
-        'col-span-full grid grid-cols-[1fr,auto] gap-x-12 px-3.5 pb-1 pt-2 text-sm/5 font-medium text-zinc-500 sm:px-3 sm:text-xs/5 dark:text-zinc-400'
-      )}
-    />
-  )
-}
-
-export function DropdownSeparator({ className, ...props }: HeadlessMenuSeparatorProps) {
-  return (
-    <HeadlessMenuSeparator
-      {...props}
-      className={clsx(
-        className,
-        'col-span-full mx-3.5 my-1 h-px border-0 bg-zinc-950/5 sm:mx-3 dark:bg-white/10 forced-colors:bg-[CanvasText]'
-      )}
-    />
-  )
-}
-
-export function DropdownLabel({ className, ...props }: HeadlessLabelProps) {
-  return (
-    <HeadlessLabel {...props} data-slot="label" className={clsx(className, 'col-start-2 row-start-1')} {...props} />
-  )
-}
-
-export function DropdownDescription({ className, ...props }: HeadlessDescriptionProps) {
-  return (
-    <HeadlessDescription
-      data-slot="description"
-      {...props}
-      className={clsx(
-        className,
-        'col-span-2 col-start-2 row-start-2 text-sm/5 text-zinc-500 group-data-[focus]:text-white sm:text-xs/5 dark:text-zinc-400 forced-colors:group-data-[focus]:text-[HighlightText]'
-      )}
-    />
-  )
-}
-
-export function DropdownShortcut({
+export const Dropdown: React.FC<DropdownProps> = ({
+  label,
+  items,
   className,
-  keys,
-  ...props
-}: { keys: string | string[] } & HeadlessDescriptionProps<'kbd'>) {
+}) => {
   return (
-    <HeadlessDescription
-      as="kbd"
-      {...props}
-      className={clsx(className, 'col-start-5 row-start-1 flex justify-self-end')}
+    <Menu
+      as="div"
+      className={clsx('relative inline-block text-left', className)}
     >
-      {(Array.isArray(keys) ? keys : keys.split('')).map((char, index) => (
-        <kbd
-          key={index}
-          className={clsx([
-            'min-w-[2ch] text-center font-sans capitalize text-zinc-400 group-data-[focus]:text-white forced-colors:group-data-[focus]:text-[HighlightText]',
-
-            // Make sure key names that are longer than one character (like "Tab") have extra space
-            index > 0 && char.length > 1 && 'pl-1',
-          ])}
+      <div>
+        <Menu.Button
+          className={clsx(
+            'inline-flex w-full justify-center rounded-md px-4 py-2 text-sm font-medium',
+            'bg-primary dark:bg-dark-primary text-primary-content dark:text-dark-primary-content',
+            'hover:bg-primary-light dark:hover:bg-dark-primary-light',
+            'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:focus-visible:ring-dark-primary focus-visible:ring-opacity-75',
+          )}
         >
-          {char}
-        </kbd>
-      ))}
-    </HeadlessDescription>
-  )
-}
+          {label}
+          <ChevronDownIcon className="-mr-1 ml-2 h-5 w-5" aria-hidden="true" />
+        </Menu.Button>
+      </div>
+      <Transition
+        as={Fragment}
+        enter="transition ease-out duration-100"
+        enterFrom="transform opacity-0 scale-95"
+        enterTo="transform opacity-100 scale-100"
+        leave="transition ease-in duration-75"
+        leaveFrom="transform opacity-100 scale-100"
+        leaveTo="transform opacity-0 scale-95"
+      >
+        <Menu.Items
+          className={clsx(
+            'absolute right-0 mt-2 w-56 origin-top-right divide-y divide-border dark:divide-dark-border',
+            'rounded-md bg-foreground dark:bg-dark-foreground',
+            'shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none',
+          )}
+        >
+          <div className="px-1 py-1">
+            {items.map((item, index) => (
+              <Menu.Item key={index}>
+                {({ active }) => (
+                  <button
+                    onClick={item.onClick}
+                    className={clsx(
+                      'group flex w-full items-center rounded-md px-2 py-2 text-sm',
+                      active
+                        ? 'bg-primary dark:bg-dark-primary text-primary-content dark:text-dark-primary-content'
+                        : 'text-copy dark:text-dark-copy',
+                    )}
+                  >
+                    {item.label}
+                  </button>
+                )}
+              </Menu.Item>
+            ))}
+          </div>
+        </Menu.Items>
+      </Transition>
+    </Menu>
+  );
+};

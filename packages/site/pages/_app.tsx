@@ -178,7 +178,7 @@ function MyApp({ Component, pageProps }: AppProps) {
             <div className="flex flex-col w-full min-h-screen max-w-full">
               <Header handleToggleClick={toggleTheme} />
               <Component {...pageProps} />
-              <Footer />
+              {/* <Footer /> */}
             </div>
           </QueryClientProvider>
         </DynamicAuthCoreContextProvider>

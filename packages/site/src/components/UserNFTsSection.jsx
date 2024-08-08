@@ -12,6 +12,7 @@ import UserNFTsView from './UserNFTsView';
 import useNFTs from '../hooks/useNFTs';
 import { nftslideoverstate } from '../atoms/nftSlideOverAtom';
 import { userpubstate } from '../atoms/userAtom';
+import { Button } from '../ui-components/button';
 
 /**
  * UserNFTsSection component to render the user's NFTs section.
@@ -67,30 +68,32 @@ export default function UserNFTsSection({
           {theTitle}
         </h1>
 
-        <button
-          type="button"
+        <Button
+          variant="primary"
+          size="medium"
           onClick={() => setOpenNFT(true)}
-          className="f-full focus:ring-fabstir-colour1 m-3 flex items-center justify-center rounded-full bg-fabstir-light- p-1 px-2 text-fabstir-dark-gray shadow-lg shadow-fabstir-light-purple/50 hover:bg-fabstir-white focus:outline-none focus:ring-2"
+          className="f-full m-3 flex items-center justify-center rounded-full p-1 px-2"
         >
           <PlusSmIconOutline
             className="h-6 w-6 focus:ring-0"
             aria-hidden="true"
           />
           <span className="sr-only">Add file</span>
-        </button>
+        </Button>
 
         <div className="ml-6 flex items-center rounded-lg p-0.5 sm:hidden">
-          <button type="button" className="rounded-md p-1.5">
+          <Button variant="primary" size="medium" className="rounded-md p-1.5">
             <Squares2X2Icon className="h-5 w-5" aria-hidden="true" />
             <span className="sr-only">Use list view</span>
-          </button>
-          <button
-            type="button"
-            className="ml-0.5 rounded-md p-1.5 text-gray-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+          </Button>
+          <Button
+            variant="primary"
+            size="medium"
+            className="ml-0.5 rounded-md p-1.5"
           >
             <Bars4Icon className="h-5 w-5" aria-hidden="true" />
             <span className="sr-only">Use grid view</span>
-          </button>
+          </Button>
         </div>
       </div>
 

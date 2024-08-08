@@ -84,6 +84,7 @@ const Index = () => {
   const [isWasmReady, setIsWasmReady] = useRecoilState(iswasmreadystate);
 
   const [openNFT, setOpenNFT] = useRecoilState(nftslideoverstate);
+  const [isDisabled, setIsDisabled] = useState<boolean>(false);
 
   const queryClient = useQueryClient();
   const user = getUser();
@@ -259,6 +260,10 @@ const Index = () => {
       }
     })();
   }, [userAuthPub]);
+
+  useEffect(() => {
+    setIsDisabled(!(smartAccount && connectedChainId));
+  }, [smartAccount, connectedChainId]);
 
   useEffect(() => {
     /**
@@ -656,8 +661,47 @@ const Index = () => {
     setConnectedChainId(null);
   }
 
+  // Define the props type for ButtonLink
+  type ButtonLinkProps = {
+    href: string;
+    label: string;
+    isDisabled: boolean;
+    className?: string; // Optional prop for additional classes
+  };
+  // ButtonLink Component with TypeScript
+  const ButtonLink: React.FC<ButtonLinkProps> = ({
+    href,
+    label,
+    isDisabled,
+    className,
+  }) => {
+    return isDisabled ? (
+      <div className={className}>
+        <Button
+          variant="primary"
+          size="medium"
+          className="p-1 text-2xl font-semibold"
+          disabled={true}
+        >
+          <p className="text-lg p-1 font-bold">{label}</p>
+        </Button>
+      </div>
+    ) : (
+      <Link href={href} className={className}>
+        <Button
+          variant="primary"
+          size="medium"
+          className="p-1 text-2xl font-semibold"
+          disabled={false}
+        >
+          <p className="text-lg p-1 font-bold">{label}</p>
+        </Button>
+      </Link>
+    );
+  };
+
   return (
-    <div className="p-4 max-w-6xl mx-auto">
+    <div className="p-4 max-w-6xl mx-auto bg-background dark:bg-background">
       <h1 className="uppercase text-2xl font-bold mb-5">Web3 Media Player</h1>
 
       {userName && smartAccount && (
@@ -666,9 +710,10 @@ const Index = () => {
 
       {!state.installedSnap && (
         <Button
-          color="white"
+          variant="primary"
+          size="medium"
           onClick={handleConnectClick}
-          className="p-1 h-8 col-span-1 dark:bg-gray-200 bg-gray-200 mb-2"
+          className="p-1 h-8 col-span-1 mb-2"
         >
           Connect Snap
         </Button>
@@ -677,8 +722,9 @@ const Index = () => {
       {!loading && !smartAccount && (
         <Button
           onClick={handleLogin}
-          color="white"
-          className="mt-4 text-xl font-semibold dark:bg-gray-200 bg-gray-200"
+          variant="primary"
+          size="medium"
+          className="mt-4 text-xl font-semibold"
         >
           Log in
         </Button>
@@ -694,8 +740,9 @@ const Index = () => {
       {smartAccount && (
         <Button
           onClick={handleLogout}
-          color="white"
-          className="mt-2 mb-6 dark:bg-gray-200 bg-gray-200"
+          variant="primary"
+          size="medium"
+          className="mt-2 mb-6 "
         >
           Log out
         </Button>
@@ -703,41 +750,34 @@ const Index = () => {
       <br />
 
       {/* Area to view gallery NFTs that a user owns, to mint and play them */}
-      <Link href="/gallery/userNFTs">
-        <Button
-          color="white"
-          className="p-1 text-2xl font-semibold dark:bg-gray-200 bg-gray-200 mt-4"
-        >
-          <p className="text-lg p-1 font-bold">Gallery</p>
-        </Button>
-      </Link>
-
-      {/* Page where a user can edit their profile */}
-      <Link href="/profile">
-        <Button
-          color="white"
-          className="ml-4 p-1 text-2xl font-semibold dark:bg-gray-200 bg-gray-200 mt-4"
-        >
-          <p className="text-lg p-1 font-bold">Profile</p>
-        </Button>
-      </Link>
-
-      {/* Page where user defines what access permissions to their NFTs to give other users */}
-      <Link href="/permissions">
-        <Button
-          color="white"
-          className="ml-4 p-1 text-2xl font-semibold dark:bg-gray-200 bg-gray-200 mt-4"
-        >
-          <p className="text-lg p-1 font-bold">Permissions</p>
-        </Button>
-      </Link>
+      <div className="flex flex-row">
+        <ButtonLink
+          href="/gallery/userNFTs"
+          label="Gallery"
+          isDisabled={isDisabled}
+        />
+        <ButtonLink
+          href="/profile"
+          label="Profile"
+          isDisabled={isDisabled}
+          className="ml-4"
+        />
+        <ButtonLink
+          href="/permissions"
+          label="Permissions"
+          isDisabled={isDisabled}
+          className="ml-4"
+        />
+      </div>
 
       {/* <h1 className="mt-7 mb-4">List of Addresses</h1>{' '} */}
 
       <div className="mt-6 mb-10">
         <Button
-          color="white"
-          className="text-xl mt-4 dark:bg-gray-200 bg-gray-200"
+          variant="primary"
+          size="medium"
+          className="text-xl mt-4"
+          disabled={isDisabled}
           onClick={handleLoadAddresses}
         >
           Display Addresses
@@ -746,10 +786,10 @@ const Index = () => {
         {addresses && (
           <>
             {Object.keys(addresses)?.length > 0 && (
-              <Table dense grid>
+              <Table>
                 <TableHead>
                   <TableRow>
-                    <TableHeader>Address Id</TableHeader>
+                    <TableCell header={true}>Address Id</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -778,18 +818,21 @@ const Index = () => {
           <div className="col-span-7">
             <Textarea
               name="addAddressses"
-              className="bg-gray-200 rounded-md text-gray-800 dark:text-gray-800"
+              className="rounded-md"
               value={newAddresses}
               onChange={(e) => setNewAddresses(e.target.value)}
               placeholder="Enter address ids"
+              disabled={isDisabled}
             />
           </div>
         </HeadlessField>
 
         <Button
-          color="white"
-          className="p-1 h-8 m-4 col-span-1 text-gray-600 dark:text-gray-600 border-gray-300 dark:border-gray-300 dark:bg-gray-200 bg-gray-200"
+          variant="primary"
+          size="medium"
+          className="p-1 h-8 m-4 col-span-1"
           onClick={() => setTriggerEffect((prev) => prev + 1)}
+          disabled={isDisabled}
         >
           Add
         </Button>
@@ -803,18 +846,21 @@ const Index = () => {
           <div className="col-span-7">
             <Textarea
               name="removeAddresses"
-              className="bg-gray-200 rounded-md text-gray-800 dark:text-gray-800"
+              className="rounded-md"
               value={removeAddresses}
               onChange={(e) => setRemoveAddresses(e.target.value)}
               placeholder="Enter address ids"
+              disabled={isDisabled}
             />
           </div>
         </HeadlessField>
 
         <Button
-          color="white"
-          className="p-1 h-8 m-4 col-span-1 text-gray-600 dark:text-gray-600 border-gray-300 dark:border-gray-300 dark:bg-gray-200 bg-gray-200"
+          variant="primary"
+          size="medium"
+          className="p-1 h-8 m-4 col-span-1"
           onClick={handleRemoveAddresses}
+          disabled={isDisabled}
         >
           Remove
         </Button>
@@ -828,18 +874,21 @@ const Index = () => {
           <div className="col-span-7">
             <Textarea
               name="exportKeys"
-              className="bg-gray-200 rounded-md text-gray-800 dark:text-gray-800"
+              className="rounded-md"
               value={exportKeys}
               onChange={(e) => setExportKeys(e.target.value)}
               placeholder="Enter address ids"
+              disabled={isDisabled}
             />
           </div>
         </HeadlessField>
 
         <Button
-          color="white"
-          className="p-1 h-8 m-4 col-span-1 text-gray-600 dark:text-gray-600 border-gray-300 dark:border-gray-300 dark:bg-gray-200 bg-gray-200"
+          variant="primary"
+          size="medium"
+          className="p-1 h-8 m-4 col-span-1"
           onClick={handleExportKeys}
+          disabled={isDisabled}
         >
           Export
         </Button>
@@ -855,10 +904,11 @@ const Index = () => {
           <div className="col-span-7">
             <Textarea
               name="importKeys"
-              className="bg-gray-200 rounded-md text-gray-800 dark:text-gray-800"
+              className="rounded-md"
               value={importKeys}
               onChange={(e) => setImportKeys(e.target.value)}
               placeholder="Enter address ids"
+              disabled={isDisabled}
             />
           </div>
         </HeadlessField>
@@ -871,9 +921,11 @@ const Index = () => {
           accept=".json"
         />
         <Button
-          color="white"
-          className="p-1 h-8 m-4 col-span-1 text-gray-600 dark:text-gray-600 border-gray-300 dark:border-gray-300 dark:bg-gray-200 bg-gray-200"
+          variant="primary"
+          size="medium"
+          className="p-1 h-8 m-4 col-span-1"
           onClick={handleButtonImportKeys}
+          disabled={isDisabled}
         >
           Import
         </Button>

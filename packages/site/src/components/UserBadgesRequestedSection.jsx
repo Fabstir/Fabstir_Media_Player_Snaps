@@ -12,6 +12,7 @@ import { currentbadgerequestedslideovertate } from '../atoms/badgeRequestSelectS
 import { userauthpubstate } from '../atoms/userAuthAtom';
 import useBadgesRequested from '../hooks/useBadgesRequested';
 import useBadgesRequestedCompleted from '../hooks/useBadgesRequestedCompleted';
+import { Button } from '../ui-components/button';
 
 const appendBadgeField = (old, field, value) => ({ ...old, [field]: value });
 
@@ -104,17 +105,18 @@ export default function UserBadgesRequestedSection({
                 </h1>
 
                 <div className="ml-6 flex items-center rounded-lg p-0.5 sm:hidden">
-                  <button type="button" className="rounded-md p-1.5">
+                  <Button
+                    variant="primary"
+                    size="medium"
+                    className="rounded-md p-1.5"
+                  >
                     <ViewListIcon className="h-5 w-5" aria-hidden="true" />
                     <span className="sr-only">Use list view</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="ml-0.5 rounded-md p-1.5 text-gray-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
-                  >
+                  </Button>
+                  <Button type="button" className="ml-0.5 rounded-md p-1.5">
                     <ViewGridIconSolid className="h-5 w-5" aria-hidden="true" />
                     <span className="sr-only">Use grid view</span>
-                  </button>
+                  </Button>
                 </div>
               </div>
 

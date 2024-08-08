@@ -19,6 +19,10 @@ import SimpleToggle from './SimpleToggle';
 import { teamsstate } from '../atoms/teamsAtom';
 import TeamsView from './TeamsView';
 import { permissionsstate } from '../atoms/permissionsAtom';
+import { Input } from '../ui-components/input';
+import { Select } from '../ui-components/select';
+import { Textarea } from '../ui-components/textarea';
+import { Checkbox } from '../ui-components/checkbox';
 
 // Tailwind CSS styles
 const twStyle = 'ml-8 grid gap-y-6 grid-cols-6 gap-x-5';
@@ -107,10 +111,10 @@ const NFTSlideOverLeft = ({
                 Name
               </label>
               <div className="mt-1 rounded-lg border-2 border-fabstir-white">
-                <input
+                <Input
                   type="text"
                   name="name"
-                  {...register('name')}
+                  register={register('name')}
                   className="block w-full bg-fabstir-white"
                 />
               </div>
@@ -127,10 +131,10 @@ const NFTSlideOverLeft = ({
                 Symbol
               </label>
               <div className="mt-1 rounded-lg border-2 border-fabstir-white">
-                <input
+                <Input
                   type="text"
                   name="symbol"
-                  {...register('symbol')}
+                  register={register('symbol')}
                   className="block w-full bg-fabstir-white sm:text-sm"
                 />
               </div>
@@ -147,7 +151,7 @@ const NFTSlideOverLeft = ({
                 Supply
               </label>
               <div className="mt-1 rounded-lg border-2 border-fabstir-white">
-                <input
+                <Input
                   type="number"
                   id="supply"
                   min="0"
@@ -157,7 +161,7 @@ const NFTSlideOverLeft = ({
                       event.preventDefault();
                     }
                   }}
-                  {...register('supply')}
+                  register={register('supply')}
                   disabled={!watch('multiToken')}
                   className="block w-full bg-fabstir-white sm:text-sm"
                 />
@@ -167,79 +171,41 @@ const NFTSlideOverLeft = ({
               </p>
             </div>
 
-            <div className="col-span-1 ml-2 flex items-center">
-              <div className="rounded border-2 border-fabstir-white">
-                <input
-                  id="multiToken"
-                  type="checkbox"
-                  defaultChecked={false}
-                  {...register('multiToken')}
-                  className="h-4 w-4 rounded bg-fabstir-white text-indigo-600 focus:ring-indigo-500"
-                />
-              </div>
-              <div className="ml-2">
-                <label
-                  htmlFor="multiToken"
-                  className="text-sm font-medium fabstir-black"
-                >
-                  Collection
-                </label>
-              </div>
-              <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
-                {errors.multiToken?.message}
-              </p>
+            <div className="col-span-1 ml-2">
+              <Checkbox
+                id="multiToken"
+                label="Collection"
+                defaultChecked={false}
+                register={register('multiToken')}
+                error={errors.multiToken?.message}
+                className="items-center"
+              />
             </div>
 
             <div className="sm:col-span-4">
-              <div className="flex justify-between">
-                <label
-                  htmlFor="summary"
-                  className="block text-sm font-medium fabstir-black"
-                >
-                  Summary
-                </label>
-                <span className="text-sm text-fabstir-medium-light-gray">
-                  Max. {summaryMax} characters
-                </span>
-              </div>
-              <div className="mt-1 rounded-lg border-2 border-fabstir-white">
-                <textarea
-                  name="summary"
-                  rows={2}
-                  {...register('summary')}
-                  className="block w-full bg-fabstir-white px-4 py-3"
-                  defaultValue={''}
-                />
-              </div>
-              <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
-                {errors.summary?.message}
-              </p>
+              <Textarea
+                id="summary"
+                label="Summary"
+                rows={2}
+                maxLength={summaryMax}
+                register={register('summary')}
+                error={errors.summary?.message}
+                className="mt-1"
+                placeholder="Enter a brief summary"
+              />
             </div>
 
             <div className="sm:col-span-4">
-              <div className="flex justify-between">
-                <label
-                  htmlFor="description"
-                  className="block text-sm font-medium fabstir-black"
-                >
-                  Description
-                </label>
-                <span className="text-sm text-fabstir-medium-light-gray">
-                  Max. {descriptionMax} characters
-                </span>
-              </div>
-              <div className="mt-1 rounded-lg border-2 border-fabstir-white">
-                <textarea
-                  name="description"
-                  rows={4}
-                  {...register('description')}
-                  className="block w-full bg-fabstir-white px-4 py-3"
-                  defaultValue={''}
-                />
-              </div>
-              <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
-                {errors.description?.message}
-              </p>
+              <Textarea
+                id="description"
+                label="Description"
+                rows={4}
+                maxLength={descriptionMax}
+                register={register('description')}
+                error={errors.description?.message}
+                className="mt-1"
+                placeholder="Enter a detailed description"
+              />
             </div>
           </div>
         </section>
@@ -247,75 +213,44 @@ const NFTSlideOverLeft = ({
         <section aria-labelledby="shipping-heading" className="mt-6">
           <div className="grid grid-cols-6 gap-x-2">
             <div className="sm:col-span-3">
-              <label
-                htmlFor="type"
-                className="block text-sm font-medium fabstir-black"
-              >
-                Type
-              </label>
-              <div className="mt-1 rounded-lg border-2 border-fabstir-white">
-                <select
-                  name="type"
-                  {...register('type')}
-                  className="block w-full bg-fabstir-white sm:text-sm"
-                >
-                  <option>audio</option>
-                  <option>image</option>
-                  <option>video</option>
-                  <option>other</option>
-                </select>
-              </div>
-              <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
-                {errors.type?.message}
-              </p>
+              <Select
+                id="type"
+                label="Type"
+                options={[
+                  { value: 'audio', label: 'audio' },
+                  { value: 'image', label: 'image' },
+                  { value: 'video', label: 'video' },
+                  { value: 'other', label: 'other' },
+                ]}
+                register={register('type')}
+                error={errors.type?.message}
+                className="mt-1"
+              />
             </div>
 
             <div className="sm:col-span-2">
-              <label
-                htmlFor="category"
-                className="block text-sm font-medium fabstir-black"
-              >
-                Category
-              </label>
-              <div className="mt-1 rounded-lg border-2 border-fabstir-white">
-                <select
-                  name="category"
-                  {...register('category')}
-                  className="sm:text-md block w-full bg-fabstir-white"
-                >
-                  {currentNFTCategories.map((currentNFTCategory) => (
-                    <option key={currentNFTCategory}>
-                      {currentNFTCategory}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
-                {errors.category?.message}
-              </p>
+              <Select
+                id="category"
+                label="Category"
+                options={currentNFTCategories.map((category) => ({
+                  value: category,
+                  label: category,
+                }))}
+                register={register('category')}
+                error={errors.category?.message}
+                className="mt-1"
+              />
             </div>
 
-            <div className="col-span-1 ml-2 flex items-center">
-              <div className="rounded border-2 border-fabstir-white">
-                <input
-                  id="deployed"
-                  type="checkbox"
-                  defaultChecked={false}
-                  {...register('deployed')}
-                  className="h-4 w-4 rounded bg-fabstir-white text-indigo-600 focus:ring-indigo-500"
-                />
-              </div>
-              <div className="ml-2">
-                <label
-                  htmlFor="deployed"
-                  className="text-sm font-medium fabstir-black"
-                >
-                  Deploy
-                </label>
-              </div>
-              <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
-                {errors.deployed?.message}
-              </p>
+            <div className="col-span-1 ml-2">
+              <Checkbox
+                id="deployed"
+                label="Deploy"
+                defaultChecked={false}
+                register={register('deployed')}
+                error={errors.deployed?.message}
+                className="items-center"
+              />
             </div>
           </div>
 
@@ -390,7 +325,7 @@ const NFTSlideOverLeft = ({
         </section>
 
         <div className="mt-10 border-t border-fabstir-white pt-8 sm:flex sm:items-center sm:justify-between">
-          <input
+          <Input
             type="submit"
             className="w-full rounded-md border border-transparent bg-fabstir-light-purple px-2 py-2 text-sm font-medium text-white shadow-sm hover:bg-fabstir-dark-purple focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50 sm:mr-6 bg-slate-800"
             value={submitText}

@@ -1,101 +1,68 @@
-import {
-  Input as HeadlessInput,
-  type InputProps as HeadlessInputProps,
-} from '@headlessui/react';
+import React from 'react';
 import { clsx } from 'clsx';
-import { useForm } from 'react-hook-form';
+import { UseFormRegisterReturn } from 'react-hook-form';
 
-const dateTypes = ['date', 'datetime-local', 'month', 'time', 'week'];
-type DateType = (typeof dateTypes)[number];
+type InputProps = {
+  label?: string;
+  placeholder?: string;
+  className?: string;
+  error?: string;
+  type?: 'text' | 'password' | 'email' | 'number';
+  icon?: React.ReactNode;
+  register: UseFormRegisterReturn; // Make register prop required
+} & Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'>;
 
-export function Input({
+export const Input: React.FC<InputProps> = ({
+  label,
+  placeholder,
   className,
-  defaultValue,
-  register, // Accept register as a prop
+  error,
+  type = 'text',
+  icon,
+  register,
   ...props
-}: {
-  type?:
-    | 'email'
-    | 'number'
-    | 'password'
-    | 'search'
-    | 'tel'
-    | 'text'
-    | 'url'
-    | DateType;
-  register?: ReturnType<typeof useForm>['register']; // Add type for register if using TypeScript
-} & HeadlessInputProps) {
+}) => {
   return (
-    <span
-      data-slot="control"
-      className={clsx([
-        className, // Include className prop here to ensure custom classes are applied
-
-        // Basic layout
-        'relative block w-full',
-
-        // Background color + shadow applied to inset pseudo element, so shadow blends with border in light mode
-        'before:absolute before:inset-px before:rounded-[calc(theme(borderRadius.lg)-1px)] before:bg-white before:shadow',
-
-        // Background color is moved to control and shadow is removed in dark mode so hide `before` pseudo
-        'dark:before:hidden',
-
-        // Focus ring
-        'after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:ring-inset after:ring-transparent sm:after:focus-within:ring-2 sm:after:focus-within:ring-blue-500',
-
-        // Disabled state
-        'has-[[data-disabled]]:opacity-50 before:has-[[data-disabled]]:bg-zinc-950/5 before:has-[[data-disabled]]:shadow-none',
-
-        // Invalid state
-        'before:has-[[data-invalid]]:shadow-red-500/10',
-      ])}
-    >
-      <HeadlessInput
-        {...register}
-        className={clsx([
-          className, // Include className prop here as well
-
-          // Date classes
-          props.type &&
-            dateTypes.includes(props.type) && [
-              '[&::-webkit-datetime-edit-fields-wrapper]:p-0',
-              '[&::-webkit-date-and-time-value]:min-h-[1.5em]',
-              '[&::-webkit-datetime-edit]:inline-flex',
-              '[&::-webkit-datetime-edit]:p-0',
-              '[&::-webkit-datetime-edit-year-field]:p-0',
-              '[&::-webkit-datetime-edit-month-field]:p-0',
-              '[&::-webkit-datetime-edit-day-field]:p-0',
-              '[&::-webkit-datetime-edit-hour-field]:p-0',
-              '[&::-webkit-datetime-edit-minute-field]:p-0',
-              '[&::-webkit-datetime-edit-second-field]:p-0',
-              '[&::-webkit-datetime-edit-millisecond-field]:p-0',
-              '[&::-webkit-datetime-edit-meridiem-field]:p-0',
-            ],
-
-          // Basic layout
-          'relative block w-full appearance-none rounded-lg px-[calc(theme(spacing[3.5])-1px)] py-[calc(theme(spacing[2.5])-1px)] sm:px-[calc(theme(spacing[3])-1px)] sm:py-[calc(theme(spacing[1.5])-1px)]',
-
-          // Typography
-          'text-base/6 text-zinc-950 placeholder:text-zinc-500 sm:text-sm/6 dark:text-zinc-800', // Adjusted dark mode text color for better contrast
-
-          // Border
-          'border border-zinc-950/10 data-[hover]:border-zinc-950/20 dark:border-white/10 dark:data-[hover]:border-white/20',
-
-          // Background color
-          'bg-transparent dark:bg-white/5',
-
-          // Hide default focus styles
-          'focus:outline-none',
-
-          // Invalid state
-          'data-[invalid]:border-red-500 data-[invalid]:data-[hover]:border-red-500 data-[invalid]:dark:border-red-500 data-[invalid]:data-[hover]:dark:border-red-500',
-
-          // Disabled state
-          'data-[disabled]:border-zinc-950/20 dark:data-[hover]:data-[disabled]:border-white/15 data-[disabled]:dark:border-white/15 data-[disabled]:dark:bg-white/[2.5%]',
-        ])}
-        defaultValue={defaultValue}
-        {...props}
-      />
-    </span>
+    <div className={clsx('relative', className)}>
+      {label && (
+        <label
+          htmlFor={props.id}
+          className="block text-sm font-medium text-copy dark:text-dark-copy mb-1"
+        >
+          {label}
+        </label>
+      )}
+      <div className="relative">
+        {icon && (
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            {icon}
+          </div>
+        )}
+        <input
+          {...props}
+          {...register}
+          type={type}
+          placeholder={placeholder}
+          className={clsx(
+            'w-full rounded-md',
+            'bg-foreground dark:bg-dark-foreground',
+            'text-copy dark:text-dark-copy',
+            'placeholder-copy-lighter dark:placeholder-dark-copy-lighter',
+            'border border-border dark:border-dark-border',
+            'focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-dark-primary focus:border-primary dark:focus:border-dark-primary',
+            'disabled:bg-background disabled:dark:bg-dark-background disabled:cursor-not-allowed disabled:opacity-75',
+            error
+              ? 'border-error dark:border-dark-error'
+              : 'hover:border-primary dark:hover:border-dark-primary',
+            'transition-colors duration-200',
+            'px-4 py-2 sm:text-sm',
+            icon && 'pl-10',
+          )}
+        />
+      </div>
+      {error && (
+        <p className="mt-1 text-sm text-error dark:text-dark-error">{error}</p>
+      )}
+    </div>
   );
-}
+};
