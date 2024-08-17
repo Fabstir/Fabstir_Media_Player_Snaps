@@ -300,19 +300,19 @@ const NFTSlideOver = ({
       trailerTracksArray = getCidArrayToSubtitleTracks(
         data.animationSubtitlesUrl,
       );
-    } else delete nft.current.animationSubtitlesUrl;
+    } else delete nft.animationSubtitlesUrl;
 
-    if (data.video && data.animationAudioUrls?.length > 0) {
+    if (data.animation_url && data.animationAudioUrls?.length > 0) {
       trailerTracksArray = [
         ...trailerTracksArray,
         ...getCidArrayToAudioTracks(data.animationAudioUrls),
       ];
-    } else delete nft.current.animationAudioUrls;
+    } else delete nft.animationAudioUrls;
 
     if (trailerTracksArray.length > 0) {
       await putMetadata(
         encKey?.current ? encKey?.current : null,
-        data.video,
+        data.animation_url,
         trailerTracksArray,
       );
     }
@@ -321,14 +321,14 @@ const NFTSlideOver = ({
     let tracksArray = [];
     if (data.video && data.subtitlesUrl?.length > 0) {
       tracksArray = getCidArrayToSubtitleTracks(data.subtitlesUrl);
-    } else delete nft.current.subtitlesUrl;
+    } else delete nft.subtitlesUrl;
 
     if (data.video && data.audioUrls?.length > 0) {
       tracksArray = [
         ...tracksArray,
         ...getCidArrayToAudioTracks(data.audioUrls),
       ];
-    } else delete nft.current.audioUrls;
+    } else delete nft.audioUrls;
 
     if (tracksArray.length > 0) {
       await putMetadata(
