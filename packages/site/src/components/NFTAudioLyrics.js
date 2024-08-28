@@ -30,14 +30,14 @@ function classNames(...classes) {
  * @param {Object} props - The props for the NFTAudioLyrics component.
  * @param {Object} props.nft - The NFT object containing the lyrics and other metadata.
  * @param {number} props.playerCurrentTime - The current playback time of the audio player, used to determine which line of lyrics to highlight.
- * @param {string} [props.bgColourLyrics='bg-fabstir-black'] - The Tailwind CSS class for the background color of the lyrics. Defaults to 'bg-fabstir-black'.
- * @param {string} [props.highlightColourLyrics='bg-fabstir-white'] - The Tailwind CSS class for the highlight color of the current line of lyrics. Defaults to 'bg-fabstir-white'.
+ * @param {string} [props.bgColourLyrics='bg-black'] - The Tailwind CSS class for the background color of the lyrics. Defaults to 'bg-black'.
+ * @param {string} [props.highlightColourLyrics='bg-white'] - The Tailwind CSS class for the highlight color of the current line of lyrics. Defaults to 'bg-white'.
  */
 export const NFTAudioLyrics = ({
   nft,
   playerCurrentTime,
-  bgColourLyrics = 'bg-fabstir-black',
-  highlightColourLyrics = 'bg-fabstir-white',
+  bgColourLyrics = 'bg-black',
+  highlightColourLyrics = 'bg-white',
 }) => {
   const { downloadFile } = usePortal();
 

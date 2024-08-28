@@ -95,13 +95,13 @@ export default function PermissionsTeams() {
   return (
     <div className="mx-auto max-w-7xl pl-6 pr-2 pt-12">
       <div className="bg-fabstir-dark-purple">
-        <h2 className="text-center text-3xl font-extrabold tracking-tight text-fabstir-dark-gray sm:text-4xl">
+        <h2 className="text-center text-3xl font-extrabold tracking-tight text-dark-gray sm:text-4xl">
           NFT Permissions
         </h2>
 
         <div className="mt-4 flex flex-1 justify-center">
           <Button
-            variant="primary"
+            variant=""
             size="medium"
             onClick={(e) => handleExitTeams(e)}
             className="mx-auto flex items-center justify-center whitespace-nowrap rounded-md p-4 font-bold tracking-wide"
@@ -124,10 +124,10 @@ export default function PermissionsTeams() {
         <a onClick={(e) => handleNewPermission(e)}>
           <div className="flex flex-1 flex-row items-center mt-4">
             <PlusIcon
-              className="hover:text-gray ml-8 h-10 w-10 transition duration-100 hover:scale-125 mr-4 text-fabstir-dark-gray"
+              className="hover:text-gray ml-8 h-10 w-10 transition duration-100 hover:scale-125 mr-4 text-dark-gray"
               aria-hidden="true"
             />
-            <div className="text-lg font-semibold text-fabstir-gray">
+            <div className="text-lg font-semibold text-gray">
               New Permission
             </div>
           </div>

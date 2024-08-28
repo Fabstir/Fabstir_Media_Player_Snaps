@@ -23,8 +23,8 @@ export default function SimpleToggle({ enabled, setEnabled, toggleText }) {
       checked={enabled}
       onChange={setEnabled}
       className={classNames(
-        enabled ? 'bg-fabstir-light-purple' : 'bg-fabstir-gray',
-        'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent shadow-[inset_0_-1px_0px_hsla(0,0%,100%,0.15),inset_0_1px_1px_hsla(0,0%,0%,0.15)] transition-colors duration-200 ease-in-out focus:outline-none  focus:ring-2 focus:ring-fabstir-focus-colour1',
+        enabled ? '' : 'bg-gray',
+        'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent shadow-[inset_0_-1px_0px_hsla(0,0%,100%,0.15),inset_0_1px_1px_hsla(0,0%,0%,0.15)] transition-colors duration-200 ease-in-out focus:outline-none  focus:ring-2',
       )}
     >
       <span className="sr-only">{toggleText}</span>
@@ -32,8 +32,8 @@ export default function SimpleToggle({ enabled, setEnabled, toggleText }) {
         aria-hidden="true"
         className={classNames(
           enabled
-            ? 'translate-x-5 bg-fabstir-light-gray'
-            : 'translate-x-0 bg-fabstir-medium-light-gray',
+            ? 'translate-x-5 bg-light-gray'
+            : 'translate-x-0 ',
           'pointer-events-none inline-block h-5 w-5 transform rounded-full shadow ring-0 transition duration-200 ease-in-out',
         )}
       />

@@ -211,7 +211,7 @@ export default function TransferNFT({ nft, open, setOpen }) {
               leaveTo="translate-y-full"
             >
               <div className="w-screen max-w-md">
-                <div className="flex h-full flex-col border-2 border-fabstir-medium-light-gray bg-fabstir-light-gray shadow-xl">
+                <div className="flex h-full flex-col border-2  bg-light-gray shadow-xl">
                   <div className="px-4 py-2 sm:px-6">
                     <div className="flex items-start justify-between">
                       <Dialog.Title className="text-lg font-medium text-gray-900">
@@ -219,7 +219,7 @@ export default function TransferNFT({ nft, open, setOpen }) {
                       </Dialog.Title>
                       <div className="ml-3 flex h-7 items-center">
                         <Button
-                          variant="primary"
+                          variant=""
                           size="medium"
                           className="rounded-md"
                           onClick={() => setOpen(false)}
@@ -233,7 +233,7 @@ export default function TransferNFT({ nft, open, setOpen }) {
 
                   <div className="p-6 pt-2 text-left">
                     <div>
-                      <h3 className="text-lg font-medium leading-6 tracking-wider text-fabstir-light-gray">
+                      <h3 className="text-lg font-medium leading-6 tracking-wider text-light-gray">
                         {nft?.name}
                       </h3>
                       <p className="mt-4 text-sm text-gray-500">
@@ -247,7 +247,7 @@ export default function TransferNFT({ nft, open, setOpen }) {
                       <div className="sm:col-span-3">
                         <label
                           htmlFor="quantity"
-                          className="block text-sm font-medium text-fabstir-dark-gray"
+                          className="block text-sm font-medium text-dark-gray"
                         >
                           Quantity
                         </label>
@@ -255,10 +255,10 @@ export default function TransferNFT({ nft, open, setOpen }) {
                           <Input
                             id="quantity"
                             register={register('quantity')}
-                            className="block w-full rounded-md border-gray-300 bg-fabstir-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                            className="block w-full rounded-md border-gray-300 bg-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                           />
                         </div>
-                        <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
+                        <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
                           {errors.quantity?.message}
                         </p>
                       </div>
@@ -266,7 +266,7 @@ export default function TransferNFT({ nft, open, setOpen }) {
                       <div className="sm:col-span-3">
                         <label
                           htmlFor="recipientAccountAddress"
-                          className="block text-sm font-medium text-fabstir-dark-gray"
+                          className="block text-sm font-medium text-dark-gray"
                         >
                           Recipient's Account
                         </label>
@@ -274,11 +274,11 @@ export default function TransferNFT({ nft, open, setOpen }) {
                           <Input
                             id="recipientAccountAddress"
                             register={register('recipientAccountAddress')}
-                            className="block w-full rounded-md border-gray-300 bg-fabstir-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                            className="block w-full rounded-md border-gray-300 bg-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                           />{' '}
                         </div>
 
-                        <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
+                        <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
                           {errors.recipientAccountAddress?.message}
                         </p>
                       </div>
@@ -286,7 +286,7 @@ export default function TransferNFT({ nft, open, setOpen }) {
                       <div className="justify-center sm:col-span-2 sm:col-start-3">
                         <Button
                           type="submit"
-                          variant="primary"
+                          variant=""
                           size="medium"
                           className="mt-2 inline-flex w-full justify-center rounded-md border border-transparent px-4 py-2 text-sm font-medium"
                         >

@@ -1,17 +1,8 @@
 import React from 'react';
 import { clsx } from 'clsx';
-import { UseFormRegisterReturn } from 'react-hook-form';
 import { CheckIcon } from '@heroicons/react/20/solid';
 
-type CheckboxProps = {
-  label?: string;
-  className?: string;
-  error?: string;
-} & React.InputHTMLAttributes<HTMLInputElement> & {
-    register?: UseFormRegisterReturn;
-  };
-
-export const Checkbox: React.FC<CheckboxProps> = ({
+const Checkbox = ({
   label,
   className,
   error,
@@ -70,3 +61,5 @@ export const Checkbox: React.FC<CheckboxProps> = ({
     </div>
   );
 };
+
+export default Checkbox;

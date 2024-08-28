@@ -246,7 +246,7 @@ export default function SellNFT({ nft, open, setOpen, setRerender }) {
               leaveTo="translate-y-full"
             >
               <div className="w-screen max-w-md">
-                <div className="flex h-full flex-col border-2 border-fabstir-medium-light-gray bg-fabstir-dark-gray shadow-xl">
+                <div className="flex h-full flex-col border-2  bg-dark-gray shadow-xl">
                   <div className="px-4 py-2 sm:px-6">
                     <div className="flex items-start justify-between">
                       <Dialog.Title className="text-lg font-medium text-gray-900">
@@ -254,7 +254,7 @@ export default function SellNFT({ nft, open, setOpen, setRerender }) {
                       </Dialog.Title>
                       <div className="ml-3 flex h-7 items-center">
                         <Button
-                          variant="primary"
+                          variant=""
                           size="medium"
                           className="rounded-md"
                           onClick={() => setOpen(false)}
@@ -268,7 +268,7 @@ export default function SellNFT({ nft, open, setOpen, setRerender }) {
 
                   <div className="p-6 pt-2 text-left">
                     <div>
-                      <h3 className="text-lg font-medium leading-6 tracking-wider text-fabstir-white">
+                      <h3 className="text-lg font-medium leading-6 tracking-wider text-white">
                         {nft.name}
                       </h3>
                       <p className="mt-4 text-sm text-gray-500">
@@ -282,7 +282,7 @@ export default function SellNFT({ nft, open, setOpen, setRerender }) {
                       <div className="sm:col-span-3">
                         <label
                           htmlFor="amount"
-                          className="block text-sm font-medium text-fabstir-light-gray"
+                          className="block text-sm font-medium text-light-gray"
                         >
                           Amount
                         </label>
@@ -290,10 +290,10 @@ export default function SellNFT({ nft, open, setOpen, setRerender }) {
                           <Input
                             id="amount"
                             register={register('amount')}
-                            className="block w-full rounded-md border-gray-300 bg-fabstir-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                            className="block w-full rounded-md border-gray-300 bg-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                           />
                         </div>
-                        <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
+                        <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
                           {errors.amount?.message}
                         </p>
                       </div>
@@ -301,7 +301,7 @@ export default function SellNFT({ nft, open, setOpen, setRerender }) {
                       <div className="sm:col-span-3">
                         <label
                           htmlFor="resellerPercentage"
-                          className="block text-sm font-medium text-fabstir-light-gray"
+                          className="block text-sm font-medium text-light-gray"
                         >
                           Reseller % (optional)
                         </label>
@@ -309,10 +309,10 @@ export default function SellNFT({ nft, open, setOpen, setRerender }) {
                           <Input
                             id="resellerPercentage"
                             register={register('resellerPercentage')}
-                            className="block w-full rounded-md border-gray-300 bg-fabstir-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                            className="block w-full rounded-md border-gray-300 bg-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                           />
                         </div>
-                        <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
+                        <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
                           {errors.resellerPercentage?.message}
                         </p>
                       </div>
@@ -320,7 +320,7 @@ export default function SellNFT({ nft, open, setOpen, setRerender }) {
                       <div className="sm:col-span-3">
                         <label
                           htmlFor="currency"
-                          className="block text-sm font-medium text-fabstir-light-gray"
+                          className="block text-sm font-medium text-light-gray"
                         >
                           Currency
                         </label>
@@ -328,13 +328,13 @@ export default function SellNFT({ nft, open, setOpen, setRerender }) {
                           type="text"
                           id="currency"
                           register={register(`currency`)}
-                          className="block w-full rounded-md border-gray-300 bg-fabstir-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                          className="block w-full rounded-md border-gray-300 bg-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                         >
                           {currencies.map((currency, index) => (
                             <option key={index}>{currency}</option>
                           ))}
                         </Select>
-                        <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
+                        <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
                           {errors.currency?.message}
                         </p>
                       </div>
@@ -342,7 +342,7 @@ export default function SellNFT({ nft, open, setOpen, setRerender }) {
                       <div className="sm:col-span-3">
                         <label
                           htmlFor="price"
-                          className="block text-sm font-medium text-fabstir-light-gray"
+                          className="block text-sm font-medium text-light-gray"
                         >
                           price
                         </label>
@@ -350,18 +350,18 @@ export default function SellNFT({ nft, open, setOpen, setRerender }) {
                           <Input
                             id="price"
                             register={register('price')}
-                            className="block w-full rounded-md border-gray-300 bg-fabstir-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                            className="block w-full rounded-md border-gray-300 bg-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                           />
                         </div>
 
-                        <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
+                        <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
                           {errors.price?.message}
                         </p>
                       </div>
                       <div className="justify-center sm:col-span-2 sm:col-start-3">
                         <Button
                           type="submit"
-                          variant="primary"
+                          variant=""
                           size="medium"
                           className="mt-2 inline-flex w-full justify-center rounded-md border border-transparent px-4 py-2 text-sm font-medium"
                         >

@@ -2,11 +2,11 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useRecoilState } from 'recoil';
 import { currentnftmetadata } from '../atoms/nftSlideOverAtom';
 
-import init, {
-  load_model,
-  render_model,
-  stop_render,
-} from '../../public/wgpu_fabstir_renderer.js';
+// import init, {
+//   load_model,
+//   render_model,
+//   stop_render,
+// } from '../../public/wgpu_fabstir_renderer.js';
 import { useRouter } from 'next/router';
 import { is3dmodelstate, iswasmreadystate } from '../atoms/renderStateAtom';
 
@@ -142,12 +142,13 @@ export default function RenderModel({ nft, modelUris }) {
           if (isFirstRender.current) {
             try {
               //              const renderModelBound = render_model.bind(wasm);
-              await render_model(canvas, model_urls, extensions, callback);
+              // await render_model(canvas, model_urls, extensions, callback);
             } catch (err) {
               console.error('Error calling render_model:', err);
             }
             isFirstRender.current = false;
-          } else load_model(model_urls, extensions);
+          } 
+          // else load_model(model_urls, extensions);
 
           setIs3dModel(true);
         } catch (err) {

@@ -81,37 +81,62 @@ export default function useCreateUser() {
 
   const createUser = (username, password, userProfile) => {
     const user = getUser();
-    if (!username || !username.trim())
+  
+    if (!username || !username.trim()) {
       return Promise.reject(new Error('User name cannot be blank'));
-
-    if (!password || !password.trim())
+    }
+  
+    if (!password || !password.trim()) {
       return Promise.reject(new Error('Password cannot be blank'));
-
+    }
+  
     console.log('inputPassword = ', password);
-
+  
     return new Promise((resolve, reject) => {
-      user.create(username, password, async ({ err }) => {
-        if (err) reject(new Error(err));
-        else {
+      user?.create(username, password, async ({ err }) => {
+        if (err) {
+          const errorMessage = typeof err === 'string' ? err : JSON.stringify(err);
+          reject(new Error(`User creation error: ${errorMessage}`));
+        } else {
           try {
-            const isLoggedIn = await login(username, password);
-
-            const pair = user._.sea;
-            userProfile = { ...userProfile, epub: pair.epub };
-
-            await putUserProfile(userProfile);
-
-            const pub = user.is.pub;
-            await putUserPub(pub);
-
-            resolve(isLoggedIn);
+            const response = await login(username, password);
+  
+            // Check response status
+            if (!response.ok) {
+              const errorText = await response.text();
+              console.error(`Error response: ${errorText}`);
+              reject(new Error(`API error: ${response.status}`));
+              return;
+            }
+  
+            // Check if the response is JSON
+            const contentType = response.headers.get('Content-Type');
+            if (contentType && contentType.includes('application/json')) {
+              const isLoggedIn = await response.json();
+  
+              // Handle user profile updates
+              const pair = user._.sea;
+              userProfile = { ...userProfile, epub: pair.epub };
+  
+              await putUserProfile(userProfile);
+              const pub = user.is.pub;
+              await putUserPub(pub);
+  
+              resolve(isLoggedIn);
+            } else {
+              const text = await response.text();
+              console.error(`Expected JSON but received: ${text}`);
+              reject(new Error('Unexpected response format'));
+            }
           } catch (error) {
+            console.error(`Error during login or profile update: ${error.message}`);
             reject(error);
           }
         }
       });
     });
   };
+  
 
   const signOut = async () => {
     user.leave();

@@ -62,7 +62,7 @@ const BadgeSlideOverLeft = ({
         <section aria-labelledby="payment-heading">
           <h2
             id="payment-heading"
-            className="text-lg font-medium tracking-wider text-fabstir-light-gray"
+            className="text-lg font-medium tracking-wider text-light-gray"
           >
             CREATE BADGE (A.K.A. SOULBOUND TOKEN)
           </h2>
@@ -71,19 +71,19 @@ const BadgeSlideOverLeft = ({
             <div className="col-span-3 sm:col-span-4">
               <label
                 htmlFor="name"
-                className="block text-sm font-medium text-fabstir-light-gray"
+                className="block text-sm font-medium text-light-gray"
               >
                 Name
               </label>
-              <div className="mt-1 rounded-lg border-2 border-fabstir-gray">
+              <div className="mt-1 rounded-lg border-2 border-gray">
                 <input
                   type="text"
                   id="name"
                   {...register('name')}
-                  className="block w-full bg-fabstir-dark-gray"
+                  className="block w-full bg-dark-gray"
                 />
               </div>
-              <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
+              <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
                 {errors.name?.message}
               </p>
             </div>
@@ -91,19 +91,19 @@ const BadgeSlideOverLeft = ({
             <div className="sm:col-span-2">
               <label
                 htmlFor="symbol"
-                className="block text-sm font-medium text-fabstir-light-gray"
+                className="block text-sm font-medium text-light-gray"
               >
                 Symbol
               </label>
-              <div className="mt-1 rounded-lg border-2 border-fabstir-gray">
+              <div className="mt-1 rounded-lg border-2 border-gray">
                 <input
                   type="text"
                   id="symbol"
                   {...register('symbol')}
-                  className="block w-full bg-fabstir-dark-gray sm:text-sm"
+                  className="block w-full bg-dark-gray sm:text-sm"
                 />
               </div>
-              <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
+              <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
                 {errors.symbol?.message}
               </p>
             </div>
@@ -112,25 +112,25 @@ const BadgeSlideOverLeft = ({
               <div className="flex justify-between">
                 <label
                   htmlFor="summary"
-                  className="block text-sm font-medium text-fabstir-light-gray"
+                  className="block text-sm font-medium text-light-gray"
                 >
                   Summary
                 </label>
-                <span className="bg-fabstir-dark-gray text-sm text-fabstir-medium-light-gray">
+                <span className="bg-dark-gray text-sm ">
                   Max. {summaryMax} characters
                 </span>
               </div>
-              <div className="mt-1 rounded-lg border-2 border-fabstir-gray">
+              <div className="mt-1 rounded-lg border-2 border-gray">
                 <textarea
                   type="text"
                   id="summary"
                   rows={2}
                   {...register('summary')}
-                  className="block w-full bg-fabstir-dark-gray px-4 py-3"
+                  className="block w-full bg-dark-gray px-4 py-3"
                   defaultValue={''}
                 />
               </div>
-              <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
+              <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
                 {errors.summary?.message}
               </p>
             </div>
@@ -139,24 +139,24 @@ const BadgeSlideOverLeft = ({
               <div className="flex justify-between">
                 <label
                   htmlFor="description"
-                  className="block text-sm font-medium text-fabstir-light-gray"
+                  className="block text-sm font-medium text-light-gray"
                 >
                   Description
                 </label>
-                <span className="bg-fabstir-dark-gray text-sm text-fabstir-medium-light-gray">
+                <span className="bg-dark-gray text-sm ">
                   Max. {descriptionMax} characters
                 </span>
               </div>
-              <div className="mt-1 rounded-lg border-2 border-fabstir-gray">
+              <div className="mt-1 rounded-lg border-2 border-gray">
                 <textarea
                   id="description"
                   rows={4}
                   {...register('description')}
-                  className="block w-full bg-fabstir-dark-gray px-4 py-3"
+                  className="block w-full bg-dark-gray px-4 py-3"
                   defaultValue={''}
                 />
               </div>
-              <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
+              <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
                 {errors.description?.message}
               </p>
             </div>
@@ -167,17 +167,17 @@ const BadgeSlideOverLeft = ({
           <div className="sm:col-span-3">
             <label
               htmlFor="category"
-              className="block text-sm font-medium text-fabstir-light-gray"
+              className="block text-sm font-medium text-light-gray"
             >
               Category
             </label>
-            <div className="mt-1 rounded-lg border-2 border-fabstir-gray">
+            <div className="mt-1 rounded-lg border-2 border-gray">
               <select
                 id="category"
                 // value={userProfile.country}
                 type="text"
                 {...register('category')}
-                className="sm:text-md block w-full bg-fabstir-dark-gray"
+                className="sm:text-md block w-full bg-dark-gray"
               >
                 {currentBadgeCategories.map((currentBadgeCategory) => (
                   <option key={currentBadgeCategory}>
@@ -186,7 +186,7 @@ const BadgeSlideOverLeft = ({
                 ))}
               </select>
             </div>
-            <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
+            <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
               {errors.category?.message}
             </p>
           </div>
@@ -195,35 +195,35 @@ const BadgeSlideOverLeft = ({
             <div className="sm:col-span-3">
               <label
                 htmlFor="attributes"
-                className="block text-sm font-medium text-fabstir-light-gray"
+                className="block text-sm font-medium text-light-gray"
               >
                 Attributes
               </label>
-              <div className="mt-1 rounded-lg border-2 border-dotted border-fabstir-gray p-4">
+              <div className="mt-1 rounded-lg border-2 border-dotted border-gray p-4">
                 <TokenAttributes setValueTokenData={setValue} />
 
                 {/* <textarea
                   name="attributes"
                   rows={4}
                   {...register('attributes')}
-                  className="py-3 px-4 block w-full bg-fabstir-dark-gray"
+                  className="py-3 px-4 block w-full bg-dark-gray"
                   defaultValue={''}
                 /> */}
               </div>
             </div>
-            <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
+            <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
               {errors.attributes?.message}
             </p>
           </div>
         </section>
 
-        <div className="mt-10 border-t border-fabstir-gray pt-8 sm:flex sm:items-center sm:justify-between">
+        <div className="mt-10 border-t border-gray pt-8 sm:flex sm:items-center sm:justify-between">
           <input
             type="submit"
-            className="w-full rounded-md border border-transparent bg-fabstir-light-purple px-2 py-2 text-sm font-medium text-white shadow-sm hover:bg-fabstir-dark-purple focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50 sm:mr-6"
+            className="w-full rounded-md border border-transparent px-2 py-2 text-sm font-medium text-white shadow-sm hover: focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50 sm:mr-6"
             value={submitText}
           />
-          <p className="mt-4 text-center text-sm text-fabstir-medium-light-gray sm:mt-0 sm:text-left">
+          <p className="mt-4 text-center text-sm  sm:mt-0 sm:text-left">
             You won't be charged until the next step.
           </p>
         </div>

@@ -657,7 +657,7 @@ export default function UserNFTs() {
 
   return (
     <>
-      <div className="grid grid-cols-2 p-4 bg-background dark:bg-background">
+      <div className="grid grid-cols-2 p-4 bg-background dark:bg-dark-background">
         <div className="flex flex-1 flex-col items-stretch overflow-hidden overflow-y-auto rounded-sm">
           {!isBadgesViewClosed && (
             <UserBadgesSection

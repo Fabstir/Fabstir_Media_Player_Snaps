@@ -100,13 +100,13 @@ export default function UserBadgesRequestedSection({
           <main className="flex-1 rounded-sm">
             <div className="mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex pt-6">
-                <h1 className="flex-1 text-xl font-bold text-fabstir-dark-gray">
+                <h1 className="flex-1 text-xl font-bold text-dark-gray">
                   {theTitle}
                 </h1>
 
                 <div className="ml-6 flex items-center rounded-lg p-0.5 sm:hidden">
                   <Button
-                    variant="primary"
+                    variant=""
                     size="medium"
                     className="rounded-md p-1.5"
                   >

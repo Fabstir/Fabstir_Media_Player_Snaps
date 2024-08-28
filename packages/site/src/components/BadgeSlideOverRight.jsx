@@ -117,12 +117,12 @@ const BadgeSlideOverRight = () => {
   return (
     <section
       aria-labelledby="summary-heading"
-      className="bg-fabstir-dark-purple px-4 pt-16 pb-10 sm:px-6 lg:col-start-2 lg:row-start-1 lg:bg-transparent lg:px-0 lg:pb-16"
+      className=" px-4 pt-16 pb-10 sm:px-6 lg:col-start-2 lg:row-start-1 lg:bg-transparent lg:px-0 lg:pb-16"
     >
       <div className="mx-auto max-w-lg lg:max-w-none">
         <h2
           id="summary-heading"
-          className="text-lg font-medium text-fabstir-light-gray"
+          className="text-lg font-medium text-light-gray"
         >
           Include image...
         </h2>
@@ -142,7 +142,7 @@ const BadgeSlideOverRight = () => {
           />
         </div>
 
-        <Popover className="fixed inset-x-0 bottom-0 flex flex-col-reverse text-sm font-medium text-fabstir-light-gray lg:hidden">
+        <Popover className="fixed inset-x-0 bottom-0 flex flex-col-reverse text-sm font-medium text-light-gray lg:hidden">
           <Transition.Root as={Fragment}>
             <div>
               <Transition.Child

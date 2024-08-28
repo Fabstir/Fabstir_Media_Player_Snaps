@@ -126,7 +126,7 @@ export default function TokenAttributes({ typeValue, setValueTokenData }) {
               onChange={(value) => {
                 field.onChange(value);
               }}
-              className="block w-full bg-fabstir-white py-2 pl-2 pr-8 text-fabstir-dark-gray"
+              className="block w-full bg-white py-2 pl-2 pr-8 text-dark-gray"
             />
           )}
         />
@@ -137,7 +137,7 @@ export default function TokenAttributes({ typeValue, setValueTokenData }) {
   return (
     <div
       autoComplete="off"
-      className="divide-y-2 divide-dotted divide-fabstir-gray bg-fabstir-gray-700"
+      className="divide-y-2 divide-dotted divide-gray bg-gray-700"
     >
       {/* <span className="counter">Render Count: {renderCount}</span> */}
       <div>
@@ -147,7 +147,7 @@ export default function TokenAttributes({ typeValue, setValueTokenData }) {
             {fields.map((item, index) => {
               return (
                 <li key={item.id} className="flex justify-between p-0">
-                  <div className="mb-4 mr-4 grid w-full grid-cols-2 divide-x-2 divide-y-0 divide-dotted divide-fabstir-gray rounded-lg">
+                  <div className="mb-4 mr-4 grid w-full grid-cols-2 divide-x-2 divide-y-0 divide-dotted divide-gray rounded-lg">
                     <Text
                       defaultValue={item.key}
                       {...register(`attributes.${index}.key`)}
@@ -173,7 +173,7 @@ export default function TokenAttributes({ typeValue, setValueTokenData }) {
                         render={({ field }) => (
                           <Input
                             {...field}
-                            className="relative inline-block w-full truncate bg-fabstir-light-gray py-2 pl-2 text-fabstir-light-gray"
+                            className="relative inline-block w-full truncate bg-light-gray py-2 pl-2 text-light-gray"
                             title={item.key}
                             type={item.type === 'date' ? 'date' : 'text'} // Add this line
                             pattern={
@@ -189,10 +189,10 @@ export default function TokenAttributes({ typeValue, setValueTokenData }) {
                     )}
                   </div>
                   <Button
-                    variant="primary"
+                    variant=""
                     size="medium"
                     onClick={() => remove(index)}
-                    className="mb-4 px-5 border-fabstir-gray border-2 rounded-md"
+                    className="mb-4 px-5 border-gray border-2 rounded-md"
                   >
                     Delete
                   </Button>
@@ -204,29 +204,29 @@ export default function TokenAttributes({ typeValue, setValueTokenData }) {
       </div>
       {/* <ArrowUpIcon className="h-6 w-6 mt-4 mx-auto" aria-hidden="true" /> */}
 
-      <section className="mt-2 pt-6 text-fabstir-light-gray">
+      <section className="mt-2 pt-6 text-light-gray">
         <div className="flex">
-          <div className="[divideStyle: true] mr-6 grid grid-cols-2 divide-x-2 divide-dotted divide-fabstir-gray rounded-lg border-2 border-solid border-fabstir-gray">
+          <div className="[divideStyle: true] mr-6 grid grid-cols-2 divide-x-2 divide-dotted divide-gray rounded-lg border-2 border-solid border-gray">
             <Input
               type="text"
               placeholder="key"
               register={register('key')}
-              className=" bg-fabstir-light-gray py-2 pl-2"
+              className=" bg-light-gray py-2 pl-2"
             />
             <div>
               <Input
                 placeholder="value"
                 register={register('value')}
-                className=" bg-fabstir-light-gray py-2 pl-2"
+                className=" bg-light-gray py-2 pl-2"
               />
             </div>
           </div>
 
           <Button
-            variant="primary"
+            variant=""
             size="medium"
             onClick={handleSubmit}
-            color="fabstir-gray"
+            color="gray"
             className="px-4 py-1 rounded-md"
           >
             Append

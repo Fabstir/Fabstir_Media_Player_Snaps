@@ -1,6 +1,7 @@
-import React, { useContext, useState, useEffect, useRef } from 'react';
+import React, { useContext, useState, useEffect, useRef, useLayoutEffect } from 'react';
 const Gun = require('gun');
 const SEA = require('gun/sea');
+import axios from 'axios';
 
 import { Button } from '../src/ui-components/button';
 import { Description, Label } from '../src/ui-components/fieldset';
@@ -12,7 +13,7 @@ import {
   TableBody,
   TableCell,
   TableHead,
-  TableHeader,
+  // TableHeader,
   TableRow,
 } from '../src/ui-components/table';
 
@@ -64,11 +65,12 @@ import useUserProfile from '../src/hooks/useUserProfile';
 import useDeleteNestableNFT from '../src/hooks/useDeleteNestableNFT';
 import UserProfile from './profile';
 import { useMintNestableERC1155NFT } from '../src/blockchain/useMintNestableERC1155NFT';
+import { ThemeContext } from '../src/components/ThemeContext';
 
 type Addresses = {
   [key: string]: any; // Replace `any` with the actual type of the values
 };
-
+let url = process.env.NEXT_PUBLIC_FABSTIRDB_BACKEND_URL || '';
 const Index = () => {
   const [state, dispatch] = useContext(MetaMaskContext);
   const [triggerEffect, setTriggerEffect] = useState(0);
@@ -78,7 +80,8 @@ const Index = () => {
   const [removeAddresses, setRemoveAddresses] = useState<string>('');
   const [importKeys, setImportKeys] = useState<string>('');
   const [exportKeys, setExportKeys] = useState<string>('');
-
+  const [colors, setColors] = useState<any>({});
+  const [userData, setUserData] = useState<any | null>(null);
   const fileImportKeysRef = useRef<HTMLInputElement>(null);
 
   const [isWasmReady, setIsWasmReady] = useRecoilState(iswasmreadystate);
@@ -89,7 +92,7 @@ const Index = () => {
   const queryClient = useQueryClient();
   const user = getUser();
   const [getUserProfile] = useUserProfile();
-
+  const { theme, setTheme } = useContext(ThemeContext);
   // Define a type for the hook's return value
   type UseTranscodeVideoS5Return = {
     transcodeVideo: (
@@ -162,8 +165,7 @@ const Index = () => {
     getContractAddressesCurrencies,
   } = useContractUtils();
 
-  const { unlockVideoFromController, unlockNestableKeysFromController } =
-    useNFTMedia();
+  const { unlockVideoFromController, unlockNestableKeysFromController } = useNFTMedia();
 
   const userAuthPub = useRecoilValue(userauthpubstate);
   const { mutate: deleteNFT, ...deleteNFTInfo } = useDeleteNFT(userAuthPub);
@@ -181,6 +183,16 @@ const Index = () => {
   const { deleteNestableNFT } = useDeleteNestableNFT();
 
   useEffect(() => {
+    // Ensure this code runs only on the client side
+    if (typeof window !== 'undefined') {
+      const session = sessionStorage.getItem('userSession');
+      if (session) {
+        setUserData(JSON.parse(session));
+      }
+    }
+  }, []);
+
+  useEffect(() => {
     // Update the context value
     const setSmartAccountAddressFn = async () => {
       if (smartAccount)
@@ -189,7 +201,9 @@ const Index = () => {
     setSmartAccountAddressFn();
   }, [smartAccount]);
 
-  console.log('index: Object.keys(process.env) =', Object.keys(process.env));
+  useEffect(() => {
+    console.log('themethemethemethemethemethemetheme', theme);
+  }, [theme]);
 
   useEffect(() => {
     const theCurrentBadgeCategories = [
@@ -245,10 +259,6 @@ const Index = () => {
     const theCurrencyDecimalPlaces = getCurrencyDecimalPlaces();
     setCurrenciesDecimalPlaces(theCurrencyDecimalPlaces);
   }, [process.env]);
-
-  useEffect(() => {
-    console.log('Addresses updated:', addresses);
-  }, [addresses]);
 
   useEffect(() => {
     (async () => {
@@ -603,6 +613,9 @@ const Index = () => {
     }
 
     if (!loggedIn) throw new Error('logInOrCreateNewUser: login failed');
+    if (smartAccountAddress && userData) {
+      fetchColor();
+    }
   };
 
   const handleLogin = async () => {
@@ -646,11 +659,11 @@ const Index = () => {
         eoaAddress = userAccountAddress;
         setSmartAccountAddress(userAccountAddress);
       }
-
       await loginFabstirDB(userAccountAddress, eoaAddress);
     } catch (e) {
       const errorMessage = 'index: connect: error received';
       console.error(`${errorMessage} ${e.message}`);
+      console.log('wwww', e);
       throw new Error(errorMessage, e);
     }
   };
@@ -666,7 +679,8 @@ const Index = () => {
     href: string;
     label: string;
     isDisabled: boolean;
-    className?: string; // Optional prop for additional classes
+    className?: string;
+    color?: string; // Optional prop for additional classes
   };
   // ButtonLink Component with TypeScript
   const ButtonLink: React.FC<ButtonLinkProps> = ({
@@ -674,14 +688,16 @@ const Index = () => {
     label,
     isDisabled,
     className,
+    color,
   }) => {
     return isDisabled ? (
       <div className={className}>
         <Button
-          variant="primary"
+          variant=""
           size="medium"
-          className="p-1 text-2xl font-semibold"
+          className="p-1 text-2xl font-semibold "
           disabled={true}
+          style={{ backgroundColor: color }}
         >
           <p className="text-lg p-1 font-bold">{label}</p>
         </Button>
@@ -689,10 +705,11 @@ const Index = () => {
     ) : (
       <Link href={href} className={className}>
         <Button
-          variant="primary"
+          variant=""
           size="medium"
-          className="p-1 text-2xl font-semibold"
+          className="p-1 text-2xl font-semibold "
           disabled={false}
+          style={{ backgroundColor: color }}
         >
           <p className="text-lg p-1 font-bold">{label}</p>
         </Button>
@@ -700,9 +717,73 @@ const Index = () => {
     );
   };
 
+  useEffect(() => {
+    if (smartAccountAddress && userData?.token) {
+      fetchColor();
+    }
+  }, [smartAccountAddress, userData?.token]);
+
+  const fetchColor = async () => {
+    try {
+      let token = userData?.token ?? '';
+      if (!token || !smartAccountAddress) {
+        return;
+      }
+      const response = await axios.get(`${url}/color/${smartAccountAddress}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setColors(response.data.document[0]);
+    } catch (error) {
+      // Log detailed error information
+      if (error.response) {
+        console.error('Error saving colors:', error.response.data);
+      } else if (error.request) {
+        console.error('No response received:', error.request);
+      } else {
+        console.error('Error setting up request:', error.message);
+      }
+      // throw error;
+    }
+  };
+
+  useLayoutEffect(() => {
+    document.documentElement.style.setProperty(
+      '--button-color',
+      colors?.buttonColor ?? "#007bff" // Light mode button color
+    );
+    document.documentElement.style.setProperty(
+      '--background-color',
+      colors?.backgroundColor ?? "#f8f9fa" // Light mode background color
+    );
+    document.documentElement.style.setProperty(
+      '--text-color',
+      colors?.textColor ?? "#212529" // Light mode text color
+    );
+    document.documentElement.style.setProperty(
+      '--dark-button-color',
+      colors?.darkButtonColor ?? "#1d72b8" // Dark mode button color
+    );
+    document.documentElement.style.setProperty(
+      '--dark-background-color',
+      colors?.darkBackgroundColor ?? "#1c1c1c" // Dark mode background color
+    );
+    document.documentElement.style.setProperty(
+      '--dark-text-color',
+      colors?.darkTextColor ?? "#e0e0e0" // Dark mode text color
+    );
+  }, [colors]);
+  
+  
+
   return (
-    <div className="p-4 max-w-6xl mx-auto bg-background dark:bg-background">
-      <h1 className="uppercase text-2xl font-bold mb-5">Web3 Media Player</h1>
+    <div className="p-4 max-w-6xl mx-auto bg-background dark:bg-dark-background">
+      <h1 className="uppercase text-2xl font-bold mb-5 text-text dark:text-dark-text">
+        Web3 Media Player
+      </h1>
 
       {userName && smartAccount && (
         <h2 className="text-xl  font-semibold mb-7">User: {userName}</h2>
@@ -710,10 +791,9 @@ const Index = () => {
 
       {!state.installedSnap && (
         <Button
-          variant="primary"
           size="medium"
           onClick={handleConnectClick}
-          className="p-1 h-8 col-span-1 mb-2"
+          className="p-1 h-8 col-span-1 mb-2 "
         >
           Connect Snap
         </Button>
@@ -722,9 +802,9 @@ const Index = () => {
       {!loading && !smartAccount && (
         <Button
           onClick={handleLogin}
-          variant="primary"
+          variant=""
           size="medium"
-          className="mt-4 text-xl font-semibold"
+          className="mt-4 text-xl font-semibold "
         >
           Log in
         </Button>
@@ -735,12 +815,12 @@ const Index = () => {
       </button> */}
       {loading && <p>Loading Smart Account...</p>}
       {smartAccount && (
-        <h2 className="">Smart Account: {smartAccountAddress}</h2>
+        <h2 className="text-text dark:text-dark-text">Smart Account: {smartAccountAddress}</h2>
       )}
       {smartAccount && (
         <Button
           onClick={handleLogout}
-          variant="primary"
+          variant=""
           size="medium"
           className="mt-2 mb-6 "
         >
@@ -755,18 +835,25 @@ const Index = () => {
           href="/gallery/userNFTs"
           label="Gallery"
           isDisabled={isDisabled}
+          className=" "
         />
         <ButtonLink
           href="/profile"
           label="Profile"
           isDisabled={isDisabled}
-          className="ml-4"
+          className="ml-4 "
         />
         <ButtonLink
           href="/permissions"
           label="Permissions"
           isDisabled={isDisabled}
-          className="ml-4"
+          className="ml-4 "
+        />
+        <ButtonLink
+          href="/color-customization"
+          label="Color Customization"
+          isDisabled={isDisabled}
+          className="ml-4 "
         />
       </div>
 
@@ -774,9 +861,9 @@ const Index = () => {
 
       <div className="mt-6 mb-10">
         <Button
-          variant="primary"
+          variant=""
           size="medium"
-          className="text-xl mt-4"
+          className="text-xl mt-4 "
           disabled={isDisabled}
           onClick={handleLoadAddresses}
         >
@@ -806,12 +893,12 @@ const Index = () => {
       </div>
       {/* Replaced Heading with h1 */}
       <div className="grid grid-cols-12">
-        <p className="col-span-12 text-gray-600 ml-4 mb-2">
+        <p className="col-span-12 ml-4 mb-2 text-text dark:text-dark-text">
           Enter address ids as contract address and token id separated by `_`
         </p>
         <HeadlessField className="grid grid-cols-12 gap-6 p-4 border-2 border-gray-200 col-span-11">
           <div className="col-span-5">
-            <Description className="mt-1">
+            <Description className="mt-1 text-text dark:text-dark-text">
               Enter address ids to add to the gallery.
             </Description>
           </div>
@@ -828,9 +915,9 @@ const Index = () => {
         </HeadlessField>
 
         <Button
-          variant="primary"
+          variant=""
           size="medium"
-          className="p-1 h-8 m-4 col-span-1"
+          className="p-1 h-8 m-4 col-span-1 "
           onClick={() => setTriggerEffect((prev) => prev + 1)}
           disabled={isDisabled}
         >
@@ -839,7 +926,7 @@ const Index = () => {
         <p className=" text-red-600 pb-2">{errorsAddAddresses}</p>
         <HeadlessField className="grid grid-cols-12 gap-6 p-4 border-2 border-gray-200 col-span-11 col-start-1">
           <div className="col-span-5">
-            <Description className="mt-1">
+            <Description className="mt-1 text-text dark:text-dark-text">
               Enter address ids to remove from the gallery.
             </Description>
           </div>
@@ -856,9 +943,9 @@ const Index = () => {
         </HeadlessField>
 
         <Button
-          variant="primary"
+          variant=""
           size="medium"
-          className="p-1 h-8 m-4 col-span-1"
+          className="p-1 h-8 m-4 col-span-1 "
           onClick={handleRemoveAddresses}
           disabled={isDisabled}
         >
@@ -867,7 +954,7 @@ const Index = () => {
         <p className=" text-red-600 pb-2">{errorsRemoveAddresses}</p>
         <HeadlessField className="grid grid-cols-12 gap-6 p-4 border-2 border-gray-200 col-span-11 col-start-1">
           <div className="col-span-5">
-            <Description className="mt-1">
+            <Description className="mt-1 text-text dark:text-dark-text">
               Enter address ids to export to a new keys file.
             </Description>
           </div>
@@ -884,9 +971,9 @@ const Index = () => {
         </HeadlessField>
 
         <Button
-          variant="primary"
+          variant=""
           size="medium"
-          className="p-1 h-8 m-4 col-span-1"
+          className="p-1 h-8 m-4 col-span-1 "
           onClick={handleExportKeys}
           disabled={isDisabled}
         >
@@ -896,7 +983,7 @@ const Index = () => {
 
         <HeadlessField className="grid grid-cols-12 gap-6 p-4 border-2 border-gray-200 col-span-11 col-start-1">
           <div className="col-span-5">
-            <Description className="mt-1">
+            <Description className="mt-1 text-text dark:text-dark-text">
               Browse to keys file to import. To import subset, enter address
               ids. Leave blank to import all keys.
             </Description>
@@ -921,9 +1008,9 @@ const Index = () => {
           accept=".json"
         />
         <Button
-          variant="primary"
+          variant=""
           size="medium"
-          className="p-1 h-8 m-4 col-span-1"
+          className="p-1 h-8 m-4 col-span-1 "
           onClick={handleButtonImportKeys}
           disabled={isDisabled}
         >

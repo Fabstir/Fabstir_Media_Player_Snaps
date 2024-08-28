@@ -72,7 +72,7 @@ export default function UserNFTsView({
           .map((nft) => (
             <li
               key={nft.name}
-              className="mr-4 transform items-center transition duration-100 ease-in hover:scale-105 hover:text-fabstir-light-gray"
+              className="mr-4 transform items-center transition duration-100 ease-in hover:scale-105 hover:text-light-gray"
             >
               <UserNFTView
                 nft={nft}

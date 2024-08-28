@@ -71,7 +71,7 @@ const DropImage = React.forwardRef(
         <div className="sm:col-span-3">
           <div
             {...getRootProps()}
-            className={`mt-8 flex flex-col ${twStyle} mx-auto rounded-md border-2 border-fabstir-gray bg-fabstir-light-gray fill-current text-fabstir-dark-gray shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:items-center sm:justify-center sm:text-center sm:text-sm`}
+            className={`mt-8 flex flex-col ${twStyle} mx-auto rounded-md border-2 border-gray bg-light-gray fill-current text-dark-gray shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:items-center sm:justify-center sm:text-center sm:text-sm`}
           >
             {!watchUrl && (
               <div>
@@ -98,7 +98,7 @@ const DropImage = React.forwardRef(
                 </svg>
                 {text}
                 {errors[field] && (
-                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
+                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
                     {errors[field].message}
                   </p>
                 )}
@@ -106,7 +106,7 @@ const DropImage = React.forwardRef(
             )}
             {watchUrl && (
               <div
-                className={`mx-auto mt-8 flex flex-col rounded-md border-2 border-fabstir-gray bg-fabstir-light-gray fill-current text-fabstir-dark-gray shadow-sm sm:items-center sm:justify-center sm:text-center sm:text-sm`}
+                className={`mx-auto mt-8 flex flex-col rounded-md border-2 border-gray bg-light-gray fill-current text-dark-gray shadow-sm sm:items-center sm:justify-center sm:text-center sm:text-sm`}
               >
                 <span className="">
                   <img

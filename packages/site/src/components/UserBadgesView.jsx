@@ -33,7 +33,7 @@ export default function UserBadgesView({
         .map((badge, index) => (
           <li
             key={index}
-            className="mr-4 items-center hover:text-fabstir-light-gray"
+            className="mr-4 items-center hover:text-light-gray"
           >
             <UserBadgeView
               badge={badge}

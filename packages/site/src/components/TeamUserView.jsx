@@ -166,7 +166,7 @@ export default function TeamUserView({
   return (
     <div>
       <div className="space-y-1">
-        <div className="w-full border-t border-fabstir-divide-color1" />
+        <div className="w-full border-t " />
 
         <form onSubmit={handleSubmit(handleSave)}>
           <>
@@ -184,7 +184,7 @@ export default function TeamUserView({
                 )}
                 <div
                   {...getRootProps()}
-                  className="mt-1 flex justify-center rounded-md border-2 border-dashed border-fabstir-gray bg-fabstir-light-gray px-2 pb-6 pt-5"
+                  className="mt-1 flex justify-center rounded-md border-2 border-dashed border-gray bg-light-gray px-2 pb-6 pt-5"
                 >
                   <div className="space-y-1 text-center">
                     <svg
@@ -205,7 +205,7 @@ export default function TeamUserView({
                     <div className="flex text-sm text-gray-600">
                       <label
                         htmlFor="file-upload"
-                        className="relative cursor-pointer rounded-md font-medium text-fabstir-hover-colour1 focus-within:outline-none focus-within:ring-2 focus-within:ring-fabstir-focus-colour1 focus-within:ring-offset-2 hover:text-fabstir-focus-colour1"
+                        className="relative cursor-pointer rounded-md font-medium focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 "
                       >
                         <span>Upload or drag and drop</span>
                         <Input
@@ -247,11 +247,11 @@ export default function TeamUserView({
                         imageUrl
                           ? 'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 duration-300 opacity-0 group-hover:opacity-100'
                           : 'mb-2',
-                        'text-md z-10 flex w-fit rounded-full border-none bg-fabstir-gray bg-opacity-75 font-semibold text-fabstir-gray',
+                        'text-md z-10 flex w-fit rounded-full border-none bg-gray bg-opacity-75 font-semibold text-gray',
                       )}
                     >
                       <MinusIconOutline
-                        className="h-6 w-6 font-bold text-fabstir-white lg:h-8 lg:w-8"
+                        className="h-6 w-6 font-bold text-white lg:h-8 lg:w-8"
                         aria-hidden="true"
                       />
                     </div>
@@ -262,20 +262,20 @@ export default function TeamUserView({
             <div className="col-span-3 sm:col-span-4">
               <label
                 htmlFor="firstName"
-                className="block text-sm font-medium text-fabstir-gray"
+                className="block text-sm font-medium text-gray"
               >
                 First name
               </label>
-              <div className="mt-1 rounded-lg border-2 border-fabstir-white">
+              <div className="mt-1 rounded-lg border-2 border-white">
                 <input
                   type="text"
                   name="firstName"
                   {...register('firstName')}
-                  className="block w-full bg-fabstir-white"
+                  className="block w-full bg-white"
                   readOnly={!isEditable}
                 />
               </div>
-              <p className="mt-2 text-fabstir-light-pink">
+              <p className="mt-2 text-light-pink">
                 {errors.firstName?.message}
               </p>
             </div>
@@ -283,20 +283,20 @@ export default function TeamUserView({
             <div className="col-span-3 sm:col-span-4">
               <label
                 htmlFor="lastName"
-                className="block text-sm font-medium text-fabstir-gray"
+                className="block text-sm font-medium text-gray"
               >
                 Last name
               </label>
-              <div className="mt-1 rounded-lg border-2 border-fabstir-white">
+              <div className="mt-1 rounded-lg border-2 border-white">
                 <input
                   type="text"
                   name="lastName"
                   {...register('lastName')}
-                  className="block w-full bg-fabstir-white"
+                  className="block w-full bg-white"
                   readOnly={!isEditable}
                 />
               </div>
-              <p className="mt-2 text-fabstir-light-pink">
+              <p className="mt-2 text-light-pink">
                 {errors.lastName?.message}
               </p>
             </div>
@@ -304,20 +304,20 @@ export default function TeamUserView({
             <div className="col-span-3 sm:col-span-4">
               <label
                 htmlFor="altName"
-                className="block text-sm font-medium text-fabstir-gray"
+                className="block text-sm font-medium text-gray"
               >
                 altName
               </label>
-              <div className="mt-1 rounded-lg border-2 border-fabstir-white">
+              <div className="mt-1 rounded-lg border-2 border-white">
                 <input
                   type="text"
                   name="altName"
                   {...register('altName')}
-                  className="block w-full bg-fabstir-white"
+                  className="block w-full bg-white"
                   readOnly={!isEditable}
                 />
               </div>
-              <p className="mt-2 text-fabstir-light-pink">
+              <p className="mt-2 text-light-pink">
                 {errors.altName?.message}
               </p>
             </div>
@@ -325,20 +325,20 @@ export default function TeamUserView({
             <div className="col-span-3 sm:col-span-4">
               <label
                 htmlFor="alias"
-                className="block text-sm font-medium text-fabstir-gray"
+                className="block text-sm font-medium text-gray"
               >
                 alias
               </label>
-              <div className="mt-1 rounded-lg border-2 border-fabstir-white">
+              <div className="mt-1 rounded-lg border-2 border-white">
                 <input
                   type="text"
                   name="alias"
                   {...register('alias')}
-                  className="block w-full bg-fabstir-white"
+                  className="block w-full bg-white"
                   readOnly={!isEditable}
                 />
               </div>
-              <p className="mt-2 text-fabstir-light-pink">
+              <p className="mt-2 text-light-pink">
                 {errors.alias?.message}
               </p>
             </div>
@@ -346,20 +346,20 @@ export default function TeamUserView({
             <div className="col-span-3 sm:col-span-4">
               <label
                 htmlFor="role"
-                className="block text-sm font-medium text-fabstir-gray"
+                className="block text-sm font-medium text-gray"
               >
                 role
               </label>
-              <div className="mt-1 rounded-lg border-2 border-fabstir-white">
+              <div className="mt-1 rounded-lg border-2 border-white">
                 <input
                   type="text"
                   name="role"
                   {...register('role')}
-                  className="block w-full bg-fabstir-white"
+                  className="block w-full bg-white"
                   readOnly={!isEditable}
                 />
               </div>
-              <p className="mt-2 text-fabstir-light-pink">
+              <p className="mt-2 text-light-pink">
                 {errors.role?.message}
               </p>
             </div>
@@ -367,20 +367,20 @@ export default function TeamUserView({
             <div className="col-span-3 sm:col-span-4">
               <label
                 htmlFor="altRole"
-                className="block text-sm font-medium text-fabstir-gray"
+                className="block text-sm font-medium text-gray"
               >
                 altRole
               </label>
-              <div className="mt-1 rounded-lg border-2 border-fabstir-white">
+              <div className="mt-1 rounded-lg border-2 border-white">
                 <input
                   type="text"
                   name="altRole"
                   {...register('altRole')}
-                  className="block w-full bg-fabstir-white"
+                  className="block w-full bg-white"
                   readOnly={!isEditable}
                 />
               </div>
-              <p className="mt-2 text-fabstir-light-pink">
+              <p className="mt-2 text-light-pink">
                 {errors.altRole?.message}
               </p>
             </div>
@@ -390,7 +390,7 @@ export default function TeamUserView({
             <div className="flex space-x-2">
               <Button
                 type="button"
-                variant="primary"
+                variant=""
                 size="medium"
                 onClick={handleCancel}
                 className="w-full rounded-md border border-transparent px-4 py-2 text-sm shadow-md"
@@ -399,7 +399,7 @@ export default function TeamUserView({
               </Button>
               <Button
                 type="submit"
-                variant="primary"
+                variant=""
                 size="medium"
                 className="w-full rounded-md border border-transparent px-4 py-2 text-sm shadow-md"
               >
@@ -409,7 +409,7 @@ export default function TeamUserView({
           ) : showEditButton ? (
             <Button
               type="button"
-              variant="primary"
+              variant=""
               size="medium"
               onClick={handleEdit}
               className="w-full rounded-md border border-transparent px-4 py-2 text-sm shadow-sm flex items-center justify-center"

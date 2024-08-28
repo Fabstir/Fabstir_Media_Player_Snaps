@@ -62,17 +62,17 @@ export default function UserNFTsSection({
 
   // Render UserNFTsView component to display filtered NFTs
   return (
-    <main className="h-screen flex-1 rounded-sm bg-fabstir-light-purple">
-      <div className="flex border-t border-fabstir-medium-light-gray pt-6 pr-8">
-        <h1 className="flex-1 text-2xl font-bold text-fabstir-dark-gray">
+    <main className="h-screen flex-1 rounded-sm ">
+      <div className="flex border-t  pt-6 pr-8">
+        <h1 className="flex-1 text-2xl font-bold text-dark-gray">
           {theTitle}
         </h1>
 
         <Button
-          variant="primary"
+          variant=""
           size="medium"
           onClick={() => setOpenNFT(true)}
-          className="f-full m-3 flex items-center justify-center rounded-full p-1 px-2"
+          className="f-full m-3 flex items-center justify-center rounded-full p-1 px-2 bg-button"
         >
           <PlusSmIconOutline
             className="h-6 w-6 focus:ring-0"
@@ -82,14 +82,14 @@ export default function UserNFTsSection({
         </Button>
 
         <div className="ml-6 flex items-center rounded-lg p-0.5 sm:hidden">
-          <Button variant="primary" size="medium" className="rounded-md p-1.5">
+          <Button variant="" size="medium" className="rounded-md p-1.5 bg-button">
             <Squares2X2Icon className="h-5 w-5" aria-hidden="true" />
             <span className="sr-only">Use list view</span>
           </Button>
           <Button
-            variant="primary"
+            variant=""
             size="medium"
-            className="ml-0.5 rounded-md p-1.5"
+            className="ml-0.5 rounded-md p-1.5 bg-button"
           >
             <Bars4Icon className="h-5 w-5" aria-hidden="true" />
             <span className="sr-only">Use grid view</span>

@@ -11,13 +11,13 @@ const PROGRESS_UPDATE_INTERVAL = 500;
 
 const ProgressBar = ({ progressPercentage }) => {
   return (
-    <div className="h-2 w-full bg-fabstir-blue">
+    <div className="h-2 w-full ">
       <div
         style={{ width: `${progressPercentage}%` }}
         className={`h-full ${
           progressPercentage < 70
-            ? 'bg-fabstir-gray'
-            : 'bg-fabstir-medium-dark-gray'
+            ? 'bg-gray'
+            : 'bg-medium-dark-gray'
         }`}
       ></div>
     </div>
@@ -156,7 +156,7 @@ const DropMultipleAudio = ({
     <div className="sm:col-span-3">
       <div
         {...getRootProps()}
-        className={`mt-8 flex flex-col ${twStyle} relative mx-auto rounded-md border-2 border-fabstir-gray bg-fabstir-light-gray fill-current text-fabstir-dark-gray shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:items-center sm:justify-center sm:text-center sm:text-sm`}
+        className={`mt-8 flex flex-col ${twStyle} relative mx-auto rounded-md border-2 border-gray bg-light-gray fill-current text-dark-gray shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:items-center sm:justify-center sm:text-center sm:text-sm`}
       >
         <Input
           inputProps={getInputProps()}
@@ -198,7 +198,7 @@ const DropMultipleAudio = ({
           </div>
         )}
         {errors[field] && (
-          <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
+          <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
             {errors[field].message}
           </p>
         )}

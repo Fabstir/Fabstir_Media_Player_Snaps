@@ -187,7 +187,7 @@ export default function Team({
       <div>
         <div>
           <div className="relative z-0 mb-4 ml-2 mr-4 flex items-center justify-between pt-8">
-            {/* <span className="justify-start whitespace-nowrap pr-4 text-lg font-semibold tracking-wide text-fabstir-white">
+            {/* <span className="justify-start whitespace-nowrap pr-4 text-lg font-semibold tracking-wide text-white">
               Team Members
             </span> */}
 
@@ -212,19 +212,19 @@ export default function Team({
                 maxLength={nameMax}
                 className={classNames(
                   isReadOnly
-                    ? 'bg-fabstir-dark-purple'
-                    : 'bg-fabstir-gray-700 shadow-[inset_0_-1px_0px_hsla(0,0%,100%,0.25),inset_0_1px_1px_hsla(0,0%,0%,0.15)]',
-                  'rounded-md border-2 border-fabstir-gray p-2 text-lg font-semibold text-fabstir-dark-gray focus:border-indigo-500 focus:ring-indigo-500 w-60',
+                    ? ''
+                    : 'bg-gray-700 shadow-[inset_0_-1px_0px_hsla(0,0%,100%,0.25),inset_0_1px_1px_hsla(0,0%,0%,0.15)]',
+                  'rounded-md border-2 border-gray p-2 text-lg font-semibold text-dark-gray focus:border-indigo-500 focus:ring-indigo-500 w-60',
                 )}
                 placeholder=""
                 aria-describedby="altName"
               />
-              {/* <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
+              {/* <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
                   {errors.altName?.message}
                 </p> */}
             </div>
 
-            <div className="w-full border-t border-fabstir-divide-color1" />
+            <div className="w-full border-t " />
 
             <div className="ml-4 flex flex-row items-center">
               <a
@@ -234,19 +234,19 @@ export default function Team({
                 }}
               >
                 <PencilIcon
-                  className="mr-2 h-5 w-5 font-bold text-fabstir-gray"
+                  className="mr-2 h-5 w-5 font-bold text-gray"
                   aria-hidden="true"
                 />
               </a>
               <TrashIcon
-                className="mr-6 h-5 w-5 font-bold text-fabstir-gray"
+                className="mr-6 h-5 w-5 font-bold text-gray"
                 aria-hidden="true"
               />
               Public
             </div>
           </div>
 
-          <div className="z-0 rounded-lg bg-fabstir-light-gray p-4 pb-0 shadow-lg">
+          <div className="z-0 rounded-lg bg-light-gray p-4 pb-0 shadow-lg">
             <TeamView
               team={team}
               TeamUserView={TeamUserView}
@@ -266,7 +266,7 @@ export default function Team({
                 <span className="flex flex-row space-x-4">
                   <Button
                     type="submit"
-                    variant="primary"
+                    variant=""
                     size="medium"
                     onClick={(e) => handleSubmit_Cancel(e)}
                     className="mx-auto flex items-center justify-center whitespace-nowrap rounded-md p-4 font-bold tracking-wide shadow-md"
@@ -276,7 +276,7 @@ export default function Team({
 
                   <Button
                     type="submit"
-                    variant="primary"
+                    variant=""
                     size="medium"
                     onClick={(e) => handleSubmit_DeleteTeam(e)}
                     className="mx-auto flex items-center justify-center whitespace-nowrap rounded-md p-4 font-bold tracking-wide shadow-md"
@@ -286,7 +286,7 @@ export default function Team({
 
                   <Button
                     type="submit"
-                    variant="primary"
+                    variant=""
                     size="medium"
                     onClick={(e) => handleSubmit_ConfirmTeam(e)}
                     className="mx-auto flex items-center justify-center whitespace-nowrap rounded-md p-4 font-bold tracking-wide shadow-md"

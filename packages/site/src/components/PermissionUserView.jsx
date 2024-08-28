@@ -175,7 +175,7 @@ export default function PermissionUserView({
   return (
     <div>
       <div className="space-y-1">
-        <div className="w-full border-t border-fabstir-divide-color1" />
+        <div className="w-full border-t " />
 
         <form onSubmit={handleSubmit(handleSave)}>
           <>
@@ -191,11 +191,11 @@ export default function PermissionUserView({
                     imageUrl
                       ? 'absolute left-[28px] top-[28px] lg:left-[32px] lg:top-[32px] opacity-0 duration-300 group-hover:opacity-100'
                       : 'mb-2',
-                    'text-md z-10 flex w-fit rounded-full border-none bg-fabstir-gray bg-opacity-75 font-semibold text-fabstir-gray',
+                    'text-md z-10 flex w-fit rounded-full border-none bg-gray bg-opacity-75 font-semibold text-gray',
                   )}
                 >
                   <MinusIconOutline
-                    className="h-6 w-6 font-bold text-fabstir-white lg:h-8 lg:w-8"
+                    className="h-6 w-6 font-bold text-white lg:h-8 lg:w-8"
                     aria-hidden="true"
                   />
                 </div>
@@ -206,12 +206,12 @@ export default function PermissionUserView({
                 <div className="col-span-3 sm:col-span-4">
                   <label
                     htmlFor="firstName"
-                    className="block text-sm font-medium text-fabstir-gray"
+                    className="block text-sm font-medium text-gray"
                   >
                     First name
                   </label>
-                  <div className="mt-1 rounded-lg border-2 border-fabstir-white">
-                    <label className="block w-full bg-fabstir-white">
+                  <div className="mt-1 rounded-lg border-2 border-white">
+                    <label className="block w-full bg-white">
                       {permissionedUser?.firstName}
                     </label>
                   </div>
@@ -222,12 +222,12 @@ export default function PermissionUserView({
                 <div className="col-span-3 sm:col-span-4 mt-1">
                   <label
                     htmlFor="lastName"
-                    className="block text-sm font-medium text-fabstir-gray"
+                    className="block text-sm font-medium text-gray"
                   >
                     Last name
                   </label>
-                  <div className="mt-1 rounded-lg border-2 border-fabstir-white">
-                    <label className="block w-full bg-fabstir-white">
+                  <div className="mt-1 rounded-lg border-2 border-white">
+                    <label className="block w-full bg-white">
                       {permissionedUser?.lastName}
                     </label>
                   </div>
@@ -238,12 +238,12 @@ export default function PermissionUserView({
                 <div className="col-span-3 sm:col-span-4 mt-1">
                   <label
                     htmlFor="company"
-                    className="block text-sm font-medium text-fabstir-gray"
+                    className="block text-sm font-medium text-gray"
                   >
                     Company
                   </label>
-                  <div className="mt-1 rounded-lg border-2 border-fabstir-white">
-                    <label className="block w-full bg-fabstir-white">
+                  <div className="mt-1 rounded-lg border-2 border-white">
+                    <label className="block w-full bg-white">
                       {permissionedUser?.company}
                     </label>
                   </div>
@@ -253,20 +253,20 @@ export default function PermissionUserView({
               <div className="col-span-3 sm:col-span-4 mt-3">
                 <label
                   htmlFor="userPub"
-                  className="block text-sm font-medium text-fabstir-gray"
+                  className="block text-sm font-medium text-gray"
                 >
                   User Public Key
                 </label>
-                <div className="mt-1 rounded-lg border-2 border-fabstir-white">
+                <div className="mt-1 rounded-lg border-2 border-white">
                   <input
                     type="text"
                     name="userPub"
                     {...register('userPub')}
-                    className="block w-full bg-fabstir-white"
+                    className="block w-full bg-white"
                     readOnly={!isEditable}
                   />
                 </div>
-                <p className="mt-1 text-fabstir-light-pink">
+                <p className="mt-1 text-light-pink">
                   {errors.userPub?.message}
                 </p>
               </div>
@@ -274,20 +274,20 @@ export default function PermissionUserView({
               <div className="col-span-3 sm:col-span-4">
                 <label
                   htmlFor="amount"
-                  className="block text-sm font-medium text-fabstir-gray"
+                  className="block text-sm font-medium text-gray"
                 >
                   Amount
                 </label>
-                <div className="mt-1 rounded-lg border-2 border-fabstir-white">
+                <div className="mt-1 rounded-lg border-2 border-white">
                   <input
                     type="number"
                     name="amount"
                     {...register('amount')}
-                    className="block w-full bg-fabstir-white"
+                    className="block w-full bg-white"
                     readOnly={!isEditable}
                   />
                 </div>
-                <p className="mt-1 text-fabstir-light-pink">
+                <p className="mt-1 text-light-pink">
                   {errors.amount?.message}
                 </p>
               </div>
@@ -295,20 +295,20 @@ export default function PermissionUserView({
               <div className="col-span-3 sm:col-span-4">
                 <label
                   htmlFor="price"
-                  className="block text-sm font-medium text-fabstir-gray"
+                  className="block text-sm font-medium text-gray"
                 >
                   Price
                 </label>
-                <div className="mt-1 rounded-lg border-2 border-fabstir-white">
+                <div className="mt-1 rounded-lg border-2 border-white">
                   <input
                     type="number"
                     name="price"
                     {...register('price')}
-                    className="block w-full bg-fabstir-white"
+                    className="block w-full bg-white"
                     readOnly={!isEditable}
                   />
                 </div>
-                <p className="mt-1 text-fabstir-light-pink">
+                <p className="mt-1 text-light-pink">
                   {errors.price?.message}
                 </p>
               </div>
@@ -316,20 +316,20 @@ export default function PermissionUserView({
               <div className="col-span-3 sm:col-span-4">
                 <label
                   htmlFor="isPermissionless"
-                  className="block text-sm font-medium text-fabstir-gray"
+                  className="block text-sm font-medium text-gray"
                 >
                   Permissionless
                 </label>
-                <div className="mt-1 rounded-lg border-2 border-fabstir-white">
+                <div className="mt-1 rounded-lg border-2 border-white">
                   <input
                     type="checkbox"
                     name="isPermissionless"
                     {...register('isPermissionless')}
-                    className="block w-full bg-fabstir-white"
+                    className="block w-full bg-white"
                     readOnly={!isEditable}
                   />
                 </div>
-                <p className="mt-1 text-fabstir-light-pink">
+                <p className="mt-1 text-light-pink">
                   {errors.isPermissionless?.message}
                 </p>
               </div>
@@ -337,20 +337,20 @@ export default function PermissionUserView({
               <div className="col-span-3 sm:col-span-4">
                 <label
                   htmlFor="saleRoyaltyFee"
-                  className="block text-sm font-medium text-fabstir-gray"
+                  className="block text-sm font-medium text-gray"
                 >
                   Sale Royalty Fee
                 </label>
-                <div className="mt-1 rounded-lg border-2 border-fabstir-white">
+                <div className="mt-1 rounded-lg border-2 border-white">
                   <input
                     type="number"
                     name="saleRoyaltyFee"
                     {...register('saleRoyaltyFee')}
-                    className="block w-full bg-fabstir-white"
+                    className="block w-full bg-white"
                     readOnly={!isEditable || watch('isPermissionless')}
                   />
                 </div>
-                <p className="mt-1 text-fabstir-light-pink">
+                <p className="mt-1 text-light-pink">
                   {errors.saleRoyaltyFee?.message}
                 </p>
               </div>
@@ -359,20 +359,20 @@ export default function PermissionUserView({
             {/* <div className="col-span-3 sm:col-span-4">
               <label
                 htmlFor="subscriptionRoyaltyFee"
-                className="block text-sm font-medium text-fabstir-gray"
+                className="block text-sm font-medium text-gray"
               >
                 Subscription Royalty Fee
               </label>
-              <div className="mt-1 rounded-lg border-2 border-fabstir-white">
+              <div className="mt-1 rounded-lg border-2 border-white">
                 <input
                   type="number"
                   name="subscriptionRoyaltyFee"
                   {...register('subscriptionRoyaltyFee')}
-                  className="block w-full bg-fabstir-white"
+                  className="block w-full bg-white"
                   readOnly={!isEditable}
                 />
               </div>
-              <p className="mt-2 text-fabstir-light-pink">
+              <p className="mt-2 text-light-pink">
                 {errors.subscriptionRoyaltyFee?.message}
               </p>
             </div> */}
@@ -381,7 +381,7 @@ export default function PermissionUserView({
           {isEditable ? (
             <div className="flex space-x-2">
               <Button
-                variant="primary"
+                variant=""
                 size="medium"
                 onClick={handleCancel}
                 className="w-full rounded-md border border-transparent px-4 py-2"
@@ -390,7 +390,7 @@ export default function PermissionUserView({
               </Button>
               <Button
                 type="submit"
-                variant="primary"
+                variant=""
                 size="medium"
                 className="w-full rounded-md border border-transparent px-4 py-2"
               >
@@ -400,7 +400,7 @@ export default function PermissionUserView({
           ) : showEditButton ? (
             <Button
               onClick={handleEdit}
-              variant="primary"
+              variant=""
               size="medium"
               className="w-full rounded-md border border-transparent px-4 py-2 text-sm flex items-center justify-center"
             >

@@ -224,7 +224,7 @@ export default function BadgeDetailsSidebar({
     <FormProvider {...methods}>
       <aside
         className={classNames(
-          'mx-auto w-full  flex-1 rounded-sm border-l border-fabstir-dark-gray bg-fabstir-gray-700 px-8 pb-8 pt-2 lg:block',
+          'mx-auto w-full  flex-1 rounded-sm border-l border-dark-gray bg-gray-700 px-8 pb-8 pt-2 lg:block',
           width1,
         )}
       >
@@ -240,7 +240,7 @@ export default function BadgeDetailsSidebar({
 
         {badgeImage && (
           <div>
-            <div className="aspect-h-7 aspect-w-10 mt-6 block w-full rounded-lg shadow-2xl shadow-fabstir-black/50">
+            <div className="aspect-h-7 aspect-w-10 mt-6 block w-full rounded-lg shadow-2xl shadow-black/50">
               <img
                 src={badgeImage}
                 alt=""
@@ -251,12 +251,12 @@ export default function BadgeDetailsSidebar({
             <div className="mt-4 flex items-start justify-between">
               <div>
                 <div className="flex justify-between">
-                  <h2 className="text-lg font-medium text-fabstir-light-gray">
+                  <h2 className="text-lg font-medium text-light-gray">
                     <span className="w sr-only">Details for </span>
                     {badge?.name}
                   </h2>
                 </div>
-                <p className="mt-2 text-sm font-medium text-fabstir-light-gray/80">
+                <p className="mt-2 text-sm font-medium text-light-gray/80">
                   {badge?.summary}
                 </p>
               </div>
@@ -279,10 +279,10 @@ export default function BadgeDetailsSidebar({
 
         <div className="group my-4">
           <div className="mt-4 flex justify-between">
-            <h3 className="font-medium text-fabstir-light-gray">Information</h3>
+            <h3 className="font-medium text-light-gray">Information</h3>
             <ChevronDoubleDownIcon
               className={
-                'h-6 w-6 transform text-fabstir-light-gray transition duration-200 ease-in ' +
+                'h-6 w-6 transform text-light-gray transition duration-200 ease-in ' +
                 (openBadgeMetaData ? 'rotate-180' : 'rotate-0')
               }
               aria-hidden="true"
@@ -299,8 +299,8 @@ export default function BadgeDetailsSidebar({
             }`}
           >
             <div className="mt-6">
-              <dl className="mt-2 divide-y divide-fabstir-divide-color1 border-b border-t border-fabstir-medium-light-gray">
-                {badgeInfoDecorated &&
+              <dl className="mt-2 divide-y border-b border-t">
+                {badgeInfoDecorated &
                   Object.keys(badgeInfoDecorated).map((key) => (
                     <div
                       key={key}
@@ -310,7 +310,7 @@ export default function BadgeDetailsSidebar({
                         {key}
                         {'\u00A0'}
                       </dt>
-                      <dd className="truncate text-fabstir-light-gray">
+                      <dd className="truncate text-light-gray">
                         <div>{badgeInfoDecorated[key]}</div>
                       </dd>
                     </div>
@@ -318,16 +318,16 @@ export default function BadgeDetailsSidebar({
               </dl>
             </div>
 
-            <div className="divide-y divide-fabstir-divide-color1">
+            <div className="divide-y">
               <div className="group my-4">
                 <div className="mt-4 flex justify-between">
-                  <h3 className="font-medium text-fabstir-light-gray">
+                  <h3 className="font-medium text-light-gray">
                     Attributes
                   </h3>
                   <div className="flex flex-1 justify-end">
                     <ChevronDoubleDownIcon
                       className={
-                        'h-6 w-6 transform text-fabstir-light-gray transition duration-200 ease-in ' +
+                        'h-6 w-6 transform text-light-gray transition duration-200 ease-in ' +
                         (openBadgeAttributes ? 'rotate-180' : 'rotate-0')
                       }
                       aria-hidden="true"
@@ -339,7 +339,7 @@ export default function BadgeDetailsSidebar({
                     />
                     <ChevronDoubleDownIcon
                       className={
-                        'h-6 w-6 transform text-fabstir-light-gray transition duration-200 ease-in ' +
+                        'h-6 w-6 transform text-light-gray transition duration-200 ease-in ' +
                         (openBadgeAttributes ? 'rotate-180' : 'rotate-0')
                       }
                       aria-hidden="true"
@@ -365,13 +365,13 @@ export default function BadgeDetailsSidebar({
                           key={key}
                           className="flex justify-between py-3 text-sm font-medium"
                         >
-                          <dt className="text-fabstir-light-gray">
+                          <dt className="text-light-gray">
                             {key}
                             {'\u00A0'}
                           </dt>
                           <dd
                             className={
-                              'text-fabstir-light-gray ' +
+                              'text-light-gray ' +
                               (openBadgeAttributes ? '' : 'line-clamp-1')
                             }
                           >
@@ -399,7 +399,7 @@ export default function BadgeDetailsSidebar({
                           userAuthPubAddress === minter))) && (
                       <Button
                         type="submit"
-                        variant="primary"
+                        variant=""
                         size="medium"
                         className="w-full rounded-md border border-transparent px-4 py-2 text-sm font-medium tracking-wide"
                       >
@@ -417,7 +417,7 @@ export default function BadgeDetailsSidebar({
                           minter === AddressZero ||
                           userAuthPubAddress === minter))) && (
                       <Button
-                        variant="primary"
+                        variant=""
                         size="medium"
                         onClick={() => {
                           (async () => {
@@ -437,7 +437,7 @@ export default function BadgeDetailsSidebar({
 
               {badgeDetailsFunction2 && badgeDetailsFunction2Name && (
                 <Button
-                  variant="primary"
+                  variant=""
                   size="medium"
                   onClick={() => {
                     (async () => {

@@ -697,16 +697,16 @@ export default function DetailsSidebar({
   return (
     <aside
       className={classNames(
-        'mx-auto flex-1 rounded-sm border-l border-fabstir-dark-gray bg-fabstir-white px-8 pb-8 pt-2 shadow-lg lg:block',
+        'mx-auto flex-1 rounded-sm border-l border-dark-gray bg-white px-8 pb-8 pt-2 shadow-lg lg:block',
         width1,
       )}
     >
       {setIsScreenViewClosed && (
         <div className="mt-6 flex justify-between">
-          <h3 className="font-medium text-fabstir-light-gray">NFT</h3>
+          <h3 className="font-medium text-light-gray">NFT</h3>
           <ChevronDoubleDownIcon
             className={
-              'flex h-6 w-6 transform justify-end text-fabstir-light-gray transition duration-200 ease-in ' +
+              'flex h-6 w-6 transform justify-end text-light-gray transition duration-200 ease-in ' +
               (isScreenViewClosed ? 'rotate-180' : 'rotate-0')
             }
             aria-hidden="true"
@@ -726,7 +726,7 @@ export default function DetailsSidebar({
             <div>
               <div
                 id="nftFrame"
-                className="aspect-h-7 aspect-w-10 block w-full rounded-lg shadow-2xl shadow-fabstir-black/50"
+                className="aspect-h-7 aspect-w-10 block w-full rounded-lg shadow-2xl shadow-black/50"
                 style={{
                   display:
                     nft && nftImage && !nft.video && !nft.audio
@@ -746,7 +746,7 @@ export default function DetailsSidebar({
 
                   {/* overlay */}
                   {nft && nftImage && (
-                    <div className="pointer-events-none absolute bottom-0 left-0 z-20 m-5 w-fit bg-black bg-opacity-50 text-fabstir-white">
+                    <div className="pointer-events-none absolute bottom-0 left-0 z-20 m-5 w-fit bg-black bg-opacity-50 text-white">
                       <MediaCaption
                         nft={nft}
                         nftQuantity={nftQuantity?.toString()}
@@ -762,13 +762,13 @@ export default function DetailsSidebar({
             (encKey === null ||
               (typeof encKey === 'string' && encKey.trim() !== '')) && (
               <div>
-                <div className="w-full overflow-hidden rounded-lg shadow-2xl shadow-fabstir-black/50">
+                <div className="w-full overflow-hidden rounded-lg shadow-2xl shadow-black/50">
                   <div className="relative">
                     {nftToPlay ? (
                       <NFTVideoJS
                         nft={nft}
                         setIsPlay={setIsPlay}
-                        className="3xl:shadow-2xl min-w-[256px] rounded-2xl bg-fabstir-dark-gray shadow-lg shadow-fabstir-black md:shadow-lg lg:shadow-xl xl:shadow-xl 2xl:shadow-xl"
+                        className="3xl:shadow-2xl min-w-[256px] rounded-2xl bg-dark-gray shadow-lg shadow-black md:shadow-lg lg:shadow-xl xl:shadow-xl 2xl:shadow-xl"
                         encKey={encKey}
                         isPlayClicked={isPlayClicked}
                         setIsPlayClicked={setIsPlayClicked}
@@ -783,7 +783,7 @@ export default function DetailsSidebar({
                       />
                     )}
                     {!isPlayClicked && (
-                      <div className="absolute bottom-2 left-0 z-20 m-5 w-fit bg-black bg-opacity-50 text-fabstir-white">
+                      <div className="absolute bottom-2 left-0 z-20 m-5 w-fit bg-black bg-opacity-50 text-white">
                         <MediaCaption
                           nft={nft}
                           setIsPlayClicked={setIsPlayClicked}
@@ -800,13 +800,13 @@ export default function DetailsSidebar({
             (encKey === null ||
               (typeof encKey === 'string' && encKey.trim() !== '')) && (
               <div>
-                <div className="w-full overflow-hidden rounded-lg shadow-2xl shadow-fabstir-black/50">
+                <div className="w-full overflow-hidden rounded-lg shadow-2xl shadow-black/50">
                   <div className="relative">
                     {nftToPlay ? (
                       <NFTAudioJS
                         nft={nft}
                         setIsPlay={setIsPlay}
-                        className="3xl:shadow-2xl min-w-[256px] rounded-2xl bg-fabstir-dark-gray shadow-lg shadow-fabstir-black md:shadow-lg lg:shadow-xl xl:shadow-xl 2xl:shadow-xl"
+                        className="3xl:shadow-2xl min-w-[256px] rounded-2xl bg-dark-gray shadow-lg shadow-black md:shadow-lg lg:shadow-xl xl:shadow-xl 2xl:shadow-xl"
                         encKey={encKey}
                         isPlayClicked={isPlayClicked}
                         setIsPlayClicked={setIsPlayClicked}
@@ -822,7 +822,7 @@ export default function DetailsSidebar({
                       />
                     )}
                     {!isPlayClicked && (
-                      <div className="absolute bottom-2 left-0 z-20 m-5 w-fit bg-black bg-opacity-50 text-fabstir-white">
+                      <div className="absolute bottom-2 left-0 z-20 m-5 w-fit bg-black bg-opacity-50 text-white">
                         <MediaCaption
                           nft={nft}
                           setIsPlayClicked={setIsPlayClicked}
@@ -847,7 +847,7 @@ export default function DetailsSidebar({
             <div className="flex justify-between mt-4">
               <div className="flex flex-1 justify-center">
                 <Button
-                  variant="primary"
+                  variant=""
                   size="medium"
                   onClick={async () => {
                     await handle_TransferNFT();
@@ -863,10 +863,10 @@ export default function DetailsSidebar({
 
       <div className="">
         <div className="">
-          <h3 className="font-medium text-fabstir-gray">Information</h3>
+          <h3 className="font-medium text-gray">Information</h3>
           <ChevronDoubleDownIcon
             className={
-              'h-6 w-6 transform text-fabstir-light-gray transition duration-200 ease-in ' +
+              'h-6 w-6 transform text-light-gray transition duration-200 ease-in ' +
               (openNFTMetaData ? 'rotate-180' : 'rotate-0')
             }
             aria-hidden="true"
@@ -886,7 +886,7 @@ export default function DetailsSidebar({
             <div className="mt-2 flex flex-1 flex-row justify-between">
               <Button
                 className="p-1 text-sm"
-                variant="primary"
+                variant=""
                 size="medium"
                 onClick={handleUpgradeToNestableNFT}
               >
@@ -896,7 +896,7 @@ export default function DetailsSidebar({
               {isNFTSelected ? (
                 <Button
                   className="p-1 text-sm"
-                  variant="primary"
+                  variant=""
                   size="medium"
                   onClick={handleRemoveFromNestableNFT}
                 >
@@ -905,7 +905,7 @@ export default function DetailsSidebar({
               ) : (
                 <Button
                   className="p-1 text-sm"
-                  variant="primary"
+                  variant=""
                   size="medium"
                   onClick={handleAddToNestableNFT}
                 >
@@ -917,7 +917,7 @@ export default function DetailsSidebar({
             <div className="mt-2 flex flex-1 flex-row justify-between">
               <Button
                 className="p-1 text-sm"
-                variant="primary"
+                variant=""
                 size="medium"
                 onClick={handleSelectedToParent}
               >
@@ -928,7 +928,7 @@ export default function DetailsSidebar({
             <div className="mt-2 flex flex-1 flex-row justify-between">
               <Button
                 className="p-1 text-sm"
-                variant="primary"
+                variant=""
                 size="medium"
                 onClick={handleRemoveFromNestableNFT}
               >
@@ -940,18 +940,18 @@ export default function DetailsSidebar({
           <div className="group">
             {nft?.teamsName && (
               <div className="flex items-center justify-between mt-6">
-                <h2 className="text-2xl font-semibold tracking-tight text-fabstir-dark-gray sm:text-xl">
+                <h2 className="text-2xl font-semibold tracking-tight text-dark-gray sm:text-xl">
                   {nft?.teamsName}
                 </h2>
 
                 {userPub === userAuthPub && (
                   <Button
                     onClick={handleEditTeams}
-                    variant="primary"
+                    variant=""
                     size="medium"
                     className="ml-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                   >
-                    <PencilIcon className="w-5 h-5 text-fabstir-gray hover:text-dark-gray" />
+                    <PencilIcon className="w-5 h-5 text-gray hover:text-dark-gray" />
                   </Button>
                 )}
               </div>
@@ -961,11 +961,11 @@ export default function DetailsSidebar({
           </div>
 
           <div className="mt-2">
-            <h2 className="text-2xl font-semibold tracking-tight text-fabstir-dark-gray sm:text-xl mt-6">
+            <h2 className="text-2xl font-semibold tracking-tight text-dark-gray sm:text-xl mt-6">
               Metadata
             </h2>
 
-            <dl className="mt-2 divide-y divide-fabstir-divide-color1 border-b border-t border-fabstir-medium-light-gray">
+            <dl className="mt-2 divide-y  border-b border-t ">
               {nftInfoDecorated &&
                 Object.entries(nftInfoDecorated).reduce((acc, [key, value]) => {
                   // Filter out null, undefined, or empty array values
@@ -982,7 +982,7 @@ export default function DetailsSidebar({
                       key={key}
                       className="flex justify-between py-3 text-sm font-medium"
                     >
-                      <dt className="text-fabstir-gray">
+                      <dt className="text-gray">
                         {key}
                         {'\u00A0'}
                       </dt>
@@ -1009,16 +1009,16 @@ export default function DetailsSidebar({
             </dl>
           </div>
 
-          <div className="divide-y divide-fabstir-divide-color1">
+          <div className="divide-y ">
             <div className="group my-4">
               <div className="mt-4 flex justify-between">
-                <h3 className="font-medium text-fabstir-dark-gray">
+                <h3 className="font-medium text-dark-gray">
                   Attributes
                 </h3>
                 <div className="flex flex-1 justify-end">
                   <ChevronDoubleDownIcon
                     className={
-                      'h-6 w-6 transform text-fabstir-light-gray transition duration-200 ease-in ' +
+                      'h-6 w-6 transform text-light-gray transition duration-200 ease-in ' +
                       (openNFTAttributes ? 'rotate-180' : 'rotate-0')
                     }
                     aria-hidden="true"
@@ -1030,7 +1030,7 @@ export default function DetailsSidebar({
                   />
                   <ChevronDoubleDownIcon
                     className={
-                      'h-6 w-6 transform text-fabstir-light-gray transition duration-200 ease-in ' +
+                      'h-6 w-6 transform text-light-gray transition duration-200 ease-in ' +
                       (openNFTAttributes ? 'rotate-180' : 'rotate-0')
                     }
                     aria-hidden="true"
@@ -1057,13 +1057,13 @@ export default function DetailsSidebar({
                           key={index}
                           className="flex justify-between py-3 text-sm font-medium"
                         >
-                          <dt className="text-fabstir-light-gray">
+                          <dt className="text-light-gray">
                             {openNFTAttributes ? key : key + ':'}
                             {'\u00A0'}
                           </dt>
                           <dd
                             className={
-                              'text-fabstir-light-gray ' +
+                              'text-light-gray ' +
                               (openNFTAttributes ? '' : 'line-clamp-1')
                             }
                           >

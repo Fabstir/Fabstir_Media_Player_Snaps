@@ -384,7 +384,7 @@ const NFTSlideOver = ({
       <Transition.Root show={open} as={Fragment}>
         <div className="fixed inset-0 z-30" onClick={() => setOpen(false)}>
           <div className="inset-0">
-            <div className="fixed inset-y-0 right-0 flex max-w-full transform border-2 border-fabstir-gray">
+            <div className="fixed inset-y-0 right-0 flex max-w-full transform border-2 border-gray">
               <Transition.Child
                 as={Fragment}
                 enter="transform transition ease-in-out duration-500 sm:duration-700"
@@ -395,16 +395,16 @@ const NFTSlideOver = ({
                 leaveTo="translate-x-full"
               >
                 <div
-                  className="bg-fabstir-light-gray"
+                  className="bg-light-gray"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {/* Background color split screen for large screens */}
                   <div
-                    className="fixed left-0 top-0 hidden h-full w-1/2 bg-fabstir-light-gray lg:block"
+                    className="fixed left-0 top-0 hidden h-full w-1/2 bg-light-gray lg:block"
                     aria-hidden="true"
                   />
                   <div
-                    className="fixed right-0 top-0 hidden h-full w-1/2 bg-fabstir-dark-purple lg:block"
+                    className="fixed right-0 top-0 hidden h-full w-1/2  lg:block"
                     aria-hidden="true"
                   />
 
