@@ -71,9 +71,11 @@ export const Button: React.FC<ButtonProps> = ({
         sizeClasses[size],
         disabled && disabledClasses,
         `${className} 
-        bg-button-background text-button-text 
-        dark:bg-dark-button-background dark:text-dark-button-text 
-        hover:brightness-75`,
+        bg-button-background dark:bg-dark-button-background
+        text-button-text dark:text-dark-button-text 
+        hover:bg-hover-background dark:hover:bg-dark-hover-background 
+        hover:text-hover-text dark:hover:text-dark-hover-text 
+        shadow-md shadow-buttonShadow dark:shadow-dark-buttonShadow`,
       )}
       disabled={disabled}
       {...props}
