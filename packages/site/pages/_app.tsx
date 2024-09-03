@@ -32,6 +32,8 @@ import {
 // Import the ParticleAuth type
 import { ParticleAuth } from '../types';
 import { ThemeProvider } from '../src/components/ThemeContext';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // Create a client
 export const queryClient = new QueryClient();
@@ -136,6 +138,7 @@ function MyApp({ Component, pageProps }: AppProps) {
           <Component {...pageProps} />
         </div>
       </QueryClientProvider>
+      <ToastContainer />
     </ThemeProvider>
   );
 

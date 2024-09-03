@@ -705,6 +705,7 @@ const Index = () => {
     await signOut();
     setSmartAccount(null);
     setConnectedChainId(null);
+    setColors(defaultColors)
   }
 
   // Define the props type for ButtonLink
@@ -797,31 +798,46 @@ const Index = () => {
       'ErrorTextColor',
       'AllowShadow',
     ];
-  
+
     colorKeys.forEach((key) => {
       const lightKey = `--light${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
       const darkKey = `--dark${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
-  
+
       if (key === 'ButtonShadow') {
-        console.log("colors.lightAllowShadow",colors.lightAllowShadow,lightKey)
-        console.log("colors.darkAllowShadow",colors.darkAllowShadow,darkKey)
+        console.log(
+          'colors.lightAllowShadow',
+          colors.lightAllowShadow,
+          lightKey,
+        );
+        console.log('colors.darkAllowShadow', colors.darkAllowShadow, darkKey);
         if (colors.lightAllowShadow) {
-          document.documentElement.style.setProperty(lightKey, colors[`light${key}`]);
-        }else{
-          document.documentElement.style.setProperty(lightKey, "");
+          document.documentElement.style.setProperty(
+            lightKey,
+            colors[`light${key}`],
+          );
+        } else {
+          document.documentElement.style.setProperty(lightKey, '');
         }
         if (colors.darkAllowShadow) {
-          document.documentElement.style.setProperty(darkKey, colors[`dark${key}`]);
-        }else{
-          document.documentElement.style.setProperty(darkKey,"");
+          document.documentElement.style.setProperty(
+            darkKey,
+            colors[`dark${key}`],
+          );
+        } else {
+          document.documentElement.style.setProperty(darkKey, '');
         }
       } else {
-        document.documentElement.style.setProperty(lightKey, colors[`light${key}`]);
-        document.documentElement.style.setProperty(darkKey, colors[`dark${key}`]);
+        document.documentElement.style.setProperty(
+          lightKey,
+          colors[`light${key}`],
+        );
+        document.documentElement.style.setProperty(
+          darkKey,
+          colors[`dark${key}`],
+        );
       }
     });
   }, [colors]);
-  
 
   return (
     <div className="p-4 max-w-6xl mx-auto bg-background dark:bg-dark-background">

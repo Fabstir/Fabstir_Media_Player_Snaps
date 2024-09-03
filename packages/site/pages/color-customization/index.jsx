@@ -11,289 +11,59 @@ import { Button } from '../../src/ui-components/button';
 import ColorSelect from '../../src/ui-components/colorSelect';
 import Loader from '../../src/components/Loader';
 import { Checkbox } from '../../src/ui-components/checkbox';
-
+import {
+  darkModeColors,
+  lightModeColors,
+  errorColors,
+  warningColors,
+  successColors,
+} from '../../src/assets/colorArray/colorArray';
+import { toast } from 'react-toastify';
 let url = process.env.NEXT_PUBLIC_FABSTIRDB_BACKEND_URL || '';
 
-const darkThemeColorSet = new Set([
-  { label: 'Dark Gray', value: '#333333' },
-  { label: 'Charcoal', value: '#2C2C2C' },
-  { label: 'Slate Gray', value: '#6C757D' },
-  { label: 'Gunmetal', value: '#2A2A2A' },
-  { label: 'Ash Gray', value: '#B2B2B2' },
-  { label: 'Midnight Blue', value: '#003366' },
-  { label: 'Ocean Blue', value: '#004080' },
-  { label: 'Dark Purple', value: '#2E003E' },
-  { label: 'Indigo', value: '#4B0082' },
-  { label: 'Forest Green', value: '#228B22' },
-  { label: 'Deep Green', value: '#004d00' },
-  { label: 'Crimson Red', value: '#DC143C' },
-  { label: 'Firebrick', value: '#B22222' },
-  { label: 'Burnt Orange', value: '#CC5500' },
-  { label: 'Golden Rod', value: '#DAA520' },
-  { label: 'Dark Olive Green', value: '#556B2F' },
-  { label: 'Steel Blue', value: '#4682B4' },
-  { label: 'Dark Salmon', value: '#E9967A' },
-  { label: 'Rosy Brown', value: '#BC8F8F' },
-]);
-const darkThemeColor = Array.from(darkThemeColorSet);
+const darkThemeColor = Array.from(new Set(darkModeColors));
 
-const lightThemeColorSet = new Set([
-  { label: 'White', value: '#FFFFFF' },
-  { label: 'Light Gray', value: '#F0F0F0' },
-  { label: 'Gainsboro', value: '#DCDCDC' },
-  { label: 'Silver', value: '#C0C0C0' },
-  { label: 'Light Slate Gray', value: '#778899' },
-  { label: 'Sky Blue', value: '#87CEEB' },
-  { label: 'Powder Blue', value: '#B0E0E6' },
-  { label: 'Alice Blue', value: '#F0F8FF' },
-  { label: 'Lavender', value: '#E6E6FA' },
-  { label: 'Light Pink', value: '#FFB6C1' },
-  { label: 'Peach Puff', value: '#FFDAB9' },
-  { label: 'Misty Rose', value: '#FFE4E1' },
-  { label: 'Honeydew', value: '#F0FFF0' },
-  { label: 'Pale Goldenrod', value: '#EEE8AA' },
-  { label: 'Light Green', value: '#90EE90' },
-  { label: 'Light Coral', value: '#F08080' },
-  { label: 'Coral', value: '#FF7F50' },
-  { label: 'Turquoise', value: '#40E0D0' },
-  { label: 'Light Sea Green', value: '#20B2AA' },
-  { label: 'Khaki', value: '#F0E68C' },
-]);
-const lightThemeColor = Array.from(lightThemeColorSet);
+const lightThemeColor = Array.from(new Set(lightModeColors));
 
-let users = [
-  {
-    id: 1,
-    name: 'Tony Reichert',
-    role: 'CEO',
-    team: 'Management',
-    status: 'active',
-    age: '29',
-    avatar: 'https://d2u8k2ocievbld.cloudfront.net/memojis/male/1.png',
-    email: 'tony.reichert@example.com',
-  },
-  {
-    id: 2,
-    name: 'Zoey Lang',
-    role: 'Tech Lead',
-    team: 'Development',
-    status: 'paused',
-    age: '25',
-    avatar: 'https://d2u8k2ocievbld.cloudfront.net/memojis/female/1.png',
-    email: 'zoey.lang@example.com',
-  },
-  {
-    id: 3,
-    name: 'Jane Fisher',
-    role: 'Sr. Dev',
-    team: 'Development',
-    status: 'active',
-    age: '22',
-    avatar: 'https://d2u8k2ocievbld.cloudfront.net/memojis/female/2.png',
-    email: 'jane.fisher@example.com',
-  },
-  {
-    id: 4,
-    name: 'William Howard',
-    role: 'C.M.',
-    team: 'Marketing',
-    status: 'vacation',
-    age: '28',
-    avatar: 'https://d2u8k2ocievbld.cloudfront.net/memojis/male/2.png',
-    email: 'william.howard@example.com',
-  },
-  {
-    id: 5,
-    name: 'Kristen Copper',
-    role: 'S. Manager',
-    team: 'Sales',
-    status: 'active',
-    age: '24',
-    avatar: 'https://d2u8k2ocievbld.cloudfront.net/memojis/female/3.png',
-    email: 'kristen.cooper@example.com',
-  },
-  {
-    id: 6,
-    name: 'Brian Kim',
-    role: 'P. Manager',
-    team: 'Management',
-    age: '29',
-    avatar: 'https://d2u8k2ocievbld.cloudfront.net/memojis/male/3.png',
-    email: 'brian.kim@example.com',
-    status: 'active',
-  },
-  {
-    id: 7,
-    name: 'Michael Hunt',
-    role: 'Designer',
-    team: 'Design',
-    status: 'paused',
-    age: '27',
-    avatar: 'https://d2u8k2ocievbld.cloudfront.net/memojis/male/4.png',
-    email: 'michael.hunt@example.com',
-  },
-  {
-    id: 8,
-    name: 'Samantha Brooks',
-    role: 'HR Manager',
-    team: 'HR',
-    status: 'active',
-    age: '31',
-    avatar: 'https://d2u8k2ocievbld.cloudfront.net/memojis/female/4.png',
-    email: 'samantha.brooks@example.com',
-  },
-  {
-    id: 9,
-    name: 'Frank Harrison',
-    role: 'F. Manager',
-    team: 'Finance',
-    status: 'vacation',
-    age: '33',
-    avatar: 'https://d2u8k2ocievbld.cloudfront.net/memojis/male/5.png',
-    email: 'frank.harrison@example.com',
-  },
-  {
-    id: 10,
-    name: 'Emma Adams',
-    role: 'Ops Manager',
-    team: 'Operations',
-    status: 'active',
-    age: '35',
-    avatar: 'https://d2u8k2ocievbld.cloudfront.net/memojis/female/5.png',
-    email: 'emma.adams@example.com',
-  },
-  {
-    id: 11,
-    name: 'Brandon Stevens',
-    role: 'Jr. Dev',
-    team: 'Development',
-    status: 'active',
-    age: '22',
-    avatar: 'https://d2u8k2ocievbld.cloudfront.net/memojis/male/7.png',
-    email: 'brandon.stevens@example.com',
-  },
-  {
-    id: 12,
-    name: 'Megan Richards',
-    role: 'P. Manager',
-    team: 'Product',
-    status: 'paused',
-    age: '28',
-    avatar: 'https://d2u8k2ocievbld.cloudfront.net/memojis/female/7.png',
-    email: 'megan.richards@example.com',
-  },
-  {
-    id: 13,
-    name: 'Oliver Scott',
-    role: 'S. Manager',
-    team: 'Security',
-    status: 'active',
-    age: '37',
-    avatar: 'https://d2u8k2ocievbld.cloudfront.net/memojis/male/8.png',
-    email: 'oliver.scott@example.com',
-  },
-  {
-    id: 14,
-    name: 'Grace Allen',
-    role: 'M. Specialist',
-    team: 'Marketing',
-    status: 'active',
-    age: '30',
-    avatar: 'https://d2u8k2ocievbld.cloudfront.net/memojis/female/8.png',
-    email: 'grace.allen@example.com',
-  },
-  {
-    id: 15,
-    name: 'Noah Carter',
-    role: 'IT Specialist',
-    team: 'I. Technology',
-    status: 'paused',
-    age: '31',
-    avatar: 'https://d2u8k2ocievbld.cloudfront.net/memojis/male/9.png',
-    email: 'noah.carter@example.com',
-  },
-  {
-    id: 16,
-    name: 'Ava Perez',
-    role: 'Manager',
-    team: 'Sales',
-    status: 'active',
-    age: '29',
-    avatar: 'https://d2u8k2ocievbld.cloudfront.net/memojis/female/9.png',
-    email: 'ava.perez@example.com',
-  },
-  {
-    id: 17,
-    name: 'Liam Johnson',
-    role: 'Data Analyst',
-    team: 'Analysis',
-    status: 'active',
-    age: '28',
-    avatar: 'https://d2u8k2ocievbld.cloudfront.net/memojis/male/11.png',
-    email: 'liam.johnson@example.com',
-  },
-  {
-    id: 18,
-    name: 'Sophia Taylor',
-    role: 'QA Analyst',
-    team: 'Testing',
-    status: 'active',
-    age: '27',
-    avatar: 'https://d2u8k2ocievbld.cloudfront.net/memojis/female/11.png',
-    email: 'sophia.taylor@example.com',
-  },
-  {
-    id: 19,
-    name: 'Lucas Harris',
-    role: 'Administrator',
-    team: 'Information Technology',
-    status: 'paused',
-    age: '32',
-    avatar: 'https://d2u8k2ocievbld.cloudfront.net/memojis/male/12.png',
-    email: 'lucas.harris@example.com',
-  },
-  {
-    id: 20,
-    name: 'Mia Robinson',
-    role: 'Coordinator',
-    team: 'Operations',
-    status: 'active',
-    age: '26',
-    avatar: 'https://d2u8k2ocievbld.cloudfront.net/memojis/female/12.png',
-    email: 'mia.robinson@example.com',
-  },
-];
+const errorColorsTheme = Array.from(new Set(errorColors));
+
+const warningColorsTheme = Array.from(new Set(warningColors));
+
+const successColorsTheme = Array.from(new Set(successColors));
+
+const defaultColors = {
+  lightButtonTextColor: '#000000', // Black text for light mode buttons
+  lightButtonColor: '#ffffff', // White button color for light mode
+  lightButtonHoverColor: '#f0f0f0', // Slightly darker white on hover
+  lightButtonHoverTextColor: '#000000', // Black text on hover
+  lightButtonShadow: '', // Light gray shadow for light buttons
+  lightTextColor: '#333333', // Dark gray for light mode text
+  lightBackgroundColor: '#f9f9f9', // Very light gray background
+  lightSuccessTextColor: '#28a745', // Green text for success messages
+  lightWarningTextColor: '#ffc107', // Yellow text for warnings
+  lightErrorTextColor: '#dc3545', // Red text for errors
+  lightAllowShadow: false,
+
+  darkButtonTextColor: '#ffffff', // White text for dark mode buttons
+  darkButtonColor: '#333333', // Dark gray button color for dark mode
+  darkButtonHoverColor: '#444444', // Slightly lighter gray on hover
+  darkButtonHoverTextColor: '#ffffff', // White text on hover
+  darkButtonShadow: '', // Darker gray shadow for dark buttons
+  darkTextColor: '#f9f9f9', // Very light gray for dark mode text
+  darkBackgroundColor: '#121212', // Very dark background
+  darkSuccessTextColor: '#28a745', // Green text for success messages
+  darkWarningTextColor: '#ffc107', // Yellow text for warnings
+  darkErrorTextColor: '#dc3545', // Red text for errors
+  darkAllowShadow: false,
+};
 
 export default function ColorCustomization() {
   const router = useRouter();
   const [smartAccountAddress, setSmartAccountAddress] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const [loader, setLoader] = useState(true);
-  const [colors, setColors] = useState({
-    lightButtonTextColor: '#000000', // Black text for light mode buttons
-    lightButtonColor: '#ffffff', // White button color for light mode
-    lightButtonHoverColor: '#f0f0f0', // Slightly darker white on hover
-    lightButtonHoverTextColor: '#000000', // Black text on hover
-    lightButtonShadow: '#d1d1d1', // Light gray shadow for light buttons
-    lightTextColor: '#333333', // Dark gray for light mode text
-    lightBackgroundColor: '#f9f9f9', // Very light gray background
-    lightSuccessTextColor: '#28a745', // Green text for success messages
-    lightWarningTextColor: '#ffc107', // Yellow text for warnings
-    lightErrorTextColor: '#dc3545', // Red text for errors
-    lightAllowShadow: false,
-
-    darkButtonTextColor: '#ffffff', // White text for dark mode buttons
-    darkButtonColor: '#333333', // Dark gray button color for dark mode
-    darkButtonHoverColor: '#444444', // Slightly lighter gray on hover
-    darkButtonHoverTextColor: '#ffffff', // White text on hover
-    darkButtonShadow: '#222222', // Darker gray shadow for dark buttons
-    darkTextColor: '#f9f9f9', // Very light gray for dark mode text
-    darkBackgroundColor: '#121212', // Very dark background
-    darkSuccessTextColor: '#28a745', // Green text for success messages
-    darkWarningTextColor: '#ffc107', // Yellow text for warnings
-    darkErrorTextColor: '#dc3545', // Red text for errors
-    darkAllowShadow: false,
-  });
+  const [colors, setColors] = useState(defaultColors);
   const blockchainContext = useContext(BlockchainContext);
   const { smartAccount, setSmartAccount, setConnectedChainId } =
     blockchainContext;
@@ -339,6 +109,8 @@ export default function ColorCustomization() {
     const setSmartAccountAddressFn = async () => {
       if (smartAccount) {
         setSmartAccountAddress(await getSmartAccountAddress(smartAccount));
+      }else{
+        handleLogout()
       }
     };
     setSmartAccountAddressFn();
@@ -413,8 +185,7 @@ export default function ColorCustomization() {
     // Iterate through light mode and dark mode keys
     colorKeys.forEach((key) => {
       key == 'ButtonShadow'
-        ? 
-        colors.lightAllowShadow &&
+        ? colors.lightAllowShadow &&
           document.documentElement.style.setProperty(
             `--light${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`,
             colors[`light${key}`],
@@ -440,6 +211,7 @@ export default function ColorCustomization() {
 
   const onSubmit = async (data) => {
     try {
+      toast.dismiss()
       data.smartAccount = smartAccountAddress;
       const userData = sessionStorage.getItem('userSession');
       const token = JSON.parse(userData)?.token ?? '';
@@ -449,6 +221,7 @@ export default function ColorCustomization() {
           Authorization: `Bearer ${token}`,
         },
       });
+      toast.success("Color saved successfully")
       fetchColor();
     } catch (error) {
       handleError(error);
@@ -594,6 +367,7 @@ export default function ColorCustomization() {
                               register={register('darkAllowShadow')}
                               error={''}
                               className="items-center"
+                              checked={selectedColors.darkAllowShadow}
                             />
                           </div>
                         </div>
@@ -605,7 +379,7 @@ export default function ColorCustomization() {
                             <div className="p-3 flex flex-col  text-left w-8/12 relative mb-2">
                               <ColorSelect
                                 label="Dark Text Color"
-                                value={selectedColors.darkTextColor}
+                                value={selectedColors.darkTextColor }
                                 onChange={(value) =>
                                   setValue('darkTextColor', value)
                                 }
@@ -625,7 +399,7 @@ export default function ColorCustomization() {
                             <div className="p-3 flex flex-col text-left w-8/12 relative mb-2">
                               <ColorSelect
                                 label="Dark Background Color"
-                                value={selectedColors.darkBackgroundColor}
+                                value={selectedColors.darkBackgroundColor  }
                                 onChange={(value) =>
                                   setValue('darkBackgroundColor', value)
                                 }
@@ -645,11 +419,11 @@ export default function ColorCustomization() {
                           <div className="p-3 flex flex-col text-left w-4/12 relative mb-2">
                             <ColorSelect
                               label="Dark Success Text color"
-                              value={selectedColors.darkSuccessTextColor}
+                              value={selectedColors.darkSuccessTextColor }
                               onChange={(value) =>
                                 setValue('darkSuccessTextColor', value)
                               }
-                              colors={darkThemeColor}
+                              colors={successColorsTheme}
                               register={register}
                               name="darkSuccessTextColor"
                               errors={errors}
@@ -658,11 +432,11 @@ export default function ColorCustomization() {
                           <div className="p-3 flex flex-col text-left w-4/12 relative mb-2">
                             <ColorSelect
                               label="Dark Warning Text color"
-                              value={selectedColors.darkWarningTextColor}
+                              value={selectedColors.darkWarningTextColor }
                               onChange={(value) =>
                                 setValue('darkWarningTextColor', value)
                               }
-                              colors={darkThemeColor}
+                              colors={warningColorsTheme}
                               register={register}
                               name="darkWarningTextColor"
                               errors={errors}
@@ -671,11 +445,11 @@ export default function ColorCustomization() {
                           <div className="p-3 flex flex-col text-left w-4/12 relative mb-2">
                             <ColorSelect
                               label="Dark Error Text color"
-                              value={selectedColors.darkErrorTextColor}
+                              value={selectedColors.darkErrorTextColor }
                               onChange={(value) =>
                                 setValue('darkErrorTextColor', value)
                               }
-                              colors={darkThemeColor}
+                              colors={errorColorsTheme}
                               register={register}
                               name="darkErrorTextColor"
                               errors={errors}
@@ -692,7 +466,7 @@ export default function ColorCustomization() {
                           <div className="p-3 flex flex-col text-left w-4/12 relative mb-2">
                             <ColorSelect
                               label="Button Text Color"
-                              value={selectedColors.lightButtonTextColor}
+                              value={selectedColors.lightButtonTextColor }
                               onChange={(value) =>
                                 setValue('lightButtonTextColor', value)
                               }
@@ -705,7 +479,7 @@ export default function ColorCustomization() {
                           <div className="p-3 flex flex-col text-left w-4/12 relative mb-2">
                             <ColorSelect
                               label="Button Color"
-                              value={selectedColors.lightButtonColor}
+                              value={selectedColors.lightButtonColor }
                               onChange={(value) =>
                                 setValue('lightButtonColor', value)
                               }
@@ -717,8 +491,8 @@ export default function ColorCustomization() {
                           </div>
                           <div className="p-3 flex flex-col text-left w-4/12 relative mb-2">
                             <ColorSelect
-                              label="Dark Button Hover Color"
-                              value={selectedColors.lightButtonHoverColor}
+                              label="Light Button Hover Color"
+                              value={selectedColors.lightButtonHoverColor }
                               onChange={(value) =>
                                 setValue('lightButtonHoverColor', value)
                               }
@@ -730,8 +504,8 @@ export default function ColorCustomization() {
                           </div>
                           <div className="p-3 flex flex-col text-left w-4/12 relative mb-2">
                             <ColorSelect
-                              label="Dark Button Hover Text Color"
-                              value={selectedColors.lightButtonHoverTextColor}
+                              label="Light Button Hover Text Color"
+                              value={selectedColors.lightButtonHoverTextColor }
                               onChange={(value) =>
                                 setValue('lightButtonHoverTextColor', value)
                               }
@@ -743,8 +517,8 @@ export default function ColorCustomization() {
                           </div>
                           <div className="p-3 flex flex-col text-left w-4/12 relative mb-2">
                             <ColorSelect
-                              label="Dark Button Shadow"
-                              value={selectedColors.lightButtonShadow}
+                              label="Light Button Shadow"
+                              value={selectedColors.lightButtonShadow }
                               onChange={(value) =>
                                 setValue('lightButtonShadow', value)
                               }
@@ -762,6 +536,7 @@ export default function ColorCustomization() {
                               register={register('lightAllowShadow')}
                               error={''}
                               className="items-center"
+                              checked={selectedColors.lightAllowShadow}
                             />
                           </div>
                         </div>
@@ -772,8 +547,8 @@ export default function ColorCustomization() {
                           <div className="items-center justify-between lg:flex flex-wrap">
                             <div className="p-3 flex flex-col text-left w-8/12 relative mb-2">
                               <ColorSelect
-                                label="Dark Text Color"
-                                value={selectedColors.lightTextColor}
+                                label="Light Text Color"
+                                value={selectedColors.lightTextColor ?? colors.lightTextColor}
                                 onChange={(value) =>
                                   setValue('lightTextColor', value)
                                 }
@@ -792,8 +567,8 @@ export default function ColorCustomization() {
                           <div className="items-center justify-between lg:flex flex-wrap">
                             <div className="p-3 flex flex-col text-left w-8/12 relative mb-2">
                               <ColorSelect
-                                label="Dark Background Color"
-                                value={selectedColors.lightBackgroundColor}
+                                label="Light Background Color"
+                                value={selectedColors.lightBackgroundColor ?? colors.lightBackgroundColor}
                                 onChange={(value) =>
                                   setValue('lightBackgroundColor', value)
                                 }
@@ -812,12 +587,12 @@ export default function ColorCustomization() {
                         <div className="items-center justify-between lg:flex flex-wrap">
                           <div className="p-3 flex flex-col text-left w-4/12 relative mb-2">
                             <ColorSelect
-                              label="Dark Success Text color"
-                              value={selectedColors.lightSuccessTextColor}
+                              label="Light Success Text color"
+                              value={selectedColors.lightSuccessTextColor ?? colors.lightSuccessTextColor}
                               onChange={(value) =>
                                 setValue('lightSuccessTextColor', value)
                               }
-                              colors={lightThemeColor}
+                              colors={successColorsTheme}
                               register={register}
                               name="lightSuccessTextColor"
                               errors={errors}
@@ -825,12 +600,12 @@ export default function ColorCustomization() {
                           </div>
                           <div className="p-3 flex flex-col text-left w-4/12 relative mb-2">
                             <ColorSelect
-                              label="Dark Warning Text color"
-                              value={selectedColors.lightWarningTextColor}
+                              label="Light Warning Text color"
+                              value={selectedColors.lightWarningTextColor ?? colors.lightWarningTextColor}
                               onChange={(value) =>
                                 setValue('lightWarningTextColor', value)
                               }
-                              colors={lightThemeColor}
+                              colors={warningColorsTheme}
                               register={register}
                               name="lightWarningTextColor"
                               errors={errors}
@@ -838,12 +613,12 @@ export default function ColorCustomization() {
                           </div>
                           <div className="p-3 flex flex-col text-left w-4/12 relative mb-2">
                             <ColorSelect
-                              label="Dark Error Text color"
-                              value={selectedColors.lightErrorTextColor}
+                              label="Light Error Text color"
+                              value={selectedColors.lightErrorTextColor ?? colors.lightErrorTextColor}
                               onChange={(value) =>
                                 setValue('lightErrorTextColor', value)
                               }
-                              colors={lightThemeColor}
+                              colors={errorColorsTheme}
                               register={register}
                               name="lightErrorTextColor"
                               errors={errors}
@@ -876,11 +651,11 @@ export default function ColorCustomization() {
                   }}
                 >
                   <h2
-                    style={{
-                      color: isDarkMode
-                        ? selectedColors.darkSuccessTextColor
-                        : selectedColors.lightSuccessTextColor,
-                    }}
+                    // style={{
+                    //   color: isDarkMode
+                    //     ? selectedColors.darkSuccessTextColor
+                    //     : selectedColors.lightSuccessTextColor,
+                    // }}
                     className="text-4xl font-bold text-center mb-3"
                   >
                     Preview
@@ -892,13 +667,31 @@ export default function ColorCustomization() {
 
                   <button
                     className="mt-3 px-4 py-2 rounded-md"
+                    onMouseEnter={() => setIsHovered(true)}
+                    onMouseLeave={() => setIsHovered(false)}
                     style={{
                       backgroundColor: isDarkMode
-                        ? selectedColors.darkButtonColor
-                        : selectedColors.lightButtonColor,
+                        ? isHovered
+                          ? selectedColors.darkButtonHoverColor
+                          : selectedColors.darkButtonColor
+                        : isHovered
+                          ? selectedColors.lightButtonHoverColor
+                          : selectedColors.lightButtonColor,
                       color: isDarkMode
-                        ? selectedColors.darkButtonTextColor
-                        : selectedColors.lightButtonTextColor,
+                        ? isHovered
+                          ? selectedColors.darkButtonHoverTextColor
+                          : selectedColors.darkButtonTextColor
+                        : isHovered
+                          ? selectedColors.lightButtonHoverTextColor
+                          : selectedColors.lightButtonTextColor,
+                      boxShadow: isDarkMode
+                        ? selectedColors.darkAllowShadow
+                          ? `0 4px 8px ${selectedColors.darkButtonShadow}`
+                          : 'none'
+                        : selectedColors.lightAllowShadow
+                          ? `0 4px 8px ${selectedColors.lightButtonShadow}`
+                          : 'none',
+                      transition: 'background-color 0.3s ease, color 0.3s ease',
                     }}
                   >
                     Sample Button

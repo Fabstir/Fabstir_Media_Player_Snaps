@@ -1,864 +1,685 @@
-import React, { useContext, useEffect, useLayoutEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { useRouter } from 'next/router';
-import axios from 'axios';
-import BlockchainContext from '../../state/BlockchainContext';
-import { getSmartAccountAddress } from '../../src/blockchain/useAccountAbstractionPayment';
-import { ChevronDoubleLeftIcon } from '@heroicons/react/24/solid';
-import { TextLink } from '../../src/ui-components/text';
-import useCreateUser from '../../src/hooks/useCreateUser';
-import { Button } from '../../src/ui-components/button';
-import { Select, SelectItem, Avatar } from '@nextui-org/react';
-import ColorSelect from '../../src/ui-components/colorSelect';
+import React, { useState, useEffect } from 'react';
+import { DebounceInput } from 'react-debounce-input';
+import { ChromePicker } from 'react-color';
+import chroma from 'chroma-js';
 
-let url = process.env.NEXT_PUBLIC_FABSTIRDB_BACKEND_URL || '';
+const defaultColors = {
+  light: {
+    foreground: '#fbfbfb',
+    background: '#f0f0f0',
+    border: '#dfdfdf',
+    copy: '#262626',
+    copyLight: '#666666',
+    copyLighter: '#8c8c8c',
+  },
+  dark: {
+    foreground: '#262626',
+    background: '#1a1a1a',
+    border: '#404040',
+    copy: '#fbfbfb',
+    copyLight: '#d9d9d9',
+    copyLighter: '#a6a6a6',
+  },
+};
 
-const darkThemeColorSet = new Set([
-  { label: 'Dark Gray', value: '#333333' },
-  { label: 'Charcoal', value: '#2C2C2C' },
-  { label: 'Slate Gray', value: '#6C757D' },
-  { label: 'Gunmetal', value: '#2A2A2A' },
-  { label: 'Ash Gray', value: '#B2B2B2' },
-  { label: 'Midnight Blue', value: '#003366' },
-  { label: 'Ocean Blue', value: '#004080' },
-  { label: 'Dark Purple', value: '#2E003E' },
-  { label: 'Indigo', value: '#4B0082' },
-  { label: 'Forest Green', value: '#228B22' },
-  { label: 'Deep Green', value: '#004d00' },
-  { label: 'Crimson Red', value: '#DC143C' },
-  { label: 'Firebrick', value: '#B22222' },
-  { label: 'Burnt Orange', value: '#CC5500' },
-  { label: 'Golden Rod', value: '#DAA520' },
-  { label: 'Dark Olive Green', value: '#556B2F' },
-  { label: 'Steel Blue', value: '#4682B4' },
-  { label: 'Dark Salmon', value: '#E9967A' },
-  { label: 'Rosy Brown', value: '#BC8F8F' },
-]);
-const darkThemeColor = Array.from(darkThemeColorSet);
-
-const lightThemeColorSet = new Set([
-  { label: 'White', value: '#FFFFFF' },
-  { label: 'Light Gray', value: '#F0F0F0' },
-  { label: 'Gainsboro', value: '#DCDCDC' },
-  { label: 'Silver', value: '#C0C0C0' },
-  { label: 'Light Slate Gray', value: '#778899' },
-  { label: 'Sky Blue', value: '#87CEEB' },
-  { label: 'Powder Blue', value: '#B0E0E6' },
-  { label: 'Alice Blue', value: '#F0F8FF' },
-  { label: 'Lavender', value: '#E6E6FA' },
-  { label: 'Light Pink', value: '#FFB6C1' },
-  { label: 'Peach Puff', value: '#FFDAB9' },
-  { label: 'Misty Rose', value: '#FFE4E1' },
-  { label: 'Honeydew', value: '#F0FFF0' },
-  { label: 'Pale Goldenrod', value: '#EEE8AA' },
-  { label: 'Light Green', value: '#90EE90' },
-  { label: 'Light Coral', value: '#F08080' },
-  { label: 'Coral', value: '#FF7F50' },
-  { label: 'Turquoise', value: '#40E0D0' },
-  { label: 'Light Sea Green', value: '#20B2AA' },
-  { label: 'Khaki', value: '#F0E68C' },
-]);
-const lightThemeColor = Array.from(lightThemeColorSet);
-
-const ColorCustomization = () => {
-  const router = useRouter();
-  const [smartAccountAddress, setSmartAccountAddress] = useState('');
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [colors, setColors] = useState({
-    lightTextColor: '#000000',
-    lightButtonColor: '#000000',
-    lightButtonTextColor: '#000000',
-    lightBackgroundColor: '#ffffff',
-
-    darkTextColor: '#E0E0E0',
-    darkButtonColor: '#BB86FC',
-    darkButtonTextColor: '#E0E0E0',
-    darkBackgroundColor: '#121212',
+const Color = () => {
+  const [showPicker, setShowPicker] = useState(false);
+  const [colorMode, setColorMode] = useState('light'); // 'light' or 'dark'
+  const [saturation, setSaturation] = useState(0); // Default saturation value
+  const [hueRotation, setHueRotation] = useState(90);
+  const [primaryColorState, setPrimaryColorState] = useState({
+    primaryColor: '#c2d7eb',
+    primaryContentColor: chroma('#c2d7eb').brighten(3).hex(),
+    primaryLightColor: chroma('#c2d7eb').brighten(1).hex(),
+    primaryDarkColor: chroma('#c2d7eb').darken(1).hex(),
   });
-  const blockchainContext = useContext(BlockchainContext);
-  const { smartAccount, setSmartAccount, setConnectedChainId } =
-    blockchainContext;
-  const { signOut } = useCreateUser();
-
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    watch,
-    formState: { errors },
-  } = useForm({
-    defaultValues: colors,
+  const [secondaryColorState, setSecondaryColorState] = useState({
+    secondaryColor: chroma('#c2d7eb').set('hsl.h', `+${hueRotation}`).hex(),
+    secondaryContentColor: chroma('#c2d7eb').darken(2).hex(),
+    secondaryLightColor: chroma('#c2d7eb').brighten(1.5).hex(),
+    secondaryDarkColor: chroma('#c2d7eb').darken(1).hex(),
   });
+  const [utilityColors, setUtilityColors] = useState({
+    successColor: chroma(primaryColorState.primaryColor).brighten(1.5).hex(), // Lighten primary color for success
+    warningColor: chroma(primaryColorState.primaryColor)
+      .set('hsl.h', `+30`)
+      .hex(), // Adjust hue for warning
+    errorColor: chroma(primaryColorState.primaryColor)
+      .set('hsl.h', `-30`)
+      .hex(), // Adjust hue for error
+    successContentColor: chroma(primaryColorState.primaryColor).darken(2).hex(),
+    warningContentColor: chroma(primaryColorState.primaryColor).darken(2).hex(),
+    errorContentColor: chroma(primaryColorState.primaryColor).darken(2).hex(),
+  });
+  const [neutralsColorState, setNeutralsColorState] = useState(defaultColors);
 
-  const selectedColors = watch();
+  const handleButtonClick = () => {
+    setShowPicker(!showPicker);
+  };
 
-  useEffect(() => {
-    if (smartAccountAddress) {
-      fetchColor();
-    }
-  }, [smartAccountAddress]);
+  const handleColorChange = (newColor) => {
+    const updatedPrimaryColor = newColor.hex;
+    const updatedSecondaryColor = chroma(newColor.hex)
+      .set('hsl.h', `+${hueRotation}`)
+      .hex();
 
-  const fetchColor = async () => {
-    const userData = sessionStorage.getItem('userSession');
-    const token = JSON.parse(userData)?.token ?? '';
-    try {
-      if (!token || !smartAccountAddress) return;
-      const response = await axios.get(`${url}/color/${smartAccountAddress}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+    const isLightColor = chroma(updatedPrimaryColor).luminance() > 0.5;
+
+    setPrimaryColorState({
+      primaryColor: updatedPrimaryColor,
+      primaryContentColor: isLightColor
+        ? chroma(updatedPrimaryColor).darken(2).hex()
+        : chroma(updatedPrimaryColor).brighten(2).hex(),
+      primaryLightColor: chroma(updatedPrimaryColor).brighten(1.5).hex(),
+      primaryDarkColor: chroma(updatedPrimaryColor).darken(1).hex(),
+    });
+
+    setSecondaryColorState({
+      secondaryColor: updatedSecondaryColor,
+      secondaryContentColor: isLightColor
+        ? chroma(updatedSecondaryColor).darken(2).hex()
+        : chroma(updatedSecondaryColor).brighten(2).hex(),
+      secondaryLightColor: chroma(updatedSecondaryColor).brighten(1.5).hex(),
+      secondaryDarkColor: chroma(updatedSecondaryColor).darken(1).hex(),
+    });
+
+    setUtilityColors({
+      successColor: isLightColor
+        ? chroma(updatedPrimaryColor).set('hsl.h', 120).darken(1).hex()
+        : chroma(updatedPrimaryColor).set('hsl.h', 120).brighten(1).hex(),
+      warningColor: isLightColor
+        ? chroma(updatedPrimaryColor).set('hsl.h', 60).darken(2).hex()
+        : chroma(updatedPrimaryColor).set('hsl.h', 60).brighten(2).hex(),
+      errorColor: isLightColor
+        ? chroma(updatedPrimaryColor).set('hsl.h', 0).darken(1).hex()
+        : chroma(updatedPrimaryColor).set('hsl.h', 0).brighten(1).hex(),
+      successContentColor: chroma(updatedPrimaryColor)
+        .set('hsl.h', 120)
+        .brighten(1.5)
+        .hex(),
+      warningContentColor: chroma(updatedPrimaryColor)
+        .set('hsl.h', 60)
+        .brighten(1.5)
+        .hex(),
+      errorContentColor: chroma(updatedPrimaryColor)
+        .set('hsl.h', 0)
+        .darken(1.5)
+        .hex(),
+    });
+    
+      setNeutralsColorState({
+        light: {
+          foreground: blendWithPrimary(defaultColors.light.foreground),
+          background: blendWithPrimary(defaultColors.light.background),
+          border: blendWithPrimary(defaultColors.light.border),
+          copy: blendWithPrimary(defaultColors.light.copy),
+          copyLight: blendWithPrimary(defaultColors.light.copyLight),
+          copyLighter: blendWithPrimary(defaultColors.light.copyLighter),
+        },
+        dark: {
+          foreground: blendWithPrimary(defaultColors.dark.foreground),
+          background: blendWithPrimary(defaultColors.dark.background),
+          border: blendWithPrimary(defaultColors.dark.border),
+          copy: blendWithPrimary(defaultColors.dark.copy),
+          copyLight: blendWithPrimary(defaultColors.dark.copyLight),
+          copyLighter: blendWithPrimary(defaultColors.dark.copyLighter),
         },
       });
-      setColors(response.data.document[0]);
-    } catch (error) {
-      handleError(error);
-    }
+      
   };
 
-  useEffect(() => {
-    const setSmartAccountAddressFn = async () => {
-      if (smartAccount) {
-        setSmartAccountAddress(await getSmartAccountAddress(smartAccount));
-      }
-    };
-    setSmartAccountAddressFn();
-  }, [smartAccount]);
+  const handleHueRotation = (value) => {
+    const parsedValue = parseFloat(value);
 
-  useEffect(() => {
-    setValue('lightTextColor', colors.lightTextColor);
-    setValue('lightButtonColor', colors.lightButtonColor);
-    setValue('lightButtonTextColor', colors.lightButtonTextColor);
-    setValue('lightBackgroundColor', colors.lightBackgroundColor);
+    if (!isNaN(parsedValue)) {
+      setHueRotation(parsedValue);
 
-    setValue('darkTextColor', colors.darkTextColor);
-    setValue('darkButtonColor', colors.darkButtonColor);
-    setValue('darkButtonTextColor', colors.darkButtonTextColor);
-    setValue('darkBackgroundColor', colors.darkBackgroundColor);
-  }, [colors, setValue]);
+      const updatedSecondaryColor = chroma(primaryColorState?.primaryColor)
+        .set('hsl.h', `+${parsedValue}`)
+        .hex();
 
-  useEffect(() => {
-    document.documentElement.style.setProperty(
-      '--light-text-color',
-      colors.lightTextColor,
-    );
-    document.documentElement.style.setProperty(
-      '--light-button-color',
-      colors.lightButtonColor,
-    );
-    document.documentElement.style.setProperty(
-      '--light-button-text-color',
-      colors.lightButtonTextColor,
-    );
-    document.documentElement.style.setProperty(
-      '--light-background-color',
-      colors.lightBackgroundColor,
-    );
+      const isLightColor =
+        chroma(primaryColorState?.primaryColor).luminance() > 0.5;
 
-    document.documentElement.style.setProperty(
-      '--dark-text-color',
-      colors.darkTextColor,
-    );
-    document.documentElement.style.setProperty(
-      '--dark-button-color',
-      colors.darkButtonColor,
-    );
-    document.documentElement.style.setProperty(
-      '--dark-button-text-color',
-      colors.darkButtonTextColor,
-    );
-    document.documentElement.style.setProperty(
-      '--dark-background-color',
-      colors.darkBackgroundColor,
-    );
-  }, [colors]);
-
-  const onSubmit = async (data) => {
-    try {
-      data.smartAccount = smartAccountAddress;
-      const userData = sessionStorage.getItem('userSession');
-      const token = JSON.parse(userData)?.token ?? '';
-      await axios.post(`${url}/color`, data, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+      setSecondaryColorState({
+        secondaryColor: updatedSecondaryColor,
+        secondaryContentColor: isLightColor
+          ? chroma(updatedSecondaryColor).darken(2).hex()
+          : chroma(updatedSecondaryColor).brighten(2).hex(),
+        secondaryLightColor: chroma(updatedSecondaryColor).brighten(1.5).hex(),
+        secondaryDarkColor: chroma(updatedSecondaryColor).darken(1).hex(),
       });
-      fetchColor();
-    } catch (error) {
-      handleError(error);
     }
   };
 
-  const handleError = (error) => {
-    if (error?.response?.data?.err === 'Invalid token.') {
-      handleLogout();
-    }
-    console.error(
-      'Error:',
-      error.response?.data || error.request || error.message,
-    );
+  const adjustColorSaturation = (color, amount) => {
+    return chroma(color).saturate(amount).hex();
   };
 
-  const handleLogout = async () => {
-    await signOut();
-    setSmartAccount(null);
-    setConnectedChainId(null);
-    router.push('/');
+  const handleSaturation = (value) => {
+    setSaturation(value);
+  
+    setNeutralsColorState({
+      light: {
+        foreground: blendWithPrimary(defaultColors.light.foreground),
+        background: blendWithPrimary(defaultColors.light.background),
+        border: blendWithPrimary(defaultColors.light.border),
+        copy: blendWithPrimary(defaultColors.light.copy),
+        copyLight: blendWithPrimary(defaultColors.light.copyLight),
+        copyLighter: blendWithPrimary(defaultColors.light.copyLighter),
+      },
+      dark: {
+        foreground: blendWithPrimary(defaultColors.dark.foreground),
+        background: blendWithPrimary(defaultColors.dark.background),
+        border: blendWithPrimary(defaultColors.dark.border),
+        copy: blendWithPrimary(defaultColors.dark.copy),
+        copyLight: blendWithPrimary(defaultColors.dark.copyLight),
+        copyLighter: blendWithPrimary(defaultColors.dark.copyLighter),
+      },
+    });
+  };
+  
+  const blendWithPrimary = (color) => {
+    return chroma.mix(color, primaryColorState.primaryColor, 0.1).saturate(saturation).hex();
   };
 
   return (
-    <React.Fragment>
-      <div className="flex justify-start ml-4">
-        <TextLink className="mt-6" href="/">
-          <div className="flex items-center">
-            <ChevronDoubleLeftIcon
-              className="h-6 w-6 font-bold text-gray-500 lg:h-8 lg:w-8 mr-2"
-              aria-hidden="true"
-            />
-            <span className="text-text dark:text-dark-text">Back to Root</span>
-          </div>
-        </TextLink>
+    <div className="mx-auto w-3/5">
+      <div className="mb-12 md:mb-24">
+        <h1 className="mb-4 max-w-2xl text-4xl font-black leading-[1.2] md:text-5xl md:leading-[1.2]">
+          A CSS Color Palette Generator That Works
+        </h1>
+        <p className="mb-4 max-w-xl text-lg text-neutral-700">
+          Find or add your primary brand color, adjust a couple of nobs, and
+          create a sensible, semantic, professional color palette in a couple of
+          seconds. Preview on a real site. Export to CSS, SCSS, Figma, and
+          TailwindCSS.
+        </p>
       </div>
-      <div className="flex">
-        <div className="max-w-lg mx-auto p-8 bg-white shadow-lg rounded-lg">
-          <h1 className="text-2xl font-bold text-center mb-6 text-text dark:text-dark-text">
-            Color Customization
-          </h1>
-          <div className="flex justify-center mb-6">
-            <Button
-              onClick={() => setIsDarkMode(false)}
-              className={
-                !isDarkMode
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-300 text-gray-800'
-              }
-            >
-              Light Mode
-            </Button>
-            <Button
-              onClick={() => setIsDarkMode(true)}
-              className={`ml-2 ${isDarkMode ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-800'}`}
-            >
-              Dark Mode
-            </Button>
+      <div className="mb-12 grid grid-cols-1 gap-12 md:grid-cols-[250px_1fr]">
+        <div>
+          <div className="mb-4">
+            <h2 className="mb-2 text-3xl font-bold">Primary</h2>
+            <p className="text-sm text-neutral-600">
+              Primary brand color, used for main call to actions, logos, etc.
+            </p>
           </div>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {isDarkMode ? (
-              <>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Dark Button Text Color
-                </label>
-                <ColorSelect
-                  label="Dark Button Text Color"
-                  value={selectedColors.darkButtonTextColor}
-                  onChange={(value) => setValue('darkButtonTextColor', value)}
-                  colors={darkThemeColor}
-                  register={register}
-                  name="darkButtonTextColor"
-                  errors={errors}
-                />
-                {errors.darkButtonTextColor && (
-                  <p className="text-red-500 text-xs mt-1">
-                    This field is required
-                  </p>
-                )}
-
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Dark Mode Button Background Color
-                </label>
-                {/* <Select
-                  aria-label="Select Dark Button Background Color"
-                  value={selectedColors.darkButtonColor}
-                  classNames={{
-                    label: 'group-data-[filled=true]:-translate-y-5',
-                    trigger: 'min-h-16',
-                    listboxWrapper: 'max-h-[400px]',
-                  }}
-                  listboxProps={{
-                    itemClasses: {
-                      base: [
-                        'rounded-md',
-                        'text-default-500',
-                        'transition-opacity',
-                        'data-[hover=true]:text-foreground',
-                        'data-[hover=true]:bg-default-100',
-                        'dark:data-[hover=true]:bg-default-50',
-                        'data-[selectable=true]:focus:bg-default-50',
-                        'data-[pressed=true]:opacity-70',
-                        'data-[focus-visible=true]:ring-default-500',
-                      ],
-                    },
-                  }}
-                  popoverProps={{
-                    classNames: {
-                      base: 'before:bg-default-200',
-                      content: 'p-0 border-small border-divider bg-background',
-                    },
-                  }}
-                  renderValue={(items) => {
-                    return items.map((color) => (
-                      <div key={color.key} className="flex gap-2 items-center">
-                        <div
-                          className="h-10 w-10 ml-5"
-                          style={{ backgroundColor: color.props.value }}
-                        ></div>
-                        <div className="flex flex-col">
-                          {color.props.textValue}
-                        </div>
-                      </div>
-                    ));
-                  }}
-                  onChange={(value) => setValue('darkButtonColor', value)}
-                  {...register('darkButtonColor', { required: true })}
-                >
-                  {darkThemeColor.map((color) => (
-                    <SelectItem
-                      key={color.value}
-                      value={color.value}
-                      textValue={color.label}
-                    >
-                      <div className="flex gap-2 items-center">
-                        <div
-                          className="h-10 w-10 ml-5"
-                          style={{ backgroundColor: color.value }}
-                        ></div>
-                        <div className="flex flex-col">{color.label}</div>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </Select> */}
-                <ColorSelect
-                  label="darkButtonColor"
-                  value={selectedColors.darkButtonColor}
-                  onChange={(value) => setValue('darkButtonColor', value)}
-                  colors={darkThemeColor}
-                  register={register}
-                  name="darkButtonColor"
-                  errors={errors}
-                />
-                {errors.darkButtonColor && (
-                  <p className="text-red-500 text-xs mt-1">
-                    This field is required
-                  </p>
-                )}
-
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Dark Mode Text Color
-                </label>
-                <Select
-                  aria-label="Select Dark Text Color"
-                  value={selectedColors.darkTextColor}
-                  classNames={{
-                    label: 'group-data-[filled=true]:-translate-y-5',
-                    trigger: 'min-h-16',
-                    listboxWrapper: 'max-h-[400px]',
-                  }}
-                  listboxProps={{
-                    itemClasses: {
-                      base: [
-                        'rounded-md',
-                        'text-default-500',
-                        'transition-opacity',
-                        'data-[hover=true]:text-foreground',
-                        'data-[hover=true]:bg-default-100',
-                        'dark:data-[hover=true]:bg-default-50',
-                        'data-[selectable=true]:focus:bg-default-50',
-                        'data-[pressed=true]:opacity-70',
-                        'data-[focus-visible=true]:ring-default-500',
-                      ],
-                    },
-                  }}
-                  popoverProps={{
-                    classNames: {
-                      base: 'before:bg-default-200',
-                      content: 'p-0 border-small border-divider bg-background',
-                    },
-                  }}
-                  renderValue={(items) => {
-                    return items.map((color) => (
-                      <div key={color.key} className="flex gap-2 items-center">
-                        <div
-                          className="h-10 w-10 ml-5"
-                          style={{ backgroundColor: color.props.value }}
-                        ></div>
-                        <div className="flex flex-col">
-                          {color.props.textValue}
-                        </div>
-                      </div>
-                    ));
-                  }}
-                  onChange={(value) => setValue('darkTextColor', value)}
-                  {...register('darkTextColor', { required: true })}
-                >
-                  {darkThemeColor.map((color) => (
-                    <SelectItem
-                      key={color.value}
-                      value={color.value}
-                      textValue={color.label}
-                    >
-                      <div className="flex gap-2 items-center">
-                        <div
-                          className="h-10 w-10 ml-5"
-                          style={{ backgroundColor: color.value }}
-                        ></div>
-                        <div className="flex flex-col">{color.label}</div>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </Select>
-                {errors.darkTextColor && (
-                  <p className="text-red-500 text-xs mt-1">
-                    This field is required
-                  </p>
-                )}
-
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Dark Mode Background Color
-                </label>
-                <Select
-                  aria-label="Select Dark Background Color"
-                  value={selectedColors.darkBackgroundColor}
-                  classNames={{
-                    label: 'group-data-[filled=true]:-translate-y-5',
-                    trigger: 'min-h-16',
-                    listboxWrapper: 'max-h-[400px]',
-                  }}
-                  listboxProps={{
-                    itemClasses: {
-                      base: [
-                        'rounded-md',
-                        'text-default-500',
-                        'transition-opacity',
-                        'data-[hover=true]:text-foreground',
-                        'data-[hover=true]:bg-default-100',
-                        'dark:data-[hover=true]:bg-default-50',
-                        'data-[selectable=true]:focus:bg-default-50',
-                        'data-[pressed=true]:opacity-70',
-                        'data-[focus-visible=true]:ring-default-500',
-                      ],
-                    },
-                  }}
-                  popoverProps={{
-                    classNames: {
-                      base: 'before:bg-default-200',
-                      content: 'p-0 border-small border-divider bg-background',
-                    },
-                  }}
-                  renderValue={(items) => {
-                    return items.map((color) => (
-                      <div key={color.key} className="flex gap-2 items-center">
-                        <div
-                          className="h-10 w-10 ml-5"
-                          style={{ backgroundColor: color.props.value }}
-                        ></div>
-                        <div className="flex flex-col">
-                          {color.props.textValue}
-                        </div>
-                      </div>
-                    ));
-                  }}
-                  onChange={(value) => setValue('darkBackgroundColor', value)}
-                  {...register('darkBackgroundColor', { required: true })}
-                >
-                  {darkThemeColor.map((color) => (
-                    <SelectItem
-                      key={color.value}
-                      value={color.value}
-                      textValue={color.label}
-                    >
-                      <div className="flex gap-2 items-center">
-                        <div
-                          className="h-10 w-10 ml-5"
-                          style={{ backgroundColor: color.value }}
-                        ></div>
-                        <div className="flex flex-col">{color.label}</div>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </Select>
-                {errors.darkBackgroundColor && (
-                  <p className="text-red-500 text-xs mt-1">
-                    This field is required
-                  </p>
-                )}
-              </>
-            ) : (
-              <>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Light Button Text Color
-                </label>
-                <Select
-                  aria-label="Select Light Button Text Color"
-                  value={selectedColors.lightButtonTextColor}
-                  classNames={{
-                    label: 'group-data-[filled=true]:-translate-y-5',
-                    trigger: 'min-h-16',
-                    listboxWrapper: 'max-h-[400px]',
-                  }}
-                  listboxProps={{
-                    itemClasses: {
-                      base: [
-                        'rounded-md',
-                        'text-default-500',
-                        'transition-opacity',
-                        'data-[hover=true]:text-foreground',
-                        'data-[hover=true]:bg-default-100',
-                        'dark:data-[hover=true]:bg-default-50',
-                        'data-[selectable=true]:focus:bg-default-50',
-                        'data-[pressed=true]:opacity-70',
-                        'data-[focus-visible=true]:ring-default-500',
-                      ],
-                    },
-                  }}
-                  popoverProps={{
-                    classNames: {
-                      base: 'before:bg-default-200',
-                      content: 'p-0 border-small border-divider bg-background',
-                    },
-                  }}
-                  renderValue={(items) => {
-                    return items.map((color) => (
-                      <div key={color.key} className="flex gap-2 items-center">
-                        <div
-                          className="h-10 w-10 ml-5"
-                          style={{ backgroundColor: color.props.value }}
-                        ></div>
-                        <div className="flex flex-col">
-                          {color.props.textValue}
-                        </div>
-                      </div>
-                    ));
-                  }}
-                  onChange={(value) => setValue('lightButtonTextColor', value)}
-                  {...register('lightButtonTextColor')}
-                >
-                  {lightThemeColor.map((color) => (
-                    <SelectItem
-                      key={color.value}
-                      value={color.value}
-                      textValue={color.label}
-                    >
-                      <div className="flex gap-2 items-center">
-                        <div
-                          className="h-10 w-10 ml-5"
-                          style={{ backgroundColor: color.value }}
-                        ></div>
-                        <div className="flex flex-col">{color.label}</div>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </Select>
-                {errors.lightButtonTextColor && (
-                  <p className="text-red-500 text-xs mt-1">
-                    This field is required
-                  </p>
-                )}
-
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Light Mode Button Background Color
-                </label>
-                <Select
-                  aria-label="Select Light Button Background Color"
-                  value={selectedColors.lightButtonColor}
-                  classNames={{
-                    label: 'group-data-[filled=true]:-translate-y-5',
-                    trigger: 'min-h-16',
-                    listboxWrapper: 'max-h-[400px]',
-                  }}
-                  listboxProps={{
-                    itemClasses: {
-                      base: [
-                        'rounded-md',
-                        'text-default-500',
-                        'transition-opacity',
-                        'data-[hover=true]:text-foreground',
-                        'data-[hover=true]:bg-default-100',
-                        'dark:data-[hover=true]:bg-default-50',
-                        'data-[selectable=true]:focus:bg-default-50',
-                        'data-[pressed=true]:opacity-70',
-                        'data-[focus-visible=true]:ring-default-500',
-                      ],
-                    },
-                  }}
-                  popoverProps={{
-                    classNames: {
-                      base: 'before:bg-default-200',
-                      content: 'p-0 border-small border-divider bg-background',
-                    },
-                  }}
-                  renderValue={(items) => {
-                    return items.map((color) => (
-                      <div key={color.key} className="flex gap-2 items-center">
-                        <div
-                          className="h-10 w-10 ml-5"
-                          style={{ backgroundColor: color.props.value }}
-                        ></div>
-                        <div className="flex flex-col">
-                          {color.props.textValue}
-                        </div>
-                      </div>
-                    ));
-                  }}
-                  onChange={(value) => setValue('lightButtonColor', value)}
-                  {...register('lightButtonColor')}
-                >
-                  {lightThemeColor.map((color) => (
-                    <SelectItem
-                      key={color.value}
-                      value={color.value}
-                      textValue={color.label}
-                    >
-                      <div className="flex gap-2 items-center">
-                        <div
-                          className="h-10 w-10 ml-5"
-                          style={{ backgroundColor: color.value }}
-                        ></div>
-                        <div className="flex flex-col">{color.label}</div>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </Select>
-                {errors.lightButtonColor && (
-                  <p className="text-red-500 text-xs mt-1">
-                    This field is required
-                  </p>
-                )}
-
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Light Mode Text Color
-                </label>
-                <Select
-                  aria-label="Select Light Text Color"
-                  value={selectedColors.lightTextColor}
-                  classNames={{
-                    label: 'group-data-[filled=true]:-translate-y-5',
-                    trigger: 'min-h-16',
-                    listboxWrapper: 'max-h-[400px]',
-                  }}
-                  listboxProps={{
-                    itemClasses: {
-                      base: [
-                        'rounded-md',
-                        'text-default-500',
-                        'transition-opacity',
-                        'data-[hover=true]:text-foreground',
-                        'data-[hover=true]:bg-default-100',
-                        'dark:data-[hover=true]:bg-default-50',
-                        'data-[selectable=true]:focus:bg-default-50',
-                        'data-[pressed=true]:opacity-70',
-                        'data-[focus-visible=true]:ring-default-500',
-                      ],
-                    },
-                  }}
-                  popoverProps={{
-                    classNames: {
-                      base: 'before:bg-default-200',
-                      content: 'p-0 border-small border-divider bg-background',
-                    },
-                  }}
-                  renderValue={(items) => {
-                    return items.map((color) => (
-                      <div key={color.key} className="flex gap-2 items-center">
-                        <div
-                          className="h-10 w-10 ml-5"
-                          style={{ backgroundColor: color.props.value }}
-                        ></div>
-                        <div className="flex flex-col">
-                          {color.props.textValue}
-                        </div>
-                      </div>
-                    ));
-                  }}
-                  onChange={(value) => setValue('lightTextColor', value)}
-                  {...register('lightTextColor')}
-                >
-                  {lightThemeColor.map((color) => (
-                    <SelectItem
-                      key={color.value}
-                      value={color.value}
-                      textValue={color.label}
-                    >
-                      <div className="flex gap-2 items-center">
-                        <div
-                          className="h-10 w-10 ml-5"
-                          style={{ backgroundColor: color.value }}
-                        ></div>
-                        <div className="flex flex-col">{color.label}</div>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </Select>
-                {errors.lightTextColor && (
-                  <p className="text-red-500 text-xs mt-1">
-                    This field is required
-                  </p>
-                )}
-
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Light Mode Background Color
-                </label>
-                <Select
-                  aria-label="Select Light Background Color"
-                  value={selectedColors.lightBackgroundColor}
-                  classNames={{
-                    label: 'group-data-[filled=true]:-translate-y-5',
-                    trigger: 'min-h-16',
-                    listboxWrapper: 'max-h-[400px]',
-                  }}
-                  listboxProps={{
-                    itemClasses: {
-                      base: [
-                        'rounded-md',
-                        'text-default-500',
-                        'transition-opacity',
-                        'data-[hover=true]:text-foreground',
-                        'data-[hover=true]:bg-default-100',
-                        'dark:data-[hover=true]:bg-default-50',
-                        'data-[selectable=true]:focus:bg-default-50',
-                        'data-[pressed=true]:opacity-70',
-                        'data-[focus-visible=true]:ring-default-500',
-                      ],
-                    },
-                  }}
-                  popoverProps={{
-                    classNames: {
-                      base: 'before:bg-default-200',
-                      content: 'p-0 border-small border-divider bg-background',
-                    },
-                  }}
-                  renderValue={(items) => {
-                    return items.map((color) => (
-                      <div key={color.key} className="flex gap-2 items-center">
-                        <div
-                          className="h-10 w-10 ml-5"
-                          style={{ backgroundColor: color.props.value }}
-                        ></div>
-                        <div className="flex flex-col">
-                          {color.props.textValue}
-                        </div>
-                      </div>
-                    ));
-                  }}
-                  onChange={(value) => setValue('lightBackgroundColor', value)}
-                  {...register('lightBackgroundColor')}
-                >
-                  {lightThemeColor.map((color) => (
-                    <SelectItem
-                      key={color.value}
-                      value={color.value}
-                      textValue={color.label}
-                    >
-                      <div className="flex gap-2 items-center">
-                        <div
-                          className="h-10 w-10 ml-5"
-                          style={{ backgroundColor: color.value }}
-                        ></div>
-                        <div className="flex flex-col">{color.label}</div>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </Select>
-                {errors.lightBackgroundColor && (
-                  <p className="text-red-500 text-xs mt-1">
-                    This field is required
-                  </p>
-                )}
-              </>
-            )}
-            <div className="flex justify-center mt-8">
-              <Button
-                type="submit"
-                className="bg-blue-500 text-white hover:bg-blue-600"
+          <div className="relative mb-4">
+            <button
+              className="flex w-full items-center rounded-full p-1 shadow-xl transition-colors"
+              onClick={handleButtonClick}
+              style={{
+                color: primaryColorState.primaryContentColor,
+                border: '2px solid rgb(194, 215, 235)',
+                background: primaryColorState.primaryColor,
+              }}
+              aria-label="Select Primary Color"
+            >
+              <div
+                className="grid h-8 w-8 place-content-center rounded-full"
+                style={{
+                  color: primaryColorState.primaryColor,
+                  background: primaryColorState.primaryContentColor,
+                }}
               >
-                Save Changes
-              </Button>
-            </div>
-          </form>
+                <svg
+                  stroke="currentColor"
+                  fill="currentColor"
+                  strokeWidth="0"
+                  viewBox="0 0 16 16"
+                  height="1em"
+                  width="1em"
+                >
+                  <path d="M13.354.646a1.207 1.207 0 0 0-1.708 0L8.5 3.793l-.646-.647a.5.5 0 1 0-.708.708L8.293 5l-7.147 7.146A.5.5 0 0 0 1 12.5v1.793l-.854.853a.5.5 0 1 0 .708.707L1.707 15H3.5a.5.5 0 0 0 .354-.146L11 7.707l1.146 1.147a.5.5 0 0 0 .708-.708l-.647-.646 3.147-3.146a1.207 1.207 0 0 0 0-1.708l-2-2zM2 12.707l7-7L10.293 7l-7 7H2v-1.293z"></path>
+                </svg>
+              </div>
+              <span className="w-full text-center">
+                {primaryColorState.primaryColor}
+              </span>
+            </button>
+
+            {showPicker && (
+              <div className="absolute mt-2 z-10">
+                <ChromePicker
+                  color={primaryColorState.primaryColor}
+                  onChange={handleColorChange}
+                />
+              </div>
+            )}
+          </div>
         </div>
-        <div
-          className="mt-10 p-4 rounded-md"
-          style={{
-            backgroundColor: isDarkMode
-              ? selectedColors.darkBackgroundColor
-              : selectedColors.lightBackgroundColor,
-            color: isDarkMode
-              ? selectedColors.darkTextColor
-              : selectedColors.lightTextColor,
-          }}
-        >
-          <p className="text-sm">This is a preview of your selected colors.</p>
-          <button
-            className="mt-4 px-4 py-2 rounded-md"
-            style={{
-              backgroundColor: isDarkMode
-                ? selectedColors.darkButtonColor
-                : selectedColors.lightButtonColor,
-              color: isDarkMode
-                ? selectedColors.darkButtonTextColor
-                : selectedColors.lightButtonTextColor,
-            }}
-          >
-            Sample Button
-          </button>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="col-span-3">
+            <div>
+              <div
+                className="mb-2 w-full rounded-xl shadow-md transition-colors"
+                style={{
+                  background: primaryColorState.primaryColor,
+                  height: '10rem',
+                }}
+              ></div>
+              <p className="-mb-1 ml-1 text-lg font-semibold">Primary</p>
+              <span className="ml-1 text-sm text-neutral-700">
+                {primaryColorState.primaryColor}
+              </span>
+            </div>
+          </div>
+          <div>
+            <div
+              className="mb-2 w-full rounded-xl shadow-md transition-colors"
+              style={{
+                background: primaryColorState.primaryContentColor,
+                height: '5rem',
+              }}
+            ></div>
+            <p className="-mb-1 ml-1 text-lg font-semibold">Primary Content</p>
+            <span className="ml-1 text-sm text-neutral-700">
+              {primaryColorState.primaryContentColor}
+            </span>
+          </div>
+          <div>
+            <div
+              className="mb-2 w-full rounded-xl shadow-md transition-colors"
+              style={{
+                background: primaryColorState.primaryLightColor,
+                height: '5rem',
+              }}
+            ></div>
+            <p className="-mb-1 ml-1 text-lg font-semibold">Primary Light</p>
+            <span className="ml-1 text-sm text-neutral-700">
+              {primaryColorState.primaryLightColor}
+            </span>
+          </div>
+          <div>
+            <div
+              className="mb-2 w-full rounded-xl shadow-md transition-colors"
+              style={{
+                background: primaryColorState.primaryDarkColor,
+                height: '5rem',
+              }}
+            ></div>
+            <p className="-mb-1 ml-1 text-lg font-semibold">Primary Dark</p>
+            <span className="ml-1 text-sm text-neutral-700">
+              {primaryColorState.primaryDarkColor}
+            </span>
+          </div>
         </div>
       </div>
-      {/* <Select
-        items={lightThemeColor}
-        label="Select a color"
-        className="max-w-xs"
-        variant="bordered"
-        classNames={{
-          label: 'group-data-[filled=true]:-translate-y-5',
-          trigger: 'min-h-16',
-          listboxWrapper: 'max-h-[400px]',
-        }}
-        listboxProps={{
-          itemClasses: {
-            base: [
-              'rounded-md',
-              'text-default-500',
-              'transition-opacity',
-              'data-[hover=true]:text-foreground',
-              'data-[hover=true]:bg-default-100',
-              'dark:data-[hover=true]:bg-default-50',
-              'data-[selectable=true]:focus:bg-default-50',
-              'data-[pressed=true]:opacity-70',
-              'data-[focus-visible=true]:ring-default-500',
-            ],
-          },
-        }}
-        popoverProps={{
-          classNames: {
-            base: 'before:bg-default-200',
-            content: 'p-0 border-small border-divider bg-background',
-          },
-        }}
-        renderValue={(items) => {
-          return items.map((color) => (
-            <div key={color.value} className="flex gap-2 items-center">
+      <div className="mb-12 grid grid-cols-1 gap-12 md:grid-cols-[250px_1fr]">
+        <div className="mb-4">
+          <div className="mb-4">
+            <h2 className="mb-2 text-3xl font-bold">Secondary</h2>
+            <p className="text-sm text-neutral-600">
+              Secondary brand color, used for tertiary actions.
+            </p>
+          </div>
+          <div
+            style={{
+              color: secondaryColorState.secondaryContentColor,
+              border: '2px solid rgb(214, 194, 235)',
+              background: secondaryColorState.secondaryColor,
+            }}
+            className="flex w-full items-center gap-4 rounded-full p-1 shadow-xl transition-colors "
+          >
+            <label
+              for="rotation-input"
+              className="grid h-8 w-8 shrink-0 place-content-center rounded-full"
+              style={{
+                color: secondaryColorState.secondaryColor,
+                background: secondaryColorState.secondaryContentColor,
+              }}
+            >
+              <svg
+                stroke="currentColor"
+                fill="none"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                height="1em"
+                width="1em"
+              >
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+              </svg>
+            </label>
+            <DebounceInput
+              id="rotation-input"
+              debounceTimeout={250}
+              className="hide-arrows mr-0.5 block w-full bg-transparent focus:outline-0"
+              value={hueRotation || ''}
+              onChange={(e) => handleHueRotation(e.target.value)}
+            />
+
+            <label
+              for="rotation-input"
+              className="mr-4 whitespace-nowrap text-xs font-bold"
+            >
+              hue degrees
+            </label>
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="col-span-3">
+            <div>
               <div
-                className="h-6 w-6"
-                style={{ backgroundColor: color.data.value }}
+                className="mb-2 w-full rounded-xl shadow-md transition-colors"
+                style={{
+                  background: secondaryColorState.secondaryColor,
+                  height: '10rem',
+                }}
               ></div>
-              <div className="text-sm">{color.data.label}</div>
+              <p className="-mb-1 ml-1 text-lg font-semibold">Secondary</p>
+              <span className="ml-1 text-sm text-neutral-700">
+                {secondaryColorState.secondaryColor}
+              </span>
             </div>
-          ));
-        }}
-      >
-        {(color) => (
-          <SelectItem key={color.value} textValue={color.label}>
-            <div className="flex gap-2 items-center">
-              <div
-                className="h-6 w-6"
-                style={{ backgroundColor: color.value }}
-              ></div>
-              <div className="text-sm">{color.label}</div>
-            </div>
-          </SelectItem>
-        )}
-      </Select> */}
-    </React.Fragment>
+          </div>
+          <div>
+            <div
+              className="mb-2 w-full rounded-xl shadow-md transition-colors"
+              style={{
+                background: secondaryColorState.secondaryContentColor,
+                height: '5rem',
+              }}
+            ></div>
+            <p className="-mb-1 ml-1 text-lg font-semibold">
+              Secondary Content
+            </p>
+            <span className="ml-1 text-sm text-neutral-700">
+              {secondaryColorState.secondaryContentColor}
+            </span>
+          </div>
+          <div>
+            <div
+              className="mb-2 w-full rounded-xl shadow-md transition-colors"
+              style={{
+                background: secondaryColorState.secondaryLightColor,
+                height: '5rem',
+              }}
+            ></div>
+            <p className="-mb-1 ml-1 text-lg font-semibold">Secondary Light</p>
+            <span className="ml-1 text-sm text-neutral-700">
+              {secondaryColorState.secondaryLightColor}
+            </span>
+          </div>
+          <div>
+            <div
+              className="mb-2 w-full rounded-xl shadow-md transition-colors"
+              style={{
+                background: secondaryColorState.secondaryDarkColor,
+                height: '5rem',
+              }}
+            ></div>
+            <p className="-mb-1 ml-1 text-lg font-semibold">Secondary Dark</p>
+            <span className="ml-1 text-sm text-neutral-700">
+              {secondaryColorState.secondaryDarkColor}
+            </span>
+          </div>
+        </div>
+      </div>
+      <div className="mb-12 grid grid-cols-1 gap-12 md:grid-cols-[250px_1fr]">
+        <div>
+          <div className="mb-4">
+            <h2 className="mb-2 text-3xl font-bold">Neutrals</h2>
+            <p className="text-sm text-neutral-600">
+              Base colors are for backgrounds and borders. Copy colors are for
+              text.
+            </p>
+          </div>
+          <div className="mb-4 w-full">
+            <label
+              htmlFor="base-palette-saturation"
+              className="flex items-center justify-between text-xs font-semibold"
+            >
+              <span className="text-neutral-700">Less</span>
+              <span style={{ color: 'rgb(41, 64, 86)' }}>Saturation</span>
+              <span className="text-neutral-700">More</span>
+            </label>
+            <input
+              type="range"
+              id="base-palette-saturation"
+              min="0"
+              max="0.35"
+              step=".025"
+              className="w-full"
+              value={saturation}
+              onChange={(e) => handleSaturation(e.target.value)}
+            />
+          </div>
+          <div
+            style={{ background: colorMode === 'dark' ? '#262626' : '#fafbfd' }}
+            className="relative flex w-full items-center rounded-full p-1 shadow-xl transition-colors"
+          >
+            <button
+              className="text-sm font-medium flex items-center justify-center gap-2 p-2 transition-colors w-full relative z-10 rounded-full"
+              style={{
+                color: '#fafbfd' ,
+                background: colorMode === 'dark' ? '#262626'  :'#262626',
+              }}
+              onClick={() => setColorMode('light')}
+            >
+              <svg
+                stroke="currentColor"
+                fill="none"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="relative z-10 md:text-sm"
+                height="1em"
+                width="1em"
+              >
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+              </svg>
+              <span className="relative z-10">Light</span>
+            </button>
+            <button
+              className="text-sm font-medium flex items-center justify-center gap-2 p-2 transition-colors w-full relative z-10 rounded-full"
+              style={{
+                color: '#262626',
+                background: colorMode === 'dark' ? '#fafbfd' : '#fafbfd',
+              }}
+              onClick={() => setColorMode('dark')}
+            >
+              <svg
+                stroke="currentColor"
+                fill="none"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="relative z-10 md:text-sm"
+                height="1em"
+                width="1em"
+              >
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+              </svg>
+              <span className="relative z-10">Dark</span>
+            </button>
+            {/* <div className="absolute inset-0 z-0 m-1 flex justify-end">
+              <span
+                className="h-full w-1/2 rounded-full"
+                style={{
+                  background: neutralsColorState[colorMode].foreground,
+                  transform: 'none',
+                }}
+              ></span>
+            </div> */}
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <div
+              className="mb-2 w-full rounded-xl shadow-md transition-colors"
+              style={{
+                background: neutralsColorState[colorMode].foreground,
+                height: '5rem',
+              }}
+            ></div>
+            <p className="-mb-1 ml-1 text-lg font-semibold">Foreground</p>
+            <span className="ml-1 text-sm text-neutral-700">
+              {neutralsColorState[colorMode].foreground}
+            </span>
+          </div>
+          <div>
+            <div
+              className="mb-2 w-full rounded-xl shadow-md transition-colors"
+              style={{
+                background: neutralsColorState[colorMode].background,
+                height: '5rem',
+              }}
+            ></div>
+            <p className="-mb-1 ml-1 text-lg font-semibold">Background</p>
+            <span className="ml-1 text-sm text-neutral-700">
+              {neutralsColorState[colorMode].background}
+            </span>
+          </div>
+          <div>
+            <div
+              className="mb-2 w-full rounded-xl shadow-md transition-colors"
+              style={{
+                background: neutralsColorState[colorMode].border,
+                height: '5rem',
+              }}
+            ></div>
+            <p className="-mb-1 ml-1 text-lg font-semibold">Border</p>
+            <span className="ml-1 text-sm text-neutral-700">
+              {neutralsColorState[colorMode].border}
+            </span>
+          </div>
+          <div>
+            <div
+              className="mb-2 w-full rounded-xl shadow-md transition-colors"
+              style={{
+                background: neutralsColorState[colorMode].copy,
+                height: '5rem',
+              }}
+            ></div>
+            <p className="-mb-1 ml-1 text-lg font-semibold">Copy</p>
+            <span className="ml-1 text-sm text-neutral-700">
+              {neutralsColorState[colorMode].copy}
+            </span>
+          </div>
+          <div>
+            <div
+              className="mb-2 w-full rounded-xl shadow-md transition-colors"
+              style={{
+                background: neutralsColorState[colorMode].copyLight,
+                height: '5rem',
+              }}
+            ></div>
+            <p className="-mb-1 ml-1 text-lg font-semibold">Copy Light</p>
+            <span className="ml-1 text-sm text-neutral-700">
+              {neutralsColorState[colorMode].copyLight}
+            </span>
+          </div>
+          <div>
+            <div
+              className="mb-2 w-full rounded-xl shadow-md transition-colors"
+              style={{
+                background: neutralsColorState[colorMode].copyLighter,
+                height: '5rem',
+              }}
+            ></div>
+            <p className="-mb-1 ml-1 text-lg font-semibold">Copy Lighter</p>
+            <span className="ml-1 text-sm text-neutral-700">
+              {neutralsColorState[colorMode].copyLighter}
+            </span>
+          </div>
+        </div>
+      </div>
+      <div className="mb-12 grid grid-cols-1 gap-12 md:grid-cols-[250px_1fr]">
+        <div>
+          <div className="mb-4">
+            <h2 className="mb-2 text-3xl font-bold">Utility</h2>
+            <p className="text-sm text-neutral-600">
+              Utility colors denote intention, such as deleting an account.
+            </p>
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <div
+              className="mb-2 w-full rounded-xl shadow-md transition-colors"
+              style={{ background: utilityColors.successColor, height: '5rem' }}
+            ></div>
+            <p className="-mb-1 ml-1 text-lg font-semibold">Success</p>
+            <span className="ml-1 text-sm text-neutral-700">
+              {utilityColors.successColor}
+            </span>
+          </div>
+          <div>
+            <div
+              className="mb-2 w-full rounded-xl shadow-md transition-colors"
+              style={{ background: utilityColors.warningColor, height: '5rem' }}
+            ></div>
+            <p className="-mb-1 ml-1 text-lg font-semibold">Warning</p>
+            <span className="ml-1 text-sm text-neutral-700">
+              {utilityColors.warningColor}
+            </span>
+          </div>
+          <div>
+            <div
+              className="mb-2 w-full rounded-xl shadow-md transition-colors"
+              style={{ background: utilityColors.errorColor, height: '5rem' }}
+            ></div>
+            <p className="-mb-1 ml-1 text-lg font-semibold">Error</p>
+            <span className="ml-1 text-sm text-neutral-700">
+              {utilityColors.errorColor}
+            </span>
+          </div>
+          <div>
+            <div
+              className="mb-2 w-full rounded-xl shadow-md transition-colors"
+              style={{
+                background: utilityColors.successContentColor,
+                height: '5rem',
+              }}
+            ></div>
+            <p className="-mb-1 ml-1 text-lg font-semibold">Success Content</p>
+            <span className="ml-1 text-sm text-neutral-700">
+              {utilityColors.successContentColor}
+            </span>
+          </div>
+          <div>
+            <div
+              className="mb-2 w-full rounded-xl shadow-md transition-colors"
+              style={{
+                background: utilityColors.warningContentColor,
+                height: '5rem',
+              }}
+            ></div>
+            <p className="-mb-1 ml-1 text-lg font-semibold">Warning Content</p>
+            <span className="ml-1 text-sm text-neutral-700">
+              {utilityColors.warningContentColor}
+            </span>
+          </div>
+          <div>
+            <div
+              className="mb-2 w-full rounded-xl shadow-md transition-colors"
+              style={{
+                background: utilityColors.errorContentColor,
+                height: '5rem',
+              }}
+            ></div>
+            <p className="-mb-1 ml-1 text-lg font-semibold">Error Content</p>
+            <span className="ml-1 text-sm text-neutral-700">
+              {utilityColors.errorContentColor}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
-export default ColorCustomization;
+export default Color;

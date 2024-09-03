@@ -94,7 +94,7 @@ export default function PermissionsTeams() {
 
   return (
     <div className="mx-auto max-w-7xl pl-6 pr-2 pt-12">
-      <div className="bg-fabstir-dark-purple">
+      <div className="">
         <h2 className="text-center text-3xl font-extrabold tracking-tight text-dark-gray sm:text-4xl">
           NFT Permissions
         </h2>
