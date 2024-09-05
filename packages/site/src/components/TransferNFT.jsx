@@ -258,7 +258,7 @@ export default function TransferNFT({ nft, open, setOpen }) {
                             className="block w-full rounded-md border-gray-300 bg-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                           />
                         </div>
-                        <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
+                        <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error dark:text-dark-error">
                           {errors.quantity?.message}
                         </p>
                       </div>
@@ -278,7 +278,7 @@ export default function TransferNFT({ nft, open, setOpen }) {
                           />{' '}
                         </div>
 
-                        <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
+                        <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error dark:text-dark-error">
                           {errors.recipientAccountAddress?.message}
                         </p>
                       </div>

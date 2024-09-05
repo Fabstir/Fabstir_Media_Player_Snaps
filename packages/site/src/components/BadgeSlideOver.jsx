@@ -154,7 +154,7 @@ const BadgeSlideOver = ({
                 leaveTo="-translate-x-full"
               >
                 <div
-                  className="bg-light-gray"
+                  className="bg-background dark:bg-dark-background text-copy dark:text-dark-copy"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {/* Background color split screen for large screens */}

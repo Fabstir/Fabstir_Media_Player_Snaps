@@ -293,7 +293,7 @@ export default function SellNFT({ nft, open, setOpen, setRerender }) {
                             className="block w-full rounded-md border-gray-300 bg-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                           />
                         </div>
-                        <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
+                        <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error dark:text-dark-error">
                           {errors.amount?.message}
                         </p>
                       </div>
@@ -312,7 +312,7 @@ export default function SellNFT({ nft, open, setOpen, setRerender }) {
                             className="block w-full rounded-md border-gray-300 bg-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                           />
                         </div>
-                        <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
+                        <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error dark:text-dark-error">
                           {errors.resellerPercentage?.message}
                         </p>
                       </div>
@@ -334,7 +334,7 @@ export default function SellNFT({ nft, open, setOpen, setRerender }) {
                             <option key={index}>{currency}</option>
                           ))}
                         </Select>
-                        <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
+                        <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error dark:text-dark-error">
                           {errors.currency?.message}
                         </p>
                       </div>
@@ -354,7 +354,7 @@ export default function SellNFT({ nft, open, setOpen, setRerender }) {
                           />
                         </div>
 
-                        <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
+                        <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error dark:text-dark-error">
                           {errors.price?.message}
                         </p>
                       </div>

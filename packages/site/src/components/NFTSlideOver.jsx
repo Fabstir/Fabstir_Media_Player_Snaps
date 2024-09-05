@@ -395,12 +395,12 @@ const NFTSlideOver = ({
                 leaveTo="translate-x-full"
               >
                 <div
-                  className="bg-light-gray"
+                  className="bg-background dark:bg-dark-background text-copy dark:text-dark-copy"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {/* Background color split screen for large screens */}
                   <div
-                    className="fixed left-0 top-0 hidden h-full w-1/2 bg-light-gray lg:block"
+                    className="fixed left-0 top-0 hidden h-full w-1/2 bg-background dark:bg-dark-background text-copy dark:text-dark-copy lg:block"
                     aria-hidden="true"
                   />
                   <div

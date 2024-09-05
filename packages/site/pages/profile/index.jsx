@@ -472,7 +472,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                       className="block w-full rounded-md border-gray bg-white shadow-sm sm:text-sm"
                     />
                   </div>
-                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
+                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error dark:text-dark-error">
                     {errors.userName?.message}
                   </p>
                 </div>
@@ -500,7 +500,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                       defaultValue={''}
                     />
                   </div>
-                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
+                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error dark:text-dark-error">
                     {errors.about?.message}
                   </p>
                 </div>
@@ -532,7 +532,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                         Change
                       </Button>
                     </div>
-                    <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
+                    <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error dark:text-dark-error">
                       {errors.image?.message}
                     </p>
                   </div>
@@ -552,7 +552,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                         defaultValue={getValues(`role`)}
                       />
                     </div>
-                    <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
+                    <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error dark:text-dark-error">
                       {errors.role?.message}
                     </p>
                   </div>
@@ -638,7 +638,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                       className="block w-full rounded-md border-gray bg-white shadow-sm sm:text-sm"
                     />
                   </div>
-                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
+                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error dark:text-dark-error">
                     {errors.firstName?.message}
                   </p>
                 </div>
@@ -660,7 +660,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                       className="block w-full rounded-md bg-white shadow-sm sm:text-sm text-black"
                     />
                   </div>
-                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
+                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error dark:text-dark-error">
                     {errors.lastName?.message}
                   </p>
                 </div>
@@ -682,7 +682,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                       className="block w-full rounded-md border-gray bg-white shadow-sm sm:text-sm"
                     />
                   </div>
-                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
+                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error dark:text-dark-error">
                     {errors.company?.message}
                   </p>
                 </div>
@@ -748,7 +748,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                       className="block w-full rounded-md border-gray bg-white shadow-sm sm:text-sm"
                     />
                   </div>
-                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
+                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error dark:text-dark-error">
                     {errors.emailAddress?.message}
                   </p>
                 </div>
@@ -772,7 +772,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                       className="block w-full rounded-md sm:text-sm"
                     />{' '}
                   </div>
-                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
+                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error dark:text-dark-error">
                     {errors.country?.message}
                   </p>
                 </div>
@@ -794,7 +794,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                       className="block w-full rounded-md border-gray bg-white shadow-sm  sm:text-sm"
                     />
                   </div>
-                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
+                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error dark:text-dark-error">
                     {errors.streetAddress?.message}
                   </p>
                 </div>
@@ -815,7 +815,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                       className="block w-full rounded-md border-gray bg-white shadow-sm  sm:text-sm"
                     />
                   </div>
-                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
+                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error dark:text-dark-error">
                     {errors.city?.message}
                   </p>
                 </div>
@@ -837,7 +837,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                       className="block w-full rounded-md border-gray bg-white shadow-sm  sm:text-sm"
                     />
                   </div>
-                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
+                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error dark:text-dark-error">
                     {errors.region?.message}
                   </p>
                 </div>
@@ -859,7 +859,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                       className="block w-full rounded-md border-gray bg-white shadow-sm  sm:text-sm"
                     />
                   </div>
-                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
+                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error dark:text-dark-error">
                     {errors.zipPostcode?.message}
                   </p>
                 </div>

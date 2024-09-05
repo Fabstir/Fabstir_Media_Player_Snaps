@@ -217,12 +217,12 @@ const Index = () => {
 
   useEffect(() => {
     // Ensure this code runs only on the client side
-    if (typeof window !== 'undefined') {
+    // if (typeof window !== 'undefined') {
       const session = sessionStorage.getItem('userSession');
       if (session) {
         setUserData(JSON.parse(session));
       }
-    }
+    // }
   }, []);
 
   useEffect(() => {
@@ -646,7 +646,7 @@ const Index = () => {
     }
 
     if (!loggedIn) throw new Error('logInOrCreateNewUser: login failed');
-    if (smartAccountAddress && userData) {
+    if (smartAccountAddress) {
       fetchColor();
     }
   };
@@ -679,7 +679,7 @@ const Index = () => {
 
         const chainId = await getConnectedChainId(biconomySmartAccount);
         setConnectedChainId(chainId);
-
+        console.log('biconomySmartAccount', biconomySmartAccount);
         setUserInfo(userInfo);
         setLoading(false);
 
@@ -690,6 +690,7 @@ const Index = () => {
       } else if (!(smartAccount && smartAccountProvider)) {
         userAccountAddress = await loginNative();
         eoaAddress = userAccountAddress;
+        console.log('userAccountAddresssssss', userAccountAddress);
         setSmartAccountAddress(userAccountAddress);
       }
       await loginFabstirDB(userAccountAddress, eoaAddress);
@@ -705,7 +706,7 @@ const Index = () => {
     await signOut();
     setSmartAccount(null);
     setConnectedChainId(null);
-    setColors(defaultColors)
+    setColors(defaultColors);
   }
 
   // Define the props type for ButtonLink
@@ -751,99 +752,57 @@ const Index = () => {
     );
   };
 
-  useEffect(() => {
-    if (smartAccountAddress && userData?.token) {
-      fetchColor();
-    }
-  }, [smartAccountAddress, userData?.token]);
-
   const fetchColor = async () => {
     try {
-      let token = userData?.token ?? '';
-      if (!token || !smartAccountAddress) {
-        return;
-      }
+      if (!userData?.token || !smartAccountAddress) return;
       const response = await axios.get(`${url}/color/${smartAccountAddress}`, {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${userData?.token}`,
         },
       });
+      const { primaryColor, secondaryColor, utilityColors, neutralsColor } =
+        response.data.document[0] ?? {};
 
-      setColors(response.data.document[0]);
+      const setCSSVariables = (colorObj: any, prefix = '') => {
+        if (!colorObj) return;
+
+        Object.keys(colorObj).forEach((key) => {
+          document.documentElement.style.setProperty(
+            `--${prefix}${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`,
+            colorObj[key],
+          );
+        });
+      };
+      // Setting the primary colors
+      setCSSVariables(primaryColor, '');
+
+      // Setting the secondary colors
+      setCSSVariables(secondaryColor, '');
+
+      // Setting the utility colors (e.g., success, warning, error)
+      setCSSVariables(utilityColors, '');
+
+      // Setting the neutral colors for light and dark modes
+      setCSSVariables(neutralsColor.light, 'light-');
+      setCSSVariables(neutralsColor.dark, 'dark-');
     } catch (error) {
-      // Log detailed error information
-      if (error.response) {
-        console.error('Error saving colors:', error.response.data);
-      } else if (error.request) {
-        console.error('No response received:', error.request);
-      } else {
-        console.error('Error setting up request:', error.message);
-      }
-      // throw error;
+      console.log('error:', error);
+      // handleError(error);
     }
   };
 
   useEffect(() => {
-    const colorKeys = [
-      'TextColor',
-      'ButtonColor',
-      'ButtonTextColor',
-      'ButtonHoverColor',
-      'ButtonHoverTextColor',
-      'ButtonShadow',
-      'BackgroundColor',
-      'SuccessTextColor',
-      'WarningTextColor',
-      'ErrorTextColor',
-      'AllowShadow',
-    ];
+    console.log('userData', userData);
+    console.log('smartAccountAddress', smartAccountAddress);
 
-    colorKeys.forEach((key) => {
-      const lightKey = `--light${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
-      const darkKey = `--dark${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
-
-      if (key === 'ButtonShadow') {
-        console.log(
-          'colors.lightAllowShadow',
-          colors.lightAllowShadow,
-          lightKey,
-        );
-        console.log('colors.darkAllowShadow', colors.darkAllowShadow, darkKey);
-        if (colors.lightAllowShadow) {
-          document.documentElement.style.setProperty(
-            lightKey,
-            colors[`light${key}`],
-          );
-        } else {
-          document.documentElement.style.setProperty(lightKey, '');
-        }
-        if (colors.darkAllowShadow) {
-          document.documentElement.style.setProperty(
-            darkKey,
-            colors[`dark${key}`],
-          );
-        } else {
-          document.documentElement.style.setProperty(darkKey, '');
-        }
-      } else {
-        document.documentElement.style.setProperty(
-          lightKey,
-          colors[`light${key}`],
-        );
-        document.documentElement.style.setProperty(
-          darkKey,
-          colors[`dark${key}`],
-        );
-      }
-    });
-  }, [colors]);
-
+    if (smartAccountAddress && userData) {
+      fetchColor();
+    }
+  }, [userData,smartAccountAddress]);
   return (
-    <div className="p-4 max-w-6xl mx-auto bg-background dark:bg-dark-background">
-      <h1 className="uppercase text-2xl font-bold mb-5 text-text dark:text-dark-text">
-        Web3 Media Player
-      </h1>
+    <div className="p-4 max-w-6xl mx-auto bg-background  dark:bg-dark-background text-copy dark:text-dark-copy">
+      <h1 className="uppercase text-2xl font-bold mb-5">Web3 Media Player</h1>
 
       {userName && smartAccount && (
         <h2 className="text-xl  font-semibold mb-7">User: {userName}</h2>
@@ -875,9 +834,7 @@ const Index = () => {
       </button> */}
       {loading && <p>Loading Smart Account...</p>}
       {smartAccount && (
-        <h2 className="text-text dark:text-dark-text">
-          Smart Account: {smartAccountAddress}
-        </h2>
+        <h2 className="">Smart Account: {smartAccountAddress}</h2>
       )}
       {smartAccount && (
         <Button
@@ -955,12 +912,12 @@ const Index = () => {
       </div>
       {/* Replaced Heading with h1 */}
       <div className="grid grid-cols-12">
-        <p className="col-span-12 ml-4 mb-2 text-text dark:text-dark-text">
+        <p className="col-span-12 ml-4 mb-2 ">
           Enter address ids as contract address and token id separated by `_`
         </p>
         <HeadlessField className="grid grid-cols-12 gap-6 p-4 border-2 border-gray-200 col-span-11">
           <div className="col-span-5">
-            <Description className="mt-1 text-text dark:text-dark-text">
+            <Description className="mt-1 ">
               Enter address ids to add to the gallery.
             </Description>
           </div>
@@ -988,7 +945,7 @@ const Index = () => {
         <p className=" text-red-600 pb-2">{errorsAddAddresses}</p>
         <HeadlessField className="grid grid-cols-12 gap-6 p-4 border-2 border-gray-200 col-span-11 col-start-1">
           <div className="col-span-5">
-            <Description className="mt-1 text-text dark:text-dark-text">
+            <Description className="mt-1 ">
               Enter address ids to remove from the gallery.
             </Description>
           </div>
@@ -1016,7 +973,7 @@ const Index = () => {
         <p className=" text-red-600 pb-2">{errorsRemoveAddresses}</p>
         <HeadlessField className="grid grid-cols-12 gap-6 p-4 border-2 border-gray-200 col-span-11 col-start-1">
           <div className="col-span-5">
-            <Description className="mt-1 text-text dark:text-dark-text">
+            <Description className="mt-1 ">
               Enter address ids to export to a new keys file.
             </Description>
           </div>
@@ -1045,7 +1002,7 @@ const Index = () => {
 
         <HeadlessField className="grid grid-cols-12 gap-6 p-4 border-2 border-gray-200 col-span-11 col-start-1">
           <div className="col-span-5">
-            <Description className="mt-1 text-text dark:text-dark-text">
+            <Description className="mt-1 ">
               Browse to keys file to import. To import subset, enter address
               ids. Leave blank to import all keys.
             </Description>

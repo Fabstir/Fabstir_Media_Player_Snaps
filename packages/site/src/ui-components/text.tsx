@@ -70,7 +70,6 @@ export const TextLink: React.FC<TextLinkProps> = ({
     <Link
       href={href}
       className={clsx(
-        'text-primary hover:text-primary-dark dark:text-dark-primary dark:hover:text-dark-primary-light',
         'underline transition-colors duration-200',
         className,
       )}

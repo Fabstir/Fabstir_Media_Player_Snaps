@@ -179,7 +179,7 @@ const DropAudio = ({
               </svg>
               {text}
               {errors[field] && (
-                <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
+                <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error dark:text-dark-error">
                   {errors[field].message}
                 </p>
               )}

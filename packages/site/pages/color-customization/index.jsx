@@ -1,227 +1,229 @@
-import React, { useContext, useEffect, useLayoutEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { useRouter } from 'next/router';
-import axios from 'axios';
-import BlockchainContext from '../../state/BlockchainContext';
+import React, { useState, useEffect, useContext } from 'react';
 import { getSmartAccountAddress } from '../../src/blockchain/useAccountAbstractionPayment';
-import { ChevronDoubleLeftIcon } from '@heroicons/react/24/solid';
-import { TextLink } from '../../src/ui-components/text';
 import useCreateUser from '../../src/hooks/useCreateUser';
-import { Button } from '../../src/ui-components/button';
-import ColorSelect from '../../src/ui-components/colorSelect';
-import Loader from '../../src/components/Loader';
-import { Checkbox } from '../../src/ui-components/checkbox';
-import {
-  darkModeColors,
-  lightModeColors,
-  errorColors,
-  warningColors,
-  successColors,
-} from '../../src/assets/colorArray/colorArray';
+import BlockchainContext from '../../state/BlockchainContext';
+import { DebounceInput } from 'react-debounce-input';
+import { ChromePicker } from 'react-color';
+import { useRouter } from 'next/router';
 import { toast } from 'react-toastify';
+import chroma from 'chroma-js';
+import axios from 'axios';
+import { TextLink } from '../../src/ui-components/text';
+import { ChevronDoubleLeftIcon } from 'heroiconsv1/solid';
+
 let url = process.env.NEXT_PUBLIC_FABSTIRDB_BACKEND_URL || '';
 
-const darkThemeColor = Array.from(new Set(darkModeColors));
-
-const lightThemeColor = Array.from(new Set(lightModeColors));
-
-const errorColorsTheme = Array.from(new Set(errorColors));
-
-const warningColorsTheme = Array.from(new Set(warningColors));
-
-const successColorsTheme = Array.from(new Set(successColors));
-
 const defaultColors = {
-  lightButtonTextColor: '#000000', // Black text for light mode buttons
-  lightButtonColor: '#ffffff', // White button color for light mode
-  lightButtonHoverColor: '#f0f0f0', // Slightly darker white on hover
-  lightButtonHoverTextColor: '#000000', // Black text on hover
-  lightButtonShadow: '', // Light gray shadow for light buttons
-  lightTextColor: '#333333', // Dark gray for light mode text
-  lightBackgroundColor: '#f9f9f9', // Very light gray background
-  lightSuccessTextColor: '#28a745', // Green text for success messages
-  lightWarningTextColor: '#ffc107', // Yellow text for warnings
-  lightErrorTextColor: '#dc3545', // Red text for errors
-  lightAllowShadow: false,
-
-  darkButtonTextColor: '#ffffff', // White text for dark mode buttons
-  darkButtonColor: '#333333', // Dark gray button color for dark mode
-  darkButtonHoverColor: '#444444', // Slightly lighter gray on hover
-  darkButtonHoverTextColor: '#ffffff', // White text on hover
-  darkButtonShadow: '', // Darker gray shadow for dark buttons
-  darkTextColor: '#f9f9f9', // Very light gray for dark mode text
-  darkBackgroundColor: '#121212', // Very dark background
-  darkSuccessTextColor: '#28a745', // Green text for success messages
-  darkWarningTextColor: '#ffc107', // Yellow text for warnings
-  darkErrorTextColor: '#dc3545', // Red text for errors
-  darkAllowShadow: false,
+  light: {
+    foreground: '#fbfbfb',
+    background: '#f0f0f0',
+    border: '#dfdfdf',
+    copy: '#262626',
+    copyLight: '#666666',
+    copyLighter: '#8c8c8c',
+  },
+  dark: {
+    foreground: '#262626',
+    background: '#1a1a1a',
+    border: '#404040',
+    copy: '#fbfbfb',
+    copyLight: '#d9d9d9',
+    copyLighter: '#a6a6a6',
+  },
 };
 
-export default function ColorCustomization() {
+const Color = () => {
   const router = useRouter();
-  const [smartAccountAddress, setSmartAccountAddress] = useState('');
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
-  const [loader, setLoader] = useState(true);
-  const [colors, setColors] = useState(defaultColors);
   const blockchainContext = useContext(BlockchainContext);
   const { smartAccount, setSmartAccount, setConnectedChainId } =
     blockchainContext;
   const { signOut } = useCreateUser();
-
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    watch,
-    control,
-    formState: { errors },
-  } = useForm({
-    defaultValues: colors,
+  const [smartAccountAddress, setSmartAccountAddress] = useState('');
+  const [showPicker, setShowPicker] = useState(false);
+  const [colorMode, setColorMode] = useState('light'); // 'light' or 'dark'
+  const [saturation, setSaturation] = useState(0); // Default saturation value
+  const [hueRotation, setHueRotation] = useState(90);
+  const [primaryColorState, setPrimaryColorState] = useState({
+    primaryColor: '#c2d7eb',
+    primaryContentColor: chroma('#c2d7eb').brighten(3).hex(),
+    primaryLightColor: chroma('#c2d7eb').brighten(1).hex(),
+    primaryDarkColor: chroma('#c2d7eb').darken(1).hex(),
   });
+  const [secondaryColorState, setSecondaryColorState] = useState({
+    secondaryColor: chroma('#c2d7eb').set('hsl.h', `+${hueRotation}`).hex(),
+    secondaryContentColor: chroma('#c2d7eb').darken(2).hex(),
+    secondaryLightColor: chroma('#c2d7eb').brighten(1.5).hex(),
+    secondaryDarkColor: chroma('#c2d7eb').darken(1).hex(),
+  });
+  const [utilityColors, setUtilityColors] = useState({
+    successColor: chroma(primaryColorState.primaryColor).brighten(1.5).hex(), // Lighten primary color for success
+    warningColor: chroma(primaryColorState.primaryColor)
+      .set('hsl.h', `+30`)
+      .hex(), // Adjust hue for warning
+    errorColor: chroma(primaryColorState.primaryColor)
+      .set('hsl.h', `-30`)
+      .hex(), // Adjust hue for error
+    successContentColor: chroma(primaryColorState.primaryColor).darken(2).hex(),
+    warningContentColor: chroma(primaryColorState.primaryColor).darken(2).hex(),
+    errorContentColor: chroma(primaryColorState.primaryColor).darken(2).hex(),
+  });
+  const [neutralsColorState, setNeutralsColorState] = useState(defaultColors);
 
-  const selectedColors = watch();
-
-  useEffect(() => {
-    if (smartAccountAddress) {
-      fetchColor();
-    }
-  }, [smartAccountAddress]);
-
-  const fetchColor = async () => {
-    const userData = sessionStorage.getItem('userSession');
-    const token = JSON.parse(userData)?.token ?? '';
-    try {
-      if (!token || !smartAccountAddress) return;
-      const response = await axios.get(`${url}/color/${smartAccountAddress}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      setColors(response.data.document[0]);
-    } catch (error) {
-      handleError(error);
-    }
+  const handleButtonClick = () => {
+    setShowPicker(!showPicker);
   };
 
   useEffect(() => {
     const setSmartAccountAddressFn = async () => {
       if (smartAccount) {
         setSmartAccountAddress(await getSmartAccountAddress(smartAccount));
-      }else{
-        handleLogout()
+      } else {
+        handleLogout();
       }
     };
     setSmartAccountAddressFn();
   }, [smartAccount]);
 
-  useEffect(() => {
-    setLoader(true);
-    const colorKeys = [
-      'ButtonTextColor',
-      'ButtonColor',
-      'ButtonHoverColor',
-      'ButtonHoverTextColor',
-      'ButtonShadow',
-      'TextColor',
-      'BackgroundColor',
-      'SuccessTextColor',
-      'WarningTextColor',
-      'ErrorTextColor',
-      'AllowShadow',
-    ];
+  const handleColorChange = (newColor) => {
+    const updatedPrimaryColor = newColor.hex;
+    const updatedSecondaryColor = chroma(newColor.hex)
+      .set('hsl.h', `+${hueRotation}`)
+      .hex();
 
-    // Set values based on isDarkMode
-    if (isDarkMode) {
-      colorKeys.forEach((key) => {
-        key == 'AllowShadow'
-          ? setValue(`dark${key}`, colors[`dark${key}`] || false)
-          : setValue(`dark${key}`, colors[`dark${key}`] || '');
+    const isLightColor = chroma(updatedPrimaryColor).luminance() > 0.5;
+
+    setPrimaryColorState({
+      primaryColor: updatedPrimaryColor,
+      primaryContentColor: isLightColor
+        ? chroma(updatedPrimaryColor).darken(2).hex()
+        : chroma(updatedPrimaryColor).brighten(3).hex(),
+      primaryLightColor: chroma(updatedPrimaryColor).brighten(1.5).hex(),
+      primaryDarkColor: chroma(updatedPrimaryColor).darken(1).hex(),
+    });
+
+    setSecondaryColorState({
+      secondaryColor: updatedSecondaryColor,
+      secondaryContentColor: isLightColor
+        ? chroma(updatedSecondaryColor).darken(2).hex()
+        : chroma(updatedSecondaryColor).brighten(3).hex(),
+      secondaryLightColor: chroma(updatedSecondaryColor).brighten(1.5).hex(),
+      secondaryDarkColor: chroma(updatedSecondaryColor).darken(1).hex(),
+    });
+
+    setUtilityColors({
+        successColor: isLightColor
+          ? chroma(updatedPrimaryColor).set('hsl.h', 120).darken(3).hex()
+          : chroma(updatedPrimaryColor).set('hsl.h', 120).brighten(1).hex(),
+        warningColor: isLightColor
+          ? chroma(updatedPrimaryColor).set('hsl.h', 60).darken(3).hex()
+          : chroma(updatedPrimaryColor).set('hsl.h', 60).brighten(1).hex(),
+        errorColor: isLightColor
+          ? chroma(updatedPrimaryColor).set('hsl.h', 0).darken(3).hex()
+          : chroma(updatedPrimaryColor).set('hsl.h', 0).brighten(1).hex(),
+        successContentColor: isLightColor
+          ? chroma(updatedPrimaryColor).set('hsl.h', 120).brighten(3).hex()  // Darker in light mode
+          : chroma(updatedPrimaryColor).set('hsl.h', 120).darken(2).hex(), // Less bright in dark mode
+        warningContentColor: isLightColor
+          ? chroma(updatedPrimaryColor).set('hsl.h', 60).brighten(3).hex()  // Darker in light mode
+          : chroma(updatedPrimaryColor).set('hsl.h', 60).darken(2).hex(), // Less bright in dark mode
+        errorContentColor: isLightColor
+          ? chroma(updatedPrimaryColor).set('hsl.h', 0).brighten(3).hex()  // Darker in light mode
+          : chroma(updatedPrimaryColor).set('hsl.h', 0).darken(2).hex(), // Less bright in dark mode
       });
-    } else {
-      colorKeys.forEach((key) => {
-        key == 'AllowShadow'
-          ? setValue(`light${key}`, colors[`light${key}`] || false)
-          : setValue(`light${key}`, colors[`light${key}`] || '');
+
+    setNeutralsColorState({
+      light: {
+        foreground: blendWithPrimary(defaultColors.light.foreground),
+        background: blendWithPrimary(defaultColors.light.background),
+        border: blendWithPrimary(defaultColors.light.border),
+        copy: blendWithPrimary(defaultColors.light.copy),
+        copyLight: blendWithPrimary(defaultColors.light.copyLight),
+        copyLighter: blendWithPrimary(defaultColors.light.copyLighter),
+      },
+      dark: {
+        foreground: blendWithPrimary(defaultColors.dark.foreground),
+        background: blendWithPrimary(defaultColors.dark.background),
+        border: blendWithPrimary(defaultColors.dark.border),
+        copy: blendWithPrimary(defaultColors.dark.copy),
+        copyLight: blendWithPrimary(defaultColors.dark.copyLight),
+        copyLighter: blendWithPrimary(defaultColors.dark.copyLighter),
+      },
+    });
+  };
+
+  const handleHueRotation = (value) => {
+    const parsedValue = parseFloat(value);
+
+    if (!isNaN(parsedValue)) {
+      setHueRotation(parsedValue);
+
+      const updatedSecondaryColor = chroma(primaryColorState?.primaryColor)
+        .set('hsl.h', `+${parsedValue}`)
+        .hex();
+
+      const isLightColor =
+        chroma(primaryColorState?.primaryColor).luminance() > 0.5;
+
+      setSecondaryColorState({
+        secondaryColor: updatedSecondaryColor,
+        secondaryContentColor: isLightColor
+          ? chroma(updatedSecondaryColor).darken(2).hex()
+          : chroma(updatedSecondaryColor).brighten(2).hex(),
+        secondaryLightColor: chroma(updatedSecondaryColor).brighten(1.5).hex(),
+        secondaryDarkColor: chroma(updatedSecondaryColor).darken(1).hex(),
       });
     }
+  };
 
-    // Simulate loading state
-    const timer = setTimeout(() => {
-      setLoader(false);
-    }, 1000);
+  const handleSaturation = (value) => {
+    setSaturation(value);
 
-    // Cleanup timeout
-    return () => clearTimeout(timer);
-  }, [isDarkMode, colors, setValue]);
-
-  useEffect(() => {
-    // Simulate loading state
-    const timer = setTimeout(() => {
-      setLoader(false);
-    }, 1000);
-
-    // Cleanup timeout
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    // List of color keys for both light and dark modes
-    const colorKeys = [
-      'TextColor',
-      'ButtonColor',
-      'ButtonTextColor',
-      'ButtonHoverColor',
-      'ButtonHoverTextColor',
-      'ButtonShadow',
-      'BackgroundColor',
-      'SuccessTextColor',
-      'WarningTextColor',
-      'ErrorTextColor',
-      'AllowShadow',
-    ];
-
-    // Iterate through light mode and dark mode keys
-    colorKeys.forEach((key) => {
-      key == 'ButtonShadow'
-        ? colors.lightAllowShadow &&
-          document.documentElement.style.setProperty(
-            `--light${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`,
-            colors[`light${key}`],
-          )
-        : document.documentElement.style.setProperty(
-            `--light${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`,
-            colors[`light${key}`],
-          );
-      //e.g --light-text-color
-      key == 'ButtonShadow'
-        ? colors.darkAllowShadow &&
-          document.documentElement.style.setProperty(
-            `--dark${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`,
-            colors[`dark${key}`],
-          )
-        : document.documentElement.style.setProperty(
-            `--dark${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`,
-            colors[`dark${key}`],
-          );
-      //e.g --dark-text-color
+    setNeutralsColorState({
+      light: {
+        foreground: blendWithPrimary(defaultColors.light.foreground),
+        background: blendWithPrimary(defaultColors.light.background),
+        border: blendWithPrimary(defaultColors.light.border),
+        copy: blendWithPrimary(defaultColors.light.copy),
+        copyLight: blendWithPrimary(defaultColors.light.copyLight),
+        copyLighter: blendWithPrimary(defaultColors.light.copyLighter),
+      },
+      dark: {
+        foreground: blendWithPrimary(defaultColors.dark.foreground),
+        background: blendWithPrimary(defaultColors.dark.background),
+        border: blendWithPrimary(defaultColors.dark.border),
+        copy: blendWithPrimary(defaultColors.dark.copy),
+        copyLight: blendWithPrimary(defaultColors.dark.copyLight),
+        copyLighter: blendWithPrimary(defaultColors.dark.copyLighter),
+      },
     });
-  }, [colors]);
+  };
 
-  const onSubmit = async (data) => {
+  const blendWithPrimary = (color) => {
+    return chroma
+      .mix(color, primaryColorState.primaryColor, 0.1)
+      .saturate(saturation)
+      .hex();
+  };
+
+  const onSubmit = async () => {
     try {
-      toast.dismiss()
+      toast.dismiss();
+      let data = {};
       data.smartAccount = smartAccountAddress;
+      data.primaryColor = primaryColorState;
+      data.secondaryColor = secondaryColorState;
+      data.utilityColors = utilityColors;
+      data.neutralsColor = neutralsColorState;
       const userData = sessionStorage.getItem('userSession');
       const token = JSON.parse(userData)?.token ?? '';
+      console.log('data', data);
       await axios.post(`${url}/color`, data, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
       });
-      toast.success("Color saved successfully")
+      toast.success('Color saved successfully');
       fetchColor();
     } catch (error) {
       handleError(error);
@@ -245,494 +247,587 @@ export default function ColorCustomization() {
     router.push('/');
   };
 
-  const iconClasses =
-    'text-xl text-default-500 pointer-events-none flex-shrink-0';
+  useEffect(() => {
+    if (smartAccountAddress) {
+      fetchColor();
+    }
+  }, [smartAccountAddress]);
+
+  const fetchColor = async () => {
+    const userData = sessionStorage.getItem('userSession');
+    const token = JSON.parse(userData)?.token ?? '';
+    try {
+      if (!token || !smartAccountAddress) return;
+      const response = await axios.get(`${url}/color/${smartAccountAddress}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const { primaryColor, secondaryColor, utilityColors, neutralsColor } =
+        response.data.document[0] ?? {};
+
+      const setCSSVariables = (colorObj, prefix = '') => {
+        if (!colorObj) return;
+
+        Object.keys(colorObj).forEach((key) => {
+          document.documentElement.style.setProperty(
+            `--${prefix}${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`,
+            colorObj[key],
+          );
+          console.log(
+            'color:',
+            `--${prefix}${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`,
+          );
+        });
+      };
+      // Setting the primary colors
+      setCSSVariables(primaryColor, '');
+
+      // Setting the secondary colors
+      setCSSVariables(secondaryColor, '');
+
+      // Setting the utility colors (e.g., success, warning, error)
+      setCSSVariables(utilityColors, '');
+
+      // Setting the neutral colors for light and dark modes
+      setCSSVariables(neutralsColor.light, 'light-');
+      setCSSVariables(neutralsColor.dark, 'dark-');
+
+      // Save to state
+      setPrimaryColorState(primaryColor);
+      setSecondaryColorState(secondaryColor);
+      setUtilityColors(utilityColors);
+      setNeutralsColorState(neutralsColor);
+    } catch (error) {
+      handleError(error);
+    }
+  };
 
   return (
-    <main className="flex  flex-col items-center justify-between ">
-      {loader ? (
-        <Loader />
-      ) : (
-        <div className="z-10 w-full bg-white p-10 rounded-xl ">
-          <div className="flex relative mb-10">
-            <div className="flex justify-start ml-4 absolute left-0 bg-gray p-2 rounded-md">
-              <TextLink className="no-underline	" href="/">
-                <div className="flex items-center">
-                  <ChevronDoubleLeftIcon
-                    className="h-4 w-4 font-bold text-gray-500 mr-1 text-white"
-                    aria-hidden="true"
-                  />
-                  <span className="text-white">Back</span>
-                </div>
-              </TextLink>
-            </div>
-            <h1 className="font-bold text-4xl w-full text-center ">
-              Color Customization
-            </h1>
-          </div>
-
-          <div className="text-center">
-            <div className="inline-flex justify-center mb-6 bg-gray p-3 rounded-lg mx-auto">
-              <button
-                onClick={() => setIsDarkMode(false)}
-                className={` rounded-none px-4 py-2 ${!isDarkMode ? 'bg-button-background text-button-text ' : 'bg-gray text-gray-800 '}`}
-              >
-                Light Mode
-              </button>
-              <button
-                onClick={() => setIsDarkMode(true)}
-                className={`rounded-none px-4 py-2 ${isDarkMode ? ' bg-button-background text-button-text dark:bg-button-background dark:text-button-text' : 'bg-gray text-gray-800'}`}
-              >
-                Dark Mode
-              </button>
-            </div>
-            <div className="lg:flex ">
-              <div className="w-9/12 pr-4 ">
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                  {isDarkMode ? (
-                    <div className="w-full ">
-                      <div className="item mb-5 shadow-lg py-4 rounded-xl bg-slate-200">
-                        <h2 className="text-2xl font-bold mb-3">Button</h2>
-                        <div className="items-center justify-start lg:flex flex-wrap">
-                          <div className="p-3 flex flex-col text-left w-4/12 relative mb-2">
-                            <ColorSelect
-                              label="Button Text Color"
-                              value={selectedColors.darkButtonTextColor}
-                              onChange={(value) =>
-                                setValue('darkButtonTextColor', value)
-                              }
-                              colors={darkThemeColor}
-                              register={register}
-                              name="darkButtonTextColor"
-                              errors={errors}
-                            />
-                          </div>
-                          <div className="p-3 flex flex-col text-left w-4/12 relative mb-2">
-                            <ColorSelect
-                              label="Button Color"
-                              value={selectedColors.darkButtonColor}
-                              onChange={(value) =>
-                                setValue('darkButtonColor', value)
-                              }
-                              colors={darkThemeColor}
-                              register={register}
-                              name="darkButtonColor"
-                              errors={errors}
-                            />
-                          </div>
-                          <div className="p-3 flex flex-col text-left w-4/12 relative mb-2">
-                            <ColorSelect
-                              label="Dark Button Hover Color"
-                              value={selectedColors.darkButtonHoverColor}
-                              onChange={(value) =>
-                                setValue('darkButtonHoverColor', value)
-                              }
-                              colors={darkThemeColor}
-                              register={register}
-                              name="darkButtonHoverColor"
-                              errors={errors}
-                            />
-                          </div>
-                          <div className="p-3 flex flex-col text-left w-4/12 relative mb-2">
-                            <ColorSelect
-                              label="Dark Button Hover Text Color"
-                              value={selectedColors.darkButtonHoverTextColor}
-                              onChange={(value) =>
-                                setValue('darkButtonHoverTextColor', value)
-                              }
-                              colors={darkThemeColor}
-                              register={register}
-                              name="darkButtonHoverTextColor"
-                              errors={errors}
-                            />
-                          </div>
-                          <div className="p-3 flex flex-col text-left w-4/12 relative mb-2">
-                            <ColorSelect
-                              label="Dark Button Shadow"
-                              value={selectedColors.darkButtonShadow}
-                              onChange={(value) =>
-                                setValue('darkButtonShadow', value)
-                              }
-                              colors={darkThemeColor}
-                              register={register}
-                              name="darkButtonShadow"
-                              errors={errors}
-                            />
-                          </div>
-                          <div className="">
-                            <Checkbox
-                              id="darkAllowShadow"
-                              label="Allow Button Shadow"
-                              defaultChecked={false}
-                              register={register('darkAllowShadow')}
-                              error={''}
-                              className="items-center"
-                              checked={selectedColors.darkAllowShadow}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex space-x-3 right-3">
-                        <div className="item mb-5 shadow-lg py-4 rounded-xl bg-slate-200 w-6/12">
-                          <h2 className="text-2xl font-bold mb-2">Text</h2>
-                          <div className="items-center justify-between lg:flex flex-wrap">
-                            <div className="p-3 flex flex-col  text-left w-8/12 relative mb-2">
-                              <ColorSelect
-                                label="Dark Text Color"
-                                value={selectedColors.darkTextColor }
-                                onChange={(value) =>
-                                  setValue('darkTextColor', value)
-                                }
-                                colors={darkThemeColor}
-                                register={register}
-                                name="darkTextColor"
-                                errors={errors}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                        <div className="item mb-5 shadow-lg py-4 rounded-xl bg-slate-200 w-6/12">
-                          <h2 className="text-2xl font-bold mb-2">
-                            Background
-                          </h2>
-                          <div className="items-center justify-between lg:flex flex-wrap">
-                            <div className="p-3 flex flex-col text-left w-8/12 relative mb-2">
-                              <ColorSelect
-                                label="Dark Background Color"
-                                value={selectedColors.darkBackgroundColor  }
-                                onChange={(value) =>
-                                  setValue('darkBackgroundColor', value)
-                                }
-                                colors={darkThemeColor}
-                                register={register}
-                                name="darkBackgroundColor"
-                                errors={errors}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="item mb-5 shadow-lg py-4 rounded-xl bg-slate-200">
-                        <h2 className="text-2xl font-bold mb-2">Messages</h2>
-                        <div className="items-center justify-between lg:flex flex-wrap">
-                          <div className="p-3 flex flex-col text-left w-4/12 relative mb-2">
-                            <ColorSelect
-                              label="Dark Success Text color"
-                              value={selectedColors.darkSuccessTextColor }
-                              onChange={(value) =>
-                                setValue('darkSuccessTextColor', value)
-                              }
-                              colors={successColorsTheme}
-                              register={register}
-                              name="darkSuccessTextColor"
-                              errors={errors}
-                            />
-                          </div>
-                          <div className="p-3 flex flex-col text-left w-4/12 relative mb-2">
-                            <ColorSelect
-                              label="Dark Warning Text color"
-                              value={selectedColors.darkWarningTextColor }
-                              onChange={(value) =>
-                                setValue('darkWarningTextColor', value)
-                              }
-                              colors={warningColorsTheme}
-                              register={register}
-                              name="darkWarningTextColor"
-                              errors={errors}
-                            />
-                          </div>
-                          <div className="p-3 flex flex-col text-left w-4/12 relative mb-2">
-                            <ColorSelect
-                              label="Dark Error Text color"
-                              value={selectedColors.darkErrorTextColor }
-                              onChange={(value) =>
-                                setValue('darkErrorTextColor', value)
-                              }
-                              colors={errorColorsTheme}
-                              register={register}
-                              name="darkErrorTextColor"
-                              errors={errors}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="w-full">
-                      <div className="item mb-5 shadow-lg py-4 rounded-xl bg-slate-200">
-                        <h2 className="text-2xl font-bold mb-2">Button</h2>
-                        <div className="items-center justify-start lg:flex flex-wrap">
-                          <div className="p-3 flex flex-col text-left w-4/12 relative mb-2">
-                            <ColorSelect
-                              label="Button Text Color"
-                              value={selectedColors.lightButtonTextColor }
-                              onChange={(value) =>
-                                setValue('lightButtonTextColor', value)
-                              }
-                              colors={lightThemeColor}
-                              register={register}
-                              name="lightButtonTextColor"
-                              errors={errors}
-                            />
-                          </div>
-                          <div className="p-3 flex flex-col text-left w-4/12 relative mb-2">
-                            <ColorSelect
-                              label="Button Color"
-                              value={selectedColors.lightButtonColor }
-                              onChange={(value) =>
-                                setValue('lightButtonColor', value)
-                              }
-                              colors={lightThemeColor}
-                              register={register}
-                              name="lightButtonColor"
-                              errors={errors}
-                            />
-                          </div>
-                          <div className="p-3 flex flex-col text-left w-4/12 relative mb-2">
-                            <ColorSelect
-                              label="Light Button Hover Color"
-                              value={selectedColors.lightButtonHoverColor }
-                              onChange={(value) =>
-                                setValue('lightButtonHoverColor', value)
-                              }
-                              colors={lightThemeColor}
-                              register={register}
-                              name="lightButtonHoverColor"
-                              errors={errors}
-                            />
-                          </div>
-                          <div className="p-3 flex flex-col text-left w-4/12 relative mb-2">
-                            <ColorSelect
-                              label="Light Button Hover Text Color"
-                              value={selectedColors.lightButtonHoverTextColor }
-                              onChange={(value) =>
-                                setValue('lightButtonHoverTextColor', value)
-                              }
-                              colors={lightThemeColor}
-                              register={register}
-                              name="lightButtonHoverTextColor"
-                              errors={errors}
-                            />
-                          </div>
-                          <div className="p-3 flex flex-col text-left w-4/12 relative mb-2">
-                            <ColorSelect
-                              label="Light Button Shadow"
-                              value={selectedColors.lightButtonShadow }
-                              onChange={(value) =>
-                                setValue('lightButtonShadow', value)
-                              }
-                              colors={lightThemeColor}
-                              register={register}
-                              name="lightButtonShadow"
-                              errors={errors}
-                            />
-                          </div>
-                          <div className="">
-                            <Checkbox
-                              id="lightAllowShadow"
-                              label="Allow Button Shadow"
-                              defaultChecked={false}
-                              register={register('lightAllowShadow')}
-                              error={''}
-                              className="items-center"
-                              checked={selectedColors.lightAllowShadow}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex space-x-3">
-                        <div className="item mb-5 shadow-lg py-4 rounded-xl bg-slate-200 w-6/12">
-                          <h2 className="text-2xl font-bold mb-2">Text</h2>
-                          <div className="items-center justify-between lg:flex flex-wrap">
-                            <div className="p-3 flex flex-col text-left w-8/12 relative mb-2">
-                              <ColorSelect
-                                label="Light Text Color"
-                                value={selectedColors.lightTextColor ?? colors.lightTextColor}
-                                onChange={(value) =>
-                                  setValue('lightTextColor', value)
-                                }
-                                colors={lightThemeColor}
-                                register={register}
-                                name="lightTextColor"
-                                errors={errors}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                        <div className="item mb-5 shadow-lg py-4 rounded-xl bg-slate-200 w-6/12">
-                          <h2 className="text-2xl font-bold mb-2">
-                            Background
-                          </h2>
-                          <div className="items-center justify-between lg:flex flex-wrap">
-                            <div className="p-3 flex flex-col text-left w-8/12 relative mb-2">
-                              <ColorSelect
-                                label="Light Background Color"
-                                value={selectedColors.lightBackgroundColor ?? colors.lightBackgroundColor}
-                                onChange={(value) =>
-                                  setValue('lightBackgroundColor', value)
-                                }
-                                colors={lightThemeColor}
-                                register={register}
-                                name="lightBackgroundColor"
-                                errors={errors}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="item mb-5 shadow-lg py-4 rounded-xl bg-slate-200">
-                        <h2 className="text-2xl font-bold mb-2">Messages</h2>
-                        <div className="items-center justify-between lg:flex flex-wrap">
-                          <div className="p-3 flex flex-col text-left w-4/12 relative mb-2">
-                            <ColorSelect
-                              label="Light Success Text color"
-                              value={selectedColors.lightSuccessTextColor ?? colors.lightSuccessTextColor}
-                              onChange={(value) =>
-                                setValue('lightSuccessTextColor', value)
-                              }
-                              colors={successColorsTheme}
-                              register={register}
-                              name="lightSuccessTextColor"
-                              errors={errors}
-                            />
-                          </div>
-                          <div className="p-3 flex flex-col text-left w-4/12 relative mb-2">
-                            <ColorSelect
-                              label="Light Warning Text color"
-                              value={selectedColors.lightWarningTextColor ?? colors.lightWarningTextColor}
-                              onChange={(value) =>
-                                setValue('lightWarningTextColor', value)
-                              }
-                              colors={warningColorsTheme}
-                              register={register}
-                              name="lightWarningTextColor"
-                              errors={errors}
-                            />
-                          </div>
-                          <div className="p-3 flex flex-col text-left w-4/12 relative mb-2">
-                            <ColorSelect
-                              label="Light Error Text color"
-                              value={selectedColors.lightErrorTextColor ?? colors.lightErrorTextColor}
-                              onChange={(value) =>
-                                setValue('lightErrorTextColor', value)
-                              }
-                              colors={errorColorsTheme}
-                              register={register}
-                              name="lightErrorTextColor"
-                              errors={errors}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  <div className="flex justify-end mt-8">
-                    <button
-                      type="submit"
-                      className="px-4 py-3 bg-slate-500 text-white text-xl rounded-lg"
-                    >
-                      Save Changes
-                    </button>
-                  </div>
-                </form>
+    <div className="bg-background dark:bg-dark-background text-copy dark:text-dark-copy">
+      <div className="mx-auto w-3/5 pt-5">
+        <div className="flex relative mb-10 ">
+          <div className="flex justify-start ml-4 absolute left-0 bg-primary text-primary-content p-2 rounded-md">
+            <TextLink className="no-underline	" href="/">
+              <div className="flex items-center">
+                <ChevronDoubleLeftIcon
+                  className="h-4 w-4 font-bold mr-1 "
+                  aria-hidden="true"
+                />
+                <span className="">Back</span>
               </div>
-              <div className="preview w-3/12">
+            </TextLink>
+          </div>
+        </div>
+        <div className="mb-8 md:mb-12 text-center ">
+          <h1 className="mb-4 text-4xl font-bold leading-[1.2] md:text-5xl md:leading-[1.2]">
+            Color Customization
+          </h1>
+          <p className="mb-4 max-w-3xl mx-auto text-lg">
+            Find or add your primary brand color, adjust a couple of nobs, and
+            create a sensible, semantic, professional color palette in a couple
+            of seconds.
+          </p>
+        </div>
+        <div className="mb-12 grid grid-cols-1 gap-12 md:grid-cols-[250px_1fr]">
+          <div>
+            <div className="mb-4">
+              <h2 className="mb-2 text-3xl font-bold">Primary</h2>
+              <p className="text-sm ">
+                Primary brand color, used for main call to actions, logos, etc.
+              </p>
+            </div>
+            <div className="relative mb-4">
+              <button
+                className="flex w-full items-center rounded-full p-1 shadow-xl transition-colors"
+                onClick={handleButtonClick}
+                style={{
+                  color: primaryColorState.primaryContentColor,
+                  border: '2px solid rgb(194, 215, 235)',
+                  background: primaryColorState.primaryColor,
+                }}
+                aria-label="Select Primary Color"
+              >
                 <div
-                  className="h-full px-4 py-8 rounded-xl text-left"
+                  className="grid h-8 w-8 place-content-center rounded-full"
                   style={{
-                    backgroundColor: isDarkMode
-                      ? selectedColors.darkBackgroundColor
-                      : selectedColors.lightBackgroundColor,
-                    color: isDarkMode
-                      ? selectedColors.darkTextColor
-                      : selectedColors.lightTextColor,
+                    color: primaryColorState.primaryColor,
+                    background: primaryColorState.primaryContentColor,
                   }}
                 >
-                  <h2
-                    // style={{
-                    //   color: isDarkMode
-                    //     ? selectedColors.darkSuccessTextColor
-                    //     : selectedColors.lightSuccessTextColor,
-                    // }}
-                    className="text-4xl font-bold text-center mb-3"
+                  <svg
+                    stroke="currentColor"
+                    fill="currentColor"
+                    strokeWidth="0"
+                    viewBox="0 0 16 16"
+                    height="1em"
+                    width="1em"
                   >
-                    Preview
-                  </h2>
-                  <h3 className="text-3xl font-bold mt-5">Text</h3>
-
-                  <p className="text-lg">Text: Hello there! My name is Alex.</p>
-                  <h3 className="text-3xl font-bold mt-5">Button</h3>
-
-                  <button
-                    className="mt-3 px-4 py-2 rounded-md"
-                    onMouseEnter={() => setIsHovered(true)}
-                    onMouseLeave={() => setIsHovered(false)}
-                    style={{
-                      backgroundColor: isDarkMode
-                        ? isHovered
-                          ? selectedColors.darkButtonHoverColor
-                          : selectedColors.darkButtonColor
-                        : isHovered
-                          ? selectedColors.lightButtonHoverColor
-                          : selectedColors.lightButtonColor,
-                      color: isDarkMode
-                        ? isHovered
-                          ? selectedColors.darkButtonHoverTextColor
-                          : selectedColors.darkButtonTextColor
-                        : isHovered
-                          ? selectedColors.lightButtonHoverTextColor
-                          : selectedColors.lightButtonTextColor,
-                      boxShadow: isDarkMode
-                        ? selectedColors.darkAllowShadow
-                          ? `0 4px 8px ${selectedColors.darkButtonShadow}`
-                          : 'none'
-                        : selectedColors.lightAllowShadow
-                          ? `0 4px 8px ${selectedColors.lightButtonShadow}`
-                          : 'none',
-                      transition: 'background-color 0.3s ease, color 0.3s ease',
-                    }}
-                  >
-                    Sample Button
-                  </button>
-                  <h3 className="text-3xl font-bold mt-5">Messages</h3>
-                  <p
-                    className="mt-3 text-xl mb-3"
-                    style={{
-                      color: isDarkMode
-                        ? selectedColors.darkSuccessTextColor
-                        : selectedColors.lightSuccessTextColor,
-                    }}
-                  >
-                    This is success
-                  </p>
-                  <p
-                    className="text-xl mb-3"
-                    style={{
-                      color: isDarkMode
-                        ? selectedColors.darkWarningTextColor
-                        : selectedColors.lightWarningTextColor,
-                    }}
-                  >
-                    This is warning
-                  </p>
-                  <p
-                    className="text-xl"
-                    style={{
-                      color: isDarkMode
-                        ? selectedColors.darkErrorTextColor
-                        : selectedColors.lightErrorTextColor,
-                    }}
-                  >
-                    This is error
-                  </p>
+                    <path d="M13.354.646a1.207 1.207 0 0 0-1.708 0L8.5 3.793l-.646-.647a.5.5 0 1 0-.708.708L8.293 5l-7.147 7.146A.5.5 0 0 0 1 12.5v1.793l-.854.853a.5.5 0 1 0 .708.707L1.707 15H3.5a.5.5 0 0 0 .354-.146L11 7.707l1.146 1.147a.5.5 0 0 0 .708-.708l-.647-.646 3.147-3.146a1.207 1.207 0 0 0 0-1.708l-2-2zM2 12.707l7-7L10.293 7l-7 7H2v-1.293z"></path>
+                  </svg>
                 </div>
+                <span className="w-full text-center">
+                  {primaryColorState.primaryColor}
+                </span>
+              </button>
+
+              {showPicker && (
+                <div className="absolute mt-2 z-10">
+                  <ChromePicker
+                    color={primaryColorState.primaryColor}
+                    onChange={handleColorChange}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="col-span-3">
+              <div>
+                <div
+                  className="mb-2 w-full rounded-xl shadow-md transition-colors"
+                  style={{
+                    background: primaryColorState.primaryColor,
+                    height: '10rem',
+                  }}
+                ></div>
+                <p className="-mb-1 ml-1 text-lg font-semibold">Primary</p>
+                <span className="ml-1 text-sm ">
+                  {primaryColorState.primaryColor}
+                </span>
               </div>
+            </div>
+            <div>
+              <div
+                className="mb-2 w-full rounded-xl shadow-md transition-colors"
+                style={{
+                  background: primaryColorState.primaryContentColor,
+                  height: '5rem',
+                }}
+              ></div>
+              <p className="-mb-1 ml-1 text-lg font-semibold">
+                Primary Content
+              </p>
+              <span className="ml-1 text-sm ">
+                {primaryColorState.primaryContentColor}
+              </span>
+            </div>
+            <div>
+              <div
+                className="mb-2 w-full rounded-xl shadow-md transition-colors"
+                style={{
+                  background: primaryColorState.primaryLightColor,
+                  height: '5rem',
+                }}
+              ></div>
+              <p className="-mb-1 ml-1 text-lg font-semibold">Primary Light</p>
+              <span className="ml-1 text-sm ">
+                {primaryColorState.primaryLightColor}
+              </span>
+            </div>
+            <div>
+              <div
+                className="mb-2 w-full rounded-xl shadow-md transition-colors"
+                style={{
+                  background: primaryColorState.primaryDarkColor,
+                  height: '5rem',
+                }}
+              ></div>
+              <p className="-mb-1 ml-1 text-lg font-semibold">Primary Dark</p>
+              <span className="ml-1 text-sm ">
+                {primaryColorState.primaryDarkColor}
+              </span>
             </div>
           </div>
         </div>
-      )}
-    </main>
+        <div className="mb-12 grid grid-cols-1 gap-12 md:grid-cols-[250px_1fr]">
+          <div className="mb-4">
+            <div className="mb-4">
+              <h2 className="mb-2 text-3xl font-bold">Secondary</h2>
+              <p className="text-sm ">
+                Secondary brand color, used for tertiary actions.
+              </p>
+            </div>
+            <div
+              style={{
+                color: secondaryColorState.secondaryContentColor,
+                border: '2px solid rgb(214, 194, 235)',
+                background: secondaryColorState.secondaryColor,
+              }}
+              className="flex w-full items-center gap-4 rounded-full p-1 shadow-xl transition-colors "
+            >
+              <label
+                for="rotation-input"
+                className="grid h-8 w-8 shrink-0 place-content-center rounded-full"
+                style={{
+                  color: secondaryColorState.secondaryColor,
+                  background: secondaryColorState.secondaryContentColor,
+                }}
+              >
+                <svg
+                  stroke="currentColor"
+                  fill="none"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  height="1em"
+                  width="1em"
+                >
+                  <polyline points="23 4 23 10 17 10"></polyline>
+                  <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                </svg>
+              </label>
+              <DebounceInput
+                id="rotation-input"
+                debounceTimeout={250}
+                className="hide-arrows mr-0.5 block w-full bg-transparent focus:outline-0"
+                value={hueRotation || ''}
+                onChange={(e) => handleHueRotation(e.target.value)}
+              />
+
+              <label
+                for="rotation-input"
+                className="mr-4 whitespace-nowrap text-xs font-bold"
+              >
+                hue degrees
+              </label>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="col-span-3">
+              <div>
+                <div
+                  className="mb-2 w-full rounded-xl shadow-md transition-colors"
+                  style={{
+                    background: secondaryColorState.secondaryColor,
+                    height: '10rem',
+                  }}
+                ></div>
+                <p className="-mb-1 ml-1 text-lg font-semibold">Secondary</p>
+                <span className="ml-1 text-sm ">
+                  {secondaryColorState.secondaryColor}
+                </span>
+              </div>
+            </div>
+            <div>
+              <div
+                className="mb-2 w-full rounded-xl shadow-md transition-colors"
+                style={{
+                  background: secondaryColorState.secondaryContentColor,
+                  height: '5rem',
+                }}
+              ></div>
+              <p className="-mb-1 ml-1 text-lg font-semibold">
+                Secondary Content
+              </p>
+              <span className="ml-1 text-sm ">
+                {secondaryColorState.secondaryContentColor}
+              </span>
+            </div>
+            <div>
+              <div
+                className="mb-2 w-full rounded-xl shadow-md transition-colors"
+                style={{
+                  background: secondaryColorState.secondaryLightColor,
+                  height: '5rem',
+                }}
+              ></div>
+              <p className="-mb-1 ml-1 text-lg font-semibold">
+                Secondary Light
+              </p>
+              <span className="ml-1 text-sm ">
+                {secondaryColorState.secondaryLightColor}
+              </span>
+            </div>
+            <div>
+              <div
+                className="mb-2 w-full rounded-xl shadow-md transition-colors"
+                style={{
+                  background: secondaryColorState.secondaryDarkColor,
+                  height: '5rem',
+                }}
+              ></div>
+              <p className="-mb-1 ml-1 text-lg font-semibold">Secondary Dark</p>
+              <span className="ml-1 text-sm ">
+                {secondaryColorState.secondaryDarkColor}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div className="mb-12 grid grid-cols-1 gap-12 md:grid-cols-[250px_1fr]">
+          <div>
+            <div className="mb-4">
+              <h2 className="mb-2 text-3xl font-bold">Neutrals</h2>
+              <p className="text-sm ">
+                Base colors are for backgrounds and borders. Copy colors are for
+                text.
+              </p>
+            </div>
+            <div className="mb-4 w-full">
+              <label
+                htmlFor="base-palette-saturation"
+                className="flex items-center justify-between text-xs font-semibold"
+              >
+                <span className="">Less</span>
+                <span style={{ color: 'rgb(41, 64, 86)' }}>Saturation</span>
+                <span className="">More</span>
+              </label>
+              <input
+                type="range"
+                id="base-palette-saturation"
+                min="0"
+                max="0.35"
+                step=".025"
+                className="w-full"
+                value={saturation}
+                onChange={(e) => handleSaturation(e.target.value)}
+              />
+            </div>
+            <div
+              style={{
+                background: colorMode === 'dark' ? '#262626' : '#fafbfd',
+              }}
+              className="relative flex w-full items-center rounded-full p-1 shadow-xl transition-colors"
+            >
+              <button
+                className="text-sm font-medium flex items-center justify-center gap-2 p-2 transition-colors w-full relative z-10 rounded-full"
+                style={{
+                  color: '#fafbfd',
+                  background: colorMode === 'dark' ? '#262626' : '#262626',
+                }}
+                onClick={() => setColorMode('light')}
+              >
+                <svg
+                  stroke="currentColor"
+                  fill="none"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="relative z-10 md:text-sm"
+                  height="1em"
+                  width="1em"
+                >
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+                <span className="relative z-10">Light</span>
+              </button>
+              <button
+                className="text-sm font-medium flex items-center justify-center gap-2 p-2 transition-colors w-full relative z-10 rounded-full"
+                style={{
+                  color: '#262626',
+                  background: colorMode === 'dark' ? '#fafbfd' : '#fafbfd',
+                }}
+                onClick={() => setColorMode('dark')}
+              >
+                <svg
+                  stroke="currentColor"
+                  fill="none"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="relative z-10 md:text-sm"
+                  height="1em"
+                  width="1em"
+                >
+                  <circle cx="12" cy="12" r="5"></circle>
+                  <line x1="12" y1="1" x2="12" y2="3"></line>
+                  <line x1="12" y1="21" x2="12" y2="23"></line>
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                  <line x1="1" y1="12" x2="3" y2="12"></line>
+                  <line x1="21" y1="12" x2="23" y2="12"></line>
+                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+                <span className="relative z-10">Dark</span>
+              </button>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <div
+                className="mb-2 w-full rounded-xl shadow-md transition-colors"
+                style={{
+                  background: neutralsColorState[colorMode].foreground,
+                  height: '5rem',
+                }}
+              ></div>
+              <p className="-mb-1 ml-1 text-lg font-semibold">Foreground</p>
+              <span className="ml-1 text-sm ">
+                {neutralsColorState[colorMode].foreground}
+              </span>
+            </div>
+            <div>
+              <div
+                className="mb-2 w-full rounded-xl shadow-md transition-colors"
+                style={{
+                  background: neutralsColorState[colorMode].background,
+                  height: '5rem',
+                }}
+              ></div>
+              <p className="-mb-1 ml-1 text-lg font-semibold">Background</p>
+              <span className="ml-1 text-sm ">
+                {neutralsColorState[colorMode].background}
+              </span>
+            </div>
+            <div>
+              <div
+                className="mb-2 w-full rounded-xl shadow-md transition-colors"
+                style={{
+                  background: neutralsColorState[colorMode].border,
+                  height: '5rem',
+                }}
+              ></div>
+              <p className="-mb-1 ml-1 text-lg font-semibold">Border</p>
+              <span className="ml-1 text-sm ">
+                {neutralsColorState[colorMode].border}
+              </span>
+            </div>
+            <div>
+              <div
+                className="mb-2 w-full rounded-xl shadow-md transition-colors"
+                style={{
+                  background: neutralsColorState[colorMode].copy,
+                  height: '5rem',
+                }}
+              ></div>
+              <p className="-mb-1 ml-1 text-lg font-semibold">Copy</p>
+              <span className="ml-1 text-sm ">
+                {neutralsColorState[colorMode].copy}
+              </span>
+            </div>
+            <div>
+              <div
+                className="mb-2 w-full rounded-xl shadow-md transition-colors"
+                style={{
+                  background: neutralsColorState[colorMode].copyLight,
+                  height: '5rem',
+                }}
+              ></div>
+              <p className="-mb-1 ml-1 text-lg font-semibold">Copy Light</p>
+              <span className="ml-1 text-sm ">
+                {neutralsColorState[colorMode].copyLight}
+              </span>
+            </div>
+            <div>
+              <div
+                className="mb-2 w-full rounded-xl shadow-md transition-colors"
+                style={{
+                  background: neutralsColorState[colorMode].copyLighter,
+                  height: '5rem',
+                }}
+              ></div>
+              <p className="-mb-1 ml-1 text-lg font-semibold">Copy Lighter</p>
+              <span className="ml-1 text-sm ">
+                {neutralsColorState[colorMode].copyLighter}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div className="mb-12 grid grid-cols-1 gap-12 md:grid-cols-[250px_1fr]">
+          <div>
+            <div className="mb-4">
+              <h2 className="mb-2 text-3xl font-bold">Utility</h2>
+              <p className="text-sm ">
+                Utility colors denote intention, such as deleting an account.
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <div
+                className="mb-2 w-full rounded-xl shadow-md transition-colors"
+                style={{
+                  background: utilityColors.successColor,
+                  height: '5rem',
+                }}
+              ></div>
+              <p className="-mb-1 ml-1 text-lg font-semibold">Success</p>
+              <span className="ml-1 text-sm ">
+                {utilityColors.successColor}
+              </span>
+            </div>
+            <div>
+              <div
+                className="mb-2 w-full rounded-xl shadow-md transition-colors"
+                style={{
+                  background: utilityColors.warningColor,
+                  height: '5rem',
+                }}
+              ></div>
+              <p className="-mb-1 ml-1 text-lg font-semibold">Warning</p>
+              <span className="ml-1 text-sm ">
+                {utilityColors.warningColor}
+              </span>
+            </div>
+            <div>
+              <div
+                className="mb-2 w-full rounded-xl shadow-md transition-colors"
+                style={{ background: utilityColors.errorColor, height: '5rem' }}
+              ></div>
+              <p className="-mb-1 ml-1 text-lg font-semibold">Error</p>
+              <span className="ml-1 text-sm ">{utilityColors.errorColor}</span>
+            </div>
+            <div>
+              <div
+                className="mb-2 w-full rounded-xl shadow-md transition-colors"
+                style={{
+                  background: utilityColors.successContentColor,
+                  height: '5rem',
+                }}
+              ></div>
+              <p className="-mb-1 ml-1 text-lg font-semibold">
+                Success Content
+              </p>
+              <span className="ml-1 text-sm ">
+                {utilityColors.successContentColor}
+              </span>
+            </div>
+            <div>
+              <div
+                className="mb-2 w-full rounded-xl shadow-md transition-colors"
+                style={{
+                  background: utilityColors.warningContentColor,
+                  height: '5rem',
+                }}
+              ></div>
+              <p className="-mb-1 ml-1 text-lg font-semibold">
+                Warning Content
+              </p>
+              <span className="ml-1 text-sm ">
+                {utilityColors.warningContentColor}
+              </span>
+            </div>
+            <div>
+              <div
+                className="mb-2 w-full rounded-xl shadow-md transition-colors"
+                style={{
+                  background: utilityColors.errorContentColor,
+                  height: '5rem',
+                }}
+              ></div>
+              <p className="-mb-1 ml-1 text-lg font-semibold">Error Content</p>
+              <span className="ml-1 text-sm ">
+                {utilityColors.errorContentColor}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div className="w-full text-right py-5 border-t-2 border-slate-200">
+          <button
+            className=" bg-primary rounded px-4 py-3 text-primary-content text-lg font-medium"
+            onClick={() => onSubmit()}
+          >
+            Save Changes
+          </button>
+        </div>
+      </div>
+    </div>
   );
-}
+};
+
+export default Color;

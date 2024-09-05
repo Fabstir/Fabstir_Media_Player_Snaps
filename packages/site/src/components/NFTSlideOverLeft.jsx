@@ -89,7 +89,7 @@ const NFTSlideOverLeft = ({
           <div className="flex justify-between">
             <h2
               id="payment-heading"
-              className="text-lg font-medium tracking-wider text-light-gray"
+              className="text-lg font-medium tracking-wider"
             >
               CREATE NFT
             </h2>
@@ -106,7 +106,7 @@ const NFTSlideOverLeft = ({
             <div className="col-span-3 sm:col-span-4">
               <label
                 htmlFor="name"
-                className="block text-sm font-medium black"
+                className="block text-sm font-medium"
               >
                 Name
               </label>
@@ -115,10 +115,10 @@ const NFTSlideOverLeft = ({
                   type="text"
                   name="name"
                   register={register('name')}
-                  className="block w-full bg-white"
+                  className="block w-full "
                 />
               </div>
-              <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
+              <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error dark:text-dark-error">
                 {errors.name?.message}
               </p>
             </div>
@@ -126,7 +126,7 @@ const NFTSlideOverLeft = ({
             <div className="sm:col-span-1">
               <label
                 htmlFor="symbol"
-                className="block text-sm font-medium black"
+                className="block text-sm font-medium"
               >
                 Symbol
               </label>
@@ -135,10 +135,10 @@ const NFTSlideOverLeft = ({
                   type="text"
                   name="symbol"
                   register={register('symbol')}
-                  className="block w-full bg-white sm:text-sm"
+                  className="block w-full sm:text-sm"
                 />
               </div>
-              <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
+              <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error dark:text-dark-error">
                 {errors.symbol?.message}
               </p>
             </div>
@@ -146,7 +146,7 @@ const NFTSlideOverLeft = ({
             <div className="sm:col-span-2">
               <label
                 htmlFor="supply"
-                className="block text-sm font-medium black"
+                className="block text-sm font-medium"
               >
                 Supply
               </label>
@@ -163,10 +163,10 @@ const NFTSlideOverLeft = ({
                   }}
                   register={register('supply')}
                   disabled={!watch('multiToken')}
-                  className="block w-full bg-white sm:text-sm"
+                  className="block w-full sm:text-sm"
                 />
               </div>
-              <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
+              <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error dark:text-dark-error">
                 {errors.supply?.message}
               </p>
             </div>
@@ -268,7 +268,7 @@ const NFTSlideOverLeft = ({
                 }}
               >
                 <div className="flex flex-1 flex-row">
-                  <div className="text-dark-gray text-lg">
+                  <div className=" text-lg">
                     {teams.teamsName}&nbsp;
                   </div>
                   <UsersIcon
@@ -290,7 +290,7 @@ const NFTSlideOverLeft = ({
                 }}
               >
                 <div className="flex flex-1 flex-row">
-                  <div className="text-dark-gray text-lg mr-1">
+                  <div className="text-lg mr-1">
                     Permissions
                   </div>
                   <ShareIcon
@@ -319,7 +319,7 @@ const NFTSlideOverLeft = ({
               />
             </div>
           </div>
-          <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
+          <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error dark:text-dark-error">
             {errors.attributes?.message}
           </p>
         </section>
@@ -327,7 +327,7 @@ const NFTSlideOverLeft = ({
         <div className="mt-10 border-t border-white pt-8 sm:flex sm:items-center sm:justify-between">
           <Input
             type="submit"
-            className="w-full rounded-md border border-transparent px-2 py-2 text-sm font-medium text-white shadow-sm hover: focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50 sm:mr-6 bg-slate-800"
+            className="w-full rounded-md border border-transparent px-2 py-2 text-sm font-medium shadow-sm hover: focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50 sm:mr-6 bg-slate-800"
             value={submitText}
           />
           <p className="mt-4 text-center text-sm  sm:mt-0 sm:text-left">

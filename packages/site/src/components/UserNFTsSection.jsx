@@ -64,7 +64,7 @@ export default function UserNFTsSection({
   return (
     <main className="h-screen flex-1 rounded-sm ">
       <div className="flex border-t  pt-6 pr-8">
-        <h1 className="flex-1 text-2xl font-bold text-dark-gray">
+        <h1 className="flex-1 text-2xl font-bold ">
           {theTitle}
         </h1>
 

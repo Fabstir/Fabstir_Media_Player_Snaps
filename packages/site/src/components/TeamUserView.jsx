@@ -275,7 +275,7 @@ export default function TeamUserView({
                   readOnly={!isEditable}
                 />
               </div>
-              <p className="mt-2 text-light-pink">
+              <p className="mt-2 text-error dark:text-dark-error">
                 {errors.firstName?.message}
               </p>
             </div>
@@ -296,7 +296,7 @@ export default function TeamUserView({
                   readOnly={!isEditable}
                 />
               </div>
-              <p className="mt-2 text-light-pink">
+              <p className="mt-2 text-error dark:text-dark-error">
                 {errors.lastName?.message}
               </p>
             </div>
@@ -317,7 +317,7 @@ export default function TeamUserView({
                   readOnly={!isEditable}
                 />
               </div>
-              <p className="mt-2 text-light-pink">
+              <p className="mt-2 text-error dark:text-dark-error">
                 {errors.altName?.message}
               </p>
             </div>
@@ -338,7 +338,7 @@ export default function TeamUserView({
                   readOnly={!isEditable}
                 />
               </div>
-              <p className="mt-2 text-light-pink">
+              <p className="mt-2 text-error dark:text-dark-error">
                 {errors.alias?.message}
               </p>
             </div>
@@ -359,7 +359,7 @@ export default function TeamUserView({
                   readOnly={!isEditable}
                 />
               </div>
-              <p className="mt-2 text-light-pink">
+              <p className="mt-2 text-error dark:text-dark-error">
                 {errors.role?.message}
               </p>
             </div>
@@ -380,7 +380,7 @@ export default function TeamUserView({
                   readOnly={!isEditable}
                 />
               </div>
-              <p className="mt-2 text-light-pink">
+              <p className="mt-2 text-error dark:text-dark-error">
                 {errors.altRole?.message}
               </p>
             </div>

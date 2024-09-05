@@ -266,7 +266,7 @@ export default function PermissionUserView({
                     readOnly={!isEditable}
                   />
                 </div>
-                <p className="mt-1 text-light-pink">
+                <p className="mt-1 text-error dark:text-dark-error">
                   {errors.userPub?.message}
                 </p>
               </div>
@@ -287,7 +287,7 @@ export default function PermissionUserView({
                     readOnly={!isEditable}
                   />
                 </div>
-                <p className="mt-1 text-light-pink">
+                <p className="mt-1 text-error dark:text-dark-error">
                   {errors.amount?.message}
                 </p>
               </div>
@@ -308,7 +308,7 @@ export default function PermissionUserView({
                     readOnly={!isEditable}
                   />
                 </div>
-                <p className="mt-1 text-light-pink">
+                <p className="mt-1 text-error dark:text-dark-error">
                   {errors.price?.message}
                 </p>
               </div>
@@ -329,7 +329,7 @@ export default function PermissionUserView({
                     readOnly={!isEditable}
                   />
                 </div>
-                <p className="mt-1 text-light-pink">
+                <p className="mt-1 text-error dark:text-dark-error">
                   {errors.isPermissionless?.message}
                 </p>
               </div>
@@ -350,7 +350,7 @@ export default function PermissionUserView({
                     readOnly={!isEditable || watch('isPermissionless')}
                   />
                 </div>
-                <p className="mt-1 text-light-pink">
+                <p className="mt-1 text-error dark:text-dark-error">
                   {errors.saleRoyaltyFee?.message}
                 </p>
               </div>
@@ -372,7 +372,7 @@ export default function PermissionUserView({
                   readOnly={!isEditable}
                 />
               </div>
-              <p className="mt-2 text-light-pink">
+              <p className="mt-2 text-error dark:text-dark-error">
                 {errors.subscriptionRoyaltyFee?.message}
               </p>
             </div> */}

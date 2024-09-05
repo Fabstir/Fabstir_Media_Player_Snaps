@@ -122,7 +122,7 @@ const BadgeSlideOverRight = () => {
       <div className="mx-auto max-w-lg lg:max-w-none">
         <h2
           id="summary-heading"
-          className="text-lg font-medium text-light-gray"
+          className="text-lg font-medium"
         >
           Include image...
         </h2>
@@ -142,7 +142,7 @@ const BadgeSlideOverRight = () => {
           />
         </div>
 
-        <Popover className="fixed inset-x-0 bottom-0 flex flex-col-reverse text-sm font-medium text-light-gray lg:hidden">
+        <Popover className="fixed inset-x-0 bottom-0 flex flex-col-reverse text-sm font-medium lg:hidden">
           <Transition.Root as={Fragment}>
             <div>
               <Transition.Child

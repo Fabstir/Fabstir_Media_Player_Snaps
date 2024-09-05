@@ -250,7 +250,7 @@ export default function NFTsPermissions({
                 placeholder=""
                 aria-describedby="altName"
               />
-              {/* <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-light-pink">
+              {/* <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error dark:text-dark-error">
                   {errors.altName?.message}
                 </p> */}
             </div>

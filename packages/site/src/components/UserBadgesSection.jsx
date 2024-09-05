@@ -32,7 +32,7 @@ export default function UserBadgesSection({
       {badges?.data?.length > 0 && (
         <main className="flex-1 rounded-sm">
           <div className="mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 className="flex-1 text-2xl font-bold text-dark-gray">
+            <h1 className="flex-1 text-2xl font-bold ">
               {theTitle}
             </h1>
             {/* Gallery */}
