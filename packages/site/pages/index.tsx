@@ -72,33 +72,7 @@ import useDeleteNestableNFT from '../src/hooks/useDeleteNestableNFT';
 import UserProfile from './profile';
 import { useMintNestableERC1155NFT } from '../src/blockchain/useMintNestableERC1155NFT';
 import { ThemeContext } from '../src/components/ThemeContext';
-
-const defaultColors = {
-  lightButtonTextColor: '#000000', // Black text for light mode buttons
-  lightButtonColor: '#ffffff', // White button color for light mode
-  lightButtonHoverColor: '#f0f0f0', // Slightly darker white on hover
-  lightButtonHoverTextColor: '#000000', // Black text on hover
-  lightButtonShadow: '', // Light gray shadow for light buttons
-  lightTextColor: '#333333', // Dark gray for light mode text
-  lightBackgroundColor: '#f9f9f9', // Very light gray background
-  lightSuccessTextColor: '#28a745', // Green text for success messages
-  lightWarningTextColor: '#ffc107', // Yellow text for warnings
-  lightErrorTextColor: '#dc3545', // Red text for errors
-  lightAllowShadow: false,
-
-  darkButtonTextColor: '#ffffff', // White text for dark mode buttons
-  darkButtonColor: '#333333', // Dark gray button color for dark mode
-  darkButtonHoverColor: '#444444', // Slightly lighter gray on hover
-  darkButtonHoverTextColor: '#ffffff', // White text on hover
-  darkButtonShadow: '', // Darker gray shadow for dark buttons
-  darkTextColor: '#f9f9f9', // Very light gray for dark mode text
-  darkBackgroundColor: '#121212', // Very dark background
-  darkSuccessTextColor: '#28a745', // Green text for success messages
-  darkWarningTextColor: '#ffc107', // Yellow text for warnings
-  darkErrorTextColor: '#dc3545', // Red text for errors
-  darkAllowShadow: false,
-};
-
+import Loader from '../src/components/Loader';
 type Addresses = {
   [key: string]: any; // Replace `any` with the actual type of the values
 };
@@ -112,7 +86,6 @@ const Index = () => {
   const [removeAddresses, setRemoveAddresses] = useState<string>('');
   const [importKeys, setImportKeys] = useState<string>('');
   const [exportKeys, setExportKeys] = useState<string>('');
-  const [colors, setColors] = useState<any>(defaultColors);
   const [userData, setUserData] = useState<any | null>(null);
   const fileImportKeysRef = useRef<HTMLInputElement>(null);
 
@@ -120,6 +93,7 @@ const Index = () => {
 
   const [openNFT, setOpenNFT] = useRecoilState(nftslideoverstate);
   const [isDisabled, setIsDisabled] = useState<boolean>(false);
+  const [loader, setLoader] = useState<boolean>(false);
 
   const queryClient = useQueryClient();
   const user = getUser();
@@ -218,10 +192,10 @@ const Index = () => {
   useEffect(() => {
     // Ensure this code runs only on the client side
     // if (typeof window !== 'undefined') {
-      const session = sessionStorage.getItem('userSession');
-      if (session) {
-        setUserData(JSON.parse(session));
-      }
+    const session = sessionStorage.getItem('userSession');
+    if (session) {
+      setUserData(JSON.parse(session));
+    }
     // }
   }, []);
 
@@ -233,10 +207,6 @@ const Index = () => {
     };
     setSmartAccountAddressFn();
   }, [smartAccount]);
-
-  useEffect(() => {
-    console.log('themethemethemethemethemethemetheme', theme);
-  }, [theme]);
 
   useEffect(() => {
     const theCurrentBadgeCategories = [
@@ -326,8 +296,6 @@ const Index = () => {
 
       if (!newAddresses) return;
 
-      console.log('index: handleAddAddress: enter');
-
       // Define a type for the hook's return value
       const addressesList = newAddresses.split('\n');
 
@@ -335,8 +303,6 @@ const Index = () => {
 
       for (const anAddress of addressesList) {
         const [addressId, encryptionKey] = anAddress.split(',');
-        console.log('index: handleAddAddress: addressId = ', addressId);
-
         const [address, id] = addressId.split('_');
 
         let nftJSON = {};
@@ -370,14 +336,7 @@ const Index = () => {
             );
           }
         }
-
-        console.log('index: handleAddAddress: nftJSON = ', nftJSON);
-
         updatedAddresses[addressId as string] = nftJSON;
-        console.log(
-          'index: handleAddAddress: updatedAddresses = ',
-          updatedAddresses,
-        );
       }
 
       setAddresses(updatedAddresses);
@@ -408,8 +367,6 @@ const Index = () => {
     if (!removeAddresses) return;
 
     const addresses = await loadAddresses();
-
-    console.log('handleRemoveAddress: removeAddress = ', removeAddresses);
 
     const newAddresses: Addresses = { ...addresses };
 
@@ -567,10 +524,6 @@ const Index = () => {
           addresses: Addresses;
         };
 
-      console.log(
-        'useCreateNFT: state.addresses.state = ',
-        state.addresses.state,
-      );
       setAddresses(state.addresses.state);
 
       return state.addresses.state;
@@ -617,12 +570,8 @@ const Index = () => {
 
     const pair = JSON.parse(process.env.NEXT_PUBLIC_FABSTIR_SALT_PAIR);
 
-    console.log('SEA = ', SEA);
-
     const username = await SEA.work(smartAccountAddress, pair);
     const passw = await SEA.work(password, pair);
-
-    console.log('logInOrCreateNewUser: passw = ', passw);
 
     const testUserName = `${username}_${process.env.NEXT_PUBLIC_FABSTIR_MEDIA_PLAYER_INSTANCE}`;
     const testPassword = `${passw}_${process.env.NEXT_PUBLIC_FABSTIR_MEDIA_PLAYER_INSTANCE}`;
@@ -644,11 +593,7 @@ const Index = () => {
 
       loggedIn = await createUser(testUserName, testPassword, userProfile);
     }
-
     if (!loggedIn) throw new Error('logInOrCreateNewUser: login failed');
-    if (smartAccountAddress) {
-      fetchColor();
-    }
   };
 
   const handleLogin = async () => {
@@ -670,16 +615,11 @@ const Index = () => {
           throw new Error('index: connect: login failed');
 
         userAccountAddress = await getSmartAccountAddress(biconomySmartAccount);
-        console.log(
-          'index: connect: userAccountAddress = ',
-          userAccountAddress,
-        );
         setSmartAccount(biconomySmartAccount);
         setSmartAccountProvider(web3Provider);
 
         const chainId = await getConnectedChainId(biconomySmartAccount);
         setConnectedChainId(chainId);
-        console.log('biconomySmartAccount', biconomySmartAccount);
         setUserInfo(userInfo);
         setLoading(false);
 
@@ -690,9 +630,9 @@ const Index = () => {
       } else if (!(smartAccount && smartAccountProvider)) {
         userAccountAddress = await loginNative();
         eoaAddress = userAccountAddress;
-        console.log('userAccountAddresssssss', userAccountAddress);
         setSmartAccountAddress(userAccountAddress);
       }
+      fetchColor();
       await loginFabstirDB(userAccountAddress, eoaAddress);
     } catch (e) {
       const errorMessage = 'index: connect: error received';
@@ -706,7 +646,7 @@ const Index = () => {
     await signOut();
     setSmartAccount(null);
     setConnectedChainId(null);
-    setColors(defaultColors);
+    setDefaultColors();
   }
 
   // Define the props type for ButtonLink
@@ -754,15 +694,17 @@ const Index = () => {
 
   const fetchColor = async () => {
     try {
-      if (!userData?.token || !smartAccountAddress) return;
+      if (!smartAccountAddress) return;
+      setLoader(true);
       const response = await axios.get(`${url}/color/${smartAccountAddress}`, {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${userData?.token}`,
+          // Authorization: `Bearer ${userData?.token}`,
         },
       });
+
       const { primaryColor, secondaryColor, utilityColors, neutralsColor } =
-        response.data.document[0] ?? {};
+        response.data.document?.[0] ?? {};
 
       const setCSSVariables = (colorObj: any, prefix = '') => {
         if (!colorObj) return;
@@ -774,32 +716,104 @@ const Index = () => {
           );
         });
       };
-      // Setting the primary colors
-      setCSSVariables(primaryColor, '');
 
-      // Setting the secondary colors
-      setCSSVariables(secondaryColor, '');
-
-      // Setting the utility colors (e.g., success, warning, error)
-      setCSSVariables(utilityColors, '');
-
-      // Setting the neutral colors for light and dark modes
-      setCSSVariables(neutralsColor.light, 'light-');
-      setCSSVariables(neutralsColor.dark, 'dark-');
+      if (primaryColor || secondaryColor || utilityColors || neutralsColor) {
+        // Set API returned colors if they exist
+        setCSSVariables(primaryColor, '');
+        setCSSVariables(secondaryColor, '');
+        setCSSVariables(utilityColors, '');
+        setCSSVariables(neutralsColor?.light, 'light-');
+        setCSSVariables(neutralsColor?.dark, 'dark-');
+      } else {
+        // No data from API, set default dark and light mode colors
+        setDefaultColors();
+      }
     } catch (error) {
       console.log('error:', error);
-      // handleError(error);
+      setDefaultColors(); // Set default colors in case of an error
+    } finally {
+      setLoader(false);
     }
   };
 
-  useEffect(() => {
-    console.log('userData', userData);
-    console.log('smartAccountAddress', smartAccountAddress);
+  const setDefaultColors = () => {
+    const defaultColors = {
+      light: {
+        '--primary-color': '#4699eb',
+        '--primary-content-color': '#05192d',
+        '--primary-dark-color': '#1980e5',
+        '--primary-light-color': '#74b2f0',
 
-    if (smartAccountAddress && userData) {
+        '--secondary-color': '#eb9846',
+        '--secondary-content-color': '#2d1905',
+        '--secondary-dark-color': '#e57e19',
+        '--secondary-light-color': '#f0b274',
+
+        '--success-color': '#46eb46',
+        '--success-content-color': '#052d05',
+
+        '--warning-color': '#ebeb46',
+        '--warning-content-color': '#2d2d05',
+
+        '--error-color': '#eb4646',
+        '--error-content-color': '#ffffff',
+
+        '--light-foreground': '#fafbfd',
+        '--light-background': '#eaf0f5',
+        '--light-border': '#d4dfea',
+
+        '--light-copy': '#192634',
+        '--light-copy-light': '#42668a',
+        '--light-copy-lighter': '#648cb4',
+      },
+      dark: {
+        '--primary-color': '#4699eb',
+        '--primary-content-color': '#05192d',
+        '--primary-dark-color': '#1980e5',
+        '--primary-light-color': '#74b2f0',
+
+        '--secondary-color': '#eb9846',
+        '--secondary-content-color': '#2d1905',
+        '--secondary-dark-color': '#e57e19',
+        '--secondary-light-color': '#f0b274',
+
+        '--success-color': '#46eb46',
+        '--success-content-color': '#052d05',
+
+        '--warning-color': '#ebeb46',
+        '--warning-content-color': '#2d2d05',
+
+        '--error-color': '#eb4646',
+        '--error-content-color': '#ffffff',
+
+        '--dark-foreground': '#192634',
+        '--dark-background': '#111a22',
+        '--dark-border': '#294056',
+
+        '--dark-copy': '#fafbfd',
+        '--dark-copy-light': '#cbd9e6',
+        '--dark-copy-lighter': '#87a6c5',
+      },
+    };
+
+    // Set light mode colors
+    Object.entries(defaultColors.light).forEach(([key, value]) => {
+      document.documentElement.style.setProperty(key, value as string);
+    });
+
+    // Set dark mode colors
+    Object.entries(defaultColors.dark).forEach(([key, value]) => {
+      document.documentElement.style.setProperty(key, value as string);
+    });
+  };
+
+  useEffect(() => {
+    if (smartAccountAddress) {
       fetchColor();
+    } else {
+      setDefaultColors();
     }
-  }, [userData,smartAccountAddress]);
+  }, [smartAccountAddress]);
   return (
     <div className="p-4 max-w-6xl mx-auto bg-background  dark:bg-dark-background text-copy dark:text-dark-copy">
       <h1 className="uppercase text-2xl font-bold mb-5">Web3 Media Player</h1>
