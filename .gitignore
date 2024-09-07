@@ -86,7 +86,7 @@ bash
 Copy code
 # dependencies
 /node_modules
-
+packages/site/node_modules/
 # production build output
 /.next
 /out
@@ -122,6 +122,5 @@ packages/site/config.json
 
 # misc
 packages/site/assets/
-
 start-chrome-debug.bat
 *.xlsx

@@ -23,7 +23,7 @@ export default function TeamsView({ teams }) {
               <div key={index}>
                 {allImagesUndefinedOrNull ? (
                   <div className="">
-                    <div className="pr-3 text-fabstir-dark-gray">
+                    <div className="pr-3 text-dark-gray">
                       {team.name}
                     </div>
                     {team?.users?.reduce((acc, user, index) => {
@@ -44,7 +44,7 @@ export default function TeamsView({ teams }) {
                   </div>
                 ) : (
                   <div className="mt-4">
-                    <div className="pr-3 text-fabstir-dark-gray">
+                    <div className="pr-3 text-dark-gray">
                       {team.name}
                     </div>
                     <div className="flex flex-wrap space-x-4 space-y-2 mt-2">

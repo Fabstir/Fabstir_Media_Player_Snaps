@@ -65,7 +65,7 @@ export default function TeamView({
       {(!team?.users || !team?.users.length) && (
         <div>
           <MinusIcon
-            className="h-8 w-8 pb-4 text-fabstir-light-gray"
+            className="h-8 w-8 pb-4 text-light-gray"
             aria-hidden="true"
           />
         </div>

@@ -1,6 +1,13 @@
-import React, { useContext, useState, useEffect, useRef } from 'react';
+import React, {
+  useContext,
+  useState,
+  useEffect,
+  useRef,
+  useLayoutEffect,
+} from 'react';
 const Gun = require('gun');
 const SEA = require('gun/sea');
+import axios from 'axios';
 
 import { Button } from '../src/ui-components/button';
 import { Description, Label } from '../src/ui-components/fieldset';
@@ -12,7 +19,7 @@ import {
   TableBody,
   TableCell,
   TableHead,
-  TableHeader,
+  // TableHeader,
   TableRow,
 } from '../src/ui-components/table';
 
@@ -64,11 +71,12 @@ import useUserProfile from '../src/hooks/useUserProfile';
 import useDeleteNestableNFT from '../src/hooks/useDeleteNestableNFT';
 import UserProfile from './profile';
 import { useMintNestableERC1155NFT } from '../src/blockchain/useMintNestableERC1155NFT';
-
+import { ThemeContext } from '../src/components/ThemeContext';
+import Loader from '../src/components/Loader';
 type Addresses = {
   [key: string]: any; // Replace `any` with the actual type of the values
 };
-
+let url = process.env.NEXT_PUBLIC_FABSTIRDB_BACKEND_URL || '';
 const Index = () => {
   const [state, dispatch] = useContext(MetaMaskContext);
   const [triggerEffect, setTriggerEffect] = useState(0);
@@ -78,18 +86,19 @@ const Index = () => {
   const [removeAddresses, setRemoveAddresses] = useState<string>('');
   const [importKeys, setImportKeys] = useState<string>('');
   const [exportKeys, setExportKeys] = useState<string>('');
-
+  const [userData, setUserData] = useState<any | null>(null);
   const fileImportKeysRef = useRef<HTMLInputElement>(null);
 
   const [isWasmReady, setIsWasmReady] = useRecoilState(iswasmreadystate);
 
   const [openNFT, setOpenNFT] = useRecoilState(nftslideoverstate);
   const [isDisabled, setIsDisabled] = useState<boolean>(false);
+  const [loader, setLoader] = useState<boolean>(false);
 
   const queryClient = useQueryClient();
   const user = getUser();
   const [getUserProfile] = useUserProfile();
-
+  const { theme, setTheme } = useContext(ThemeContext);
   // Define a type for the hook's return value
   type UseTranscodeVideoS5Return = {
     transcodeVideo: (
@@ -181,6 +190,16 @@ const Index = () => {
   const { deleteNestableNFT } = useDeleteNestableNFT();
 
   useEffect(() => {
+    // Ensure this code runs only on the client side
+    // if (typeof window !== 'undefined') {
+    const session = sessionStorage.getItem('userSession');
+    if (session) {
+      setUserData(JSON.parse(session));
+    }
+    // }
+  }, []);
+
+  useEffect(() => {
     // Update the context value
     const setSmartAccountAddressFn = async () => {
       if (smartAccount)
@@ -188,8 +207,6 @@ const Index = () => {
     };
     setSmartAccountAddressFn();
   }, [smartAccount]);
-
-  console.log('index: Object.keys(process.env) =', Object.keys(process.env));
 
   useEffect(() => {
     const theCurrentBadgeCategories = [
@@ -247,10 +264,6 @@ const Index = () => {
   }, [process.env]);
 
   useEffect(() => {
-    console.log('Addresses updated:', addresses);
-  }, [addresses]);
-
-  useEffect(() => {
     (async () => {
       if (userAuthPub) {
         const userAuthProfile = await getUserProfile(userAuthPub);
@@ -283,8 +296,6 @@ const Index = () => {
 
       if (!newAddresses) return;
 
-      console.log('index: handleAddAddress: enter');
-
       // Define a type for the hook's return value
       const addressesList = newAddresses.split('\n');
 
@@ -292,8 +303,6 @@ const Index = () => {
 
       for (const anAddress of addressesList) {
         const [addressId, encryptionKey] = anAddress.split(',');
-        console.log('index: handleAddAddress: addressId = ', addressId);
-
         const [address, id] = addressId.split('_');
 
         let nftJSON = {};
@@ -327,14 +336,7 @@ const Index = () => {
             );
           }
         }
-
-        console.log('index: handleAddAddress: nftJSON = ', nftJSON);
-
         updatedAddresses[addressId as string] = nftJSON;
-        console.log(
-          'index: handleAddAddress: updatedAddresses = ',
-          updatedAddresses,
-        );
       }
 
       setAddresses(updatedAddresses);
@@ -365,8 +367,6 @@ const Index = () => {
     if (!removeAddresses) return;
 
     const addresses = await loadAddresses();
-
-    console.log('handleRemoveAddress: removeAddress = ', removeAddresses);
 
     const newAddresses: Addresses = { ...addresses };
 
@@ -524,10 +524,6 @@ const Index = () => {
           addresses: Addresses;
         };
 
-      console.log(
-        'useCreateNFT: state.addresses.state = ',
-        state.addresses.state,
-      );
       setAddresses(state.addresses.state);
 
       return state.addresses.state;
@@ -574,12 +570,8 @@ const Index = () => {
 
     const pair = JSON.parse(process.env.NEXT_PUBLIC_FABSTIR_SALT_PAIR);
 
-    console.log('SEA = ', SEA);
-
     const username = await SEA.work(smartAccountAddress, pair);
     const passw = await SEA.work(password, pair);
-
-    console.log('logInOrCreateNewUser: passw = ', passw);
 
     const testUserName = `${username}_${process.env.NEXT_PUBLIC_FABSTIR_MEDIA_PLAYER_INSTANCE}`;
     const testPassword = `${passw}_${process.env.NEXT_PUBLIC_FABSTIR_MEDIA_PLAYER_INSTANCE}`;
@@ -601,7 +593,6 @@ const Index = () => {
 
       loggedIn = await createUser(testUserName, testPassword, userProfile);
     }
-
     if (!loggedIn) throw new Error('logInOrCreateNewUser: login failed');
   };
 
@@ -624,16 +615,11 @@ const Index = () => {
           throw new Error('index: connect: login failed');
 
         userAccountAddress = await getSmartAccountAddress(biconomySmartAccount);
-        console.log(
-          'index: connect: userAccountAddress = ',
-          userAccountAddress,
-        );
         setSmartAccount(biconomySmartAccount);
         setSmartAccountProvider(web3Provider);
 
         const chainId = await getConnectedChainId(biconomySmartAccount);
         setConnectedChainId(chainId);
-
         setUserInfo(userInfo);
         setLoading(false);
 
@@ -646,11 +632,12 @@ const Index = () => {
         eoaAddress = userAccountAddress;
         setSmartAccountAddress(userAccountAddress);
       }
-
+      fetchColor();
       await loginFabstirDB(userAccountAddress, eoaAddress);
     } catch (e) {
       const errorMessage = 'index: connect: error received';
       console.error(`${errorMessage} ${e.message}`);
+      console.log('wwww', e);
       throw new Error(errorMessage, e);
     }
   };
@@ -659,6 +646,7 @@ const Index = () => {
     await signOut();
     setSmartAccount(null);
     setConnectedChainId(null);
+    setDefaultColors();
   }
 
   // Define the props type for ButtonLink
@@ -666,7 +654,8 @@ const Index = () => {
     href: string;
     label: string;
     isDisabled: boolean;
-    className?: string; // Optional prop for additional classes
+    className?: string;
+    color?: string; // Optional prop for additional classes
   };
   // ButtonLink Component with TypeScript
   const ButtonLink: React.FC<ButtonLinkProps> = ({
@@ -674,14 +663,16 @@ const Index = () => {
     label,
     isDisabled,
     className,
+    color,
   }) => {
     return isDisabled ? (
       <div className={className}>
         <Button
-          variant="primary"
+          variant=""
           size="medium"
-          className="p-1 text-2xl font-semibold"
+          className="p-1 text-2xl font-semibold "
           disabled={true}
+          style={{ backgroundColor: color }}
         >
           <p className="text-lg p-1 font-bold">{label}</p>
         </Button>
@@ -689,10 +680,11 @@ const Index = () => {
     ) : (
       <Link href={href} className={className}>
         <Button
-          variant="primary"
+          variant=""
           size="medium"
-          className="p-1 text-2xl font-semibold"
+          className="p-1 text-2xl font-semibold "
           disabled={false}
+          style={{ backgroundColor: color }}
         >
           <p className="text-lg p-1 font-bold">{label}</p>
         </Button>
@@ -700,8 +692,130 @@ const Index = () => {
     );
   };
 
+  const fetchColor = async () => {
+    try {
+      if (!smartAccountAddress) return;
+      setLoader(true);
+      const response = await axios.get(`${url}/color/${smartAccountAddress}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          // Authorization: `Bearer ${userData?.token}`,
+        },
+      });
+
+      const { primaryColor, secondaryColor, utilityColors, neutralsColor } =
+        response.data.document?.[0] ?? {};
+
+      const setCSSVariables = (colorObj: any, prefix = '') => {
+        if (!colorObj) return;
+
+        Object.keys(colorObj).forEach((key) => {
+          document.documentElement.style.setProperty(
+            `--${prefix}${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`,
+            colorObj[key],
+          );
+        });
+      };
+
+      if (primaryColor || secondaryColor || utilityColors || neutralsColor) {
+        // Set API returned colors if they exist
+        setCSSVariables(primaryColor, '');
+        setCSSVariables(secondaryColor, '');
+        setCSSVariables(utilityColors, '');
+        setCSSVariables(neutralsColor?.light, 'light-');
+        setCSSVariables(neutralsColor?.dark, 'dark-');
+      } else {
+        // No data from API, set default dark and light mode colors
+        setDefaultColors();
+      }
+    } catch (error) {
+      console.log('error:', error);
+      setDefaultColors(); // Set default colors in case of an error
+    } finally {
+      setLoader(false);
+    }
+  };
+
+  const setDefaultColors = () => {
+    const defaultColors = {
+      light: {
+        '--primary-color': '#4699eb',
+        '--primary-content-color': '#05192d',
+        '--primary-dark-color': '#1980e5',
+        '--primary-light-color': '#74b2f0',
+
+        '--secondary-color': '#eb9846',
+        '--secondary-content-color': '#2d1905',
+        '--secondary-dark-color': '#e57e19',
+        '--secondary-light-color': '#f0b274',
+
+        '--success-color': '#46eb46',
+        '--success-content-color': '#052d05',
+
+        '--warning-color': '#ebeb46',
+        '--warning-content-color': '#2d2d05',
+
+        '--error-color': '#eb4646',
+        '--error-content-color': '#ffffff',
+
+        '--light-foreground': '#fafbfd',
+        '--light-background': '#eaf0f5',
+        '--light-border': '#d4dfea',
+
+        '--light-copy': '#192634',
+        '--light-copy-light': '#42668a',
+        '--light-copy-lighter': '#648cb4',
+      },
+      dark: {
+        '--primary-color': '#4699eb',
+        '--primary-content-color': '#05192d',
+        '--primary-dark-color': '#1980e5',
+        '--primary-light-color': '#74b2f0',
+
+        '--secondary-color': '#eb9846',
+        '--secondary-content-color': '#2d1905',
+        '--secondary-dark-color': '#e57e19',
+        '--secondary-light-color': '#f0b274',
+
+        '--success-color': '#46eb46',
+        '--success-content-color': '#052d05',
+
+        '--warning-color': '#ebeb46',
+        '--warning-content-color': '#2d2d05',
+
+        '--error-color': '#eb4646',
+        '--error-content-color': '#ffffff',
+
+        '--dark-foreground': '#192634',
+        '--dark-background': '#111a22',
+        '--dark-border': '#294056',
+
+        '--dark-copy': '#fafbfd',
+        '--dark-copy-light': '#cbd9e6',
+        '--dark-copy-lighter': '#87a6c5',
+      },
+    };
+
+    // Set light mode colors
+    Object.entries(defaultColors.light).forEach(([key, value]) => {
+      document.documentElement.style.setProperty(key, value as string);
+    });
+
+    // Set dark mode colors
+    Object.entries(defaultColors.dark).forEach(([key, value]) => {
+      document.documentElement.style.setProperty(key, value as string);
+    });
+  };
+
+  useEffect(() => {
+    if (smartAccountAddress) {
+      fetchColor();
+    } else {
+      setDefaultColors();
+    }
+  }, [smartAccountAddress]);
   return (
-    <div className="p-4 max-w-6xl mx-auto bg-background dark:bg-background">
+    <div className="p-4 max-w-6xl mx-auto bg-background  dark:bg-dark-background text-copy dark:text-dark-copy">
       <h1 className="uppercase text-2xl font-bold mb-5">Web3 Media Player</h1>
 
       {userName && smartAccount && (
@@ -710,10 +824,9 @@ const Index = () => {
 
       {!state.installedSnap && (
         <Button
-          variant="primary"
           size="medium"
           onClick={handleConnectClick}
-          className="p-1 h-8 col-span-1 mb-2"
+          className="p-1 h-8 col-span-1 mb-2 "
         >
           Connect Snap
         </Button>
@@ -722,9 +835,9 @@ const Index = () => {
       {!loading && !smartAccount && (
         <Button
           onClick={handleLogin}
-          variant="primary"
+          variant=""
           size="medium"
-          className="mt-4 text-xl font-semibold"
+          className="mt-4 text-xl font-semibold "
         >
           Log in
         </Button>
@@ -740,7 +853,7 @@ const Index = () => {
       {smartAccount && (
         <Button
           onClick={handleLogout}
-          variant="primary"
+          variant=""
           size="medium"
           className="mt-2 mb-6 "
         >
@@ -755,18 +868,25 @@ const Index = () => {
           href="/gallery/userNFTs"
           label="Gallery"
           isDisabled={isDisabled}
+          className=" "
         />
         <ButtonLink
           href="/profile"
           label="Profile"
           isDisabled={isDisabled}
-          className="ml-4"
+          className="ml-4 "
         />
         <ButtonLink
           href="/permissions"
           label="Permissions"
           isDisabled={isDisabled}
-          className="ml-4"
+          className="ml-4 "
+        />
+        <ButtonLink
+          href="/color-customization"
+          label="Color Customization"
+          isDisabled={isDisabled}
+          className="ml-4 "
         />
       </div>
 
@@ -774,9 +894,9 @@ const Index = () => {
 
       <div className="mt-6 mb-10">
         <Button
-          variant="primary"
+          variant=""
           size="medium"
-          className="text-xl mt-4"
+          className="text-xl mt-4 "
           disabled={isDisabled}
           onClick={handleLoadAddresses}
         >
@@ -806,12 +926,12 @@ const Index = () => {
       </div>
       {/* Replaced Heading with h1 */}
       <div className="grid grid-cols-12">
-        <p className="col-span-12 text-gray-600 ml-4 mb-2">
+        <p className="col-span-12 ml-4 mb-2 ">
           Enter address ids as contract address and token id separated by `_`
         </p>
         <HeadlessField className="grid grid-cols-12 gap-6 p-4 border-2 border-gray-200 col-span-11">
           <div className="col-span-5">
-            <Description className="mt-1">
+            <Description className="mt-1 ">
               Enter address ids to add to the gallery.
             </Description>
           </div>
@@ -828,9 +948,9 @@ const Index = () => {
         </HeadlessField>
 
         <Button
-          variant="primary"
+          variant=""
           size="medium"
-          className="p-1 h-8 m-4 col-span-1"
+          className="p-1 h-8 m-4 col-span-1 "
           onClick={() => setTriggerEffect((prev) => prev + 1)}
           disabled={isDisabled}
         >
@@ -839,7 +959,7 @@ const Index = () => {
         <p className=" text-red-600 pb-2">{errorsAddAddresses}</p>
         <HeadlessField className="grid grid-cols-12 gap-6 p-4 border-2 border-gray-200 col-span-11 col-start-1">
           <div className="col-span-5">
-            <Description className="mt-1">
+            <Description className="mt-1 ">
               Enter address ids to remove from the gallery.
             </Description>
           </div>
@@ -856,9 +976,9 @@ const Index = () => {
         </HeadlessField>
 
         <Button
-          variant="primary"
+          variant=""
           size="medium"
-          className="p-1 h-8 m-4 col-span-1"
+          className="p-1 h-8 m-4 col-span-1 "
           onClick={handleRemoveAddresses}
           disabled={isDisabled}
         >
@@ -867,7 +987,7 @@ const Index = () => {
         <p className=" text-red-600 pb-2">{errorsRemoveAddresses}</p>
         <HeadlessField className="grid grid-cols-12 gap-6 p-4 border-2 border-gray-200 col-span-11 col-start-1">
           <div className="col-span-5">
-            <Description className="mt-1">
+            <Description className="mt-1 ">
               Enter address ids to export to a new keys file.
             </Description>
           </div>
@@ -884,9 +1004,9 @@ const Index = () => {
         </HeadlessField>
 
         <Button
-          variant="primary"
+          variant=""
           size="medium"
-          className="p-1 h-8 m-4 col-span-1"
+          className="p-1 h-8 m-4 col-span-1 "
           onClick={handleExportKeys}
           disabled={isDisabled}
         >
@@ -896,7 +1016,7 @@ const Index = () => {
 
         <HeadlessField className="grid grid-cols-12 gap-6 p-4 border-2 border-gray-200 col-span-11 col-start-1">
           <div className="col-span-5">
-            <Description className="mt-1">
+            <Description className="mt-1 ">
               Browse to keys file to import. To import subset, enter address
               ids. Leave blank to import all keys.
             </Description>
@@ -921,9 +1041,9 @@ const Index = () => {
           accept=".json"
         />
         <Button
-          variant="primary"
+          variant=""
           size="medium"
-          className="p-1 h-8 m-4 col-span-1"
+          className="p-1 h-8 m-4 col-span-1 "
           onClick={handleButtonImportKeys}
           disabled={isDisabled}
         >

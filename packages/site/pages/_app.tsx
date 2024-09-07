@@ -31,6 +31,9 @@ import {
 
 // Import the ParticleAuth type
 import { ParticleAuth } from '../types';
+import { ThemeProvider } from '../src/components/ThemeContext';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // Create a client
 export const queryClient = new QueryClient();
@@ -121,6 +124,24 @@ function MyApp({ Component, pageProps }: AppProps) {
     { ssr: false }, // This will load the component only on client side
   );
 
+  const isParticleEnabled =
+    process.env.NEXT_PUBLIC_IS_PARTICLE_ENABLED === 'true';
+
+  const content = (
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <Head>
+          <title>Web3 Media Player</title>
+        </Head>
+        <div className="flex flex-col w-full min-h-screen max-w-full">
+          <Header handleToggleClick={toggleTheme} />
+          <Component {...pageProps} />
+        </div>
+      </QueryClientProvider>
+      <ToastContainer />
+    </ThemeProvider>
+  );
+
   return (
     <BlockchainContext.Provider
       value={{
@@ -137,51 +158,46 @@ function MyApp({ Component, pageProps }: AppProps) {
       }}
     >
       <RecoilRoot>
-        <DynamicAuthCoreContextProvider
-          options={{
-            projectId: process.env.NEXT_PUBLIC_PARTICLE_PROJECT_ID || '',
-            clientKey: process.env.NEXT_PUBLIC_PARTICLE_CLIENT_KEY || '',
-            appId: process.env.NEXT_PUBLIC_PARTICLE_APP_ID || '',
-            erc4337: {
-              name: 'BICONOMY',
-              version: '2.0.0',
-            },
-            authTypes: [AuthType.email, AuthType.google, AuthType.apple],
-            themeType: 'dark', //light or dark
-            fiatCoin: 'USD',
-            language: 'en',
-            customStyle: {
-              logo: 'https://xxxx', // image url
-              projectName: 'xxx',
-              modalBorderRadius: 10,
-              theme: {
-                light: {
-                  textColor: '#000',
-                },
-                dark: {
-                  textColor: '#fff',
-                },
+        {isParticleEnabled ? (
+          <DynamicAuthCoreContextProvider
+            options={{
+              projectId: process.env.NEXT_PUBLIC_PARTICLE_PROJECT_ID || '',
+              clientKey: process.env.NEXT_PUBLIC_PARTICLE_CLIENT_KEY || '',
+              appId: process.env.NEXT_PUBLIC_PARTICLE_APP_ID || '',
+              erc4337: {
+                name: 'BICONOMY',
+                version: '2.0.0',
               },
-            },
-            wallet: {
-              visible: true,
+              authTypes: [AuthType.email, AuthType.google, AuthType.apple],
+              themeType: 'dark', // light or dark
+              fiatCoin: 'USD',
+              language: 'en',
               customStyle: {
-                supportChains,
+                logo: 'https://xxxx', // image url
+                projectName: 'xxx',
+                modalBorderRadius: 10,
+                theme: {
+                  light: {
+                    textColor: '#000',
+                  },
+                  dark: {
+                    textColor: '#fff',
+                  },
+                },
               },
-            },
-          }}
-        >
-          <QueryClientProvider client={queryClient}>
-            <Head>
-              <title>Web3 Media Player</title>{' '}
-            </Head>
-            <div className="flex flex-col w-full min-h-screen max-w-full">
-              <Header handleToggleClick={toggleTheme} />
-              <Component {...pageProps} />
-              {/* <Footer /> */}
-            </div>
-          </QueryClientProvider>
-        </DynamicAuthCoreContextProvider>
+              wallet: {
+                visible: true,
+                customStyle: {
+                  supportChains,
+                },
+              },
+            }}
+          >
+            {content}
+          </DynamicAuthCoreContextProvider>
+        ) : (
+          content
+        )}
       </RecoilRoot>
     </BlockchainContext.Provider>
   );

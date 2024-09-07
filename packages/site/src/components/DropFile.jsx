@@ -89,7 +89,7 @@ const DropFile = ({
       <div className="sm:col-span-3">
         <div
           {...getRootProps()}
-          className={`mt-8 flex flex-col ${twStyle} mx-auto rounded-md border-2 border-fabstir-gray bg-fabstir-light-gray fill-current text-fabstir-dark-gray shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:items-center sm:justify-center sm:text-center sm:text-sm`}
+          className={`mt-8 flex flex-col ${twStyle} mx-auto rounded-md border-2 border-gray bg-light-gray fill-current text-dark-gray shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:items-center sm:justify-center sm:text-center sm:text-sm`}
         >
           {!watchUrl && (
             <div>

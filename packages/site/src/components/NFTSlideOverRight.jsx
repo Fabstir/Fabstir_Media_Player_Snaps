@@ -130,12 +130,12 @@ const NFTSlideOverRight = ({ encKey }) => {
   return (
     <section
       aria-labelledby="summary-heading"
-      className="bg-fabstir-magenta-600 px-4 pb-10 pt-16 sm:px-6 lg:col-start-2 lg:row-start-1 lg:bg-transparent lg:px-0 lg:pb-16"
+      className="px-4 pb-10 pt-16 sm:px-6 lg:col-start-2 lg:row-start-1 lg:bg-transparent lg:px-0 lg:pb-16"
     >
       <div className="mx-auto max-w-lg lg:max-w-none">
         <h2
           id="summary-heading"
-          className="text-lg font-medium text-fabstir-light-gray"
+          className="text-lg font-medium text-light-gray"
         >
           Include assets...
         </h2>
@@ -260,7 +260,7 @@ const NFTSlideOverRight = ({ encKey }) => {
                       onChange={() => handle_FilmGenres(genre)}
                     />
                     <label
-                      className="form-check-label inline-block text-sm text-fabstir-black"
+                      className="form-check-label inline-block text-sm text-black"
                       htmlFor="inlineCheckbox1"
                     >
                       {genre}
@@ -316,7 +316,7 @@ const NFTSlideOverRight = ({ encKey }) => {
               </div>
             )}
 
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-fabstir-dark-gray">
+            <h2 className="mt-6 text-center text-3xl font-extrabold text-dark-gray">
               Genres
             </h2>
             <div className="mt-3 flex grid grid-cols-4 justify-center">
@@ -327,14 +327,14 @@ const NFTSlideOverRight = ({ encKey }) => {
                 >
                   <div>
                     <Checkbox
-                      className="form-check-input float-left mr-2 mt-1 h-4 w-4 cursor-pointer appearance-none rounded-sm border border-gray-300 bg-fabstir-dark-gray bg-contain bg-center bg-no-repeat align-top transition duration-200 checked:border-blue-600 checked:bg-blue-600 focus:outline-none"
+                      className="form-check-input float-left mr-2 mt-1 h-4 w-4 cursor-pointer appearance-none rounded-sm border border-gray-300 bg-dark-gray bg-contain bg-center bg-no-repeat align-top transition duration-200 checked:border-blue-600 checked:bg-blue-600 focus:outline-none"
                       id="inlineCheckbox1"
                       checked={musicGenresSet?.has(genre)}
                       value={genre}
                       onChange={() => handle_MusicGenres(genre)}
                     />
                     <label
-                      className="form-check-label inline-block text-sm text-fabstir-black"
+                      className="form-check-label inline-block text-sm text-black"
                       htmlFor="inlineCheckbox1"
                     >
                       {genre}
@@ -374,7 +374,7 @@ const NFTSlideOverRight = ({ encKey }) => {
           </div>
         )}
 
-        <Popover className="fixed inset-x-0 bottom-0 flex flex-col-reverse text-sm font-medium text-fabstir-light-gray lg:hidden">
+        <Popover className="fixed inset-x-0 bottom-0 flex flex-col-reverse text-sm font-medium text-light-gray lg:hidden">
           <Transition as={Fragment}>
             <div>
               <TransitionChild

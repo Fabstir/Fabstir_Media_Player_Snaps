@@ -64,13 +64,13 @@ export default function UserBadgeView({
           }}
         >
           <img
-            className="@3xl:w-15 @2xl:w-15 aspect-[10/7] rounded-md border-dashed border-fabstir-medium-light-gray object-cover @sm:w-6 @sm:border-[1px] @md:w-10 @md:border-[1px] @lg:w-12 @lg:border-[2px] @xl:w-12 @xl:border-[2px] @2xl:w-16 @2xl:border-[3px] @4xl:w-20 @4xl:border-[3px] @5xl:w-21 @7xl:w-24 @7xl:border-[4px]"
+            className="@3xl:w-15 @2xl:w-15 aspect-[10/7] rounded-md border-dashed  object-cover @sm:w-6 @sm:border-[1px] @md:w-10 @md:border-[1px] @lg:w-12 @lg:border-[2px] @xl:w-12 @xl:border-[2px] @2xl:w-16 @2xl:border-[3px] @4xl:w-20 @4xl:border-[3px] @5xl:w-21 @7xl:w-24 @7xl:border-[4px]"
             src={badgeImage}
             alt=""
             crossOrigin="anonymous"
           />
           {balance > 1 && (
-            <p className="absolute left-0 top-0 rounded-full bg-fabstir-pink p-2 text-sm">
+            <p className="absolute left-0 top-0 rounded-full p-2 text-sm">
               {balance}
             </p>
           )}
@@ -78,7 +78,7 @@ export default function UserBadgeView({
         {twTitleStyle && (
           <div
             className={classNames(
-              'pointer-events-none mt-2 block truncate text-left font-medium text-fabstir-light-gray',
+              'pointer-events-none mt-2 block truncate text-left font-medium text-text dark:text-dark-text',
               twTitleStyle
             )}
           >

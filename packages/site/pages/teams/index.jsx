@@ -99,10 +99,10 @@ export default function Teams() {
 
   return (
     <div className="mx-auto max-w-7xl pl-6 pr-2 pt-12">
-      <div className="bg-fabstir-dark-purple">
+      <div className="">
         <div className="space-y-5 sm:mx-auto sm:max-w-xl sm:space-y-4 lg:max-w-7xl">
           <div>
-            <h2 className="text-center text-3xl font-extrabold tracking-tight text-fabstir-dark-gray sm:text-4xl">
+            <h2 className="text-center text-3xl font-extrabold tracking-tight text-dark-gray sm:text-4xl">
               {teams.teamsName}
             </h2>
             <div className="flex items-center mt-4 w-full">
@@ -110,7 +110,7 @@ export default function Teams() {
                 type="text"
                 value={teams.teamsName}
                 onChange={handleInputChange}
-                className="flex-grow rounded-md border border-gray-300 px-3 py-2 text-sm text-fabstir-dark-gray placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="flex-grow rounded-md border border-gray-300 px-3 py-2 text-sm text-dark-gray placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 placeholder="Edit team name"
                 readOnly={isReadOnly}
               />
@@ -120,7 +120,7 @@ export default function Teams() {
               />
             </div>
           </div>
-          <p className="text-center text-xl text-fabstir-dark-gray">
+          <p className="text-center text-xl text-dark-gray">
             Risus velit condimentum vitae tincidunt tincidunt. Mauris ridiculus
             fusce amet urna nunc. Ut nisl ornare diam in.
           </p>
@@ -129,7 +129,7 @@ export default function Teams() {
         <div className="mt-4 flex flex-1 justify-center">
           <Button
             type="submit"
-            variant="primary"
+            variant=""
             size="medium"
             onClick={(e) => handleExitTeams(e)}
             className="mx-auto flex items-center justify-center whitespace-nowrap rounded-md p-4 font-bold tracking-wide"
@@ -152,10 +152,10 @@ export default function Teams() {
         <a onClick={(e) => handleNewTeam(e)}>
           <div className="flex flex-1 flex-row items-center mt-4">
             <PlusIcon
-              className="hover:text-gray ml-8 h-10 w-10 transition duration-100 hover:scale-125 mr-4 text-fabstir-dark-gray"
+              className="hover:text-gray ml-8 h-10 w-10 transition duration-100 hover:scale-125 mr-4 text-dark-gray"
               aria-hidden="true"
             />
-            <div className="text-lg font-semibold text-fabstir-gray">
+            <div className="text-lg font-semibold text-gray">
               New Team
             </div>
           </div>

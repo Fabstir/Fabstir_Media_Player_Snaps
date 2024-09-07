@@ -20,7 +20,7 @@ export default function ThumbnailMusic({
 
   return (
     <div className="group transform cursor-pointer p-2">
-      <div className="shadow-lg shadow-fabstir-dark-purple md:shadow-lg lg:shadow-xl xl:shadow-xl 2xl:shadow-xl 3xl:shadow-2xl">
+      <div className="shadow-lg md:shadow-lg lg:shadow-xl xl:shadow-xl 2xl:shadow-xl 3xl:shadow-2xl">
         <Image
           layout="responsive"
           src={nftImage}
@@ -42,10 +42,10 @@ export default function ThumbnailMusic({
               e.preventDefault();
               handleSubmit_AddEntityToList(nft);
             }}
-            className="absolute left-1/2 top-1/2 z-10 flex w-fit -translate-x-1/2 -translate-y-1/2 rounded-full border-none bg-fabstir-gray bg-opacity-75 font-semibold text-fabstir-light-gray opacity-0 duration-300 group-hover:opacity-100"
+            className="absolute left-1/2 top-1/2 z-10 flex w-fit -translate-x-1/2 -translate-y-1/2 rounded-full border-none bg-gray bg-opacity-75 font-semibold text-light-gray opacity-0 duration-300 group-hover:opacity-100"
           >
             <PlusIcon
-              className="h-8 w-8 font-bold text-fabstir-light-gray lg:h-10 lg:w-10"
+              className="h-8 w-8 font-bold text-light-gray lg:h-10 lg:w-10"
               aria-hidden="true"
             />
           </div>
@@ -56,10 +56,10 @@ export default function ThumbnailMusic({
               e.preventDefault();
               handleSubmit_RemoveEntityFromList(nft);
             }}
-            className="absolute left-1/2 top-1/2 z-10 flex w-fit -translate-x-1/2 -translate-y-1/2 rounded-full border-none bg-fabstir-gray bg-opacity-75 font-semibold text-fabstir-light-gray opacity-0 duration-300 group-hover:opacity-100"
+            className="absolute left-1/2 top-1/2 z-10 flex w-fit -translate-x-1/2 -translate-y-1/2 rounded-full border-none bg-gray bg-opacity-75 font-semibold text-light-gray opacity-0 duration-300 group-hover:opacity-100"
           >
             <MinusIcon
-              className="h-6 w-6 font-bold text-fabstir-light-gray lg:h-8 lg:w-8"
+              className="h-6 w-6 font-bold text-light-gray lg:h-8 lg:w-8"
               aria-hidden="true"
             />
           </div>
@@ -69,7 +69,7 @@ export default function ThumbnailMusic({
       <div className="text-left">
         <p
           className={classNames(
-            'pointer-events-none mt-2 block truncate font-medium text-fabstir-light-gray',
+            'pointer-events-none mt-2 block truncate font-medium text-light-gray',
             twTitleStyle,
           )}
         >

@@ -70,7 +70,6 @@ export const TextLink: React.FC<TextLinkProps> = ({
     <Link
       href={href}
       className={clsx(
-        'text-primary hover:text-primary-dark dark:text-dark-primary dark:hover:text-dark-primary-light',
         'underline transition-colors duration-200',
         className,
       )}
@@ -89,7 +88,7 @@ export const Code: React.FC<CodeProps> = ({ className, ...props }) => {
       {...props}
       className={clsx(
         'rounded border px-0.5 text-sm font-medium sm:text-[0.8125rem]',
-        'border-border bg-background text-copy',
+        'border-border bg-background dark:bg-dark-background',
         'dark:border-dark-border dark:bg-dark-background dark:text-dark-copy',
         className,
       )}

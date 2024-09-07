@@ -19,7 +19,7 @@ export const Checkbox: React.FC<CheckboxProps> = ({
   ...props
 }) => {
   return (
-    <div className={clsx('relative flex items-start', className)}>
+    <div className={clsx('relative flex items-start mt-6', className)}>
       <div className="flex items-center h-5">
         <div className="relative">
           <input
@@ -27,22 +27,22 @@ export const Checkbox: React.FC<CheckboxProps> = ({
             {...register}
             {...props}
             className={clsx(
-              'appearance-none h-4 w-4 rounded',
+              'appearance-none mt-2 ml-3 h-6 w-6 rounded',
               'border-2 border-border dark:border-dark-border',
-              'bg-foreground dark:bg-dark-foreground',
-              'checked:bg-primary dark:checked:bg-dark-primary',
-              'checked:border-primary dark:checked:border-dark-primary',
-              'focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-dark-primary',
+              'bg-gray dark:bg-dark-foreground',
+              'checked:bg-gray dark:checked:bg-gray',
+              'checked:border-gray dark:checked:border-gray',
+              'focus:outline-none focus:ring-2 focus:ring-gray dark:focus:ring-gray',
               'disabled:opacity-50 disabled:cursor-not-allowed',
               error
                 ? 'border-error dark:border-dark-error'
-                : 'hover:border-primary dark:hover:border-dark-primary',
+                : 'hover:border-gray dark:hover:border-gray',
               'transition duration-150 ease-in-out',
             )}
           />
           <CheckIcon
             className={clsx(
-              'absolute top-0 left-0 h-3 w-3 text-primary-content dark:text-dark-primary-content',
+              'absolute top-2 left-3 h-6 w-6 text-white dark:text-white',
               'pointer-events-none opacity-0 transition-opacity duration-150 ease-in-out',
               props.checked ? 'opacity-100' : 'opacity-0',
             )}

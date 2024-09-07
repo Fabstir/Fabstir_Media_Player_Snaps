@@ -123,7 +123,7 @@ export const fetchScopedNFTs = async (userPub, userProfile) => {
     userProfile?.accountAddress,
   );
 
-  const parsedResultArray = resultArray.map((element) =>
+  const parsedResultArray = resultArray?.map((element) =>
     parseArrayProperties(element),
   );
   return parsedResultArray;

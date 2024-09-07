@@ -61,7 +61,7 @@ const DropSingleFile = ({ field, twStyle, text }) => {
       <div className="sm:col-span-3">
         <div
           {...getRootProps()}
-          className={`mt-8 flex flex-col ${twStyle} mx-auto rounded-md border-2 border-fabstir-gray bg-fabstir-light-gray fill-current text-fabstir-dark-gray shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:items-center sm:justify-center sm:text-center sm:text-sm`}
+          className={`mt-8 flex flex-col ${twStyle} mx-auto rounded-md border-2 border-gray bg-light-gray fill-current text-dark-gray shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:items-center sm:justify-center sm:text-center sm:text-sm`}
         >
           {!watchUrl && !fileNameState && (
             <div>
@@ -88,7 +88,7 @@ const DropSingleFile = ({ field, twStyle, text }) => {
               </svg>
               {text}
               {errors[field] && (
-                <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-dark-gray">
+                <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-dark-gray">
                   {errors[field].message}
                 </p>
               )}

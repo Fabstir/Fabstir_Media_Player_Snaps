@@ -787,9 +787,9 @@ const VideoJS = ({
         }}
       >
         {isMuted ? (
-          <SpeakerXMarkIcon className="h-6 w-6 text-fabstir-light-gray-300" />
+          <SpeakerXMarkIcon className="h-6 w-6 text-light-gray-300" />
         ) : (
-          <SpeakerWaveIcon className="h-6 w-6 text-fabstir-light-gray-300" />
+          <SpeakerWaveIcon className="h-6 w-6 text-light-gray-300" />
         )}
       </button>
     </div>

@@ -9,14 +9,15 @@ type ButtonProps = {
     | 'outline'
     | 'success'
     | 'warning'
-    | 'error';
+    | 'error'
+    | '';
   size?: 'small' | 'medium' | 'large';
   className?: string;
   children: React.ReactNode;
 } & React.ComponentPropsWithoutRef<typeof HeadlessButton>;
 
 export const Button: React.FC<ButtonProps> = ({
-  variant = 'primary',
+  variant = '',
   size = 'medium',
   className,
   children,
@@ -66,10 +67,12 @@ export const Button: React.FC<ButtonProps> = ({
     <HeadlessButton
       className={clsx(
         baseClasses,
-        variantClasses[variant],
+        variant && variantClasses[variant],
         sizeClasses[size],
         disabled && disabledClasses,
-        className,
+        `${className} bg-primary text-primary-content hover:bg-primary-light 
+        active:bg-primary-dark focus:ring-2 focus:ring-primary-dark 
+        disabled:bg-primary-light/50 shadow-md`,
       )}
       disabled={disabled}
       {...props}
@@ -78,3 +81,8 @@ export const Button: React.FC<ButtonProps> = ({
     </HeadlessButton>
   );
 };
+// bg-button-background dark:bg-dark-button-background
+// text-button-text dark:text-dark-button-text
+// hover:bg-hover-background dark:hover:bg-dark-hover-background
+// hover:text-hover-text dark:hover:text-dark-hover-text
+// shadow-md shadow-buttonShadow dark:shadow-dark-buttonShadow`,
