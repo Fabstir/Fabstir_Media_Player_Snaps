@@ -1,4 +1,6 @@
 import { Interface } from '@ethersproject/abi';
+import { formatUnits, parseUnits } from '@ethersproject/units';
+import { BigNumber } from '@ethersproject/bignumber';
 
 export function getAddressFromContractEvent(
   receipt,
@@ -67,4 +69,28 @@ export function truncateAddress(address, charsToShow = 6, breakChar = '...') {
     breakChar +
     address.substring(len - charsToShow, len)
   );
+}
+
+export function bigNumberToFloat(bigNumberString, decimalPlaces = 18) {
+  // Parse the Big Number string
+  const bigNumber = BigNumber.from(bigNumberString);
+
+  // Convert to floating point number using string division to avoid precision loss
+  const floatNumber = parseFloat(formatUnits(bigNumber, decimalPlaces));
+
+  return floatNumber;
+}
+
+export function abbreviateAddress(address) {
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+}
+
+export function abbreviateAddress2(
+  address,
+  charsToShowStart = 6,
+  charsToShowEnd = 4,
+) {
+  return `${address.slice(0, charsToShowStart)}...${address.slice(
+    -charsToShowEnd,
+  )}`;
 }

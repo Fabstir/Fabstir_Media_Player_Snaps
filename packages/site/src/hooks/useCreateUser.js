@@ -80,7 +80,7 @@ export default function useCreateUser() {
   };
 
   const createUser = (username, password, userProfile) => {
-    const user = getUser();
+    // const user = getUser();
     if (!username || !username.trim())
       return Promise.reject(new Error('User name cannot be blank'));
 

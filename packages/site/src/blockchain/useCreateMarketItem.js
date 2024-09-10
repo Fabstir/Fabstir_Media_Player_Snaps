@@ -1,57 +1,141 @@
-import { ethers } from 'ethers';
+import { BigNumber } from '@ethersproject/bignumber';
+import { AddressZero, Zero } from '@ethersproject/constants';
+
+import { SEA } from 'gun';
+import { user } from '../user';
+
 import { useContext } from 'react';
 import TipERC1155 from '../../contracts/TipERC1155.json';
 import TipERC721 from '../../contracts/TipERC721.json';
 
 import { useRecoilValue } from 'recoil';
 import BlockchainContext from '../../state/BlockchainContext';
-import { currencycontractaddressesstate } from '../atoms/currenciesAtom';
 import useUserProfile from '../hooks/useUserProfile';
 
 import FNFTMarketCreateFacet from '../../contracts/FNFTMarketCreateFacet.json';
-import ITokenWhitelist from '../../contracts/ITokenWhitelist.json';
-import FNFTMarketDiamond from '../../contracts/FNFTMarketDiamond.json';
+import FNFTTokenDepositFacet from '../../contracts/FNFTTokenDepositFacet.json';
+import FNFTTokenWithdrawFacet from '../../contracts/FNFTTokenWithdrawFacet.json';
 
 import { userauthpubstate } from '../atoms/userAuthAtom';
 import useAccountAbstractionPayment from './useAccountAbstractionPayment';
 import { getAddressFromContractEvent } from '../utils/blockchainUtils';
 import useMintNFT from './useMintNFT';
 import useContractUtils from './useContractUtils';
+import useEncKey from '../hooks/useEncKey';
+import useMarketKeys from '../hooks/useMarketKeys';
+import useCurrencyUtils from '../utils/useCurrencyUtils';
 
-/**
- * Custom hook to create a market item for sale on Fabstir's NFT marketplace.
- *
- * This hook provides the functionality to create a new item in the market.
- * It handles the necessary state and logic required for the creation process.
- *
- * @returns {Object} An object containing the state and functions to create a market item.
- */
 export default function useCreateMarketItem() {
-  const currencyContractAddresses = useRecoilValue(
-    currencycontractaddressesstate,
-  );
-
   const blockchainContext = useContext(BlockchainContext);
-  const { smartAccountProvider, smartAccount } = blockchainContext;
+  const { connectedChainId, smartAccountProvider, smartAccount } =
+    blockchainContext;
   const { processTransactionBundle } =
     useAccountAbstractionPayment(smartAccount);
   const userAuthPub = useRecoilValue(userauthpubstate);
-  const { newReadOnlyContract, newContract } = useContractUtils();
+  const {
+    getChainIdAddressFromChainIdAndAddress,
+    getAddressFromChainIdAddress,
+    newReadOnlyContract,
+    newContract,
+  } = useContractUtils();
+
+  const { getContractAddressFromCurrency } = useCurrencyUtils();
 
   const [getUserProfile] = useUserProfile();
-  const { getHoldersAndRatioFromNFT } = useMintNFT();
+  const { getIsERC721, getIsERC1155, getHoldersAndRatioFromNFT } = useMintNFT();
+  const getEncKey = useEncKey();
 
-  /**
-   * Creates a market item for an ERC-721 NFT.
-   *
-   * This function handles the creation of a market item for an ERC-721 NFT, given the necessary parameters.
-   *
-   * @param {string} nftContractAddress - The address of the NFT contract.
-   * @param {number} tokenId - The ID of the token to be listed.
-   * @param {string} price - The price at which the NFT will be listed.
-   * @param {string} seller - The address of the seller.
-   * @returns {Promise<void>} A promise that resolves when the market item has been created.
-   */
+  const {
+    createMarketItemSEAPair,
+    putMarketItemKey,
+    submitEncryptedMarketItemKey,
+  } = useMarketKeys();
+
+  // Add fractional token to marketplace for auction
+  const createMarketDAOItem = async (
+    marketAddress,
+    dao,
+    howMuchTokens,
+    startPrice,
+    reservePrice,
+    startTime,
+    endTime,
+    cancelTime,
+  ) => {
+    const fnftMarketCreateFacet = newContract(
+      marketAddress,
+      FNFTMarketCreateFacet.abi,
+      smartAccountProvider,
+    );
+
+    const fnftTokenDepositFacet = newReadOnlyContract(
+      getChainIdAddressFromChainIdAndAddress(connectedChainId, dao.address),
+      FNFTTokenDepositFacet.abi,
+    );
+
+    const fnftTokenId = await fnftTokenDepositFacet.index();
+
+    const fnftTokenWithdrawFacet = newContract(
+      dao.address,
+      FNFTTokenWithdrawFacet.abi,
+      smartAccountProvider,
+    );
+
+    const tokenName = await fnftTokenWithdrawFacet.name();
+    console.log('useCreateMarketItem: token name = ', tokenName);
+
+    const userOps = [];
+
+    userOps.push([
+      await fnftTokenWithdrawFacet.populateTransaction.approve(
+        getAddressFromChainIdAddress(marketAddress),
+        howMuchTokens,
+      ),
+      dao.address,
+    ]);
+
+    const marketItemInput = {
+      tokenId: fnftTokenId,
+      seller: AddressZero,
+      fnftToken: dao.address,
+      baseToken: getContractAddressFromCurrency(dao.currency),
+      amount: howMuchTokens,
+      startPrice,
+      reservePrice,
+      startTime,
+      endTime,
+      cancelTime,
+      creator: Zero,
+      resellerFeeRatio: Zero,
+      creatorFeeRatio: Zero,
+      holders: [],
+      holdersRatio: [],
+    };
+
+    userOps.push([
+      await fnftMarketCreateFacet.populateTransaction.createMarketItem(
+        marketItemInput,
+      ),
+      fnftMarketCreateFacet.address,
+    ]);
+
+    const { receipt } = await processTransactionBundle(userOps, 3);
+
+    const marketItemCreatedEvent = getAddressFromContractEvent(
+      receipt,
+      FNFTMarketCreateFacet.abi,
+      'MarketItemCreated',
+      0,
+    );
+    console.log(
+      'useCreateDAO: createMarketDAOItem: marketItemCreatedEvent = ',
+      marketItemCreatedEvent,
+    );
+
+    return { marketItemCreatedEvent };
+  };
+
+  // Adds a ERC-721 to marketplace for auction
   const createMarketNFT721Item = async (
     marketAddress,
     nft,
@@ -63,6 +147,7 @@ export default function useCreateMarketItem() {
     endTime,
     cancelTime,
     resellerFeeRatio,
+    creatorFeeRatio,
   ) => {
     const fnftMarketCreateFacet = newContract(
       marketAddress,
@@ -76,65 +161,49 @@ export default function useCreateMarketItem() {
       smartAccountProvider,
     );
 
+    const owner = await tipERC721.ownerOf(nft.id);
+    console.log('Owner of NFT:', owner);
+
     const userOps = [];
 
     userOps.push([
-      await tipERC721.populateTransaction.approve(marketAddress, nft.id),
+      await tipERC721.populateTransaction.approve(
+        getAddressFromChainIdAddress(marketAddress),
+        nft.id,
+      ),
       tipERC721.address,
     ]);
 
-    const fnftMarketDiamond = newReadOnlyContract(
-      marketAddress,
-      FNFTMarketDiamond.abi,
-    );
-
-    const tokenWhitelistAddress = await fnftMarketDiamond.tokenWhitelist();
-
-    const tokenWhitelist = newContract(
-      tokenWhitelistAddress,
-      ITokenWhitelist.abi,
-      smartAccountProvider,
-    );
-
-    userOps.push([
-      await tokenWhitelist.populateTransaction.addTokenToWhitelist(nft.address),
-      tokenWhitelist.address,
-    ]);
-
-    userOps.push([
-      await tokenWhitelist.populateTransaction.addTokenToWhitelist(
-        currencyContractAddresses[currency],
-      ),
-      tokenWhitelist.address,
-    ]);
-
     await processTransactionBundle(userOps);
-
-    const isTokenWhitelist = await tokenWhitelist.isTokenInWhitelist(
-      nft.address,
-    );
-    console.log('createMarketNFT721Item isTokenWhitelist = ', isTokenWhitelist);
 
     const creatorUserProfile = await getUserProfile(nft.creator);
 
     const { holders, holdersRatio } = await getHoldersAndRatioFromNFT(nft);
 
+    const baseToken = getContractAddressFromCurrency(currency);
+
     // if holders is empty, then msg.sender is used by the contract
     const marketItemInput = {
-      tokenId: ethers.BigNumber.from(nft.id),
-      fnftToken: nft.address,
-      baseToken: currencyContractAddresses[currency],
+      itemId: BigNumber.from(0),
+      tokenId: BigNumber.from(nft.id),
+      seller: AddressZero,
+      fnftToken: getAddressFromChainIdAddress(nft.address),
+      baseToken,
       amount: howMuchTokens,
       startPrice,
       reservePrice,
       startTime,
       endTime,
       cancelTime,
-      creator: creatorUserProfile.accountAddress,
       resellerFeeRatio,
+      creator: creatorUserProfile.accountAddress,
+      creatorFeeRatio,
       holders,
       holdersRatio,
+      data: userAuthPub,
     };
+
+    console.log('createMarketNFT721Item: marketItemInput = ', marketItemInput);
 
     const { receipt } = await processTransactionBundle([
       [
@@ -145,30 +214,26 @@ export default function useCreateMarketItem() {
       ],
     ]);
 
-    const marketItemId = getAddressFromContractEvent(
-      receipt,
-      FNFTMarketCreateFacet.abi,
-      'MarketItemCreated',
-      0,
-    );
+    try {
+      const marketItemId = getAddressFromContractEvent(
+        receipt,
+        FNFTMarketCreateFacet.abi,
+        'MarketItemStatusChanged',
+        0,
+      );
 
-    console.log('createMarketNFT721Item: marketItemId = ', marketItemId);
-
-    return { marketItemId };
+      console.log(
+        'createMarketNFT721Item: marketItemCreatedEvent = ',
+        marketItemId,
+      );
+      return marketItemId;
+    } catch (error) {
+      console.error('Error fetching marketItemCreatedEvent:', error);
+      return null;
+    }
   };
 
-  /**
-   * Creates a market item for an ERC-721 NFT.
-   *
-   * This function handles the creation of a market item for an ERC-721 NFT, given the necessary parameters.
-   * It processes the transaction and returns the created market item ID.
-   *
-   * @param {string} nftContractAddress - The address of the NFT contract.
-   * @param {number} tokenId - The ID of the token to be listed.
-   * @param {string} price - The price at which the NFT will be listed.
-   * @param {string} seller - The address of the seller.
-   * @returns {Promise<Object>} A promise that resolves to an object containing the market item ID.
-   */
+  // Adds a ERC-1155 to marketplace for auction
   const createMarketNFT1155Item = async (
     marketAddress,
     nft,
@@ -180,6 +245,7 @@ export default function useCreateMarketItem() {
     endTime,
     cancelTime,
     resellerFeeRatio,
+    creatorFeeRatio,
   ) => {
     const fnftMarketCreateFacet = newContract(
       marketAddress,
@@ -196,66 +262,43 @@ export default function useCreateMarketItem() {
     const userOps = [];
 
     const userAuthProfile = await getUserProfile(userAuthPub);
-    const isApproved = await tipERC1155.isApprovedForAll(
-      userAuthProfile.accountAddress,
-      marketAddress,
-    );
+    // const isApproved = await tipERC1155.isApprovedForAll(
+    //   userAuthProfile.accountAddress,
+    //   getAddressFromChainIdAddress(marketAddress)
+    // )
 
-    if (!isApproved) {
-      userOps.push([
-        await tipERC1155.populateTransaction.setApprovalForAll(
-          marketAddress,
-          true,
-        ),
-        tipERC1155.address,
-      ]);
-    }
-
-    const fnftMarketDiamond = newReadOnlyContract(
-      marketAddress,
-      FNFTMarketDiamond.abi,
-    );
-
-    const tokenWhitelistAddress = await fnftMarketDiamond.tokenWhitelist();
-
-    const tokenWhitelist = newContract(
-      tokenWhitelistAddress,
-      ITokenWhitelist.abi,
-      smartAccountProvider,
-    );
-
+    // if (!isApproved) {
     userOps.push([
-      await tokenWhitelist.populateTransaction.addTokenToWhitelist(nft.address),
-      tokenWhitelist.address,
-    ]);
-
-    userOps.push([
-      await tokenWhitelist.populateTransaction.addTokenToWhitelist(
-        currencyContractAddresses[currency],
+      await tipERC1155.populateTransaction.setApprovalForAll(
+        getAddressFromChainIdAddress(marketAddress),
+        true,
       ),
-      tokenWhitelist.address,
+      tipERC1155.address,
     ]);
+    await processTransactionBundle(userOps);
+    // }
 
     const creatorUserProfile = await getUserProfile(nft.creator);
-
-    await processTransactionBundle(userOps);
-
     const { holders, holdersRatio } = await getHoldersAndRatioFromNFT(nft);
 
     const marketItemInput = {
-      tokenId: ethers.BigNumber.from(nft.id),
-      fnftToken: nft.address,
-      baseToken: currencyContractAddresses[currency],
+      itemId: BigNumber.from(0),
+      tokenId: BigNumber.from(nft.id),
+      seller: AddressZero,
+      fnftToken: getAddressFromChainIdAddress(nft.address),
+      baseToken: getContractAddressFromCurrency(currency),
       amount: howMuchTokens,
       startPrice,
       reservePrice,
       startTime,
       endTime,
       cancelTime,
-      creator: creatorUserProfile.accountAddress,
       resellerFeeRatio,
+      creator: creatorUserProfile.accountAddress,
+      creatorFeeRatio,
       holders,
       holdersRatio,
+      data: userAuthPub,
     };
 
     const { receipt } = await processTransactionBundle([
@@ -267,27 +310,119 @@ export default function useCreateMarketItem() {
       ],
     ]);
 
-    const marketItemId = getAddressFromContractEvent(
-      receipt,
-      FNFTMarketCreateFacet.abi,
-      'MarketItemCreated',
-      0,
-    );
+    try {
+      const marketItemId = getAddressFromContractEvent(
+        receipt,
+        FNFTMarketCreateFacet.abi,
+        'MarketItemStatusChanged',
+        0,
+      );
 
-    console.log('createMarketNFT1155Item: marketItemId = ', marketItemId);
-
-    return { marketItemId };
+      console.log(
+        'createMarketNFT1155Item: marketItemCreatedEvent = ',
+        marketItemId,
+      );
+      return marketItemId;
+    } catch (error) {
+      console.error('Error fetching marketItemCreatedEvent:', error);
+      return null;
+    }
   };
 
-  /**
-   * Retrieves the fee ratio taken by the NFT market's platform.
-   *
-   * This function fetches the platform fee ratio associated with the specified market address.
-   *
-   * @param {string} marketAddress - The address of the market for which the platform fee ratio is to be retrieved.
-   * @returns {Promise<number>} A promise that resolves to the platform fee ratio as a number.
-   */
-  const getPlatformFeeRatio = async (marketAddress) => {
+  const createMarketNFTItem = async (
+    marketAddress,
+    nft,
+    currency,
+    howMuchTokens,
+    startPrice,
+    reservePrice,
+    startTime,
+    endTime,
+    cancelTime,
+    resellerFeeRatio,
+    creatorFeeRatio,
+  ) => {
+    let marketItemId;
+    if (await getIsERC721(nft)) {
+      marketItemId = await createMarketNFT721Item(
+        marketAddress,
+        nft,
+        currency,
+        howMuchTokens,
+        startPrice,
+        reservePrice,
+        startTime,
+        endTime,
+        cancelTime,
+        resellerFeeRatio,
+        creatorFeeRatio,
+      );
+    } else if (await getIsERC1155(nft)) {
+      marketItemId = await createMarketNFT1155Item(
+        marketAddress,
+        nft,
+        currency,
+        howMuchTokens,
+        startPrice,
+        reservePrice,
+        startTime,
+        endTime,
+        cancelTime,
+        resellerFeeRatio,
+        creatorFeeRatio,
+      );
+    } else throw new Error('createMarketNFTItem: NFT type not supported');
+
+    if (!marketItemId) return; // when the market item is placed in the pending state
+
+    storeMarketItemKeyLicense(nft, marketAddress, marketItemId.toNumber());
+    return marketItemId;
+  };
+
+  const storeMarketItemKeyLicense = async (
+    nft,
+    marketAddress,
+    marketItemId,
+  ) => {
+    // A new salesSeaPair is generated specifically for the sale.
+    const marketItemSEAPair = await createMarketItemSEAPair();
+
+    // The seller retrieves the existing video decryption key from their GUN user graph
+    const key = await getEncKey(userAuthPub, nft);
+
+    if (key) {
+      // The video key is then re-encrypted with the salesSeaPair's public key and stored in a marketplace node within the seller's user graph
+      await putMarketItemKey(marketItemId, marketItemSEAPair, key);
+
+      const passphrase = await SEA.secret(
+        process.env.NEXT_PUBLIC_SUBSCRIPTION_CONTROLLER_EPUB,
+        user._.sea,
+      );
+
+      // The seller encrypts the marketItemSEAPair with the subscription controller's public key
+      const scrambledMarketItemSEAPair = await SEA.encrypt(
+        { marketItemSEAPair, marketAddress, marketItemId },
+        passphrase,
+      );
+      await submitEncryptedMarketItemKey(
+        userAuthPub,
+        marketItemId,
+        scrambledMarketItemSEAPair,
+      );
+    }
+  };
+
+  const getMarketFabstirFeeRatio = async (marketAddress) => {
+    const fnftMarketCreateFacet = newReadOnlyContract(
+      marketAddress,
+      FNFTMarketCreateFacet.abi,
+    );
+
+    const fabstirFeeRatio = await fnftMarketCreateFacet.fabstirFeeRatio();
+    return fabstirFeeRatio;
+  };
+
+  const getMarketPlatformFeeRatio = async (marketAddress) => {
     const fnftMarketCreateFacet = newReadOnlyContract(
       marketAddress,
       FNFTMarketCreateFacet.abi,
@@ -297,41 +432,46 @@ export default function useCreateMarketItem() {
     return platformFeeRatio;
   };
 
-  /**
-   * Removes a market item from the specified market.
-   *
-   * This function handles the removal of a market item given its address and ID.
-   *
-   * @param {string} marketAddress - The address of the market from which the item should be removed.
-   * @param {number} marketItemId - The ID of the market item to be removed.
-   * @returns {Promise<void>} A promise that resolves when the market item has been removed.
-   */
-  const removeMarketItem = async (marketAddress, marketItemId) => {
+  const getMarketPlatformCreatorFeeRatio = async (marketAddress) => {
+    const fnftMarketCreateFacet = newReadOnlyContract(
+      marketAddress,
+      FNFTMarketCreateFacet.abi,
+    );
+
+    const platformCreatorFeeRatio =
+      await fnftMarketCreateFacet.platformCreatorFeeRatio();
+
+    console.log(
+      'getMarketPlatformCreatorFeeRatio: platformCreatorFeeRatio',
+      platformCreatorFeeRatio,
+    );
+    return platformCreatorFeeRatio;
+  };
+
+  const deleteMarketItemPending = async (marketAddress, marketItemId) => {
     const fnftMarketCreateFacet = newContract(
       marketAddress,
       FNFTMarketCreateFacet.abi,
       smartAccountProvider,
     );
 
-    const { receipt } = await processTransactionBundle([
-      [
-        await fnftMarketCreateFacet.populateTransaction.removeMarketItem(
-          marketItemId,
-        ),
-        fnftMarketCreateFacet.address,
-      ],
+    await processTransactionBundle([
+      await fnftMarketCreateFacet.populateTransaction.deleteMarketItemPending(
+        marketItemId,
+      ),
+      fnftMarketCreateFacet.address,
     ]);
-
-    console.log('removeMarketItem: receipt = ', receipt);
-    if (!receipt.isScuccess) {
-      throw new Error('Failed to remove market item');
-    }
   };
 
   return {
+    createMarketDAOItem,
     createMarketNFT721Item,
     createMarketNFT1155Item,
-    removeMarketItem,
-    getPlatformFeeRatio,
+    deleteMarketItemPending,
+    getMarketFabstirFeeRatio,
+    getMarketPlatformFeeRatio,
+    getMarketPlatformCreatorFeeRatio,
+    createMarketNFTItem,
+    storeMarketItemKeyLicense,
   };
 }

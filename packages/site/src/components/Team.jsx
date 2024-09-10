@@ -37,17 +37,21 @@ function classNames(...classes) {
  */
 export default function Team({
   theTeam,
+  theTeamName,
   index,
   handleUpdateTeam,
   handleDeleteTeam,
   initialIsReadOnly = true,
   TeamUserView,
+  showTeamEditButtons = true,
+  isEnableDeleteTeam = true,
+  isAlwaysShowNewMember = false,
 }) {
   const userAuthPub = useRecoilValue(userauthpubstate);
   const [isTeamPublic, setIsTeamPublic] = useState([]);
 
   // const [theTeam, setTheTeam] = useRecoilState(teamstate)
-  const [team, setTeam] = useState(theTeam);
+  const [team, setTeam] = useState({ users: [] });
 
   const [isReadOnly, setIsReadOnly] = useState(initialIsReadOnly);
 
@@ -66,38 +70,50 @@ export default function Team({
   const nameMax = 30;
 
   useEffect(() => {
-    if (team.users) {
+    setTeam(theTeam);
+  }, [theTeam]);
+
+  useEffect(() => {
+    if (team?.users) {
       setIsReadOnlyArray(new Array(team.users.length).fill(true));
     }
-  }, [team.users]);
+  }, [team?.users]);
 
   useEffect(() => {
     setIsAllReadOnly(isReadOnlyArray.every(Boolean));
   }, [isReadOnlyArray]);
 
   async function handleSubmit_SaveTeamMember(newUser, index) {
-    if (team.users) {
+    let newTeam;
+    if (team?.users) {
       if (team.users.find((user) => user.userPub === newUser.userPub)) {
         const updatedUsers = team.users.map((user) =>
           user.userPub === newUser.userPub ? newUser : user,
         );
 
-        setTeam({
+        newTeam = {
           ...team,
           users: updatedUsers,
-        });
+        };
       } else {
-        setTeam({
+        newTeam = {
           ...team,
           users: [...team.users, newUser],
-        });
+        };
       }
     } else {
       // If team.users is undefined, create a new array with the new user
-      setTeam({
+      newTeam = {
         ...team,
         users: [newUser],
-      });
+      };
+    }
+
+    setTeam(newTeam);
+
+    if (!showTeamEditButtons && !isReadOnly && newTeam?.users) {
+      handleUpdateTeam(newTeam, index);
+      setIsReadOnly(true);
     }
 
     setIsReadOnlyArray((prev) => {
@@ -137,10 +153,10 @@ export default function Team({
    * @param {Event} e - The event object that triggered the function, typically a form submission event.
    */
   function handleSubmit_ConfirmTeam(e) {
-    e.preventDefault();
+    if (e) e.preventDefault();
 
-    if (!team || !team.users || team.users.length === 0) {
-      alert('Cannot confirm an empty team.');
+    if (!team || !team?.users) {
+      // alert('Cannot confirm an empty team.')
       return;
     }
 
@@ -158,122 +174,149 @@ export default function Team({
   function handleSubmit_DeleteTeam(e) {
     e.preventDefault();
 
-    if (!team || !team.users || index >= team.users.length) {
-      alert('Error in deleting team.');
-      return;
-    }
+    // if (!team || !team.users || index >= team.users.length) {
+    //   alert('Error in deleting team.')
+    //   return
+    // }
 
     handleDeleteTeam(index);
     setIsReadOnly(true);
   }
 
-  /**
-   * Handles the removal of a team member.
-   * updates the team state by filtering out the specified member, and performs any additional necessary cleanup.
-   *
-   * @function
-   * @param {string} memberPub - The public identifier of the team member to be removed.
-   */
-  function handleSubmit_RemoveTeamMember(memberPub) {
-    setTeam({
-      name: team.name,
-      users: team.users?.filter((user) => user.userPub !== memberPub),
-    });
-    console.log('TeamView: users left = ', team);
+  // /**
+  //  * Handles the removal of a team member.
+  //  * updates the team state by filtering out the specified member, and performs any additional necessary cleanup.
+  //  *
+  //  * @function
+  //  * @param {string} memberPub - The public identifier of the team member to be removed.
+  //  */
+  // function handleSubmit_RemoveTeamMember(memberPub) {
+  //   setTeam({
+  //     name: team.name,
+  //     users: team.users?.filter((user) => user.userPub !== memberPub),
+  //   })
+  //   console.log('TeamView: users left = ', team)
+  // }
+
+  function handleRemoveTeamMember(userPub) {
+    if (team.users) {
+      const updatedUsers = team.users.filter(
+        (user) => user.userPub !== userPub,
+      );
+
+      setTeam({
+        ...team,
+        users: updatedUsers,
+      });
+
+      // setIsReadOnlyArray((prev) => {
+      //   const newArray = [...prev];
+      //   newArray[index] = true;
+      //   return newArray;
+      // });
+    }
   }
 
   return (
-    <div className="mx-auto mt-4 max-w-7xl pl-6 pr-2">
-      <div>
-        <div>
-          <div className="relative z-0 mb-4 ml-2 mr-4 flex items-center justify-between pt-8">
-            {/* <span className="justify-start whitespace-nowrap pr-4 text-lg font-semibold tracking-wide text-fabstir-white">
+    <div>
+      <div className="mx-auto mt-4 max-w-7xl pl-6 pr-2">
+        <div className="z-0 mb-4 ml-2 mr-4 flex items-center justify-between pt-8">
+          {/* <span className="justify-start whitespace-nowrap pr-4 text-lg font-semibold tracking-wide text-fabstir-white">
               Team Members
             </span> */}
 
-            <div className="relative mt-1 rounded-md shadow-sm">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center whitespace-nowrap pl-3 text-lg font-semibold">
-                {/* <span className="text-gray-500 sm:text-sm">$</span> */}
-              </div>
-              <Input
-                key={`teamName`}
-                type="text"
-                name="name"
-                id="name"
-                defaultValue={!team.name ? `Team Members` : team.name}
-                value={team?.name}
-                readOnly={isReadOnly}
-                onChange={(e) => {
-                  e.preventDefault();
+          <div className="mt-1 rounded-md shadow-sm">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center whitespace-nowrap pl-3 text-lg font-semibold">
+              {/* <span className="text-gray-500 sm:text-sm">$</span> */}
+            </div>
+            <Input
+              key={`teamName`}
+              type="text"
+              name="name"
+              id="name"
+              defaultValue={
+                !team?.name
+                  ? theTeamName
+                    ? theTeamName
+                    : `Team Members`
+                  : team.name
+              }
+              value={team?.name}
+              readOnly={isReadOnly || !showTeamEditButtons}
+              onChange={(e) => {
+                e.preventDefault();
 
-                  setTeam({ ...team, name: e.target.value });
-                }}
-                size={Math.min(Math.max(team?.name?.length, 2), nameMax)}
-                maxLength={nameMax}
-                className={classNames(
-                  isReadOnly
-                    ? 'bg-fabstir-dark-purple'
-                    : 'bg-fabstir-gray-700 shadow-[inset_0_-1px_0px_hsla(0,0%,100%,0.25),inset_0_1px_1px_hsla(0,0%,0%,0.15)]',
-                  'rounded-md border-2 border-fabstir-gray p-2 text-lg font-semibold text-fabstir-dark-gray focus:border-indigo-500 focus:ring-indigo-500 w-60',
-                )}
-                placeholder=""
-                aria-describedby="altName"
-              />
-              {/* <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
+                setTeam({ ...team, name: e.target.value });
+              }}
+              size={Math.min(Math.max(team?.name?.length, 2), nameMax)}
+              maxLength={nameMax}
+              className={classNames(
+                isReadOnly
+                  ? 'bg-fabstir-dark-purple'
+                  : 'bg-fabstir-gray-700 shadow-[inset_0_-1px_0px_hsla(0,0%,100%,0.25),inset_0_1px_1px_hsla(0,0%,0%,0.15)]',
+                'w-60 rounded-md border-2 border-fabstir-gray p-2 text-lg font-semibold text-fabstir-white focus:border-indigo-500 focus:ring-indigo-500',
+              )}
+              placeholder=""
+              aria-describedby="altName"
+            />
+            {/* <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
                   {errors.altName?.message}
                 </p> */}
-            </div>
+          </div>
 
-            <div className="w-full border-t border-fabstir-divide-color1" />
-
-            <div className="ml-4 flex flex-row items-center">
-              <a
-                onClick={(e) => {
-                  e.preventDefault();
-                  setIsReadOnly(false);
-                }}
-              >
-                <PencilIcon
-                  className="mr-2 h-5 w-5 font-bold text-fabstir-gray"
+          {showTeamEditButtons && (
+            <>
+              <div className="w-full border-t border-fabstir-divide-color1" />
+              <div className="ml-4 flex flex-row items-center text-fabstir-light-gray">
+                <a
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setIsReadOnly(false);
+                  }}
+                >
+                  <PencilIcon
+                    className="mr-2 h-5 w-5 font-bold text-fabstir-light-gray"
+                    aria-hidden="true"
+                  />
+                </a>
+                <TrashIcon
+                  className="mr-6 h-5 w-5 font-bold text-fabstir-light-gray"
                   aria-hidden="true"
                 />
-              </a>
-              <TrashIcon
-                className="mr-6 h-5 w-5 font-bold text-fabstir-gray"
-                aria-hidden="true"
-              />
-              Public
-            </div>
-          </div>
+                Public
+              </div>
+            </>
+          )}
+        </div>
 
-          <div className="z-0 rounded-lg bg-fabstir-light-gray p-4 pb-0 shadow-lg">
-            <TeamView
-              team={team}
-              TeamUserView={TeamUserView}
-              isReadOnlyArray={isReadOnlyArray}
-              handleEditMember={handleEditMember}
-              isPublic={isTeamPublic}
-              setIsPublic={setIsTeamPublic}
-              handleSubmit_SaveTeamMember={handleSubmit_SaveTeamMember}
-              handleSubmit_RemoveTeamMember={handleSubmit_RemoveTeamMember}
-              isTeamReadOnly={isReadOnly}
-            />
-          </div>
+        <div className="z-0 rounded-lg bg-fabstir-gray p-4 pb-0 shadow-lg">
+          <TeamView
+            team={team}
+            TeamUserView={TeamUserView}
+            isReadOnlyArray={isReadOnlyArray}
+            handleEditMember={handleEditMember}
+            isPublic={isTeamPublic}
+            setIsPublic={setIsTeamPublic}
+            handleSubmit_SaveTeamMember={handleSubmit_SaveTeamMember}
+            handleSubmit_RemoveTeamMember={handleRemoveTeamMember}
+            isTeamReadOnly={isReadOnly}
+          />
+        </div>
 
-          {!isReadOnly && (
-            <form>
-              <div className="mt-4 flex flex-1 justify-center">
-                <span className="flex flex-row space-x-4">
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    size="medium"
-                    onClick={(e) => handleSubmit_Cancel(e)}
-                    className="mx-auto flex items-center justify-center whitespace-nowrap rounded-md p-4 font-bold tracking-wide shadow-md"
-                  >
-                    Cancel
-                  </Button>
-
+        {showTeamEditButtons && !isReadOnly && (
+          <form>
+            <div className="mt-4 flex flex-1 justify-center">
+              <span className="flex flex-row space-x-4">
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="medium"
+                  onClick={(e) => handleSubmit_Cancel(e)}
+                  className="mx-auto flex items-center justify-center whitespace-nowrap rounded-md p-4 font-bold tracking-wide shadow-md"
+                >
+                  Cancel
+                </Button>
+                {isEnableDeleteTeam && (
                   <Button
                     type="submit"
                     variant="primary"
@@ -283,33 +326,33 @@ export default function Team({
                   >
                     Delete Team
                   </Button>
-
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    size="medium"
-                    onClick={(e) => handleSubmit_ConfirmTeam(e)}
-                    className="mx-auto flex items-center justify-center whitespace-nowrap rounded-md p-4 font-bold tracking-wide shadow-md"
-                  >
-                    Confirm Team
-                  </Button>
-                </span>
-              </div>
-            </form>
-          )}
-        </div>
+                )}
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="medium"
+                  onClick={(e) => handleSubmit_ConfirmTeam(e)}
+                  className="mx-auto flex items-center justify-center whitespace-nowrap rounded-md p-4 font-bold tracking-wide shadow-md"
+                >
+                  Confirm Team
+                </Button>
+              </span>
+            </div>
+          </form>
+        )}
       </div>
-      {!isReadOnly && (
+      {(!isReadOnly || isAlwaysShowNewMember) && (
         <div className="mt-16">
           <TeamUserView
             userAuthPub={userAuthPub}
             isReadOnly={false}
-            handleSubmit_SaveTeamMember={(newUser) =>
+            handleSubmit_SaveTeamMember={(newUser) => {
               handleSubmit_SaveTeamMember(
                 newUser,
-                team.users ? team.users.length : 0,
-              )
-            }
+                team?.users ? team.users.length : 0,
+              );
+            }}
+            handleSubmit_RemoveTeamMember={handleRemoveTeamMember}
             showEditButton={true} // Add this prop
           />
         </div>

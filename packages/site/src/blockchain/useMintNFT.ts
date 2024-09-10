@@ -1,5 +1,6 @@
 import { Interface } from '@ethersproject/abi';
 import { Zero, One } from '@ethersproject/constants';
+import { parseEther } from '@ethersproject/units';
 
 import { useContext } from 'react';
 import IERC165 from '../../contracts/IERC165.json';
@@ -26,6 +27,7 @@ import useS5net from '../hooks/useS5';
 import { getAddressFromContractEvent } from '../utils/blockchainUtils';
 import { useRecoilValue } from 'recoil';
 import { userauthpubstate } from '../atoms/userAuthAtom';
+import useMaths from '../utils/useMaths';
 
 const erc721InterfaceId = 0x80ac58cd;
 const erc1155InterfaceId = 0xd9b67a26;
@@ -63,6 +65,8 @@ export default function useMintNFT() {
   const { processTransactionBundle } = useAccountAbstractionPayment(
     smartAccount as object,
   ) as AccountAbstractionPayment;
+
+  const { isEpsilon } = useMaths();
 
   const { uploadFile } = usePortal(
     process.env.NEXT_PUBLIC_DEFAULT_STORAGE_NETWORK,
@@ -582,6 +586,38 @@ export default function useMintNFT() {
     } else throw new Error('NFT is not ERC721 or ERC1155');
   };
 
+  const getHoldersAndRatioFromNFT = async (nft) => {
+    const holders = [];
+    const holdersRatio = [];
+
+    if (nft?.collaboratives?.length > 0) {
+      const totalRoyalties = nft.collaboratives
+        .flatMap((collaborative) => collaborative.users)
+        .reduce((total, member) => total + (member?.royalty || 0), 0);
+
+      const totalUsers = nft.collaboratives.flatMap(
+        (collaborative) => collaborative.users,
+      ).length;
+
+      for (const collaborative of nft.collaboratives) {
+        for (const key in collaborative.users) {
+          const myNum = isEpsilon(totalRoyalties)
+            ? 1 / totalUsers
+            : (collaborative.users[key].royalty
+                ? collaborative.users[key].royalty
+                : 0) / totalRoyalties;
+
+          console.log('mint NFT: myNum = ', myNum);
+
+          holdersRatio.push(parseEther(myNum.toString()));
+          holders.push(collaborative.users[key].accountAddress);
+        }
+      }
+    }
+
+    return { holders, holdersRatio };
+  };
+
   const getOwnNFTs = async (userAccountAddress: string, nfts: any) => {
     if (!nfts) return [];
 
@@ -625,5 +661,6 @@ export default function useMintNFT() {
     getOwnNFTs,
     getNFTQuantity,
     transferNFT,
+    getHoldersAndRatioFromNFT,
   };
 }

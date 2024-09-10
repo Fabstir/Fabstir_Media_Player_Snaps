@@ -26,10 +26,11 @@ import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 
 import BlockchainContext from '../state/BlockchainContext';
 import {
-  contractaddressescurrenciesstate,
-  currenciesdecimalplaces,
+  currenciesfromcontractaddressesstate,
+  decimalplacesfromcurrenciesstate,
   currencieslogourlstate,
-  currencycontractaddressesstate,
+  currenciesstate,
+  contractaddressesfromcurrenciesstate,
 } from '../src/atoms/currenciesAtom';
 import {
   currentnftcategories,
@@ -64,6 +65,7 @@ import useUserProfile from '../src/hooks/useUserProfile';
 import useDeleteNestableNFT from '../src/hooks/useDeleteNestableNFT';
 import UserProfile from './profile';
 import { useMintNestableERC1155NFT } from '../src/blockchain/useMintNestableERC1155NFT';
+import useNFTSale from '../src/hooks/useNFTSale';
 
 type Addresses = {
   [key: string]: any; // Replace `any` with the actual type of the values
@@ -116,24 +118,23 @@ const Index = () => {
   const userPub = useRecoilValue(userpubstate);
   const nfts = useNFTs(userPub);
 
-  const [currencyContractAddresses, setCurrencyContractAddresses] =
-    useRecoilState(currencycontractaddressesstate);
-
-  const [currenciesDecimalPlaces, setCurrenciesDecimalPlaces] = useRecoilState(
-    currenciesdecimalplaces,
-  );
-
-  const [contractAddressesCurrencies, setContractAddressesCurrencies] =
-    useRecoilState(contractaddressescurrenciesstate);
-
   const [currentNFT, setCurrentNFT] = useRecoilState(currentnftmetadata);
   const [currentNFTCategories, setCurrentNFTCategories] =
     useRecoilState(currentnftcategories);
 
   const setCurrentBadgeCategories = useSetRecoilState(currentbadgecategories);
 
+  const [currencies, setCurrencies] = useRecoilState(currenciesstate);
   const [currenciesLogoUrl, setCurrenciesLogoUrl] = useRecoilState(
     currencieslogourlstate,
+  );
+
+  const setContractAddressesFromCurrencies = useSetRecoilState(
+    contractaddressesfromcurrenciesstate,
+  );
+
+  const setCurrenciesFromContractAddresses = useSetRecoilState(
+    currenciesfromcontractaddressesstate,
   );
 
   const [smartAccountAddress, setSmartAccountAddress] = useState<string>('');
@@ -149,7 +150,7 @@ const Index = () => {
     useCreateUser() as CreateUser;
 
   const [userName, setUserName] = useState<string>('');
-  const [userSession, setUserSession] = useState(null);
+  const { removeNFTsNotOwned } = useNFTSale();
 
   const [errorsAddAddresses, setErrorsAddAddresses] = useState<string>('');
   const [errorsRemoveAddresses, setErrorsRemoveAddresses] =
@@ -157,10 +158,15 @@ const Index = () => {
   const [errorsImportKeys, setErrorsImportKeys] = useState<string>('');
   const [errorsExportKeys, setErrorsExportKeys] = useState<string>('');
   const {
-    getCurrencyContractAddresses,
-    getCurrencyDecimalPlaces,
-    getContractAddressesCurrencies,
+    getCalcDecimalPlacesFromCurrencies,
+    getCalcContractAddressesFromCurrencies,
+    getCalcCurrenciesFromContractAddresses,
+    getProviderFromChainId,
   } = useContractUtils();
+
+  const setDecimalPlacesFromCurrencies = useSetRecoilState(
+    decimalplacesfromcurrenciesstate,
+  );
 
   const { unlockVideoFromController, unlockNestableKeysFromController } =
     useNFTMedia();
@@ -236,14 +242,20 @@ const Index = () => {
       STIR: 'assets/coins/fabstir_logo_official.png',
     });
 
-    const theCurrencyContractAddresses = getCurrencyContractAddresses();
-    setCurrencyContractAddresses(theCurrencyContractAddresses);
+    const theCurrencies =
+      process.env.NEXT_PUBLIC_WHITELISTED_CURRENCIES.split(',');
+    console.log('index: theCurrencies = ', theCurrencies);
+    setCurrencies(theCurrencies);
 
-    const theContractAddressesCurrencies = getContractAddressesCurrencies();
-    setContractAddressesCurrencies(theContractAddressesCurrencies);
+    const theCurrencyContractAddress = getCalcContractAddressesFromCurrencies();
+    setContractAddressesFromCurrencies(theCurrencyContractAddress);
 
-    const theCurrencyDecimalPlaces = getCurrencyDecimalPlaces();
-    setCurrenciesDecimalPlaces(theCurrencyDecimalPlaces);
+    const theContractAddressCurrencies =
+      getCalcCurrenciesFromContractAddresses();
+    setCurrenciesFromContractAddresses(theContractAddressCurrencies);
+
+    let theDecimalPlacesFromCurrencies = getCalcDecimalPlacesFromCurrencies();
+    setDecimalPlacesFromCurrencies(theDecimalPlacesFromCurrencies);
   }, [process.env]);
 
   useEffect(() => {
@@ -264,6 +276,14 @@ const Index = () => {
   useEffect(() => {
     setIsDisabled(!(smartAccount && connectedChainId));
   }, [smartAccount, connectedChainId]);
+
+  useEffect(() => {
+    (async () => {
+      if (userAuthPub && smartAccountProvider) {
+        await removeNFTsNotOwned();
+      }
+    })();
+  }, [userAuthPub, smartAccountProvider]);
 
   useEffect(() => {
     /**
@@ -759,12 +779,6 @@ const Index = () => {
         <ButtonLink
           href="/profile"
           label="Profile"
-          isDisabled={isDisabled}
-          className="ml-4"
-        />
-        <ButtonLink
-          href="/permissions"
-          label="Permissions"
           isDisabled={isDisabled}
           className="ml-4"
         />

@@ -26,7 +26,11 @@ import useNFTMedia from '../hooks/useNFTMedia';
 import MediaCaption from './MediaCaption';
 import useMintNFT from '../blockchain/useMintNFT';
 import useReplaceNFT from '../hooks/useReplaceNFT';
-import { constructNFTAddressId, getUniqueKeyFromNFT } from '../utils/nftUtils';
+import {
+  constructNFTAddressId,
+  getUniqueKeyFromNFT,
+  getNFTAddressId,
+} from '../utils/nftUtils';
 import useDeleteNFT from '../hooks/useDeleteNFT';
 import { transfernftslideoverstate } from '../atoms/transferNFTOverAtom';
 import useUserProfile from '../hooks/useUserProfile';
@@ -694,6 +698,11 @@ export default function DetailsSidebar({
     router.push(`/teams`);
   }
 
+  const handlePermissions = async () => {
+    const addressId = getNFTAddressId(nft);
+    router.push(`/permissions/${addressId}`);
+  };
+
   return (
     <aside
       className={classNames(
@@ -856,6 +865,13 @@ export default function DetailsSidebar({
                 >
                   Transfer
                 </Button>
+                <button
+                  type="button"
+                  onClick={handlePermissions}
+                  className="w-28 rounded-md border border-gray-300 bg-fabstir-light-purple px-4 py-2 text-sm font-medium tracking-wide text-fabstir-white shadow-sm shadow-fabstir-light-purple/50 hover:bg-fabstir-lighter-purple focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                >
+                  Resell
+                </button>{' '}
               </div>
             </div>
           )}

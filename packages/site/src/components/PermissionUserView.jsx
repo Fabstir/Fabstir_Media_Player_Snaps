@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { Input } from '../ui-components/input';
+import React, { useContext, useEffect, useState } from 'react';
+import { BigNumber } from '@ethersproject/bignumber';
+import { parseUnits, parseEther } from '@ethersproject/units';
 import { v4 as uuidv4 } from 'uuid';
-import { PlusIcon, PencilIcon } from 'heroiconsv2/24/outline';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm } from 'react-hook-form';
@@ -9,6 +9,31 @@ import * as yup from 'yup';
 import useCreateMarketItem from '../blockchain/useCreateMarketItem';
 import useUserProfile from '../hooks/useUserProfile';
 import { Button } from '../ui-components/button';
+import useMarketAddress from '../hooks/useMarketAddress';
+import BlockchainContext from '../../state/BlockchainContext';
+import usePortal from '../hooks/usePortal';
+import { process_env } from '../utils/process_env';
+import {
+  bigNumberToFloat,
+  abbreviateAddress2,
+} from '../utils/blockchainUtils.js';
+import Tippy from '@tippyjs/react';
+import 'tippy.js/dist/tippy.css';
+import { currentnftmetadata } from '../atoms/nftSlideOverAtom.js';
+import { Select } from '../ui-components/select';
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
+import {
+  decimalplacesfromcurrenciesstate,
+  currenciesstate,
+} from '../atoms/currenciesAtom.js';
+import useContractUtils from '../blockchain/useContractUtils.js';
+import useMarketNFTs from '../hooks/useMarketNFTs.js';
+import useCurrencyUtils from '../utils/useCurrencyUtils.js';
+import {
+  currentmarketitemidstate,
+  currentmarketitemmarketaddressstate,
+  marketitemdeleteslideoverstate,
+} from '../atoms/MarketItemPendingSlideOverAtom.js';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -25,6 +50,9 @@ function classNames(...classes) {
  * @param {boolean} props.isReadOnly - A flag indicating whether the view is read-only.
  * @param {Function} props.handlePermissionChange - Callback function to handle changes to the user's permissions.
  * @param {Function} props.handleRemoveUser - Callback function to handle removing the user.
+ * @param {Object} props.marketItemStatusAmounts - Object containing the status amounts of market items.
+ * @param {number} props.marketItemStatusAmounts.Accepted - Number of accepted market items.
+ * @param {number} props.marketItemStatusAmounts.Pending - Number of pending market items.
  * @returns {JSX.Element} The rendered component displaying the user's permissions.
  */
 export default function PermissionUserView({
@@ -37,30 +65,68 @@ export default function PermissionUserView({
   showEditButton,
 }) {
   const [isEditable, setIsEditable] = useState(!isReadOnly);
+
+  const blockchainContext = useContext(BlockchainContext);
+  const { connectedChainId } = blockchainContext;
+
+  const { getChainIdAddressFromChainIdAndAddress } = useContractUtils();
+
   const [permissionedUser, setPermissionedUser] = useState();
-  const [marketAddress, setMarketAddress] = useState();
+  const [creatorFeePercentage, setCreatorFeePercentage] = useState(0);
   const [getUserProfile, , , , getMarketAddress] = useUserProfile();
+  const { getMarketAddressFromUser } = useMarketAddress();
+  const { getBlobUrl } = usePortal();
+  const { createMarketNFTItem, getMarketPlatformCreatorFeeRatio } =
+    useCreateMarketItem();
 
-  const { getPlatformFeeRatio } = useCreateMarketItem();
+  const { getDecimalPlaceFromCurrency } = useCurrencyUtils();
 
-  useEffect(() => {
-    (async () => {
-      if (user?.userPub) {
-        setMarketAddress(await getMarketAddress(user.userPub));
-      }
-    })();
-  }, [user]);
+  const {
+    getMarketFabstirFeeRatio,
+    getMarketPlatformFeeRatio,
+    deleteMarketItemPending,
+  } = useCreateMarketItem();
+  const currentNFT = useRecoilValue(currentnftmetadata);
 
+  const [userProfileImage, setUserProfileImage] = useState();
   const userPubMax = 65;
 
+  const [platformFeePercentage, setPlatformFeePercentage] = useState();
+  const [platformCreatorFeePercentage, setPlatformCreatorFeePercentage] =
+    useState();
+
+  const [marketItemStatusAmounts, setMarketItemStatusAmounts] = useState('');
+  const setCurrentMarketItemMarketAddress = useSetRecoilState(
+    currentmarketitemmarketaddressstate,
+  );
+  const setCurrentMarketItemId = useSetRecoilState(currentmarketitemidstate);
+
+  const defaultCurrencySymbolName =
+    'NEXT_PUBLIC_DEFAULT_CURRENCY_' + connectedChainId;
+  const defaultCurrency = process_env[defaultCurrencySymbolName];
+
+  const farFutureDate = new Date('3000-01-01T00:00:00Z');
+
   const defaultUser = {
+    isPermissionless: false,
     userPub: '',
-    amount: '',
-    price: '',
-    isPermissionless: true,
-    saleRoyaltyFee: '',
-    // subscriptionRoyaltyFee: '',
+    marketAddress: '',
+    amount: 1,
+    startPrice: undefined,
+    reservePrice: undefined,
+    startTime: Date.now(),
+    endTime: farFutureDate,
+    cancelTime: farFutureDate,
+    fabstirFeePercentage:
+      Number(process.env.NEXT_PUBLIC_NFT_FABSTIR_FEE_RATIO) * 100,
+    resellerFeePercentage: undefined,
+    creatorFeePercentage: undefined,
+    currency: defaultCurrency,
   };
+  const decimalPlacesFromCurrencies = useRecoilValue(
+    decimalplacesfromcurrenciesstate,
+  );
+  const currencies = useRecoilValue(currenciesstate);
 
   const userSchema = yup
     .object()
@@ -69,36 +135,105 @@ export default function PermissionUserView({
         .string()
         .max(userPubMax, `Must be less than ${userPubMax} characters`)
         .required('User Public Key is required'),
-
       amount: yup
         .number()
         .integer()
         .positive('Amount must be a positive number')
         .nullable(true), // Allow null or undefined
-      price: yup
+      startPrice: yup
         .number()
+        .required()
         .positive('Price must be a positive number')
         .nullable(true), // Allow null or undefined
-
-      isPermissionless: yup
-        .boolean()
-        .required(
-          'Choice of permissionaless or not isPermissionless is required',
+      reservePrice: yup
+        .number()
+        .positive('Price must be a positive number')
+        .nullable(true) // Allow null or undefined
+        .transform(function (value, originalValue) {
+          return originalValue === '' ? undefined : value;
+        })
+        .transform(function (value, originalValue) {
+          return originalValue === undefined ? this.parent.startPrice : value;
+        }),
+      fabstirFeePercentage: yup.number().min(0).required(),
+      resellerFeePercentage: yup.number().min(0).required(),
+      creatorFeePercentage: yup.number().min(0).required(),
+      currency: yup.string().required('Currency is required'),
+      startTime: yup
+        .number()
+        .required()
+        .transform((value, originalValue) => Date.parse(originalValue)),
+      endTime: yup
+        .number()
+        .required()
+        .transform((value, originalValue) => Date.parse(originalValue))
+        .test(
+          'is-greater-than-startTime',
+          'End time must be greater than or equal to start time',
+          function (value) {
+            const { startTime } = this.parent;
+            return value >= startTime;
+          },
         ),
-
-      saleRoyaltyFee: yup.number().positive().required(),
-      // subscriptionRoyaltyFee: yup.number().positive().notRequired(),
+      cancelTime: yup
+        .number()
+        .required()
+        .transform((value, originalValue) => Date.parse(originalValue))
+        .test(
+          'is-greater-than-startTime',
+          'Cancel time must be greater than or equal to start time',
+          function (value) {
+            const { startTime } = this.parent;
+            return value >= startTime;
+          },
+        ),
     })
     .test(
-      'amount-and-price',
-      'Both amount and price must be specified if one is provided',
+      'amount-and-startPrice',
+      'Both amount and start price must be specified if one is provided',
       function (value) {
-        const { amount, price } = value;
-        if ((amount && !price) || (!amount && price)) {
+        const { amount, startPrice } = value;
+        if ((amount && !startPrice) || (!amount && startPrice)) {
           return this.createError({
             path: 'amount',
             message:
-              'Both amount and price must be specified if one is provided',
+              'Both amount and start price must be specified if one is provided',
+          });
+        }
+        return true;
+      },
+    )
+    .test(
+      'fee-percentages',
+      'The sum of fabstirFeePercentage, resellerFeePercentage, and creatorFeePercentage must be less than or equal to 100',
+      function (value) {
+        const {
+          fabstirFeePercentage,
+          resellerFeePercentage,
+          creatorFeePercentage,
+        } = value;
+        const totalFeePercentage =
+          fabstirFeePercentage + resellerFeePercentage + creatorFeePercentage;
+        if (totalFeePercentage > 100) {
+          return this.createError({
+            path: 'fabstirFeePercentage',
+            message:
+              'The sum of fabstirFeePercentage, resellerFeePercentage, and creatorFeePercentage must be less than or equal to 100',
+          });
+        }
+        return true;
+      },
+    )
+    .test(
+      'startPrice-less-than-reservePrice',
+      'Start price must be less than or equal to reserve price',
+      function (value) {
+        const { startPrice, reservePrice } = value;
+        if (startPrice < reservePrice) {
+          return this.createError({
+            path: 'startPrice',
+            message:
+              'Start price must be greater than or equal to reserve price',
           });
         }
         return true;
@@ -118,15 +253,64 @@ export default function PermissionUserView({
     resolver: yupResolver(userSchema),
   });
 
+  const marketAddress = watch('marketAddress');
+  const { getMarketItemStatus } = useMarketNFTs(marketAddress);
+  const fabstirFeePercentage = watch('fabstirFeePercentage');
+
+  const [openDeleteNFTSliderOver, setOpenDeleteNFTSliderOver] = useRecoilState(
+    marketitemdeleteslideoverstate,
+  );
+
   function handleEdit() {
     setIsEditable(true);
     handleEditMember();
   }
 
-  function handleSave(data) {
+  async function handleSavePermission(data) {
+    const startPrice = parseUnits(
+      data.startPrice.toString(),
+      getDecimalPlaceFromCurrency(data.currency),
+    );
+
+    const reservePrice = data.reservePrice
+      ? parseUnits(
+          data.reservePrice.toString(),
+          getDecimalPlaceFromCurrency(data.currency),
+        )
+      : startPrice;
+
+    const resellerFeeRatio = parseEther(
+      (data.resellerFeePercentage / 100).toString(),
+    );
+
+    const creatorFeeRatio = parseEther(
+      (data.creatorFeePercentage / 100).toString(),
+    );
+
+    const startTime = Math.floor(new Date(data.startTime).getTime() / 1000);
+    const endTime = Math.floor(new Date(data.endTime).getTime() / 1000);
+    const cancelTime = Math.floor(new Date(data.cancelTime).getTime() / 1000);
+
+    const marketItemId = await createMarketNFTItem(
+      data.marketAddress,
+      currentNFT,
+      data.currency,
+      BigNumber.from(data.amount),
+      startPrice,
+      reservePrice,
+      startTime,
+      endTime,
+      cancelTime,
+      resellerFeeRatio,
+      creatorFeeRatio,
+    );
+
+    if (!marketItemId) return;
+
     const updatedUser = {
       ...data,
       userPub: data.userPub ? data.userPub : uuidv4(),
+      marketItemId: marketItemId.toString(),
     };
     handleSubmit_SaveTeamMember(updatedUser);
 
@@ -134,156 +318,338 @@ export default function PermissionUserView({
     else setIsEditable(false);
   }
 
+  async function handleDeletePermission(e) {
+    e.preventDefault();
+
+    setCurrentMarketItemMarketAddress(marketAddress);
+    setCurrentMarketItemId(watch('marketItemId'));
+
+    setOpenDeleteNFTSliderOver(true);
+
+    // const userPub = watch('userPub')
+    // handleSubmit_RemoveTeamMember(userPub)
+  }
+
   function handleCancel() {
     setIsEditable(false);
     reset(user || defaultUser);
   }
 
+  const formatDate = (date) => {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
   useEffect(() => {
     (async () => {
       if (getValues('isPermissionless')) {
         if (marketAddress) {
-          const platformFeeRatio = await getPlatformFeeRatio(marketAddress);
-          setValue('saleRoyaltyFee', platformFeeRatio);
+          const fabstirFeeRatio = await getMarketFabstirFeeRatio(marketAddress);
+          setValue(
+            'fabstirFeePercentage',
+            bigNumberToFloat(fabstirFeeRatio) * 100,
+          );
+
+          const platformFeeRatio =
+            await getMarketPlatformFeeRatio(marketAddress);
+          setValue(
+            'resellerFeePercentage',
+            bigNumberToFloat(platformFeeRatio) * 100,
+          );
+
+          const platformCreatorFeeRatio =
+            await getMarketPlatformCreatorFeeRatio(marketAddress);
+          setValue(
+            'creatorFeePercentage',
+            bigNumberToFloat(platformCreatorFeeRatio) * 100,
+          );
         } else {
-          console.log('marketAddress is not set');
-          setValue('saleRoyaltyFee', null);
+          setValue('fabstirFeePercentage', null);
+          setValue('resellerFeePercentage', null);
+          setValue('creatorFeePercentage', null);
         }
+
+        user?.startPrice
+          ? setValue('startTime', formatDate(user.startTime))
+          : setValue('startTime', formatDate(Date.now()));
+        user?.endTime
+          ? setValue('endTime', formatDate(user.endTime))
+          : setValue('endTime', formatDate(farFutureDate));
+        user?.cancelTime
+          ? setValue('cancelTime', formatDate(user.cancelTime))
+          : setValue('cancelTime', formatDate(farFutureDate));
       }
     })();
   }, [watch('isPermissionless')]);
-
-  async function handlePermissionless(e) {
-    if (e.target.checked) {
-      const platformFeeRatio = await getPlatformFeeRatio(marketAddress);
-    }
-    console.log('handlePermissionless: e = ', e);
-    console.log('handlePermissionless: e.target = ', e.target);
-    console.log('handlePermissionless: e.target.checked = ', e.target.checked);
-  }
 
   useEffect(() => {
     (async () => {
       const userPub = watch('userPub');
       if (userPub) {
-        const user = await getUserProfile(userPub);
-        setPermissionedUser(user);
+        const userProfile = await getUserProfile(userPub);
+        setPermissionedUser(userProfile);
+
+        const marketAddress = await getMarketAddressFromUser(
+          userPub,
+          connectedChainId,
+        );
+
+        setValue('marketAddress', marketAddress);
+
+        if (marketAddress) {
+          const fabstirFeeRatio = await getMarketFabstirFeeRatio(marketAddress);
+
+          if (!fabstirFeeRatio)
+            throw new Error('Market does not have a Fabstir fee ratio');
+
+          setValue(
+            'fabstirFeePercentage',
+            bigNumberToFloat(fabstirFeeRatio) * 100,
+          );
+
+          const platformFeeRatio =
+            await getMarketPlatformFeeRatio(marketAddress);
+
+          if (platformFeeRatio && !watch('resellerFeePercentage'))
+            setValue(
+              'resellerFeePercentage',
+              bigNumberToFloat(platformFeeRatio) * 100,
+            );
+
+          const platformCreatorFeeRatio =
+            await getMarketPlatformCreatorFeeRatio(marketAddress);
+
+          if (platformCreatorFeeRatio && !watch('creatorFeePercentage'))
+            setValue(
+              'creatorFeePercentage',
+              bigNumberToFloat(platformCreatorFeeRatio) * 100,
+            );
+        } else {
+          setValue('fabstirFeePercentage', null);
+          setValue('resellerFeePercentage', 0);
+        }
+
+        user?.startPrice
+          ? setValue('startTime', formatDate(user.startTime))
+          : setValue('startTime', formatDate(Date.now()));
+        user?.endTime
+          ? setValue('endTime', formatDate(user.endTime))
+          : setValue('endTime', formatDate(farFutureDate));
+        user?.cancelTime
+          ? setValue('cancelTime', formatDate(user.cancelTime))
+          : setValue('cancelTime', formatDate(farFutureDate));
       }
     })();
   }, [watch('userPub')]);
 
+  useEffect(() => {
+    (async () => {
+      const marketAddress = watch('marketAddress');
+      if (marketAddress) {
+        const marketItemId = watch('marketItemId');
+        const marketItemStatus = await getMarketItemStatus(marketItemId);
+        setMarketItemStatusAmounts(marketItemStatus);
+
+        const platformFeeRatio = await getMarketPlatformFeeRatio(marketAddress);
+        setPlatformFeePercentage(bigNumberToFloat(platformFeeRatio) * 100);
+
+        const platformCreatorFeeRatio =
+          await getMarketPlatformCreatorFeeRatio(marketAddress);
+        setPlatformCreatorFeePercentage(
+          bigNumberToFloat(platformCreatorFeeRatio) * 100,
+        );
+      }
+    })();
+  }, [watch('marketAddress')]);
+
+  async function handleResetToPlatformFee() {
+    const userPub = watch('userPub');
+
+    if (userPub && marketAddress && platformFeePercentage) {
+      setValue('resellerFeePercentage', platformFeePercentage);
+      return;
+    }
+    setValue('resellerFeePercentage', 0);
+  }
+
+  async function handleResetToPlatformCreatorFee() {
+    const userPub = watch('userPub');
+
+    if (userPub && marketAddress && platformCreatorFeePercentage) {
+      setValue('creatorFeePercentage', platformCreatorFeePercentage);
+      return;
+    }
+    setValue('creatorFeePercentage', 0);
+  }
+
   return (
-    <div>
-      <div className="space-y-1">
+    <div className="mx-auto max-w-2xl">
+      {' '}
+      {/* Increased max-width */}
+      <div className="space-y-4">
+        {' '}
+        {/* Increased spacing */}
         <div className="w-full border-t border-fabstir-divide-color1" />
+        <div className="flex items-center justify-center">
+          <form
+            onSubmit={handleSubmit(handleSavePermission)}
+            className="space-y-4"
+          >
+            <div className="col-span-3 sm:col-span-4">
+              <label
+                htmlFor="isPermissionless"
+                className="block text-sm font-medium text-fabstir-light-gray"
+              >
+                Permissionless
+              </label>
+              <div className="mt-1 flex items-center">
+                <input
+                  type="checkbox"
+                  name="isPermissionless"
+                  {...register('isPermissionless')}
+                  className="h-5 w-5 text-fabstir-gray"
+                  readOnly={!isEditable}
+                />
+              </div>
+              <p className="mt-1 text-fabstir-light-pink">
+                {errors.isPermissionless?.message}
+              </p>
+            </div>
 
-        <form onSubmit={handleSubmit(handleSave)}>
-          <>
-            {!isReadOnly &&
-              user?.userPub !== userAuthPub &&
-              handleSubmit_RemoveTeamMember && (
-                <div
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleSubmit_RemoveTeamMember(user?.userPub);
+            <div className="col-span-3 mt-3 w-64 sm:col-span-4">
+              <label
+                htmlFor="userPub"
+                className="block text-sm font-medium text-fabstir-light-gray"
+              >
+                User Public Key
+              </label>
+              <div className="mt-1 max-w-full rounded-lg border-2 border-fabstir-white">
+                <input
+                  type="text"
+                  name="userPub"
+                  {...register('userPub')}
+                  className="block w-full truncate bg-fabstir-gray"
+                  readOnly={!isEditable}
+                  style={{
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
                   }}
-                  className={classNames(
-                    imageUrl
-                      ? 'absolute left-[28px] top-[28px] lg:left-[32px] lg:top-[32px] opacity-0 duration-300 group-hover:opacity-100'
-                      : 'mb-2',
-                    'text-md z-10 flex w-fit rounded-full border-none bg-fabstir-gray bg-opacity-75 font-semibold text-fabstir-gray',
-                  )}
-                >
-                  <MinusIconOutline
-                    className="h-6 w-6 font-bold text-fabstir-white lg:h-8 lg:w-8"
-                    aria-hidden="true"
-                  />
-                </div>
-              )}
+                />
+              </div>
+              <p className="mt-1 text-fabstir-light-pink">
+                {errors.userPub?.message}
+              </p>
+            </div>
 
-            <div className="flex flex-1 flex-col space-y-2">
+            <div className="flex w-64 flex-1 flex-col space-y-2">
               {permissionedUser?.firstName && (
                 <div className="col-span-3 sm:col-span-4">
                   <label
                     htmlFor="firstName"
-                    className="block text-sm font-medium text-fabstir-gray"
+                    className="block text-sm font-medium text-fabstir-light-gray"
                   >
                     First name
                   </label>
-                  <div className="mt-1 rounded-lg border-2 border-fabstir-white">
-                    <label className="block w-full bg-fabstir-white">
-                      {permissionedUser?.firstName}
+                  <div className="mt-1 max-w-full rounded-lg border-2 border-fabstir-white">
+                    <label className="block w-full bg-fabstir-gray">
+                      {permissionedUser.firstName}
                     </label>
                   </div>
                 </div>
               )}
-
               {permissionedUser?.lastName && (
-                <div className="col-span-3 sm:col-span-4 mt-1">
+                <div className="col-span-3 mt-1 w-64 sm:col-span-4">
                   <label
                     htmlFor="lastName"
-                    className="block text-sm font-medium text-fabstir-gray"
+                    className="block text-sm font-medium text-fabstir-light-gray"
                   >
                     Last name
                   </label>
-                  <div className="mt-1 rounded-lg border-2 border-fabstir-white">
-                    <label className="block w-full bg-fabstir-white">
-                      {permissionedUser?.lastName}
+                  <div className="mt-1 max-w-full rounded-lg border-2 border-fabstir-white">
+                    <label className="block w-full bg-fabstir-gray">
+                      {permissionedUser.lastName}
                     </label>
                   </div>
                 </div>
               )}
-
               {permissionedUser?.company && (
-                <div className="col-span-3 sm:col-span-4 mt-1">
+                <div className="col-span-3 mt-1 w-64 sm:col-span-4">
                   <label
                     htmlFor="company"
-                    className="block text-sm font-medium text-fabstir-gray"
+                    className="block text-sm font-medium text-fabstir-light-gray"
                   >
                     Company
                   </label>
-                  <div className="mt-1 rounded-lg border-2 border-fabstir-white">
-                    <label className="block w-full bg-fabstir-white">
-                      {permissionedUser?.company}
+                  <div className="mt-1 max-w-full rounded-lg border-2 border-fabstir-white">
+                    <label className="block w-full bg-fabstir-gray">
+                      {permissionedUser.company}
                     </label>
                   </div>
                 </div>
               )}
-
-              <div className="col-span-3 sm:col-span-4 mt-3">
-                <label
-                  htmlFor="userPub"
-                  className="block text-sm font-medium text-fabstir-gray"
-                >
-                  User Public Key
-                </label>
-                <div className="mt-1 rounded-lg border-2 border-fabstir-white">
-                  <input
-                    type="text"
-                    name="userPub"
-                    {...register('userPub')}
-                    className="block w-full bg-fabstir-white"
-                    readOnly={!isEditable}
-                  />
+              {marketAddress && (
+                <div className="col-span-3 mt-1 w-64 sm:col-span-4">
+                  <label
+                    htmlFor="marketAddress"
+                    className="block text-sm font-medium text-fabstir-light-gray"
+                  >
+                    Market Address
+                  </label>
+                  <div className="mt-1 max-w-full rounded-lg border-2 border-fabstir-white">
+                    <Tippy
+                      content={marketAddress}
+                      interactive={true}
+                      theme="dark"
+                      maxWidth="none"
+                    >
+                      <label className="block w-full bg-fabstir-medium-dark-gray p-3">
+                        {abbreviateAddress2(marketAddress, 16, 8)}
+                      </label>
+                    </Tippy>
+                  </div>
                 </div>
-                <p className="mt-1 text-fabstir-light-pink">
-                  {errors.userPub?.message}
+              )}
+              <div className="max-w-full sm:col-span-3">
+                <label
+                  htmlFor="currency"
+                  className="block text-sm font-medium text-fabstir-light-gray"
+                >
+                  Currency
+                </label>
+                <select
+                  type="text"
+                  id="currency"
+                  {...register(`currency`)}
+                  className="block w-full rounded-md border-gray-300 bg-fabstir-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  disabled={!isEditable}
+                >
+                  {currencies.map((currency, index) => (
+                    <option key={index}>{currency}</option>
+                  ))}
+                </select>
+                <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
+                  {errors.currency?.message}
                 </p>
               </div>
-
-              <div className="col-span-3 sm:col-span-4">
+              <div className="col-span-3 w-64  sm:col-span-4">
                 <label
                   htmlFor="amount"
-                  className="block text-sm font-medium text-fabstir-gray"
+                  className="block text-sm font-medium text-fabstir-light-gray"
                 >
                   Amount
                 </label>
-                <div className="mt-1 rounded-lg border-2 border-fabstir-white">
+                <div className="mt-1 max-w-full rounded-lg border-2 border-fabstir-white">
                   <input
                     type="number"
                     name="amount"
                     {...register('amount')}
-                    className="block w-full bg-fabstir-white"
+                    className="block w-full bg-fabstir-gray"
                     readOnly={!isEditable}
                   />
                 </div>
@@ -291,126 +657,298 @@ export default function PermissionUserView({
                   {errors.amount?.message}
                 </p>
               </div>
-
-              <div className="col-span-3 sm:col-span-4">
+              <div className="col-span-3 w-64 sm:col-span-4">
                 <label
-                  htmlFor="price"
-                  className="block text-sm font-medium text-fabstir-gray"
+                  htmlFor="startPrice"
+                  className="block text-sm font-medium text-fabstir-light-gray"
                 >
                   Price
                 </label>
-                <div className="mt-1 rounded-lg border-2 border-fabstir-white">
+                <div className="mt-1 max-w-full rounded-lg border-2 border-fabstir-white">
                   <input
                     type="number"
-                    name="price"
-                    {...register('price')}
-                    className="block w-full bg-fabstir-white"
+                    name="startPrice"
+                    {...register('startPrice')}
+                    className="block w-full bg-fabstir-gray"
+                    readOnly={!isEditable}
+                    step="any"
+                  />
+                </div>
+                <p className="mt-1 text-fabstir-light-pink">
+                  {errors.startPrice?.message}
+                </p>
+              </div>
+              <div className="col-span-3 w-64 sm:col-span-4">
+                <label
+                  htmlFor="reservePrice"
+                  className="block text-sm font-medium text-fabstir-light-gray"
+                >
+                  Reserve Price (optional)
+                </label>
+                <div className="mt-1 max-w-full rounded-lg border-2 border-fabstir-white">
+                  <input
+                    type="number"
+                    name="reservePrice"
+                    {...register('reservePrice')}
+                    className="block w-full bg-fabstir-gray"
+                    readOnly={!isEditable}
+                    step="any"
+                  />
+                </div>
+                <p className="mt-1 text-fabstir-light-pink">
+                  {errors.reservePrice?.message}
+                </p>
+              </div>
+              <div className="col-span-3 w-64 sm:col-span-4">
+                <label
+                  htmlFor="startTime"
+                  className="block text-sm font-medium text-fabstir-light-gray"
+                >
+                  Start Time
+                </label>
+                <div className="mt-1 max-w-full rounded-lg border-2 border-fabstir-white">
+                  <input
+                    type="datetime-local"
+                    name="startTime"
+                    {...register('startTime')}
+                    className="block w-full bg-fabstir-gray"
                     readOnly={!isEditable}
                   />
                 </div>
                 <p className="mt-1 text-fabstir-light-pink">
-                  {errors.price?.message}
+                  {errors.startTime?.message}
                 </p>
               </div>
-
-              <div className="col-span-3 sm:col-span-4">
+              <div className="col-span-3 w-64 sm:col-span-4">
                 <label
-                  htmlFor="isPermissionless"
-                  className="block text-sm font-medium text-fabstir-gray"
+                  htmlFor="endTime"
+                  className="block text-sm font-medium text-fabstir-light-gray"
                 >
-                  Permissionless
+                  End Time
                 </label>
-                <div className="mt-1 rounded-lg border-2 border-fabstir-white">
+                <div className="mt-1 max-w-full rounded-lg border-2 border-fabstir-white">
                   <input
-                    type="checkbox"
-                    name="isPermissionless"
-                    {...register('isPermissionless')}
-                    className="block w-full bg-fabstir-white"
+                    type="datetime-local"
+                    name="endTime"
+                    {...register('endTime')}
+                    className="block w-full bg-fabstir-gray"
                     readOnly={!isEditable}
                   />
                 </div>
                 <p className="mt-1 text-fabstir-light-pink">
-                  {errors.isPermissionless?.message}
+                  {errors.endTime?.message}
                 </p>
               </div>
-
-              <div className="col-span-3 sm:col-span-4">
+              <div className="col-span-3 w-64 sm:col-span-4">
                 <label
-                  htmlFor="saleRoyaltyFee"
-                  className="block text-sm font-medium text-fabstir-gray"
+                  htmlFor="cancelTime"
+                  className="block text-sm font-medium text-fabstir-light-gray"
                 >
-                  Sale Royalty Fee
+                  Cancel Time
                 </label>
-                <div className="mt-1 rounded-lg border-2 border-fabstir-white">
+                <div className="mt-1 max-w-full rounded-lg border-2 border-fabstir-white">
                   <input
-                    type="number"
-                    name="saleRoyaltyFee"
-                    {...register('saleRoyaltyFee')}
-                    className="block w-full bg-fabstir-white"
-                    readOnly={!isEditable || watch('isPermissionless')}
+                    type="datetime-local"
+                    name="cancelTime"
+                    {...register('cancelTime')}
+                    className="block w-full bg-fabstir-gray"
+                    readOnly={!isEditable}
                   />
                 </div>
                 <p className="mt-1 text-fabstir-light-pink">
-                  {errors.saleRoyaltyFee?.message}
+                  {errors.cancelTime?.message}
                 </p>
               </div>
-            </div>
-
-            {/* <div className="col-span-3 sm:col-span-4">
-              <label
-                htmlFor="subscriptionRoyaltyFee"
-                className="block text-sm font-medium text-fabstir-gray"
-              >
-                Subscription Royalty Fee
-              </label>
-              <div className="mt-1 rounded-lg border-2 border-fabstir-white">
-                <input
-                  type="number"
-                  name="subscriptionRoyaltyFee"
-                  {...register('subscriptionRoyaltyFee')}
-                  className="block w-full bg-fabstir-white"
-                  readOnly={!isEditable}
-                />
+              <div className="col-span-3 w-64  sm:col-span-4">
+                <div className="flex flex-col">
+                  <div>
+                    <label
+                      htmlFor="resellerFeePercentage"
+                      className="block text-sm font-medium text-fabstir-light-gray"
+                    >
+                      Reseller Fee %{' '}
+                      {watch('resellerFeePercentage') === platformFeePercentage
+                        ? '(Default)'
+                        : ''}
+                    </label>
+                    <div className="flex flex-1 flex-row">
+                      <div className="mt-1 flex w-full max-w-full flex-1 flex-row rounded-lg border-2 border-fabstir-white">
+                        <input
+                          type="number"
+                          name="resellerFeeRatio"
+                          {...register('resellerFeePercentage')}
+                          className="block w-full bg-fabstir-gray"
+                          readOnly={!isEditable || watch('isPermissionless')}
+                          step="any"
+                        />
+                      </div>
+                      {(isEditable || watch('isPermissionless')) &&
+                        watch('marketAddress') &&
+                        watch('resellerFeePercentage') !==
+                          platformFeePercentage && (
+                          <div className="ml-4 min-h-fit">
+                            <button
+                              onClick={handleResetToPlatformFee}
+                              className="mt-1 bg-fabstir-medium-light-gray px-2 py-3"
+                            >
+                              Reset
+                            </button>
+                          </div>
+                        )}
+                    </div>
+                    <p className="mt-1 text-fabstir-light-pink">
+                      {errors.resellerFeePercentage?.message}
+                    </p>
+                  </div>
+                </div>
               </div>
-              <p className="mt-2 text-fabstir-light-pink">
-                {errors.subscriptionRoyaltyFee?.message}
-              </p>
-            </div> */}
-          </>
-
-          {isEditable ? (
-            <div className="flex space-x-2">
-              <Button
-                variant="primary"
-                size="medium"
-                onClick={handleCancel}
-                className="w-full rounded-md border border-transparent px-4 py-2"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                size="medium"
-                className="w-full rounded-md border border-transparent px-4 py-2"
-              >
-                Save Member
-              </Button>
+              <div className="col-span-3 w-64  sm:col-span-4">
+                <div className="flex flex-col">
+                  <div>
+                    <label
+                      htmlFor="creatorFeePercentage"
+                      className="block text-sm font-medium text-fabstir-light-gray"
+                    >
+                      Creator Fee %{' '}
+                      {watch('creatorFeePercentage') ===
+                      platformCreatorFeePercentage
+                        ? '(Default)'
+                        : ''}
+                    </label>
+                    <div className="flex flex-1 flex-row">
+                      <div className="mt-1 w-full max-w-full rounded-lg border-2 border-fabstir-white">
+                        <input
+                          type="number"
+                          name="creatorFeePercentage"
+                          {...register('creatorFeePercentage')}
+                          className="block w-full bg-fabstir-gray"
+                          readOnly={!isEditable || watch('isPermissionless')}
+                          step="any"
+                        />
+                      </div>
+                      {(isEditable || watch('isPermissionless')) &&
+                        watch('marketAddress') &&
+                        watch('creatorFeePercentage') !==
+                          platformCreatorFeePercentage && (
+                          <div className="ml-4 min-h-fit">
+                            <button
+                              onClick={handleResetToPlatformCreatorFee}
+                              className="mt-1 bg-fabstir-medium-light-gray px-2 py-3"
+                            >
+                              Reset
+                            </button>
+                          </div>
+                        )}
+                    </div>
+                    <p className="mt-1 text-fabstir-light-pink">
+                      {errors.creatorFeePercentage?.message}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              {fabstirFeePercentage && (
+                <div className="col-span-3 mt-1 w-64 sm:col-span-4">
+                  <label
+                    htmlFor="fabstirFeeRatio"
+                    className="block text-sm font-medium text-fabstir-light-gray"
+                  >
+                    Fabstir Fee %
+                  </label>
+                  <div className="mt-1 max-w-full rounded-lg border-2 border-fabstir-white">
+                    <label className="block w-full bg-fabstir-medium-dark-gray p-3">
+                      {fabstirFeePercentage}
+                    </label>
+                  </div>
+                  <p className="mt-1 text-fabstir-light-pink">
+                    {errors.fabstirFeePercentage?.message}
+                  </p>
+                </div>
+              )}
+              {marketItemStatusAmounts &&
+                Object.keys(marketItemStatusAmounts).length > 0 && (
+                  <div className="col-span-3 mt-1 sm:col-span-4">
+                    <label
+                      htmlFor="fabstirFeeRatio"
+                      className="block text-sm font-medium text-fabstir-light-gray"
+                    >
+                      Market Status
+                    </label>
+                    <div className="mt-1 w-64 rounded-lg border-2 border-fabstir-white">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-fabstir-medium-dark-gray">
+                          <tr>
+                            <th
+                              scope="col"
+                              className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-fabstir-light-gray"
+                            >
+                              Status
+                            </th>
+                            <th
+                              scope="col"
+                              className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-fabstir-light-gray"
+                            >
+                              Amount
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200 bg-fabstir-gray-700">
+                          {Object.entries(marketItemStatusAmounts)
+                            .filter(([key, value]) => Number(value) !== 0)
+                            .map(([key, value]) => (
+                              <tr key={key}>
+                                <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-fabstir-light-gray">
+                                  {key}
+                                </td>
+                                <td className="whitespace-nowrap px-6 py-4 text-sm text-fabstir-light-gray">
+                                  {value}
+                                </td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}{' '}
             </div>
-          ) : showEditButton ? (
-            <Button
-              onClick={handleEdit}
-              variant="primary"
-              size="medium"
-              className="w-full rounded-md border border-transparent px-4 py-2 text-sm flex items-center justify-center"
-            >
-              <PencilIcon className="h-5 w-5 mr-2" aria-hidden="true" />
-              Edit
-            </Button>
-          ) : (
-            <></>
-          )}
-        </form>
+            {showEditButton &&
+              !isEditable &&
+              user?.userPub !== userAuthPub &&
+              handleSubmit_RemoveTeamMember &&
+              (marketItemStatusAmounts?.accepted >= 1 ||
+                marketItemStatusAmounts?.pending >= 1) && (
+                <Button
+                  size="medium"
+                  onClick={(e) => handleDeletePermission(e)}
+                  className="w-full rounded-md border border-transparent px-4 py-2"
+                >
+                  Remove Permission
+                </Button>
+              )}
+
+            {isEditable ? (
+              <div className="flex space-x-2">
+                <Button
+                  size="medium"
+                  onClick={handleCancel}
+                  className="w-full rounded-md border border-transparent px-4 py-2"
+                >
+                  Cancel
+                </Button>
+
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="medium"
+                  className="w-full rounded-md border border-transparent px-4 py-2"
+                >
+                  Save Permission
+                </Button>
+              </div>
+            ) : (
+              <></>
+            )}
+          </form>
+        </div>
       </div>
     </div>
   );

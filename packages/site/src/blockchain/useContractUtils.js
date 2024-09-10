@@ -1,37 +1,49 @@
 import { Contract } from '@ethersproject/contracts';
 import { useContext } from 'react';
-import BlockchainContext, {
-  BlockchainContextType,
-} from '../../state/BlockchainContext';
+import BlockchainContext from '../../state/BlockchainContext';
 import { process_env } from '../utils/process_env';
 import { PolygonAmoy, BaseSepolia } from '@particle-network/chains';
-
 /**
  * Custom hook to provide utility functions for interacting with contracts.
  *
  * @returns {Object} An object containing various utility functions for contracts.
  */
 export default function useContractUtils() {
-  const blockchainContext =
-    useContext<BlockchainContextType>(BlockchainContext);
+  const blockchainContext = useContext(BlockchainContext);
   const { providers, connectedChainId } = blockchainContext;
 
-  const getChainIdFromChainIdAddress = (chainIdAddress: string): number => {
+  const getChainIdFromChainIdAddress = (chainIdAddress) => {
     return Number(chainIdAddress.split(':')[0]);
   };
 
-  const getAddressFromChainIdAddress = (chainIdAddress: string): string => {
+  const getAddressFromChainIdAddress = (chainIdAddress) => {
     return chainIdAddress.split(':')[1];
   };
 
-  const getChainIdAddressFromChainIdAndAddress = (
-    chainId: number,
-    address: string,
-  ): string => {
+  const getChainIdAddressFromChainIdAndAddress = (chainId, address) => {
     return `${chainId}:${address}`;
   };
 
-  const getProviderFromProviders = (chainId: number | null): any => {
+  const chainIdAddressType = (address) => {
+    if (typeof address !== 'string')
+      throw new Error('Address is not a string.');
+
+    if (!address.includes(':'))
+      return getChainIdAddressFromChainIdAndAddress(connectedChainId, address);
+
+    return address;
+  };
+
+  const addressType = (address) => {
+    if (typeof address !== 'string')
+      throw new Error('Address is not a string.');
+
+    if (address.includes(':')) return getAddressFromChainIdAddress(address);
+
+    return address;
+  };
+
+  const getProviderFromProviders = (chainId) => {
     if (chainId === null || chainId === undefined) {
       throw new Error('ChainId is undefined.');
     }
@@ -39,18 +51,16 @@ export default function useContractUtils() {
     return providers[chainId];
   };
 
-  const getProviderFromChainIdAddress = (chainIdAddress: string): any => {
+  const getProviderFromChainIdAddress = (chainIdAddress) => {
     const chainId = getChainIdFromChainIdAddress(chainIdAddress);
     return providers[chainId];
   };
 
-  const getProviderFromChainId = (chainId: number): any => {
+  const getProviderFromChainId = (chainId) => {
     return providers[chainId];
   };
 
-  const getAddressFromChainIdAddressForTransaction = (
-    chainIdAddress: string,
-  ): string => {
+  const getAddressFromChainIdAddressForTransaction = (chainIdAddress) => {
     const [chainId, address] = chainIdAddress.split(':');
 
     if (chainId === undefined) {
@@ -83,7 +93,7 @@ export default function useContractUtils() {
    * @example
    * const readOnlyContract = newReadOnlyContract(chainIdAddress, abi);
    */
-  const newReadOnlyContract = (chainIdAddress: string, abi: any) => {
+  const newReadOnlyContract = (chainIdAddress, abi) => {
     if (!chainIdAddress || !abi) {
       throw new Error('ChainIdAddress or ABI is not set');
     }
@@ -118,20 +128,17 @@ export default function useContractUtils() {
    * @example
    * const contract = newContract(chainIdAddress, abi, signer);
    */
-  const newContract = (chainIdAddress: string, abi: any, signer: any) => {
-    const address = getAddressFromChainIdAddressForTransaction(chainIdAddress);
+  const newContract = (chainIdAddress, abi, signer) => {
+    const address = getAddressFromChainIdAddressForTransaction(
+      chainIdAddressType(chainIdAddress),
+    );
     return new Contract(address, abi, signer);
   };
 
-  const getChainIdAddressFromContractAddresses = (
-    chainId: number,
-    envName: string,
-  ): string => {
+  const getChainIdAddressFromContractAddresses = (chainId, envName) => {
     const envVariableName = `${envName}_${chainId}`;
     console.log(Object.keys(process_env));
-    const envVariableValue = (
-      process_env as Record<string, string | undefined>
-    )[envVariableName];
+    const envVariableValue = process_env[envVariableName];
     if (!envVariableValue) {
       throw new Error(
         `getChainIdAddressFromContractAddresses: Environment variable ${envVariableName} is not set`,
@@ -140,41 +147,55 @@ export default function useContractUtils() {
     return `${chainId}:${envVariableValue}`;
   };
 
+  const getAddressFromContractAddresses = (chainId, envName) => {
+    const envVariableName = `${envName}_${chainId}`;
+    console.log(Object.keys(process_env));
+    const envVariableValue = process_env[envVariableName];
+    if (!envVariableValue) {
+      throw new Error(
+        `getChainIdAddressFromContractAddresses: Environment variable ${envVariableName} is not set`,
+      );
+    }
+    return envVariableValue;
+  };
+
   const getTokenAddressFromChainIdAndTokenSymbol = (
-    connectedChainId: string,
-    tokenSymbol: string,
+    connectedChainId,
+    tokenSymbol,
   ) => {
     const tokenName = `NEXT_PUBLIC_${tokenSymbol}_TOKEN_ADDRESS_${connectedChainId}`;
-    const tokenAddress = (process_env as Record<string, string | undefined>)[
-      tokenName
-    ];
+    const tokenAddress = process_env[tokenName];
 
     return tokenAddress;
   };
 
   const getTokenNumberOfDecimalPlacesChainIdAndTokenSymbol = (
-    connectedChainId: string,
+    connectedChainId,
+    tokenSymbol,
   ) => {
-    const tokenName = `NEXT_PUBLIC_DEFAULT_CURRENCY_DECIMAL_PLACES_${connectedChainId}`;
-    const tokenNumberOfDecimalPlaces = (
-      process_env as Record<string, string | undefined>
-    )[tokenName];
+    const tokenName = `NEXT_PUBLIC_${tokenSymbol}_TOKEN_DECIMAL_PLACES_${connectedChainId}`;
+    const tokenNumberOfDecimalPlaces = process_env[tokenName];
 
     if (!tokenNumberOfDecimalPlaces) return 18;
 
     return Number(tokenNumberOfDecimalPlaces);
   };
 
-  const getCurrencyContractAddresses = () => {
-    const tokenAddresses: Record<string, string> = {};
+  const getCalcContractAddressesFromCurrencies = () => {
+    const tokenAddresses = {};
+    const tokens = process.env.NEXT_PUBLIC_WHITELISTED_CURRENCIES?.split(',');
 
     for (const [key, value] of Object.entries(process_env)) {
-      if (key.startsWith('NEXT_PUBLIC_') && key.includes('_TOKEN_ADDRESS_')) {
+      if (key.includes('_TOKEN_ADDRESS_')) {
         if (value !== undefined) {
           const parts = key.split('_TOKEN_ADDRESS_');
-          const currencySymbol = parts[0].replace('NEXT_PUBLIC_', '');
+          const currencySymbol = parts[0].replace(/^NEXT_PUBLIC_/, '');
+
+          if (!tokens?.includes(currencySymbol)) continue;
           const chainId = parts[1];
-          tokenAddresses[`${chainId}:${currencySymbol}`] = value;
+
+          if (isNaN(Number(chainId))) continue;
+          tokenAddresses[`${chainId}:${currencySymbol}`] = value.toLowerCase();
         }
       }
     }
@@ -182,21 +203,23 @@ export default function useContractUtils() {
     return tokenAddresses;
   };
 
-  const getCurrencyDecimalPlaces = () => {
-    const tokensNumberOfDecimalsPlaces: Record<string, number> = {};
+  const getCalcDecimalPlacesFromCurrencies = () => {
+    const tokensNumberOfDecimalsPlaces = {};
+    const tokens = process.env.NEXT_PUBLIC_WHITELISTED_CURRENCIES?.split(',');
 
     for (const [key, value] of Object.entries(process_env)) {
-      if (key.startsWith('NEXT_PUBLIC_') && key.includes('_TOKEN_ADDRESS_')) {
+      if (key.includes('_TOKEN_ADDRESS_')) {
         if (value !== undefined) {
           const parts = key.split('_TOKEN_ADDRESS_');
-          const currencySymbol = parts[0].replace('NEXT_PUBLIC_', '');
+          const currencySymbol = parts[0].replace(/^NEXT_PUBLIC_/, '');
+          if (!tokens?.includes(currencySymbol)) continue;
           const chainId = parts[1];
+
+          if (isNaN(Number(chainId))) continue;
 
           const tokenNameForDecimalPlaces = `NEXT_PUBLIC_${currencySymbol}_TOKEN_DECIMAL_PLACES_${chainId}`;
 
-          const numberOfDecimalPlaces = (
-            process_env as Record<string, string | undefined>
-          )[tokenNameForDecimalPlaces];
+          const numberOfDecimalPlaces = process_env[tokenNameForDecimalPlaces];
 
           if (numberOfDecimalPlaces !== undefined) {
             if (isNaN(Number(numberOfDecimalPlaces))) {
@@ -215,24 +238,31 @@ export default function useContractUtils() {
     return tokensNumberOfDecimalsPlaces;
   };
 
-  const getContractAddressesCurrencies = () => {
-    const contractAddressesCurrencies: Record<string, string> = {};
+  const getCalcCurrenciesFromContractAddresses = () => {
+    const currenciesFromContractAddresses = {};
+    const tokens = process.env.NEXT_PUBLIC_WHITELISTED_CURRENCIES?.split(',');
 
     for (const [key, value] of Object.entries(process_env)) {
-      if (key.startsWith('NEXT_PUBLIC_') && key.includes('_TOKEN_ADDRESS_')) {
+      if (key.includes('_TOKEN_ADDRESS_')) {
         if (value !== undefined) {
           const parts = key.split('_TOKEN_ADDRESS_');
-          const currencySymbol = parts[0].replace('NEXT_PUBLIC_', '');
+          const currencySymbol = parts[0].replace(/^NEXT_PUBLIC_/, '');
+
+          if (!tokens?.includes(currencySymbol)) continue;
           const chainId = parts[1];
-          contractAddressesCurrencies[`${chainId}:${value}`] = currencySymbol;
+
+          if (isNaN(Number(chainId))) continue;
+
+          currenciesFromContractAddresses[`${chainId}:${value.toLowerCase()}`] =
+            currencySymbol;
         }
       }
     }
 
-    return contractAddressesCurrencies;
+    return currenciesFromContractAddresses;
   };
 
-  const getChainInfoFromChainId = (chainId: number) => {
+  const getChainInfoFromChainId = (chainId) => {
     if (chainId === PolygonAmoy.id) {
       return PolygonAmoy;
     } else if (chainId === BaseSepolia.id) {
@@ -245,31 +275,38 @@ export default function useContractUtils() {
     }
   };
 
-  const getDefaultCurrencySymbolFromChainId = (chainId: number) => {
-    const defaultCurrencySymbol = (
-      process_env as { [key: string]: string | undefined }
-    )[`NEXT_PUBLIC_DEFAULT_CURRENCY_${chainId}`];
+  const getDefaultCurrencySymbolFromChainId = (chainId) => {
+    const defaultCurrencySymbol =
+      process_env[`NEXT_PUBLIC_DEFAULT_CURRENCY_${chainId}`];
 
     return defaultCurrencySymbol;
   };
+
+  function abbreviateAddress(address) {
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  }
 
   return {
     getChainIdFromChainIdAddress,
     getChainIdAddressFromChainIdAndAddress,
     getProviderFromChainIdAddress,
     getAddressFromChainIdAddress,
+    chainIdAddressType,
+    addressType,
     getProviderFromChainId,
     getProviderFromProviders,
     getAddressFromChainIdAddressForTransaction,
     getChainIdAddressFromContractAddresses,
+    getAddressFromContractAddresses,
     newReadOnlyContract,
     newContract,
     getTokenAddressFromChainIdAndTokenSymbol,
-    getDefaultCurrencySymbolFromChainId,
     getTokenNumberOfDecimalPlacesChainIdAndTokenSymbol,
-    getCurrencyContractAddresses,
-    getCurrencyDecimalPlaces,
-    getContractAddressesCurrencies,
+    getCalcContractAddressesFromCurrencies,
+    getCalcDecimalPlacesFromCurrencies,
+    getCalcCurrenciesFromContractAddresses,
     getChainInfoFromChainId,
+    getDefaultCurrencySymbolFromChainId,
+    abbreviateAddress,
   };
 }
