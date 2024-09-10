@@ -8,6 +8,14 @@ module.exports = withSvgr({
         fs: false,
         net: false,
         tls: false,
+        child_process: false,
+        dgram: false,
+        os: false,
+        path: false,
+        url: false,
+        util: false,
+        process: false,
+        module: false,
       };
     }
     return config;

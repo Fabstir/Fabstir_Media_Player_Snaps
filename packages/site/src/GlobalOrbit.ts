@@ -6,6 +6,10 @@ const dbClient = createDBClient(
   process.env.NEXT_PUBLIC_FABSTIRDB_BACKEND_URL || '',
   '',
 );
+const colorDb = createDBClient(
+  `${process.env.NEXT_PUBLIC_FABSTIRDB_BACKEND_URL}/color` || '',
+  '',
+);
 
 /**
  * Retrieves the current user from the database client.
@@ -14,7 +18,6 @@ const dbClient = createDBClient(
  */
 const getUser = () => {
   if (!dbClient.user) return null;
-
   const user = dbClient.user();
   console.log('GlobalOrbit.ts: user: ', user);
   return user;
@@ -69,4 +72,4 @@ async function dbClientLoad(
   return resultArray;
 }
 
-export { dbClient, getUser, dbClientOnce, dbClientLoad };
+export { dbClient, getUser, dbClientOnce, dbClientLoad,colorDb };

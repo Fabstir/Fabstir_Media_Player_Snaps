@@ -7,7 +7,6 @@ import React, {
 } from 'react';
 const Gun = require('gun');
 const SEA = require('gun/sea');
-import axios from 'axios';
 
 import { Button } from '../src/ui-components/button';
 import { Description, Label } from '../src/ui-components/fieldset';
@@ -73,6 +72,8 @@ import UserProfile from './profile';
 import { useMintNestableERC1155NFT } from '../src/blockchain/useMintNestableERC1155NFT';
 import { ThemeContext } from '../src/components/ThemeContext';
 import Loader from '../src/components/Loader';
+import { dbClient } from '../src/GlobalOrbit';
+
 type Addresses = {
   [key: string]: any; // Replace `any` with the actual type of the values
 };
@@ -692,42 +693,74 @@ const Index = () => {
     );
   };
 
+  async function getColor(smartAccount:any) {
+    try {
+      const path = `color/${encodeURIComponent(smartAccount)}`;
+
+      const result = await dbClient.get(path).once();
+      console.log('Raw OrbitDB result:', result);
+
+      if (!result) {
+        console.error('No data found for this smart account');
+        return null;
+      }
+
+      if (typeof result === 'object' && result.err) {
+        console.error('Error from OrbitDB:', result.err);
+        return null;
+      }
+
+      return result;
+    } catch (error) {
+      console.error('Error querying OrbitDB:', error);
+      return null;
+    }
+  }
+
   const fetchColor = async () => {
     try {
       if (!smartAccountAddress) return;
-      setLoader(true);
-      const response = await axios.get(`${url}/color/${smartAccountAddress}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          // Authorization: `Bearer ${userData?.token}`,
-        },
+      getColor(smartAccountAddress).then((color: any) => {
+        if (color) {
+          console.log('Color retrieved:', color);
+          if (!color) {
+            setDefaultColors();
+          }
+          const {
+            primaryColor,
+            secondaryColor,
+            utilityColors,
+            neutralsColor,
+            saturationNumber,
+          } = color.data ?? {};
+
+          // Function to set CSS variables
+          const setCSSVariables = (colorObj: any, prefix = '') => {
+            console.log('colorObj', colorObj);
+            if (!colorObj) return;
+
+            Object.keys(colorObj).forEach((key) => {
+              const cssVariableName = `--${prefix}${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
+              const cssValue = colorObj[key];
+              console.log(cssVariableName, '----', cssValue);
+              // Set the CSS variable dynamically
+              document.documentElement.style.setProperty(
+                cssVariableName,
+                cssValue,
+              );
+            });
+          };
+          console.log('primaryColor', primaryColor);
+          // Set CSS variables for colors
+          setCSSVariables(primaryColor, '');
+          setCSSVariables(secondaryColor, '');
+          setCSSVariables(utilityColors, '');
+          setCSSVariables(neutralsColor?.light, 'light-');
+          setCSSVariables(neutralsColor?.dark, 'dark-');
+        } else {
+          console.log('Failed to retrieve color');
+        }
       });
-
-      const { primaryColor, secondaryColor, utilityColors, neutralsColor } =
-        response.data.document?.[0] ?? {};
-
-      const setCSSVariables = (colorObj: any, prefix = '') => {
-        if (!colorObj) return;
-
-        Object.keys(colorObj).forEach((key) => {
-          document.documentElement.style.setProperty(
-            `--${prefix}${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`,
-            colorObj[key],
-          );
-        });
-      };
-
-      if (primaryColor || secondaryColor || utilityColors || neutralsColor) {
-        // Set API returned colors if they exist
-        setCSSVariables(primaryColor, '');
-        setCSSVariables(secondaryColor, '');
-        setCSSVariables(utilityColors, '');
-        setCSSVariables(neutralsColor?.light, 'light-');
-        setCSSVariables(neutralsColor?.dark, 'dark-');
-      } else {
-        // No data from API, set default dark and light mode colors
-        setDefaultColors();
-      }
     } catch (error) {
       console.log('error:', error);
       setDefaultColors(); // Set default colors in case of an error

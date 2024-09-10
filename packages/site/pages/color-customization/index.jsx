@@ -8,12 +8,12 @@ import { useRouter } from 'next/router';
 import { toast } from 'react-toastify';
 import Loader from '../../src/components/Loader';
 import chroma from 'chroma-js';
-import axios from 'axios';
 import { TextLink } from '../../src/ui-components/text';
 import { ChevronDoubleLeftIcon } from 'heroiconsv1/solid';
-
+// import IPFS from 'ipfs';
+import { colorDb, dbClient } from '../../src/GlobalOrbit';
 let url = process.env.NEXT_PUBLIC_FABSTIRDB_BACKEND_URL || '';
-
+import { parseArrayProperties } from '../../src/utils/stringifyProperties';
 const defaultColors = {
   light: {
     background: '#f0f0f0',
@@ -45,7 +45,7 @@ const Color = () => {
   const [colorMode, setColorMode] = useState('light'); // 'light' or 'dark'
   const [saturation, setSaturation] = useState(0); // Default saturation value
   const [hueRotation, setHueRotation] = useState(90);
-  const [loader, setLoader] = useState(true);
+  const [loader, setLoader] = useState(false);
   const [primaryColorState, setPrimaryColorState] = useState({
     primaryColor: '#4699eb',
     primaryContentColor: '#05192d',
@@ -180,33 +180,54 @@ const Color = () => {
 
   const blendWithPrimary = (color, amount) => {
     return chroma
-      .mix(color, primaryColorState.primaryColor, 0.1)
+      .mix(color, primaryColorState?.primaryColor, 0.1)
       .saturate(saturation * amount) // Increase saturation
       .brighten(saturation / 10) // Lighten the color based on saturation level
       .hex(); // Return the hex value
   };
 
+  // Create a function to handle setting data with a promise
+  const setWithPromise = (db, data) => {
+    return new Promise((resolve, reject) => {
+      db.put(data, (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+  };
+
   const onSubmit = async () => {
     try {
       toast.dismiss();
-      let data = {};
-      data.smartAccount = smartAccountAddress;
-      data.primaryColor = primaryColorState;
-      data.secondaryColor = secondaryColorState;
-      data.utilityColors = utilityColors;
-      data.neutralsColor = neutralsColorState;
-      const userData = sessionStorage.getItem('userSession');
-      const token = JSON.parse(userData)?.token ?? '';
-      await axios.post(`${url}/color`, data, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      });
+
+      const data = {
+        smartAccount: smartAccountAddress,
+        primaryColor: primaryColorState,
+        secondaryColor: secondaryColorState,
+        utilityColors: utilityColors,
+        neutralsColor: neutralsColorState,
+        saturationNumber: saturation,
+      };
+
+      // Define the path for the database
+      const path = `color`;
+      const colors = dbClient.get(path);
+
+      // Set data in the database
+      await setWithPromise(colors, data);
+      console.log('Data saved successfully in the database');
+
+      // Provide user feedback
       toast.success('Color saved successfully');
       fetchColor();
     } catch (error) {
-      handleError(error);
+      // Improved error handling
+      console.error('Error in onSubmit:', error);
+      fetchColor();
+      // toast.error('Failed to save color. Please try again.');
     }
   };
 
@@ -233,49 +254,76 @@ const Color = () => {
     }
   }, [smartAccountAddress]);
 
+  async function getColor(smartAccount) {
+    try {
+      const path = `color/${encodeURIComponent(smartAccount)}`;
+
+      const result = await dbClient.get(path).once();
+      console.log('Raw OrbitDB result:', result);
+
+      if (!result) {
+        console.error('No data found for this smart account');
+        return null;
+      }
+
+      if (typeof result === 'object' && result.err) {
+        console.error('Error from OrbitDB:', result.err);
+        return null;
+      }
+
+      return result;
+    } catch (error) {
+      console.error('Error querying OrbitDB:', error);
+      return null;
+    }
+  }
+
   const fetchColor = async () => {
     setLoader(true);
-    const userData = sessionStorage.getItem('userSession');
-    const token = JSON.parse(userData)?.token ?? '';
     try {
       if (!smartAccountAddress) return;
-      const response = await axios.get(`${url}/color/${smartAccountAddress}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          // Authorization: `Bearer ${token}`,
-        },
+      getColor(smartAccountAddress).then((color) => {
+        if (color) {
+          const {
+            primaryColor,
+            secondaryColor,
+            utilityColors,
+            neutralsColor,
+            saturationNumber,
+          } = color.data ?? {};
+
+          // Function to set CSS variables
+          const setCSSVariables = (colorObj, prefix = '') => {
+            if (!colorObj) return;
+
+            Object.keys(colorObj).forEach((key) => {
+              const cssVariableName = `--${prefix}${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
+              const cssValue = colorObj[key];
+              // Set the CSS variable dynamically
+              document.documentElement.style.setProperty(
+                cssVariableName,
+                cssValue,
+              );
+            });
+          };
+          // Set CSS variables for colors
+          setCSSVariables(primaryColor, '');
+          setCSSVariables(secondaryColor, '');
+          setCSSVariables(utilityColors, '');
+          setCSSVariables(neutralsColor?.light, 'light-');
+          setCSSVariables(neutralsColor?.dark, 'dark-');
+
+          // Save colors to state
+          setPrimaryColorState(primaryColor);
+          setSecondaryColorState(secondaryColor);
+          setUtilityColors(utilityColors);
+          setNeutralsColorState(neutralsColor);
+          setSaturation(saturationNumber);
+          // Use the color data here
+        } else {
+          console.log('Failed to retrieve color');
+        }
       });
-      const { primaryColor, secondaryColor, utilityColors, neutralsColor } =
-        response.data.document[0] ?? {};
-
-      const setCSSVariables = (colorObj, prefix = '') => {
-        if (!colorObj) return;
-
-        Object.keys(colorObj).forEach((key) => {
-          document.documentElement.style.setProperty(
-            `--${prefix}${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`,
-            colorObj[key],
-          );
-        });
-      };
-      // Setting the primary colors
-      setCSSVariables(primaryColor, '');
-
-      // Setting the secondary colors
-      setCSSVariables(secondaryColor, '');
-
-      // Setting the utility colors (e.g., success, warning, error)
-      setCSSVariables(utilityColors, '');
-
-      // Setting the neutral colors for light and dark modes
-      setCSSVariables(neutralsColor.light, 'light-');
-      setCSSVariables(neutralsColor.dark, 'dark-');
-
-      // Save to state
-      setPrimaryColorState(primaryColor);
-      setSecondaryColorState(secondaryColor);
-      setUtilityColors(utilityColors);
-      setNeutralsColorState(neutralsColor);
     } catch (error) {
       handleError(error);
     } finally {
@@ -330,17 +378,17 @@ const Color = () => {
                   className="flex w-full items-center rounded-full p-1 shadow-xl transition-colors"
                   onClick={() => setShowPicker(!showPicker)}
                   style={{
-                    color: primaryColorState.primaryContentColor,
+                    color: primaryColorState?.primaryContentColor,
                     border: '2px solid rgb(194, 215, 235)',
-                    background: primaryColorState.primaryColor,
+                    background: primaryColorState?.primaryColor,
                   }}
                   aria-label="Select Primary Color"
                 >
                   <div
                     className="grid h-8 w-8 place-content-center rounded-full"
                     style={{
-                      color: primaryColorState.primaryColor,
-                      background: primaryColorState.primaryContentColor,
+                      color: primaryColorState?.primaryColor,
+                      background: primaryColorState?.primaryContentColor,
                     }}
                   >
                     <svg
@@ -355,14 +403,14 @@ const Color = () => {
                     </svg>
                   </div>
                   <span className="w-full text-center">
-                    {primaryColorState.primaryColor}
+                    {primaryColorState?.primaryColor}
                   </span>
                 </button>
 
                 {showPicker && (
                   <div className="absolute mt-2 z-10">
                     <ChromePicker
-                      color={primaryColorState.primaryColor}
+                      color={primaryColorState?.primaryColor}
                       onChange={handlePrimaryColorChange}
                     />
                   </div>
@@ -375,13 +423,13 @@ const Color = () => {
                   <div
                     className="mb-2 w-full rounded-xl shadow-md transition-colors"
                     style={{
-                      background: primaryColorState.primaryColor,
+                      background: primaryColorState?.primaryColor,
                       height: '10rem',
                     }}
                   ></div>
                   <p className="-mb-1 ml-1 text-lg font-semibold">Primary</p>
                   <span className="ml-1 text-sm ">
-                    {primaryColorState.primaryColor}
+                    {primaryColorState?.primaryColor}
                   </span>
                 </div>
               </div>
@@ -389,7 +437,7 @@ const Color = () => {
                 <div
                   className="mb-2 w-full rounded-xl shadow-md transition-colors"
                   style={{
-                    background: primaryColorState.primaryContentColor,
+                    background: primaryColorState?.primaryContentColor,
                     height: '5rem',
                   }}
                 ></div>
@@ -397,14 +445,14 @@ const Color = () => {
                   Primary Content
                 </p>
                 <span className="ml-1 text-sm ">
-                  {primaryColorState.primaryContentColor}
+                  {primaryColorState?.primaryContentColor}
                 </span>
               </div>
               <div>
                 <div
                   className="mb-2 w-full rounded-xl shadow-md transition-colors"
                   style={{
-                    background: primaryColorState.primaryLightColor,
+                    background: primaryColorState?.primaryLightColor,
                     height: '5rem',
                   }}
                 ></div>
@@ -412,20 +460,20 @@ const Color = () => {
                   Primary Light
                 </p>
                 <span className="ml-1 text-sm ">
-                  {primaryColorState.primaryLightColor}
+                  {primaryColorState?.primaryLightColor}
                 </span>
               </div>
               <div>
                 <div
                   className="mb-2 w-full rounded-xl shadow-md transition-colors"
                   style={{
-                    background: primaryColorState.primaryDarkColor,
+                    background: primaryColorState?.primaryDarkColor,
                     height: '5rem',
                   }}
                 ></div>
                 <p className="-mb-1 ml-1 text-lg font-semibold">Primary Dark</p>
                 <span className="ml-1 text-sm ">
-                  {primaryColorState.primaryDarkColor}
+                  {primaryColorState?.primaryDarkColor}
                 </span>
               </div>
             </div>
@@ -440,9 +488,9 @@ const Color = () => {
               </div>
               {/* <div
                 style={{
-                  color: secondaryColorState.secondaryContentColor,
+                  color: secondaryColorState?.secondaryContentColor,
                   border: '2px solid rgb(214, 194, 235)',
-                  background: secondaryColorState.secondaryColor,
+                  background: secondaryColorState?.secondaryColor,
                 }}
                 className="flex w-full items-center gap-4 rounded-full p-1 shadow-xl transition-colors "
               >
@@ -450,8 +498,8 @@ const Color = () => {
                   for="rotation-input"
                   className="grid h-8 w-8 shrink-0 place-content-center rounded-full"
                   style={{
-                    color: secondaryColorState.secondaryColor,
-                    background: secondaryColorState.secondaryContentColor,
+                    color: secondaryColorState?.secondaryColor,
+                    background: secondaryColorState?.secondaryContentColor,
                   }}
                 >
                   <svg
@@ -488,17 +536,17 @@ const Color = () => {
                   className="flex w-full items-center rounded-full p-1 shadow-xl transition-colors"
                   onClick={() => setShowPickerSecondary(!showPickerSecondary)}
                   style={{
-                    color: secondaryColorState.secondaryContentColor,
+                    color: secondaryColorState?.secondaryContentColor,
                     border: '2px solid rgb(194, 215, 235)',
-                    background: secondaryColorState.secondaryColor,
+                    background: secondaryColorState?.secondaryColor,
                   }}
                   aria-label="Select Secondary Color"
                 >
                   <div
                     className="grid h-8 w-8 place-content-center rounded-full"
                     style={{
-                      color: secondaryColorState.secondaryColor,
-                      background: secondaryColorState.secondaryContentColor,
+                      color: secondaryColorState?.secondaryColor,
+                      background: secondaryColorState?.secondaryContentColor,
                     }}
                   >
                     <svg
@@ -513,14 +561,14 @@ const Color = () => {
                     </svg>
                   </div>
                   <span className="w-full text-center">
-                    {secondaryColorState.secondaryColor}
+                    {secondaryColorState?.secondaryColor}
                   </span>
                 </button>
 
                 {showPickerSecondary && (
                   <div className="absolute mt-2 z-10">
                     <ChromePicker
-                      color={secondaryColorState.secondaryColor}
+                      color={secondaryColorState?.secondaryColor}
                       onChange={handleSecondaryColorChange}
                     />
                   </div>
@@ -533,13 +581,13 @@ const Color = () => {
                   <div
                     className="mb-2 w-full rounded-xl shadow-md transition-colors"
                     style={{
-                      background: secondaryColorState.secondaryColor,
+                      background: secondaryColorState?.secondaryColor,
                       height: '10rem',
                     }}
                   ></div>
                   <p className="-mb-1 ml-1 text-lg font-semibold">Secondary</p>
                   <span className="ml-1 text-sm ">
-                    {secondaryColorState.secondaryColor}
+                    {secondaryColorState?.secondaryColor}
                   </span>
                 </div>
               </div>
@@ -547,7 +595,7 @@ const Color = () => {
                 <div
                   className="mb-2 w-full rounded-xl shadow-md transition-colors"
                   style={{
-                    background: secondaryColorState.secondaryContentColor,
+                    background: secondaryColorState?.secondaryContentColor,
                     height: '5rem',
                   }}
                 ></div>
@@ -555,14 +603,14 @@ const Color = () => {
                   Secondary Content
                 </p>
                 <span className="ml-1 text-sm ">
-                  {secondaryColorState.secondaryContentColor}
+                  {secondaryColorState?.secondaryContentColor}
                 </span>
               </div>
               <div>
                 <div
                   className="mb-2 w-full rounded-xl shadow-md transition-colors"
                   style={{
-                    background: secondaryColorState.secondaryLightColor,
+                    background: secondaryColorState?.secondaryLightColor,
                     height: '5rem',
                   }}
                 ></div>
@@ -570,14 +618,14 @@ const Color = () => {
                   Secondary Light
                 </p>
                 <span className="ml-1 text-sm ">
-                  {secondaryColorState.secondaryLightColor}
+                  {secondaryColorState?.secondaryLightColor}
                 </span>
               </div>
               <div>
                 <div
                   className="mb-2 w-full rounded-xl shadow-md transition-colors"
                   style={{
-                    background: secondaryColorState.secondaryDarkColor,
+                    background: secondaryColorState?.secondaryDarkColor,
                     height: '5rem',
                   }}
                 ></div>
@@ -585,7 +633,7 @@ const Color = () => {
                   Secondary Dark
                 </p>
                 <span className="ml-1 text-sm ">
-                  {secondaryColorState.secondaryDarkColor}
+                  {secondaryColorState?.secondaryDarkColor}
                 </span>
               </div>
             </div>
@@ -686,78 +734,78 @@ const Color = () => {
                 <div
                   className="mb-2 w-full rounded-xl shadow-md transition-colors"
                   style={{
-                    background: neutralsColorState[colorMode].foreground,
+                    background: neutralsColorState?.[colorMode]?.foreground,
                     height: '5rem',
                   }}
                 ></div>
                 <p className="-mb-1 ml-1 text-lg font-semibold">Foreground</p>
                 <span className="ml-1 text-sm ">
-                  {neutralsColorState[colorMode].foreground}
+                  {neutralsColorState?.[colorMode]?.foreground}
                 </span>
               </div>
               <div>
                 <div
                   className="mb-2 w-full rounded-xl shadow-md transition-colors"
                   style={{
-                    background: neutralsColorState[colorMode].background,
+                    background: neutralsColorState?.[colorMode]?.background,
                     height: '5rem',
                   }}
                 ></div>
                 <p className="-mb-1 ml-1 text-lg font-semibold">Background</p>
                 <span className="ml-1 text-sm ">
-                  {neutralsColorState[colorMode].background}
+                  {neutralsColorState?.[colorMode]?.background}
                 </span>
               </div>
               <div>
                 <div
                   className="mb-2 w-full rounded-xl shadow-md transition-colors"
                   style={{
-                    background: neutralsColorState[colorMode].border,
+                    background: neutralsColorState?.[colorMode]?.border,
                     height: '5rem',
                   }}
                 ></div>
                 <p className="-mb-1 ml-1 text-lg font-semibold">Border</p>
                 <span className="ml-1 text-sm ">
-                  {neutralsColorState[colorMode].border}
+                  {neutralsColorState?.[colorMode]?.border}
                 </span>
               </div>
               <div>
                 <div
                   className="mb-2 w-full rounded-xl shadow-md transition-colors"
                   style={{
-                    background: neutralsColorState[colorMode].copy,
+                    background: neutralsColorState?.[colorMode]?.copy,
                     height: '5rem',
                   }}
                 ></div>
                 <p className="-mb-1 ml-1 text-lg font-semibold">Copy</p>
                 <span className="ml-1 text-sm ">
-                  {neutralsColorState[colorMode].copy}
+                  {neutralsColorState?.[colorMode]?.copy}
                 </span>
               </div>
               <div>
                 <div
                   className="mb-2 w-full rounded-xl shadow-md transition-colors"
                   style={{
-                    background: neutralsColorState[colorMode].copyLight,
+                    background: neutralsColorState?.[colorMode]?.copyLight,
                     height: '5rem',
                   }}
                 ></div>
                 <p className="-mb-1 ml-1 text-lg font-semibold">Copy Light</p>
                 <span className="ml-1 text-sm ">
-                  {neutralsColorState[colorMode].copyLight}
+                  {neutralsColorState?.[colorMode]?.copyLight}
                 </span>
               </div>
               <div>
                 <div
                   className="mb-2 w-full rounded-xl shadow-md transition-colors"
                   style={{
-                    background: neutralsColorState[colorMode].copyLighter,
+                    background: neutralsColorState?.[colorMode]?.copyLighter,
                     height: '5rem',
                   }}
                 ></div>
                 <p className="-mb-1 ml-1 text-lg font-semibold">Copy Lighter</p>
                 <span className="ml-1 text-sm ">
-                  {neutralsColorState[colorMode].copyLighter}
+                  {neutralsColorState?.[colorMode]?.copyLighter}
                 </span>
               </div>
             </div>
@@ -776,46 +824,46 @@ const Color = () => {
                 <div
                   className="mb-2 w-full rounded-xl shadow-md transition-colors"
                   style={{
-                    background: utilityColors.successColor,
+                    background: utilityColors?.successColor,
                     height: '5rem',
                   }}
                 ></div>
                 <p className="-mb-1 ml-1 text-lg font-semibold">Success</p>
                 <span className="ml-1 text-sm ">
-                  {utilityColors.successColor}
+                  {utilityColors?.successColor}
                 </span>
               </div>
               <div>
                 <div
                   className="mb-2 w-full rounded-xl shadow-md transition-colors"
                   style={{
-                    background: utilityColors.warningColor,
+                    background: utilityColors?.warningColor,
                     height: '5rem',
                   }}
                 ></div>
                 <p className="-mb-1 ml-1 text-lg font-semibold">Warning</p>
                 <span className="ml-1 text-sm ">
-                  {utilityColors.warningColor}
+                  {utilityColors?.warningColor}
                 </span>
               </div>
               <div>
                 <div
                   className="mb-2 w-full rounded-xl shadow-md transition-colors"
                   style={{
-                    background: utilityColors.errorColor,
+                    background: utilityColors?.errorColor,
                     height: '5rem',
                   }}
                 ></div>
                 <p className="-mb-1 ml-1 text-lg font-semibold">Error</p>
                 <span className="ml-1 text-sm ">
-                  {utilityColors.errorColor}
+                  {utilityColors?.errorColor}
                 </span>
               </div>
               <div>
                 <div
                   className="mb-2 w-full rounded-xl shadow-md transition-colors"
                   style={{
-                    background: utilityColors.successContentColor,
+                    background: utilityColors?.successContentColor,
                     height: '5rem',
                   }}
                 ></div>
@@ -823,14 +871,14 @@ const Color = () => {
                   Success Content
                 </p>
                 <span className="ml-1 text-sm ">
-                  {utilityColors.successContentColor}
+                  {utilityColors?.successContentColor}
                 </span>
               </div>
               <div>
                 <div
                   className="mb-2 w-full rounded-xl shadow-md transition-colors"
                   style={{
-                    background: utilityColors.warningContentColor,
+                    background: utilityColors?.warningContentColor,
                     height: '5rem',
                   }}
                 ></div>
@@ -838,14 +886,14 @@ const Color = () => {
                   Warning Content
                 </p>
                 <span className="ml-1 text-sm ">
-                  {utilityColors.warningContentColor}
+                  {utilityColors?.warningContentColor}
                 </span>
               </div>
               <div>
                 <div
                   className="mb-2 w-full rounded-xl shadow-md transition-colors"
                   style={{
-                    background: utilityColors.errorContentColor,
+                    background: utilityColors?.errorContentColor,
                     height: '5rem',
                   }}
                 ></div>
@@ -853,7 +901,7 @@ const Color = () => {
                   Error Content
                 </p>
                 <span className="ml-1 text-sm ">
-                  {utilityColors.errorContentColor}
+                  {utilityColors?.errorContentColor}
                 </span>
               </div>
             </div>
