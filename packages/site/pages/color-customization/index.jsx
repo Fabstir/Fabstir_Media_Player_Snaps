@@ -2,7 +2,6 @@ import React, { useState, useEffect, useContext } from 'react';
 import { getSmartAccountAddress } from '../../src/blockchain/useAccountAbstractionPayment';
 import useCreateUser from '../../src/hooks/useCreateUser';
 import BlockchainContext from '../../state/BlockchainContext';
-import { DebounceInput } from 'react-debounce-input';
 import { ChromePicker } from 'react-color';
 import { useRouter } from 'next/router';
 import { toast } from 'react-toastify';
@@ -11,9 +10,8 @@ import chroma from 'chroma-js';
 import { TextLink } from '../../src/ui-components/text';
 import { ChevronDoubleLeftIcon } from 'heroiconsv1/solid';
 // import IPFS from 'ipfs';
-import { colorDb, dbClient } from '../../src/GlobalOrbit';
-let url = process.env.NEXT_PUBLIC_FABSTIRDB_BACKEND_URL || '';
-import { parseArrayProperties } from '../../src/utils/stringifyProperties';
+import { dbClient } from '../../src/GlobalOrbit';
+
 const defaultColors = {
   light: {
     background: '#f0f0f0',
@@ -112,6 +110,69 @@ const Color = () => {
         ? chroma(updatedPrimaryColor).set('hsl.h', 0).brighten(3).hex() // Darker in light mode
         : chroma(updatedPrimaryColor).set('hsl.h', 0).darken(2).hex(), // Less bright in dark mode
     });
+
+    setNeutralsColorState({
+      light: {
+        foreground: blendWithPrimary(
+          defaultColors.light.foreground,
+          2,
+          updatedPrimaryColor,
+        ),
+        background: blendWithPrimary(
+          defaultColors.light.background,
+          2,
+          updatedPrimaryColor,
+        ),
+        border: blendWithPrimary(
+          defaultColors.light.border,
+          2,
+          updatedPrimaryColor,
+        ),
+        copy: blendWithPrimary(
+          defaultColors.light.copy,
+          1,
+          updatedPrimaryColor,
+        ),
+        copyLight: blendWithPrimary(
+          defaultColors.light.copyLight,
+          2,
+          updatedPrimaryColor,
+        ),
+        copyLighter: blendWithPrimary(
+          defaultColors.light.copyLighter,
+          5,
+          updatedPrimaryColor,
+        ),
+      },
+      dark: {
+        foreground: blendWithPrimary(
+          defaultColors.dark.foreground,
+          2,
+          updatedPrimaryColor,
+        ),
+        background: blendWithPrimary(
+          defaultColors.dark.background,
+          2,
+          updatedPrimaryColor,
+        ),
+        border: blendWithPrimary(
+          defaultColors.dark.border,
+          2,
+          updatedPrimaryColor,
+        ),
+        copy: blendWithPrimary(defaultColors.dark.copy, 1, updatedPrimaryColor),
+        copyLight: blendWithPrimary(
+          defaultColors.dark.copyLight,
+          2,
+          updatedPrimaryColor,
+        ),
+        copyLighter: blendWithPrimary(
+          defaultColors.dark.copyLighter,
+          5,
+          updatedPrimaryColor,
+        ),
+      },
+    });
   };
 
   const handleSecondaryColorChange = (newColor) => {
@@ -159,28 +220,76 @@ const Color = () => {
     } else {
       setNeutralsColorState({
         light: {
-          foreground: blendWithPrimary(defaultColors.light.foreground, 2),
-          background: blendWithPrimary(defaultColors.light.background, 2),
-          border: blendWithPrimary(defaultColors.light.border, 2),
-          copy: blendWithPrimary(defaultColors.light.copy, 1),
-          copyLight: blendWithPrimary(defaultColors.light.copyLight, 2),
-          copyLighter: blendWithPrimary(defaultColors.light.copyLighter, 5),
+          foreground: blendWithPrimary(
+            defaultColors.light.foreground,
+            2,
+            primaryColorState?.primaryColor,
+          ),
+          background: blendWithPrimary(
+            defaultColors.light.background,
+            2,
+            primaryColorState?.primaryColor,
+          ),
+          border: blendWithPrimary(
+            defaultColors.light.border,
+            2,
+            primaryColorState?.primaryColor,
+          ),
+          copy: blendWithPrimary(
+            defaultColors.light.copy,
+            1,
+            primaryColorState?.primaryColor,
+          ),
+          copyLight: blendWithPrimary(
+            defaultColors.light.copyLight,
+            2,
+            primaryColorState?.primaryColor,
+          ),
+          copyLighter: blendWithPrimary(
+            defaultColors.light.copyLighter,
+            5,
+            primaryColorState?.primaryColor,
+          ),
         },
         dark: {
-          foreground: blendWithPrimary(defaultColors.dark.foreground, 2),
-          background: blendWithPrimary(defaultColors.dark.background, 2),
-          border: blendWithPrimary(defaultColors.dark.border, 2),
-          copy: blendWithPrimary(defaultColors.dark.copy, 1),
-          copyLight: blendWithPrimary(defaultColors.dark.copyLight, 2),
-          copyLighter: blendWithPrimary(defaultColors.dark.copyLighter, 5),
+          foreground: blendWithPrimary(
+            defaultColors.dark.foreground,
+            2,
+            primaryColorState?.primaryColor,
+          ),
+          background: blendWithPrimary(
+            defaultColors.dark.background,
+            2,
+            primaryColorState?.primaryColor,
+          ),
+          border: blendWithPrimary(
+            defaultColors.dark.border,
+            2,
+            primaryColorState?.primaryColor,
+          ),
+          copy: blendWithPrimary(
+            defaultColors.dark.copy,
+            1,
+            primaryColorState?.primaryColor,
+          ),
+          copyLight: blendWithPrimary(
+            defaultColors.dark.copyLight,
+            2,
+            primaryColorState?.primaryColor,
+          ),
+          copyLighter: blendWithPrimary(
+            defaultColors.dark.copyLighter,
+            5,
+            primaryColorState?.primaryColor,
+          ),
         },
       });
     }
   };
 
-  const blendWithPrimary = (color, amount) => {
+  const blendWithPrimary = (color, amount, primaryColor) => {
     return chroma
-      .mix(color, primaryColorState?.primaryColor, 0.1)
+      .mix(color, primaryColor, 0.1)
       .saturate(saturation * amount) // Increase saturation
       .brighten(saturation / 10) // Lighten the color based on saturation level
       .hex(); // Return the hex value
@@ -202,7 +311,6 @@ const Color = () => {
   const onSubmit = async () => {
     try {
       toast.dismiss();
-
       const data = {
         smartAccount: smartAccountAddress,
         primaryColor: primaryColorState,
@@ -218,16 +326,11 @@ const Color = () => {
 
       // Set data in the database
       await setWithPromise(colors, data);
-      console.log('Data saved successfully in the database');
-
-      // Provide user feedback
       toast.success('Color saved successfully');
-      fetchColor();
     } catch (error) {
-      // Improved error handling
       console.error('Error in onSubmit:', error);
+    } finally {
       fetchColor();
-      // toast.error('Failed to save color. Please try again.');
     }
   };
 

@@ -117,8 +117,9 @@ Thumbs.db
 *.tsbuildinfo
 
 # Tailwind CSS
-tailwind.config.js
+# tailwind.config.js
 packages/site/config.json
+packages/site/.env.local
 
 # misc
 packages/site/assets/

@@ -6,10 +6,6 @@ const dbClient = createDBClient(
   process.env.NEXT_PUBLIC_FABSTIRDB_BACKEND_URL || '',
   '',
 );
-const colorDb = createDBClient(
-  `${process.env.NEXT_PUBLIC_FABSTIRDB_BACKEND_URL}/color` || '',
-  '',
-);
 
 /**
  * Retrieves the current user from the database client.
@@ -72,4 +68,4 @@ async function dbClientLoad(
   return resultArray;
 }
 
-export { dbClient, getUser, dbClientOnce, dbClientLoad,colorDb };
+export { dbClient, getUser, dbClientOnce, dbClientLoad };

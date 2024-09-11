@@ -77,7 +77,7 @@ import { dbClient } from '../src/GlobalOrbit';
 type Addresses = {
   [key: string]: any; // Replace `any` with the actual type of the values
 };
-let url = process.env.NEXT_PUBLIC_FABSTIRDB_BACKEND_URL || '';
+
 const Index = () => {
   const [state, dispatch] = useContext(MetaMaskContext);
   const [triggerEffect, setTriggerEffect] = useState(0);
