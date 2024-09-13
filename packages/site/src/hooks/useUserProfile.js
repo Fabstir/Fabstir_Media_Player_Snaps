@@ -38,6 +38,7 @@ export default function useUserProfile() {
           .get('profile')
           .once((final_value) => res(final_value)),
       );
+      console.log('userProfileuserProfile', userProfile);
       if (!userProfile) return null;
 
       return JSON.parse(userProfile).image;
@@ -108,6 +109,18 @@ export default function useUserProfile() {
       dbClient.user(userPub).get('NFT market address').put(marketAddress);
 
       console.log('useUserProfile: setMarketAddress = ', marketAddress);
+    },
+    // return color
+    async (userPub) => {
+      const colors = await new Promise((res) =>
+        dbClient
+          .user(userPub)
+          .get('color')
+          .once((final_value) => res(final_value)),
+      );
+      if (!colors) return null;
+
+      return JSON.parse(colors);
     },
   ];
 }

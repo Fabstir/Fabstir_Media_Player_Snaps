@@ -9,8 +9,9 @@ import Loader from '../../src/components/Loader';
 import chroma from 'chroma-js';
 import { TextLink } from '../../src/ui-components/text';
 import { ChevronDoubleLeftIcon } from 'heroiconsv1/solid';
-// import IPFS from 'ipfs';
-import { dbClient } from '../../src/GlobalOrbit';
+import { useRecoilValue } from 'recoil';
+import { userauthpubstate } from '../../src/atoms/userAuthAtom';
+import useUserProfile from '../../src/hooks/useUserProfile';
 
 const defaultColors = {
   light: {
@@ -33,16 +34,15 @@ const defaultColors = {
 
 const Color = () => {
   const router = useRouter();
+  const userAuthPub = useRecoilValue(userauthpubstate);
+  const [, , , , , , getUserColor] = useUserProfile();
   const blockchainContext = useContext(BlockchainContext);
-  const { smartAccount, setSmartAccount, setConnectedChainId } =
-    blockchainContext;
-  const { signOut } = useCreateUser();
-  const [smartAccountAddress, setSmartAccountAddress] = useState('');
+  const { setSmartAccount, setConnectedChainId } = blockchainContext;
+  const { signOut, putUserColor } = useCreateUser();
   const [showPicker, setShowPicker] = useState(false);
   const [showPickerSecondary, setShowPickerSecondary] = useState(false);
   const [colorMode, setColorMode] = useState('light'); // 'light' or 'dark'
   const [saturation, setSaturation] = useState(0); // Default saturation value
-  const [hueRotation, setHueRotation] = useState(90);
   const [loader, setLoader] = useState(false);
   const [primaryColorState, setPrimaryColorState] = useState({
     primaryColor: '#4699eb',
@@ -67,15 +67,10 @@ const Color = () => {
   const [neutralsColorState, setNeutralsColorState] = useState(defaultColors);
 
   useEffect(() => {
-    const setSmartAccountAddressFn = async () => {
-      if (smartAccount) {
-        setSmartAccountAddress(await getSmartAccountAddress(smartAccount));
-      } else {
-        handleLogout();
-      }
-    };
-    setSmartAccountAddressFn();
-  }, [smartAccount]);
+    if (userAuthPub) {
+      fetchColor();
+    }
+  }, [userAuthPub]);
 
   const handlePrimaryColorChange = (newColor) => {
     const updatedPrimaryColor = newColor.hex;
@@ -189,30 +184,6 @@ const Color = () => {
     });
   };
 
-  const handleHueRotation = (value) => {
-    const parsedValue = parseFloat(value);
-
-    if (!isNaN(parsedValue)) {
-      setHueRotation(parsedValue);
-
-      const updatedSecondaryColor = chroma(primaryColorState?.primaryColor)
-        .set('hsl.h', `+${parsedValue}`)
-        .hex();
-
-      const isLightColor =
-        chroma(primaryColorState?.primaryColor).luminance() > 0.5;
-
-      setSecondaryColorState({
-        secondaryColor: updatedSecondaryColor,
-        secondaryContentColor: isLightColor
-          ? chroma(updatedSecondaryColor).darken(2).hex()
-          : chroma(updatedSecondaryColor).brighten(2).hex(),
-        secondaryLightColor: chroma(updatedSecondaryColor).brighten(1.5).hex(),
-        secondaryDarkColor: chroma(updatedSecondaryColor).darken(1).hex(),
-      });
-    }
-  };
-
   const handleSaturation = (value) => {
     setSaturation(value);
     if (value == 0) {
@@ -295,42 +266,21 @@ const Color = () => {
       .hex(); // Return the hex value
   };
 
-  // Create a function to handle setting data with a promise
-  const setWithPromise = (db, data) => {
-    return new Promise((resolve, reject) => {
-      db.put(data, (err) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
-    });
-  };
-
   const onSubmit = async () => {
     try {
       toast.dismiss();
       const data = {
-        smartAccount: smartAccountAddress,
         primaryColor: primaryColorState,
         secondaryColor: secondaryColorState,
         utilityColors: utilityColors,
         neutralsColor: neutralsColorState,
         saturationNumber: saturation,
       };
-
-      // Define the path for the database
-      const path = `color`;
-      const colors = dbClient.get(path);
-
-      // Set data in the database
-      await setWithPromise(colors, data);
+      await putUserColor(data);
       toast.success('Color saved successfully');
+      fetchColor();
     } catch (error) {
       console.error('Error in onSubmit:', error);
-    } finally {
-      fetchColor();
     }
   };
 
@@ -351,82 +301,42 @@ const Color = () => {
     router.push('/');
   };
 
-  useEffect(() => {
-    if (smartAccountAddress) {
-      fetchColor();
-    }
-  }, [smartAccountAddress]);
-
-  async function getColor(smartAccount) {
-    try {
-      const path = `color/${encodeURIComponent(smartAccount)}`;
-
-      const result = await dbClient.get(path).once();
-      console.log('Raw OrbitDB result:', result);
-
-      if (!result) {
-        console.error('No data found for this smart account');
-        return null;
-      }
-
-      if (typeof result === 'object' && result.err) {
-        console.error('Error from OrbitDB:', result.err);
-        return null;
-      }
-
-      return result;
-    } catch (error) {
-      console.error('Error querying OrbitDB:', error);
-      return null;
-    }
-  }
-
   const fetchColor = async () => {
     setLoader(true);
     try {
-      if (!smartAccountAddress) return;
-      getColor(smartAccountAddress).then((color) => {
-        if (color) {
-          const {
-            primaryColor,
-            secondaryColor,
-            utilityColors,
-            neutralsColor,
-            saturationNumber,
-          } = color.data ?? {};
+      const colors = await getUserColor(userAuthPub);
+      const {
+        primaryColor,
+        secondaryColor,
+        utilityColors,
+        neutralsColor,
+        saturationNumber,
+      } = colors ?? {};
 
-          // Function to set CSS variables
-          const setCSSVariables = (colorObj, prefix = '') => {
-            if (!colorObj) return;
+      // Function to set CSS variables
+      const setCSSVariables = (colorObj, prefix = '') => {
+        if (!colorObj) return;
 
-            Object.keys(colorObj).forEach((key) => {
-              const cssVariableName = `--${prefix}${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
-              const cssValue = colorObj[key];
-              // Set the CSS variable dynamically
-              document.documentElement.style.setProperty(
-                cssVariableName,
-                cssValue,
-              );
-            });
-          };
-          // Set CSS variables for colors
-          setCSSVariables(primaryColor, '');
-          setCSSVariables(secondaryColor, '');
-          setCSSVariables(utilityColors, '');
-          setCSSVariables(neutralsColor?.light, 'light-');
-          setCSSVariables(neutralsColor?.dark, 'dark-');
+        Object.keys(colorObj).forEach((key) => {
+          const cssVariableName = `--${prefix}${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
+          const cssValue = colorObj[key];
+          // Set the CSS variable dynamically
+          document.documentElement.style.setProperty(cssVariableName, cssValue);
+        });
+      };
+      // Set CSS variables for colors
+      setCSSVariables(primaryColor, '');
+      setCSSVariables(secondaryColor, '');
+      setCSSVariables(utilityColors, '');
+      setCSSVariables(neutralsColor?.light, 'light-');
+      setCSSVariables(neutralsColor?.dark, 'dark-');
 
-          // Save colors to state
-          setPrimaryColorState(primaryColor);
-          setSecondaryColorState(secondaryColor);
-          setUtilityColors(utilityColors);
-          setNeutralsColorState(neutralsColor);
-          setSaturation(saturationNumber);
-          // Use the color data here
-        } else {
-          console.log('Failed to retrieve color');
-        }
-      });
+      // Save colors to state
+      setPrimaryColorState(primaryColor);
+      setSecondaryColorState(secondaryColor);
+      setUtilityColors(utilityColors);
+      setNeutralsColorState(neutralsColor);
+      setSaturation(saturationNumber);
     } catch (error) {
       handleError(error);
     } finally {

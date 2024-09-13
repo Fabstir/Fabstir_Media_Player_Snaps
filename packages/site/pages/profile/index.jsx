@@ -210,15 +210,15 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
       .max(userNameMax, `Name length is up to ${userNameMax} characters`)
       .required('Name required'),
 
-    accountAddress: yup.string().test({
-      name: 'isAddress',
-      exclusive: false,
-      params: {},
-      message: 'Must be valid Ethereum address',
-      test: function (value) {
-        return isAddress(value);
-      },
-    }),
+    // accountAddress: yup.string().test({
+    //   name: 'isAddress',
+    //   exclusive: false,
+    //   params: {},
+    //   message: 'Must be valid Ethereum address',
+    //   test: function (value) {
+    //     return isAddress(value);
+    //   },
+    // }),
 
     about: yup
       .string()
@@ -278,9 +278,9 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
       .notRequired(),
   });
 
+
   async function handlesubmit_save(data) {
     setSubmitText('Saving...');
-
     let userProfile = { ...data };
 
     console.log('Profile: handlesubmit_save: inside');
@@ -434,7 +434,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
               className="h-6 w-6 font-bold text-gray-500 lg:h-8 lg:w-8 mr-2"
               aria-hidden="true"
             />
-            <span className='text-text dark:text-dark-text'>Back to Root</span>
+            <span className="text-text dark:text-dark-text">Back to Root</span>
           </div>
         </TextLink>
       </div>

@@ -79,6 +79,21 @@ export default function useCreateUser() {
     });
   };
 
+  const putUserColor = async (colors) => {
+    const user = getUser();
+
+    await new Promise((resolve, reject) => {
+      user.get('color').put(JSON.stringify(colors), function (ack) {
+        if (ack.err) {
+          console.log(`useCreateUser: color: ack.err = ${ack.err}`);
+          reject(ack.err);
+        } else {
+          resolve();
+        }
+      });
+    });
+  };
+  
   const createUser = (username, password, userProfile) => {
     const user = getUser();
   
@@ -154,6 +169,7 @@ export default function useCreateUser() {
   return {
     createUser,
     putUserProfile,
+    putUserColor,
     isUserExists,
     login,
     signOut,

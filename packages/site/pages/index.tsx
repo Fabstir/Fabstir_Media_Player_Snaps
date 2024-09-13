@@ -72,7 +72,6 @@ import UserProfile from './profile';
 import { useMintNestableERC1155NFT } from '../src/blockchain/useMintNestableERC1155NFT';
 import { ThemeContext } from '../src/components/ThemeContext';
 import Loader from '../src/components/Loader';
-import { dbClient } from '../src/GlobalOrbit';
 
 type Addresses = {
   [key: string]: any; // Replace `any` with the actual type of the values
@@ -98,7 +97,7 @@ const Index = () => {
 
   const queryClient = useQueryClient();
   const user = getUser();
-  const [getUserProfile] = useUserProfile();
+  const [getUserProfile, , , , , , getUserColor] = useUserProfile();
   const { theme, setTheme } = useContext(ThemeContext);
   // Define a type for the hook's return value
   type UseTranscodeVideoS5Return = {
@@ -693,79 +692,38 @@ const Index = () => {
     );
   };
 
-  async function getColor(smartAccount:any) {
-    try {
-      const path = `color/${encodeURIComponent(smartAccount)}`;
-
-      const result = await dbClient.get(path).once();
-      console.log('Raw OrbitDB result:', result);
-
-      if (!result) {
-        console.error('No data found for this smart account');
-        return null;
-      }
-
-      if (typeof result === 'object' && result.err) {
-        console.error('Error from OrbitDB:', result.err);
-        return null;
-      }
-
-      return result;
-    } catch (error) {
-      console.error('Error querying OrbitDB:', error);
-      return null;
-    }
-  }
-
   const fetchColor = async () => {
     try {
-      if (!smartAccountAddress) return;
-      getColor(smartAccountAddress).then((color: any) => {
-        if (color) {
-          console.log('Color retrieved:', color);
-          if (!color) {
-            setDefaultColors();
-          }
-          const {
-            primaryColor,
-            secondaryColor,
-            utilityColors,
-            neutralsColor,
-            saturationNumber,
-          } = color.data ?? {};
+      const colors = await getUserColor(userAuthPub);
+      const {
+        primaryColor,
+        secondaryColor,
+        utilityColors,
+        neutralsColor,
+        saturationNumber,
+      } = colors ?? {};
 
-          // Function to set CSS variables
-          const setCSSVariables = (colorObj: any, prefix = '') => {
-            console.log('colorObj', colorObj);
-            if (!colorObj) return;
+      // Function to set CSS variables
+      const setCSSVariables = (colorObj: any, prefix = '') => {
+        if (!colorObj) return;
 
-            Object.keys(colorObj).forEach((key) => {
-              const cssVariableName = `--${prefix}${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
-              const cssValue = colorObj[key];
-              console.log(cssVariableName, '----', cssValue);
-              // Set the CSS variable dynamically
-              document.documentElement.style.setProperty(
-                cssVariableName,
-                cssValue,
-              );
-            });
-          };
-          console.log('primaryColor', primaryColor);
-          // Set CSS variables for colors
-          setCSSVariables(primaryColor, '');
-          setCSSVariables(secondaryColor, '');
-          setCSSVariables(utilityColors, '');
-          setCSSVariables(neutralsColor?.light, 'light-');
-          setCSSVariables(neutralsColor?.dark, 'dark-');
-        } else {
-          console.log('Failed to retrieve color');
-        }
-      });
+        Object.keys(colorObj).forEach((key) => {
+          const cssVariableName = `--${prefix}${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
+          const cssValue = colorObj[key];
+          // Set the CSS variable dynamically
+          document.documentElement.style.setProperty(cssVariableName, cssValue);
+        });
+      };
+      // Set CSS variables for colors
+      setCSSVariables(primaryColor, '');
+      setCSSVariables(secondaryColor, '');
+      setCSSVariables(utilityColors, '');
+      setCSSVariables(neutralsColor?.light, 'light-');
+      setCSSVariables(neutralsColor?.dark, 'dark-');
+
+      // Save colors to state
     } catch (error) {
-      console.log('error:', error);
-      setDefaultColors(); // Set default colors in case of an error
-    } finally {
-      setLoader(false);
+      // handleError(error);
     }
   };
 
