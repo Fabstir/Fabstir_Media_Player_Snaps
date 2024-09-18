@@ -6,6 +6,7 @@ import { selectedparentnftaddressid } from '../atoms/nestableNFTAtom';
 import { useRouter } from 'next/router';
 import { Button } from '@headlessui/react';
 import { TextLink } from '../../src/ui-components/text';
+import { currentnftmetadata } from '../atoms/nftSlideOverAtom';
 
 /**
  * UserNFTsView component to render the user's NFTs in a gallery view.
@@ -33,12 +34,18 @@ export default function UserNFTsView({
   const [theNFTs, setTheNfts] = useState();
   const [selectedParentNFTAddressId, setSelectedParentNFTAddressId] =
     useRecoilState(selectedparentnftaddressid);
+  const [currentNFT, setCurrentNFT] = useRecoilState(currentnftmetadata);
 
   function handleBackToRoot() {
     router.push('/');
   }
 
   function handleUpToParent() {
+    console.log(
+      'UserNFTsView: selectedParentNFTAddressId = ',
+      selectedParentNFTAddressId,
+    );
+    console.log('UserNFTsView: currentNFT = ', currentNFT);
     setSelectedParentNFTAddressId('');
   }
 
@@ -46,14 +53,13 @@ export default function UserNFTsView({
     <>
       <div className="mb-8">
         {selectedParentNFTAddressId ? (
-          <TextLink
-            href="/"
-            className="flex items-center justify-start"
+          <button
+            className="flex items-center justify-start cursor-pointer underline text-blue-600"
             onClick={handleUpToParent}
           >
             <ChevronDoubleLeftIcon className="h-6 w-6 mr-2" />
             Back to parent
-          </TextLink>
+          </button>
         ) : (
           <TextLink href="/">
             <div className="flex justify-start">

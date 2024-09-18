@@ -10,3 +10,8 @@ export const iswasmreadystate = atom({
   key: 'renderWasmReadyState',
   default: false, // default value
 });
+
+export const refetchnftscountstate = atom({
+  key: 'refetchNFTsCountState',
+  default: 0, // default value
+});

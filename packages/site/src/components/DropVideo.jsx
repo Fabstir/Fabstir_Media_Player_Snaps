@@ -82,7 +82,7 @@ const DropVideo = ({
       return;
     }
 
-    const isEncrypted = encKey?.current ? true : false;
+    const isEncrypted = encKey ? true : false;
 
     const customOptions = { encrypt: isEncrypted };
     const file = acceptedFiles[0];

@@ -40,23 +40,31 @@ export default function TeamView({
     <div>
       {team?.users?.length > 0 && (
         <div className="relative flex justify-between space-y-8 pb-5 sm:space-y-12">
-          <ul className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-4 md:grid-cols-6 md:gap-x-6 lg:max-w-5xl lg:grid-cols-7 lg:gap-x-10 lg:gap-x-6 lg:gap-y-12 lg:gap-y-14 xl:max-w-7xl xl:grid-cols-8">
-            {team?.users?.map((user, index) => (
-              <li key={user?.userPub}>
-                <TeamUserView
-                  user={user}
-                  userAuthPub={userAuthPub}
-                  isReadOnly={isReadOnlyArray[index]}
-                  handleEditMember={() => handleEditMember(index)}
-                  handleSubmit_SaveTeamMember={(newUser) =>
-                    handleSubmit_SaveTeamMember(newUser, index)
-                  }
-                  handleSubmit_RemoveTeamMember={handleSubmit_RemoveTeamMember}
-                  showEditButton={!isTeamReadOnly}
-                />
-              </li>
-            ))}
-          </ul>
+          <div className="relative flex flex-col space-y-8 pb-5 sm:space-y-12">
+            <div className="flex flex-wrap gap-4 sm:gap-6 lg:gap-10 xl:gap-12">
+              {team?.users?.map((user, index) => (
+                <div key={user?.userPub} className="flex-shrink-0">
+                  <TeamUserView
+                    user={user}
+                    userAuthPub={userAuthPub}
+                    isReadOnly={isReadOnlyArray[index]}
+                    handleEditMember={() => handleEditMember(index)}
+                    handleSubmit_SaveTeamMember={(newUser) =>
+                      handleSubmit_SaveTeamMember(newUser, index)
+                    }
+                    handleSubmit_RemoveTeamMember={
+                      handleSubmit_RemoveTeamMember
+                    }
+                    showEditButton={!isTeamReadOnly}
+                  />
+                </div>
+              ))}
+            </div>
+            {/* <div className="order-2 flex-shrink-0 -translate-y-1/4 pt-4 sm:order-3 sm:ml-3">
+            <SimpleToggle enabled={isPublic} setEnabled={setIsPublic} />
+          </div> */}
+          </div>
+
           <div className="order-2 flex-shrink-0 -translate-y-1/4 pt-4 sm:order-3 sm:ml-3">
             <SimpleToggle enabled={isPublic} setEnabled={setIsPublic} />
           </div>

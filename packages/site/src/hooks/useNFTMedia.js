@@ -113,7 +113,7 @@ export default function useNFTMedia() {
   }
 
   function hasVideoMedia(metaData) {
-    if (!metaData || metaData.length === 0) return false;
+    if (!Array.isArray(metaData) || metaData.length === 0) return false;
 
     for (const mediaFormat of metaData) {
       if (!mediaFormat.kind && mediaFormat.type.startsWith('video/'))
@@ -124,7 +124,7 @@ export default function useNFTMedia() {
   }
 
   function hasAudioMedia(metaData) {
-    if (!metaData || metaData.length === 0) return false;
+    if (!Array.isArray(metaData) || metaData.length === 0) return false;
 
     for (const mediaFormat of metaData) {
       if (!mediaFormat.kind && mediaFormat.type.startsWith('audio/'))

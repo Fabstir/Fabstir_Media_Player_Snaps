@@ -38,7 +38,7 @@ export default function useFNFTMarketSale(fnftMarketAddress) {
     getDecimalPlaceFromCurrency,
   } = useCurrencyUtils();
 
-  const { storeMarketItemKeyLicense } = useCreateMarketItem();
+  const { storeMediaKeyLicense } = useCreateMarketItem();
 
   const fnftMarketCreateFacet = fnftMarketAddress
     ? newContract(
@@ -387,7 +387,7 @@ export default function useFNFTMarketSale(fnftMarketAddress) {
             connectedChainId,
             marketItem.fnftToken,
           ) === nft?.address &&
-          marketItem.tokenId.toString() === nft?.id
+          marketItem.tokenId.toString() === nft?.id.toString()
         ) {
           const isMarketItemActive = await getIsMarketItemActive(
             marketItem.itemId,
@@ -462,7 +462,7 @@ export default function useFNFTMarketSale(fnftMarketAddress) {
         marketItemId,
       );
 
-      await storeMarketItemKeyLicense(
+      await storeMediaKeyLicense(
         nft,
         fnftMarketAddress,
         marketItemId.toNumber(),

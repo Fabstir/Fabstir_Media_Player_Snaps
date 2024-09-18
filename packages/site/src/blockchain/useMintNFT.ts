@@ -493,7 +493,8 @@ export default function useMintNFT() {
   };
 
   const getIsOwnNFT = async (userAccountAddress: string, nft: any) => {
-    if (!userAccountAddress || !nft.address || !nft.id) return false;
+    if (!connectedChainId || !userAccountAddress || !nft.address || !nft.id)
+      return;
 
     let isOwnNFT;
     if (await getIsERC721(nft)) {

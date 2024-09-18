@@ -247,30 +247,36 @@ const VideoJS = ({
 
     player.on('audiotrackchange', (event, changedTrack) => {
       console.log('Audio track changed to:', changedTrack.label);
-      const audioTrackButton = player.controlBar.getChild('AudioTrackButton');
-      if (audioTrackButton) {
-        audioTrackButton.updateButtonTitle();
-        const items = audioTrackButton.menu.children();
-        for (let i = 0; i < items.length; i++) {
-          items[i].update();
+      if (player?.controlBar) {
+        const audioTrackButton =
+          player.controlBar.getChild('AudioTrackButton') ?? undefined;
+        if (audioTrackButton) {
+          audioTrackButton.updateButtonTitle();
+          const items = audioTrackButton.menu.children();
+          for (let i = 0; i < items.length; i++) {
+            items[i].update();
+          }
         }
-      }
 
-      // Log the current state of audio tracks
-      const tracks = player.audioTracks();
-      console.log('Current audio tracks:');
-      for (let i = 0; i < tracks.length; i++) {
-        console.log(
-          `Track ${i}: label = ${tracks[i].label}, enabled = ${tracks[i].enabled}`,
-        );
+        // Log the current state of audio tracks
+        const tracks = player.audioTracks();
+        console.log('Current audio tracks:');
+        for (let i = 0; i < tracks.length; i++) {
+          console.log(
+            `Track ${i}: label = ${tracks[i].label}, enabled = ${tracks[i].enabled}`,
+          );
+        }
       }
     });
 
     // Force an update of the button title after a short delay
     setTimeout(() => {
-      const audioTrackButton = player.controlBar.getChild('AudioTrackButton');
-      if (audioTrackButton) {
-        audioTrackButton.updateButtonTitle();
+      if (player?.controlBar) {
+        const audioTrackButton =
+          player.controlBar.getChild('AudioTrackButton') ?? undefined;
+        if (audioTrackButton) {
+          audioTrackButton.updateButtonTitle();
+        }
       }
     }, 100);
   };

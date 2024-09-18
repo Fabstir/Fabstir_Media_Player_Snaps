@@ -2,7 +2,12 @@ import { Dialog, Transition } from '@headlessui/react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import React, { Fragment, useEffect, useRef } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useRecoilState, useRecoilValue, useResetRecoilState } from 'recoil';
+import {
+  useRecoilState,
+  useRecoilValue,
+  useResetRecoilState,
+  useSetRecoilState,
+} from 'recoil';
 import * as yup from 'yup';
 
 import useMintNFT from '../blockchain/useMintNFT';
@@ -15,6 +20,8 @@ import { getNFTAddressId } from '../utils/nftUtils';
 import { userauthpubstate } from '../atoms/userAuthAtom';
 import useNFTMedia from '../hooks/useNFTMedia';
 import { teamsstate } from '../atoms/teamsAtom';
+import { refetchnftscountstate } from '../atoms/renderStateAtom';
+import { selectedparentnftaddressid } from '../atoms/nestableNFTAtom';
 
 /**
  * Default values for the form fields.
@@ -186,6 +193,11 @@ const NFTSlideOver = ({
   const encKey = useRef('');
 
   const nft = useRef({});
+  const setRefetchNFTsCount = useSetRecoilState(refetchnftscountstate);
+
+  const setSelectedParentNFTAddressId = useSetRecoilState(
+    selectedparentnftaddressid,
+  );
 
   console.log('NFTSlideOver open = ', open);
 
@@ -356,6 +368,8 @@ const NFTSlideOver = ({
   useEffect(() => {
     if (createNFTInfo.isSuccess) {
       setCurrentNFT(nft.current);
+      setSelectedParentNFTAddressId(null);
+      setRefetchNFTsCount((prev) => prev + 1);
       console.log(
         'NFTSlideOver: createNFTInfo.isSuccess = ',
         createNFTInfo.isSuccess,
@@ -411,7 +425,10 @@ const NFTSlideOver = ({
                   <div className="relative mx-auto grid h-full max-w-7xl grid-cols-1 gap-x-16 overflow-y-auto lg:grid-cols-2 lg:px-8">
                     <h1 className="sr-only">NFT information</h1>
 
-                    <NFTSlideOverRight encKey={encKey} />
+                    <NFTSlideOverRight
+                      isPublic={methods.watch('isPublic')}
+                      encKey={encKey}
+                    />
                     <NFTSlideOverLeft
                       submitText={
                         submitText

@@ -8,6 +8,7 @@ import { saveState, loadState } from '../utils';
 import { useRecoilValue } from 'recoil';
 import { userauthpubstate } from '../atoms/userAuthAtom.js';
 import useFabstirController from './useFabstirController.js';
+import { selectedparentnftaddressid } from '../atoms/nestableNFTAtom.js';
 
 /**
  * Asynchronously saves the NFT data to the local state.
@@ -40,6 +41,7 @@ export async function saveNFTtoState(address, nftState) {
 export default function useCreateNFT() {
   const userAuthPub = useRecoilValue(userauthpubstate);
   const { submitKeyToController } = useFabstirController();
+  const selectedParentNFTAddressId = useRecoilValue(selectedparentnftaddressid);
 
   const userPub = user?.is?.pub;
 
@@ -94,42 +96,73 @@ export default function useCreateNFT() {
       onMutate: (newNFT) => {
         console.log('useCreateNFT onMutate newNFT = ', newNFT);
 
-        queryClient.cancelQueries([userPub, 'nfts']);
+        queryClient.cancelQueries([
+          userPub,
+          'nfts',
+          selectedParentNFTAddressId,
+        ]);
 
-        let oldNFTs = queryClient.getQueryData([userPub, 'nfts']);
+        let oldNFTs = queryClient.getQueryData([
+          userPub,
+          'nfts',
+          selectedParentNFTAddressId,
+        ]);
         console.log('useCreateNFT oldNFTs = ', oldNFTs);
 
-        queryClient.setQueryData([userPub, 'nfts'], (old) => {
-          return old
-            ? [
-                ...old,
-                {
-                  ...newNFT,
-                  isPreview: true,
-                },
-              ]
-            : [
-                {
-                  ...newNFT,
-                  isPreview: true,
-                },
-              ];
-        });
+        queryClient.setQueryData(
+          [userPub, 'nfts', selectedParentNFTAddressId],
+          (old) => {
+            return old
+              ? [
+                  ...old,
+                  {
+                    ...newNFT,
+                    isPreview: true,
+                  },
+                ]
+              : [
+                  {
+                    ...newNFT,
+                    isPreview: true,
+                  },
+                ];
+          },
+        );
 
-        const newNFTs = queryClient.getQueryData([userPub, 'nfts']);
+        const newNFTs = queryClient.getQueryData([
+          userPub,
+          'nfts',
+          selectedParentNFTAddressId,
+        ]);
         console.log('useCreateNFT newNFTs = ', newNFTs);
 
-        return () => queryClient.setQueryData([userPub, 'nfts'], oldNFTs);
+        return () =>
+          queryClient.setQueryData(
+            [userPub, 'nfts', selectedParentNFTAddressId],
+            oldNFTs,
+          );
       },
       onError: (error, newNFT, rollback) => {
         console.log('useCreateNFT: error = ', error);
         rollback();
       },
       onSuccess: (data, newNFT) => {
-        queryClient.invalidateQueries([userPub, 'nfts']);
-        const currentNFTs = queryClient.getQueryData([userPub, 'nfts']) || [];
+        queryClient.invalidateQueries([
+          userPub,
+          'nfts',
+          selectedParentNFTAddressId,
+        ]);
+        const currentNFTs =
+          queryClient.getQueryData([
+            userPub,
+            'nfts',
+            selectedParentNFTAddressId,
+          ]) || [];
         const updatedNFTs = [...currentNFTs, newNFT]; // Or use `data` if it contains the updated list
-        queryClient.setQueryData([userPub, 'nfts'], updatedNFTs);
+        queryClient.setQueryData(
+          [userPub, 'nfts', selectedParentNFTAddressId],
+          updatedNFTs,
+        );
 
         console.log('useCreateNFT: Updated NFTs:', updatedNFTs);
       },

@@ -19,6 +19,9 @@ import useAccountAbstractionPayment, {
 } from './useAccountAbstractionPayment';
 import { AccountAbstractionPayment } from '../../types';
 import useUserProfile from '../hooks/useUserProfile';
+import { useSetRecoilState } from 'recoil';
+import { constructNFTAddressId } from '../utils/nftUtils';
+import { selectedparentnftaddressid } from '../atoms/nestableNFTAtom';
 
 const chainIdAddress = 'YOUR_CHAIN_ID_ADDRESS';
 
@@ -63,9 +66,14 @@ export function useMintNestableERC1155NFT() {
     getIsERC721Address,
     getIsERC721,
     getIsERC1155,
+    getIsERC1155Address,
     getNFTQuantity: getNFTQuantityFromStandard,
   } = useMintNFT();
   const [getUserProfile] = useUserProfile();
+
+  const setSelectedParentNFTAddressId = useSetRecoilState(
+    selectedparentnftaddressid,
+  );
 
   const accountAbstractionPayment = useAccountAbstractionPayment(
     smartAccount as object,
@@ -124,6 +132,7 @@ export function useMintNestableERC1155NFT() {
       const nestableNFT = await mintNestableNFT(smartAccountAddress, amount);
 
       const nestableNFTWithChild = await addChildToNestableNFT(
+        nestableNFT.address,
         Number(nestableNFT.id),
         0,
         nft,
@@ -131,6 +140,11 @@ export function useMintNestableERC1155NFT() {
       );
 
       setIsLoading(false);
+
+      setSelectedParentNFTAddressId(
+        constructNFTAddressId(nestableNFT.address, nestableNFT.id),
+      );
+
       return nestableNFTWithChild;
     } catch (err: any) {
       setError(err);
@@ -154,25 +168,34 @@ export function useMintNestableERC1155NFT() {
    * @returns {Promise<void>} A promise that resolves when the operation is complete.
    */
   const addChildToNestableNFT = async (
+    parentAddress: string,
     parentId: number,
     childIndex: number,
     nft: NFT,
     data: Uint8Array,
   ) => {
+    if (!smartAccountProvider)
+      throw new Error('useMintNestableNFT: No smart account provider');
+
+    if (!connectedChainId)
+      throw new Error('useMintNestableNFT: No connected chain id');
+
     console.log(
       `useMintNestableNFT: addChildToNestableNFT parentId ${parentId}, childIndex ${childIndex}, nft ${nft}}`,
     );
 
     console.log(`useMintNestableNFT: smartAccount: ${smartAccount}`);
 
-    // passing accountIndex is optional, by default it will be 0
-    // it should match with the index used to initialise the SDK Biconomy Smart Account instance
-    console.log(`useMintNestableNFT: smartAccount: ${smartAccount}`);
-
     if (!smartAccount) {
       throw new Error(
         'upgradeToNestableNFT: nestableNFT: smartAccount is undefined',
       );
+    }
+
+    if (!getIsERC1155Address(nft.address)) {
+      const errorMessage = 'useMintNestableNFT: not an ERC1155 token';
+      console.error(errorMessage);
+      throw new Error(errorMessage);
     }
 
     const nftAddress = nft.address;
@@ -272,6 +295,10 @@ export function useMintNestableERC1155NFT() {
       setIsLoading(false);
 
       if (receipt.isSuccess) {
+        setSelectedParentNFTAddressId(
+          constructNFTAddressId(parentAddress, parentId),
+        );
+
         return {
           address: String(nestableNFTContractAddress), // Ensure the address is a string
           id: parentId,
@@ -355,7 +382,7 @@ export function useMintNestableERC1155NFT() {
 
     const chainId = getChainIdFromChainIdAddress(childAddress);
     if (
-      !getIsERC721Address(
+      !getIsERC1155Address(
         getChainIdAddressFromChainIdAndAddress(chainId, child.contractAddress),
       )
     ) {
@@ -615,10 +642,11 @@ export function useMintNestableERC1155NFT() {
    * @returns {Promise<boolean>} A promise that resolves to `true` if the user account owns the specified NFT, otherwise `false`.
    */
   const getIsOwnNFT = async (userAccountAddress: string, nft: any) => {
-    if (!userAccountAddress || !nft.address || !nft.id) return false;
+    if (!connectedChainId || !userAccountAddress || !nft.address || !nft.id)
+      return;
 
     let isOwnNFT;
-    if (await getIsNestableNFT(nft.address)) {
+    if (nft.parentAddress && (await getIsNestableNFT(nft.parentAddress))) {
       const nestableNFTContract = newReadOnlyContract(
         getChainIdAddressFromContractAddresses(
           connectedChainId,
@@ -629,7 +657,8 @@ export function useMintNestableERC1155NFT() {
 
       try {
         const ownerAddress =
-          (await nestableNFTContract.directOwnerOf(nft.id))?.[0] ?? undefined;
+          (await nestableNFTContract.directOwnerOf(nft.parentId))?.[0] ??
+          undefined;
         console.log('getIsOwnNFT: ownerAddress = ', ownerAddress);
 
         isOwnNFT =

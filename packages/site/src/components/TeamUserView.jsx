@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { MinusIcon as MinusIconOutline } from 'heroiconsv1/outline';
 import { Input } from '../ui-components/input';
+import { Button } from '../ui-components/button';
 import { v4 as uuidv4 } from 'uuid';
 import { PlusIcon, PencilIcon } from 'heroiconsv2/24/outline';
 import { useDropzone } from 'react-dropzone';
@@ -259,131 +260,155 @@ export default function TeamUserView({
               </div>
             )}
 
-            <div className="col-span-3 sm:col-span-4">
-              <label
-                htmlFor="firstName"
-                className="block text-sm font-medium text-fabstir-gray"
-              >
-                First name
-              </label>
-              <div className="mt-1 rounded-lg border-2 border-fabstir-white">
-                <input
-                  type="text"
-                  name="firstName"
-                  {...register('firstName')}
-                  className="block w-full bg-fabstir-white"
-                  readOnly={!isEditable}
-                />
+            {(isEditable ||
+              (typeof watch('firstName') === 'string' &&
+                watch('firstName').trim() !== '')) && (
+              <div className="col-span-3 sm:col-span-4">
+                <label
+                  htmlFor="firstName"
+                  className="block text-sm font-medium text-fabstir-gray"
+                >
+                  First name
+                </label>
+                <div className="mt-1 rounded-lg border-2 border-fabstir-white">
+                  <input
+                    type="text"
+                    name="firstName"
+                    {...register('firstName')}
+                    className="block w-full bg-fabstir-white"
+                    readOnly={!isEditable}
+                  />
+                </div>
+                <p className="mt-2 text-fabstir-light-pink">
+                  {errors.firstName?.message}
+                </p>
               </div>
-              <p className="mt-2 text-fabstir-light-pink">
-                {errors.firstName?.message}
-              </p>
-            </div>
+            )}
 
-            <div className="col-span-3 sm:col-span-4">
-              <label
-                htmlFor="lastName"
-                className="block text-sm font-medium text-fabstir-gray"
-              >
-                Last name
-              </label>
-              <div className="mt-1 rounded-lg border-2 border-fabstir-white">
-                <input
-                  type="text"
-                  name="lastName"
-                  {...register('lastName')}
-                  className="block w-full bg-fabstir-white"
-                  readOnly={!isEditable}
-                />
+            {(isEditable ||
+              (typeof watch('lastName') === 'string' &&
+                watch('lastName').trim() !== '')) && (
+              <div className="col-span-3 sm:col-span-4">
+                <label
+                  htmlFor="lastName"
+                  className="block text-sm font-medium text-fabstir-gray"
+                >
+                  Last name
+                </label>
+                <div className="mt-1 rounded-lg border-2 border-fabstir-white">
+                  <input
+                    type="text"
+                    name="lastName"
+                    {...register('lastName')}
+                    className="block w-full bg-fabstir-white"
+                    readOnly={!isEditable}
+                  />
+                </div>
+                <p className="mt-2 text-fabstir-light-pink">
+                  {errors.lastName?.message}
+                </p>
               </div>
-              <p className="mt-2 text-fabstir-light-pink">
-                {errors.lastName?.message}
-              </p>
-            </div>
+            )}
 
-            <div className="col-span-3 sm:col-span-4">
-              <label
-                htmlFor="altName"
-                className="block text-sm font-medium text-fabstir-gray"
-              >
-                altName
-              </label>
-              <div className="mt-1 rounded-lg border-2 border-fabstir-white">
-                <input
-                  type="text"
-                  name="altName"
-                  {...register('altName')}
-                  className="block w-full bg-fabstir-white"
-                  readOnly={!isEditable}
-                />
+            {(isEditable ||
+              (typeof watch('altName') === 'string' &&
+                watch('altName').trim() !== '')) && (
+              <div className="col-span-3 sm:col-span-4">
+                <label
+                  htmlFor="altName"
+                  className="block text-sm font-medium text-fabstir-gray"
+                >
+                  altName
+                </label>
+                <div className="mt-1 rounded-lg border-2 border-fabstir-white">
+                  <input
+                    type="text"
+                    name="altName"
+                    {...register('altName')}
+                    className="block w-full bg-fabstir-white"
+                    readOnly={!isEditable}
+                  />
+                </div>
+                <p className="mt-2 text-fabstir-light-pink">
+                  {errors.altName?.message}
+                </p>
               </div>
-              <p className="mt-2 text-fabstir-light-pink">
-                {errors.altName?.message}
-              </p>
-            </div>
+            )}
 
-            <div className="col-span-3 sm:col-span-4">
-              <label
-                htmlFor="alias"
-                className="block text-sm font-medium text-fabstir-gray"
-              >
-                alias
-              </label>
-              <div className="mt-1 rounded-lg border-2 border-fabstir-white">
-                <input
-                  type="text"
-                  name="alias"
-                  {...register('alias')}
-                  className="block w-full bg-fabstir-white"
-                  readOnly={!isEditable}
-                />
+            {(isEditable ||
+              (typeof watch('alias') === 'string' &&
+                watch('alias').trim() !== '')) && (
+              <div className="col-span-3 sm:col-span-4">
+                <label
+                  htmlFor="alias"
+                  className="block text-sm font-medium text-fabstir-gray"
+                >
+                  alias
+                </label>
+                <div className="mt-1 rounded-lg border-2 border-fabstir-white">
+                  <input
+                    type="text"
+                    name="alias"
+                    {...register('alias')}
+                    className="block w-full bg-fabstir-white"
+                    readOnly={!isEditable}
+                  />
+                </div>
+                <p className="mt-2 text-fabstir-light-pink">
+                  {errors.alias?.message}
+                </p>
               </div>
-              <p className="mt-2 text-fabstir-light-pink">
-                {errors.alias?.message}
-              </p>
-            </div>
+            )}
 
-            <div className="col-span-3 sm:col-span-4">
-              <label
-                htmlFor="role"
-                className="block text-sm font-medium text-fabstir-gray"
-              >
-                role
-              </label>
-              <div className="mt-1 rounded-lg border-2 border-fabstir-white">
-                <input
-                  type="text"
-                  name="role"
-                  {...register('role')}
-                  className="block w-full bg-fabstir-white"
-                  readOnly={!isEditable}
-                />
+            {(isEditable ||
+              (typeof watch('role') === 'string' &&
+                watch('role').trim() !== '')) && (
+              <div className="col-span-3 sm:col-span-4">
+                <label
+                  htmlFor="role"
+                  className="block text-sm font-medium text-fabstir-gray"
+                >
+                  role
+                </label>
+                <div className="mt-1 rounded-lg border-2 border-fabstir-white">
+                  <input
+                    type="text"
+                    name="role"
+                    {...register('role')}
+                    className="block w-full bg-fabstir-white"
+                    readOnly={!isEditable}
+                  />
+                </div>
+                <p className="mt-2 text-fabstir-light-pink">
+                  {errors.role?.message}
+                </p>
               </div>
-              <p className="mt-2 text-fabstir-light-pink">
-                {errors.role?.message}
-              </p>
-            </div>
+            )}
 
-            <div className="col-span-3 sm:col-span-4">
-              <label
-                htmlFor="altRole"
-                className="block text-sm font-medium text-fabstir-gray"
-              >
-                altRole
-              </label>
-              <div className="mt-1 rounded-lg border-2 border-fabstir-white">
-                <input
-                  type="text"
-                  name="altRole"
-                  {...register('altRole')}
-                  className="block w-full bg-fabstir-white"
-                  readOnly={!isEditable}
-                />
+            {(isEditable ||
+              (typeof watch('altRole') === 'string' &&
+                watch('altRole').trim() !== '')) && (
+              <div className="col-span-3 sm:col-span-4">
+                <label
+                  htmlFor="altRole"
+                  className="block text-sm font-medium text-fabstir-gray"
+                >
+                  altRole
+                </label>
+                <div className="mt-1 rounded-lg border-2 border-fabstir-white">
+                  <input
+                    type="text"
+                    name="altRole"
+                    {...register('altRole')}
+                    className="block w-full bg-fabstir-white"
+                    readOnly={!isEditable}
+                  />
+                </div>
+                <p className="mt-2 text-fabstir-light-pink">
+                  {errors.altRole?.message}
+                </p>
               </div>
-              <p className="mt-2 text-fabstir-light-pink">
-                {errors.altRole?.message}
-              </p>
-            </div>
+            )}
           </>
 
           {isEditable ? (

@@ -286,6 +286,22 @@ export default function useContractUtils() {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   }
 
+  // Function to calculate the interface ID
+  function calculateInterfaceId(abi) {
+    const iface = new ethers.utils.Interface(abi);
+    const functionSignatures = Object.keys(iface.functions);
+
+    let interfaceId = ethers.constants.Zero;
+
+    functionSignatures.forEach((signature) => {
+      const hash = ethers.utils.id(signature);
+      const first4Bytes = hash.slice(0, 10); // First 4 bytes (8 hex characters + '0x')
+      interfaceId = interfaceId.xor(ethers.BigNumber.from(first4Bytes));
+    });
+
+    return interfaceId.toHexString();
+  }
+
   return {
     getChainIdFromChainIdAddress,
     getChainIdAddressFromChainIdAndAddress,
@@ -308,5 +324,6 @@ export default function useContractUtils() {
     getChainInfoFromChainId,
     getDefaultCurrencySymbolFromChainId,
     abbreviateAddress,
+    calculateInterfaceId,
   };
 }

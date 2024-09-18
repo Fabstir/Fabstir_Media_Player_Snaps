@@ -7,6 +7,7 @@ import { ArrowLongRightIcon } from '@heroicons/react/24/outline';
 import { useRecoilState } from 'recoil';
 import { selectedparentnftaddressid } from '../atoms/nestableNFTAtom';
 import { currentnftmetadata } from '../atoms/nftSlideOverAtom';
+import { constructNFTAddressId } from '../utils/nftUtils';
 
 const tabs = [
   { name: 'Recently Added', href: '#', current: true },
@@ -97,9 +98,20 @@ export default function UserNFTView({
   }, [nft]);
 
   function handleDoubleClick() {
-    const parentAddressId = `${nft?.parentAddress}_${nft?.parentId}`;
-    setSelectedParentNFTAddressId(parentAddressId);
-    console.log('UserNFTView: selectedParentNFTAddressId = ', parentAddressId);
+    if (nft?.parentAddress && nft?.parentId) {
+      const parentAddressId = constructNFTAddressId(
+        nft?.parentAddress,
+        nft?.parentId,
+      );
+      setSelectedParentNFTAddressId(parentAddressId);
+
+      console.log(
+        'UserNFTView: selectedParentNFTAddressId = ',
+        parentAddressId,
+      );
+    } else {
+      setSelectedParentNFTAddressId(null);
+    }
   }
 
   return (

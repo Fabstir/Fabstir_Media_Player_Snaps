@@ -27,3 +27,13 @@ export const convertAttributesToNFT721Convention = (attributes) => {
   }
   return nftAttributes;
 };
+
+export const getCidWithoutKeyFromNFT = (nft) => {
+  let cidWithoutKey = nft.video ? nft.video : nft.audio ? nft.audio : null;
+
+  if (cidWithoutKey === null) {
+    throw new Error('getCidWithoutKey: No video or audio found');
+  }
+
+  return cidWithoutKey;
+};

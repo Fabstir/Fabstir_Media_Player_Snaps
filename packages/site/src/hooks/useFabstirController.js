@@ -24,7 +24,7 @@ export default function useFabstirController() {
       user._.sea,
     );
 
-    // The seller encrypts the marketItemSEAPair with the subscription controller's public key
+    // The seller encrypts the mediaSEAPair with the subscription controller's public key
     const scrambledKeySEAPair = await SEA.encrypt(encKey, passphrase);
 
     // save encKey

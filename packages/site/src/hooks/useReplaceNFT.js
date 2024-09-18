@@ -1,13 +1,27 @@
-import { useRecoilValue } from 'recoil';
+import { useRecoilValue, useSetRecoilState } from 'recoil';
 import useCreateNFT from './useCreateNFT';
 import useDeleteNFT from './useDeleteNFT';
 import { userauthpubstate } from '../atoms/userAuthAtom';
+import { useEffect } from 'react';
+import { refetchnftscountstate } from '../atoms/renderStateAtom';
 
 export default function useReplaceNFT() {
   const userAuthPub = useRecoilValue(userauthpubstate);
 
   const { mutate: createNFT, ...createNFTInfo } = useCreateNFT();
   const { mutate: deleteNFT, ...deleteNFTInfo } = useDeleteNFT(userAuthPub);
+  const setRefetchNFTsCount = useSetRecoilState(refetchnftscountstate);
+
+  useEffect(() => {
+    if (createNFTInfo.isSuccess) {
+      setRefetchNFTsCount((prev) => prev + 1);
+      console.log(
+        'NFTSlideOver: createNFTInfo.isSuccess = ',
+        createNFTInfo.isSuccess,
+      );
+    }
+    // This effect should run whenever the isSuccess status changes
+  }, [createNFTInfo.isSuccess]);
 
   const upgradeNFTToParent = async (oldNFT, newNFT) => {
     console.log('useReplaceNFT: upgradeNFTToParent: oldNFT = ', oldNFT);

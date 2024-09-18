@@ -303,6 +303,7 @@ export default function PermissionUserView({
       cancelTime,
       resellerFeeRatio,
       creatorFeeRatio,
+      data.userPub,
     );
 
     if (!marketItemId) return;
@@ -488,7 +489,7 @@ export default function PermissionUserView({
   }
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-2xl w-full">
       {' '}
       {/* Increased max-width */}
       <div className="space-y-4">
@@ -521,7 +522,7 @@ export default function PermissionUserView({
               </p>
             </div>
 
-            <div className="col-span-3 mt-3 w-64 sm:col-span-4">
+            <div className="col-span-3 mt-3 w-full sm:col-span-4">
               <label
                 htmlFor="userPub"
                 className="block text-sm font-medium text-fabstir-light-gray"
@@ -547,7 +548,7 @@ export default function PermissionUserView({
               </p>
             </div>
 
-            <div className="flex w-64 flex-1 flex-col space-y-2">
+            <div className="flex w-full flex-1 flex-col space-y-2">
               {permissionedUser?.firstName && (
                 <div className="col-span-3 sm:col-span-4">
                   <label
@@ -564,7 +565,7 @@ export default function PermissionUserView({
                 </div>
               )}
               {permissionedUser?.lastName && (
-                <div className="col-span-3 mt-1 w-64 sm:col-span-4">
+                <div className="col-span-3 mt-1 w-full sm:col-span-4">
                   <label
                     htmlFor="lastName"
                     className="block text-sm font-medium text-fabstir-light-gray"
@@ -579,7 +580,7 @@ export default function PermissionUserView({
                 </div>
               )}
               {permissionedUser?.company && (
-                <div className="col-span-3 mt-1 w-64 sm:col-span-4">
+                <div className="col-span-3 mt-1 w-full sm:col-span-4">
                   <label
                     htmlFor="company"
                     className="block text-sm font-medium text-fabstir-light-gray"
@@ -594,7 +595,7 @@ export default function PermissionUserView({
                 </div>
               )}
               {marketAddress && (
-                <div className="col-span-3 mt-1 w-64 sm:col-span-4">
+                <div className="col-span-3 mt-1 w-full sm:col-span-4">
                   <label
                     htmlFor="marketAddress"
                     className="block text-sm font-medium text-fabstir-light-gray"
@@ -637,7 +638,7 @@ export default function PermissionUserView({
                   {errors.currency?.message}
                 </p>
               </div>
-              <div className="col-span-3 w-64  sm:col-span-4">
+              <div className="col-span-3 w-full  sm:col-span-4">
                 <label
                   htmlFor="amount"
                   className="block text-sm font-medium text-fabstir-light-gray"
@@ -657,7 +658,7 @@ export default function PermissionUserView({
                   {errors.amount?.message}
                 </p>
               </div>
-              <div className="col-span-3 w-64 sm:col-span-4">
+              <div className="col-span-3 w-full sm:col-span-4">
                 <label
                   htmlFor="startPrice"
                   className="block text-sm font-medium text-fabstir-light-gray"
@@ -678,7 +679,7 @@ export default function PermissionUserView({
                   {errors.startPrice?.message}
                 </p>
               </div>
-              <div className="col-span-3 w-64 sm:col-span-4">
+              <div className="col-span-3 w-full sm:col-span-4">
                 <label
                   htmlFor="reservePrice"
                   className="block text-sm font-medium text-fabstir-light-gray"
@@ -699,7 +700,7 @@ export default function PermissionUserView({
                   {errors.reservePrice?.message}
                 </p>
               </div>
-              <div className="col-span-3 w-64 sm:col-span-4">
+              <div className="col-span-3 w-full sm:col-span-4">
                 <label
                   htmlFor="startTime"
                   className="block text-sm font-medium text-fabstir-light-gray"
@@ -719,7 +720,7 @@ export default function PermissionUserView({
                   {errors.startTime?.message}
                 </p>
               </div>
-              <div className="col-span-3 w-64 sm:col-span-4">
+              <div className="col-span-3 w-full sm:col-span-4">
                 <label
                   htmlFor="endTime"
                   className="block text-sm font-medium text-fabstir-light-gray"
@@ -739,7 +740,7 @@ export default function PermissionUserView({
                   {errors.endTime?.message}
                 </p>
               </div>
-              <div className="col-span-3 w-64 sm:col-span-4">
+              <div className="col-span-3 w-full sm:col-span-4">
                 <label
                   htmlFor="cancelTime"
                   className="block text-sm font-medium text-fabstir-light-gray"
@@ -759,7 +760,7 @@ export default function PermissionUserView({
                   {errors.cancelTime?.message}
                 </p>
               </div>
-              <div className="col-span-3 w-64  sm:col-span-4">
+              <div className="col-span-3 w-full  sm:col-span-4">
                 <div className="flex flex-col">
                   <div>
                     <label
@@ -802,7 +803,7 @@ export default function PermissionUserView({
                   </div>
                 </div>
               </div>
-              <div className="col-span-3 w-64  sm:col-span-4">
+              <div className="col-span-3 w-full  sm:col-span-4">
                 <div className="flex flex-col">
                   <div>
                     <label
@@ -847,7 +848,7 @@ export default function PermissionUserView({
                 </div>
               </div>
               {fabstirFeePercentage && (
-                <div className="col-span-3 mt-1 w-64 sm:col-span-4">
+                <div className="col-span-3 mt-1 w-full sm:col-span-4">
                   <label
                     htmlFor="fabstirFeeRatio"
                     className="block text-sm font-medium text-fabstir-light-gray"
@@ -873,7 +874,7 @@ export default function PermissionUserView({
                     >
                       Market Status
                     </label>
-                    <div className="mt-1 w-64 rounded-lg border-2 border-fabstir-white">
+                    <div className="mt-1 w-full rounded-lg border-2 border-fabstir-white">
                       <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-fabstir-medium-dark-gray">
                           <tr>

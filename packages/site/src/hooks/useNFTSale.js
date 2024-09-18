@@ -1,10 +1,12 @@
-import useMintNFT from '../blockchain/useMintNFT';
 import { dbClientOnce } from '../GlobalOrbit';
 import { user } from '../../src/user';
 import { getNFTAddressId } from '../utils/nftUtils';
 import { useContext } from 'react';
 import BlockchainContext from '../../state/BlockchainContext';
 import { getSmartAccountAddress } from '../blockchain/useAccountAbstractionPayment';
+import useMintNestableNFT from '../blockchain/useMintNestableNFT';
+import { useMintNestableERC1155NFT } from '../blockchain/useMintNestableERC1155NFT';
+import useMintNFT from '../blockchain/useMintNFT';
 
 require('gun/lib/load.js');
 
@@ -12,7 +14,9 @@ export default function useNFTSale() {
   const blockchainContext = useContext(BlockchainContext);
   const { connectedChainId, smartAccount } = blockchainContext;
 
-  const { getIsOwnNFT } = useMintNFT();
+  const { getIsERC721, getIsERC1155 } = useMintNFT();
+  const { getIsOwnNFT } = useMintNestableNFT();
+  const { getIsOwnNFT: getIsOwnNFTERC1155 } = useMintNestableERC1155NFT();
 
   /**
    * Asynchronously removes NFTs that are not owned by the current user.
@@ -38,8 +42,15 @@ export default function useNFTSale() {
     const smartAccountAddress = await getSmartAccountAddress(smartAccount);
 
     for (const nft of nftsRetrieved) {
-      const isOwnNFT = await getIsOwnNFT(smartAccountAddress, nft);
-      if (!isOwnNFT) {
+      let isOwnNFT;
+
+      if (await getIsERC721(nft))
+        isOwnNFT = await getIsOwnNFT(smartAccountAddress, nft);
+      else if (await getIsERC1155(nft))
+        isOwnNFT = await getIsOwnNFTERC1155(smartAccountAddress, nft);
+      else continue;
+
+      if (isOwnNFT === false) {
         console.log('removeNFTsNotOwned: nft = ', nft);
         const nftAddressId = getNFTAddressId(nft);
         user.get('nfts').get(nftAddressId).put(null);

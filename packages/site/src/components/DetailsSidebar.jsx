@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { user } from '../user';
 
 import { saveAs } from 'file-saver';
-import { useRecoilState, useRecoilValue } from 'recoil';
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import { nftattributesexpandstate } from '../atoms/nftAttrributesExpand';
 import {
   nftmetadataexpandstate,
@@ -18,7 +18,11 @@ import NFTFileUrls from './NFTFileUrls';
 import NFTVideoJS from './NFTVideoJS';
 import useMintNestableNFT from '../blockchain/useMintNestableNFT';
 import RenderModel from './RenderModel';
-import { is3dmodelstate, iswasmreadystate } from '../atoms/renderStateAtom';
+import {
+  is3dmodelstate,
+  iswasmreadystate,
+  refetchnftscountstate,
+} from '../atoms/renderStateAtom';
 import useEncKey from '../hooks/useEncKey';
 import { userauthpubstate } from '../atoms/userAuthAtom';
 import { userpubstate } from '../atoms/userAtom';
@@ -148,6 +152,8 @@ export default function DetailsSidebar({
 
   const [openTransferNFTSliderOver, setOpenTransferNFTSliderOver] =
     useRecoilState(transfernftslideoverstate);
+
+  const setRefetchNFTsCount = useSetRecoilState(refetchnftscountstate);
 
   const [teams, setTeams] = useRecoilState(teamsstate);
 
@@ -470,6 +476,7 @@ export default function DetailsSidebar({
     }
 
     setCurrentNFT(null);
+    // setRefetchNFTsCount((prev) => prev + 1);
   }
 
   /**
@@ -532,26 +539,31 @@ export default function DetailsSidebar({
   async function handleRemoveFromNestableNFT() {
     if (!nft) return;
 
+    if (!nft.parentAddress || !nft.parentId) return;
+
     let addressId = {};
 
-    if (
-      (await getIsERC721(nft)) &&
-      selectedParentNFTType.current === 'ERC721'
-    ) {
+    const NFTType = {
+      ERC721: 'ERC721',
+      ERC1155: 'ERC1155',
+    };
+
+    let theSelectedParentNFTType;
+
+    if (await getIsERC721Address(nft.parentAddress)) {
       addressId = await removeChildFromNestableNFT(
         nft.parentId,
         nft.address,
         nft.id,
       );
-    } else if (
-      (await getIsERC1155(nft)) &&
-      selectedParentNFTType.current === 'ERC1155'
-    ) {
+      theSelectedParentNFTType = NFTType.ERC721;
+    } else if (await getIsERC1155Address(nft.parentAddress)) {
       addressId = await removeChildFromNestableERC1155NFT(
         nft.parentId,
         nft.address,
         nft.id,
       );
+      theSelectedParentNFTType = NFTType.ERC1155;
     } else
       throw new Error(
         'DetailsSidebar: handleUpgradeToNestableNFT: NFT is neither ERC721 nor ERC1155',
@@ -560,7 +572,17 @@ export default function DetailsSidebar({
     if (process.env.NEXT_PUBLIC_IS_USE_FABSTIRDB === 'true') {
       removeChildNFT(nft, { address: nft.parentAddress, id: nft.parentId });
 
-      const children = await getChildrenOfNestableNFT(nft.parentId);
+      let children;
+
+      if (theSelectedParentNFTType === NFTType.ERC721) {
+        children = await getChildrenOfNestableNFT(nft.parentId);
+      } else if (theSelectedParentNFTType === NFTType.ERC1155) {
+        children = await getChildrenOfNestableERC1155NFT(nft.parentId);
+      } else
+        throw new Error(
+          'DetailsSidebar: handleRemoveFromNestableNFT: theSelectedParentNFTType is neither ERC721 nor ERC1155',
+        );
+
       if (children.length === 0) {
         deleteNFT(
           { address: nft.parentAddress, id: nft.parentId },
@@ -576,6 +598,8 @@ export default function DetailsSidebar({
       await addAddress(newAddress);
       setCurrentNFT(null);
     }
+
+    // setRefetchNFTsCount((prev) => prev + 1);
   }
 
   async function filterNFTsByType(nfts, typeChecker) {
@@ -600,13 +624,7 @@ export default function DetailsSidebar({
   async function handleSelectedToParent() {
     if (!selectedNFTs?.length > 0 || !nft?.parentId) return;
 
-    const children = await getChildrenOfNestableNFT(nft.parentId);
-    console.log(
-      'DetailsSidebar: handleSelectedToParent: children = ',
-      children,
-    );
-
-    let numberOfChildren = children?.length > 0 ? children.length : 0;
+    let numberOfChildren;
     console.log(
       'DetailsSidebar: handleSelectedToParent: numberOfChildren = ',
       numberOfChildren,
@@ -614,10 +632,41 @@ export default function DetailsSidebar({
 
     let theSelectedNFTs;
 
-    if (selectedParentNFTType.current === 'ERC721') {
+    const NFTType = {
+      ERC721: 'ERC721',
+      ERC1155: 'ERC1155',
+    };
+    let theSelectedParentNFTType;
+
+    if (await getIsERC721Address(nft.parentAddress)) {
+      const children = await getChildrenOfNestableNFT(nft.parentId);
+      console.log(
+        'DetailsSidebar: handleSelectedToParent: children = ',
+        children,
+      );
+
+      numberOfChildren = children?.length > 0 ? children.length : 0;
+      console.log(
+        'DetailsSidebar: handleSelectedToParent: numberOfChildren = ',
+        numberOfChildren,
+      );
       theSelectedNFTs = await filterNFTsByType(selectedNFTs, getIsERC721);
-    } else if (selectedParentNFTType.current === 'ERC1155') {
+      theSelectedParentNFTType = NFTType.ERC721;
+    } else if (await getIsERC1155Address(nft.parentAddress)) {
+      const children = await getChildrenOfNestableERC1155NFT(nft.parentId);
+      console.log(
+        'DetailsSidebar: handleSelectedToParent: children = ',
+        children,
+      );
+
+      numberOfChildren = children?.length > 0 ? children.length : 0;
+      console.log(
+        'DetailsSidebar: handleSelectedToParent: numberOfChildren = ',
+        numberOfChildren,
+      );
+
       theSelectedNFTs = await filterNFTsByType(selectedNFTs, getIsERC1155);
+      theSelectedParentNFTType = NFTType.ERC1155;
     } else {
       throw new Error(
         'handleSelectedToParent: selectedParentNFTType.current is neither ERC721 nor ERC1155',
@@ -626,22 +675,24 @@ export default function DetailsSidebar({
 
     let nestableNFT;
     for (const selectedNFT of theSelectedNFTs) {
-      if (selectedParentNFTType.current === 'ERC721') {
+      if (theSelectedParentNFTType === NFTType.ERC721) {
         nestableNFT = await addChildToNestableNFT(
+          nft.parentAddress,
           nft.parentId,
-          numberOfChildren,
+          numberOfChildren - 1,
           selectedNFT,
         );
-      } else if (selectedParentNFTType.current === 'ERC1155') {
+      } else if (theSelectedParentNFTType === NFTType.ERC1155) {
         nestableNFT = await addChildToNestableERC1155NFT(
+          nft.parentAddress,
           nft.parentId,
-          numberOfChildren,
+          numberOfChildren - 1,
           selectedNFT,
           [],
         );
       } else
         throw new Error(
-          'handleSelectedToParent: selectedParentNFTType.current is neither ERC721 nor ERC1155',
+          'handleSelectedToParent: theSelectedParentNFTType is neither ERC721 nor ERC1155',
         );
 
       numberOfChildren++;
@@ -666,6 +717,7 @@ export default function DetailsSidebar({
       removeFromNestableNFT(selectedNFT);
 
       setCurrentNFT(null);
+      // setRefetchNFTsCount((prev) => prev + 1);
 
       console.log(
         `DetailsSidebar: handleSelectedToParent: added nft address ${selectedNFT.address} with token id ${selectedNFT.id} to nestableNFT = ${nestableNFT}`,
@@ -687,6 +739,7 @@ export default function DetailsSidebar({
     console.log('DetailsSidebar: handle_TransferNFT');
 
     setOpenTransferNFTSliderOver(true);
+    // setRefetchNFTsCount((prev) => prev + 1);
   }
 
   function handleEditTeams() {

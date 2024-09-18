@@ -3,6 +3,7 @@ import { AddressZero, Zero } from '@ethersproject/constants';
 
 import { SEA } from 'gun';
 import { user } from '../user';
+import { FEA } from 'fabstirdb-lib';
 
 import { useContext } from 'react';
 import TipERC1155 from '../../contracts/TipERC1155.json';
@@ -24,6 +25,14 @@ import useContractUtils from './useContractUtils';
 import useEncKey from '../hooks/useEncKey';
 import useMarketKeys from '../hooks/useMarketKeys';
 import useCurrencyUtils from '../utils/useCurrencyUtils';
+import { useMintNestableERC1155NFT } from './useMintNestableERC1155NFT';
+import useMintNestableNFT from './useMintNestableNFT';
+import {
+  constructNFTAddressId,
+  getCidWithoutKeyFromNFT,
+} from '../utils/nftUtils';
+import { fetchNFT } from '../hooks/useNFT.js';
+import { connect } from '@particle-network/auth-core';
 
 export default function useCreateMarketItem() {
   const blockchainContext = useContext(BlockchainContext);
@@ -39,17 +48,21 @@ export default function useCreateMarketItem() {
     newContract,
   } = useContractUtils();
 
+  const { getChildrenOfNestableNFT, getIsNestableNFT } = useMintNestableNFT();
+
+  const {
+    getChildrenOfNestableNFT: getChildrenOfNestableERC1155NFT,
+    getIsNestableNFT: getIsNestableERC1155NFT,
+  } = useMintNestableERC1155NFT();
+
   const { getContractAddressFromCurrency } = useCurrencyUtils();
 
   const [getUserProfile] = useUserProfile();
   const { getIsERC721, getIsERC1155, getHoldersAndRatioFromNFT } = useMintNFT();
   const getEncKey = useEncKey();
 
-  const {
-    createMarketItemSEAPair,
-    putMarketItemKey,
-    submitEncryptedMarketItemKey,
-  } = useMarketKeys();
+  const { createMediaSEAPair, putMediaKey, submitEncryptedMediaKey } =
+    useMarketKeys();
 
   // Add fractional token to marketplace for auction
   const createMarketDAOItem = async (
@@ -148,7 +161,15 @@ export default function useCreateMarketItem() {
     cancelTime,
     resellerFeeRatio,
     creatorFeeRatio,
+    resellerPub,
   ) => {
+    const theNFT = nft.parentAddress
+      ? await fetchNFT(
+          userAuthPub,
+          constructNFTAddressId(nft.parentAddress, nft.parentId),
+        )
+      : nft;
+
     const fnftMarketCreateFacet = newContract(
       marketAddress,
       FNFTMarketCreateFacet.abi,
@@ -156,12 +177,12 @@ export default function useCreateMarketItem() {
     );
 
     const tipERC721 = newContract(
-      nft.address,
+      theNFT.address,
       TipERC721.abi,
       smartAccountProvider,
     );
 
-    const owner = await tipERC721.ownerOf(nft.id);
+    const owner = await tipERC721.ownerOf(theNFT.id);
     console.log('Owner of NFT:', owner);
 
     const userOps = [];
@@ -169,7 +190,7 @@ export default function useCreateMarketItem() {
     userOps.push([
       await tipERC721.populateTransaction.approve(
         getAddressFromChainIdAddress(marketAddress),
-        nft.id,
+        theNFT.id,
       ),
       tipERC721.address,
     ]);
@@ -185,9 +206,9 @@ export default function useCreateMarketItem() {
     // if holders is empty, then msg.sender is used by the contract
     const marketItemInput = {
       itemId: BigNumber.from(0),
-      tokenId: BigNumber.from(nft.id),
+      tokenId: BigNumber.from(theNFT.id),
       seller: AddressZero,
-      fnftToken: getAddressFromChainIdAddress(nft.address),
+      fnftToken: getAddressFromChainIdAddress(theNFT.address),
       baseToken,
       amount: howMuchTokens,
       startPrice,
@@ -200,7 +221,7 @@ export default function useCreateMarketItem() {
       creatorFeeRatio,
       holders,
       holdersRatio,
-      data: userAuthPub,
+      data: `${userAuthPub},${resellerPub}`,
     };
 
     console.log('createMarketNFT721Item: marketItemInput = ', marketItemInput);
@@ -246,7 +267,15 @@ export default function useCreateMarketItem() {
     cancelTime,
     resellerFeeRatio,
     creatorFeeRatio,
+    resellerPub,
   ) => {
+    const theNFT = nft.parentAddress
+      ? await fetchNFT(
+          userAuthPub,
+          constructNFTAddressId(nft.parentAddress, nft.parentId),
+        )
+      : nft;
+
     const fnftMarketCreateFacet = newContract(
       marketAddress,
       FNFTMarketCreateFacet.abi,
@@ -254,7 +283,7 @@ export default function useCreateMarketItem() {
     );
 
     const tipERC1155 = newContract(
-      nft.address,
+      theNFT.address,
       TipERC1155.abi,
       smartAccountProvider,
     );
@@ -279,13 +308,13 @@ export default function useCreateMarketItem() {
     // }
 
     const creatorUserProfile = await getUserProfile(nft.creator);
-    const { holders, holdersRatio } = await getHoldersAndRatioFromNFT(nft);
+    const { holders, holdersRatio } = await getHoldersAndRatioFromNFT(theNFT);
 
     const marketItemInput = {
       itemId: BigNumber.from(0),
-      tokenId: BigNumber.from(nft.id),
+      tokenId: BigNumber.from(theNFT.id),
       seller: AddressZero,
-      fnftToken: getAddressFromChainIdAddress(nft.address),
+      fnftToken: getAddressFromChainIdAddress(theNFT.address),
       baseToken: getContractAddressFromCurrency(currency),
       amount: howMuchTokens,
       startPrice,
@@ -298,7 +327,7 @@ export default function useCreateMarketItem() {
       creatorFeeRatio,
       holders,
       holdersRatio,
-      data: userAuthPub,
+      data: `${userAuthPub},${resellerPub}`,
     };
 
     const { receipt } = await processTransactionBundle([
@@ -341,6 +370,7 @@ export default function useCreateMarketItem() {
     cancelTime,
     resellerFeeRatio,
     creatorFeeRatio,
+    resellerPub,
   ) => {
     let marketItemId;
     if (await getIsERC721(nft)) {
@@ -356,6 +386,7 @@ export default function useCreateMarketItem() {
         cancelTime,
         resellerFeeRatio,
         creatorFeeRatio,
+        resellerPub,
       );
     } else if (await getIsERC1155(nft)) {
       marketItemId = await createMarketNFT1155Item(
@@ -370,46 +401,101 @@ export default function useCreateMarketItem() {
         cancelTime,
         resellerFeeRatio,
         creatorFeeRatio,
+        resellerPub,
       );
     } else throw new Error('createMarketNFTItem: NFT type not supported');
 
     if (!marketItemId) return; // when the market item is placed in the pending state
 
-    storeMarketItemKeyLicense(nft, marketAddress, marketItemId.toNumber());
+    storeMediaKeyLicense(nft, marketAddress, marketItemId.toNumber());
     return marketItemId;
   };
 
-  const storeMarketItemKeyLicense = async (
+  const storeMediaKeyLicenseForNFT = async (
     nft,
     marketAddress,
     marketItemId,
   ) => {
-    // A new salesSeaPair is generated specifically for the sale.
-    const marketItemSEAPair = await createMarketItemSEAPair();
-
-    // The seller retrieves the existing video decryption key from their GUN user graph
     const key = await getEncKey(userAuthPub, nft);
 
     if (key) {
-      // The video key is then re-encrypted with the salesSeaPair's public key and stored in a marketplace node within the seller's user graph
-      await putMarketItemKey(marketItemId, marketItemSEAPair, key);
+      // A new salesSeaPair is generated specifically for the sale.
+      const mediaSEAPair = await createMediaSEAPair();
+      const cidWithoutKey = getCidWithoutKeyFromNFT(nft);
 
-      const passphrase = await SEA.secret(
+      // The seller retrieves the existing video decryption key from their GUN user graph
+
+      // The video key is then re-encrypted with the salesSeaPair's public key and stored in a marketplace node within the seller's user graph
+      await putMediaKey(cidWithoutKey, mediaSEAPair, key);
+
+      const passphrase = await FEA.secret(
         process.env.NEXT_PUBLIC_SUBSCRIPTION_CONTROLLER_EPUB,
         user._.sea,
       );
 
-      // The seller encrypts the marketItemSEAPair with the subscription controller's public key
-      const scrambledMarketItemSEAPair = await SEA.encrypt(
-        { marketItemSEAPair, marketAddress, marketItemId },
+      // The seller encrypts the mediaSEAPair with the subscription controller's public key
+      const scrambledMediaSEAPair = await SEA.encrypt(
+        { mediaSEAPair, marketAddress, marketItemId },
         passphrase,
       );
-      await submitEncryptedMarketItemKey(
+      await submitEncryptedMediaKey(
         userAuthPub,
-        marketItemId,
-        scrambledMarketItemSEAPair,
+        cidWithoutKey,
+        scrambledMediaSEAPair,
+      );
+      console.log(
+        'storeMediaKeyLicenseForNFT: scrambledMediaSEAPair = ',
+        scrambledMediaSEAPair,
       );
     }
+  };
+
+  const storeMediaKeyLicense = async (nft, marketAddress, marketItemId) => {
+    const theNFT = nft.parentAddress
+      ? await fetchNFT(
+          userAuthPub,
+          constructNFTAddressId(nft.parentAddress, nft.parentId),
+        )
+      : nft;
+
+    // The seller retrieves the existing video decryption key from their GUN user graph
+    if (await getIsNestableNFT(theNFT.address)) {
+      const children = await getChildrenOfNestableNFT(theNFT.id);
+      console.log('storeMediaKeyLicense: children = ', children);
+
+      for (const child of children) {
+        const childNFT = await fetchNFT(
+          userAuthPub,
+          constructNFTAddressId(
+            getChainIdAddressFromChainIdAndAddress(
+              connectedChainId,
+              child.contractAddress,
+            ),
+            child.tokenId,
+          ),
+        );
+        await storeMediaKeyLicenseForNFT(childNFT, marketAddress, marketItemId);
+        console.log('storeMediaKeyLicense: childNFT = ', childNFT);
+      }
+    } else if (await getIsNestableERC1155NFT(theNFT.address)) {
+      const children = await getChildrenOfNestableERC1155NFT(theNFT.id);
+      console.log('storeMediaKeyLicense: children = ', children);
+
+      for (const child of children) {
+        const childNFT = await fetchNFT(
+          userAuthPub,
+          constructNFTAddressId(
+            getChainIdAddressFromChainIdAndAddress(
+              connectedChainId,
+              child.contractAddress,
+            ),
+            child.tokenId,
+          ),
+        );
+        await storeMediaKeyLicenseForNFT(childNFT, marketAddress, marketItemId);
+      }
+    } else
+      await storeMediaKeyLicenseForNFT(theNFT, marketAddress, marketItemId);
   };
 
   const getMarketFabstirFeeRatio = async (marketAddress) => {
@@ -472,6 +558,6 @@ export default function useCreateMarketItem() {
     getMarketPlatformFeeRatio,
     getMarketPlatformCreatorFeeRatio,
     createMarketNFTItem,
-    storeMarketItemKeyLicense,
+    storeMediaKeyLicense,
   };
 }

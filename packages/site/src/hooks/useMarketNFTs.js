@@ -47,7 +47,10 @@ export default function useMarketNFTs(marketAddress) {
       const isMarketItemActive = await getIsMarketItemActive(marketItem.itemId);
       console.log('useMarketNFTs: isMarketItemActive', isMarketItemActive);
       if (isMarketItemActive) {
-        const nft = await fetchNFT(marketItem.data, nftAddressId);
+        const [sellerPub] = marketItem.data.split(',');
+        if (!sellerPub) continue;
+
+        const nft = await fetchNFT(sellerPub, nftAddressId);
         if (nft)
           nftsActive.push({ ...nft, itemId: marketItem.itemId.toString() });
       }
@@ -98,11 +101,14 @@ export default function useMarketNFTs(marketAddress) {
         '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
 
       if (isMarketItemActive) {
-        const nft = await fetchNFT(marketItem.data, nftAddressId);
+        const [sellerPub] = marketItem.data.split(',');
+        if (!sellerPub) continue;
+
+        const nft = await fetchNFT(sellerPub, nftAddressId);
         if (
           nft &&
-          ethers.BigNumber.from(marketItem.data.startPrice).eq(
-            ethers.BigNumber.from(marketItem.data.reservePrice),
+          ethers.BigNumber.from(marketItem.startPrice).eq(
+            ethers.BigNumber.from(marketItem.reservePrice),
           )
         ) {
           const startTime =
@@ -179,7 +185,10 @@ export default function useMarketNFTs(marketAddress) {
         '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
 
       if (isMarketItemActive) {
-        const nft = await fetchNFT(marketItem.data, nftAddressId);
+        const [sellerPub] = marketItem.data.split(',');
+        if (!sellerPub) continue;
+
+        const nft = await fetchNFT(sellerPub, nftAddressId);
         if (
           nft &&
           ethers.BigNumber.from(marketItem.startPrice).ne(

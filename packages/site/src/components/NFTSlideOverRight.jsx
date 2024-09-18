@@ -28,7 +28,7 @@ import { useRouter } from 'next/router';
  * @param {string} props.encKey - Encryption key for encrypting uploaded files, if applicable.
  * @returns {React.ReactElement} The NFTSlideOverRight component.
  */
-const NFTSlideOverRight = ({ encKey }) => {
+const NFTSlideOverRight = ({ isPublic, encKey }) => {
   const {
     watch,
     getValues,
@@ -212,7 +212,7 @@ const NFTSlideOverRight = ({ encKey }) => {
                     field="video"
                     twStyle="aspect-[16/9]" // Ensure it grows to fill 2/3 of the space
                     text="<video>"
-                    encKey={encKey}
+                    encKey={isPublic ? null : encKey}
                     videoFormats={videoFormats}
                   />
                 </div>
@@ -309,7 +309,7 @@ const NFTSlideOverRight = ({ encKey }) => {
                   field="audio"
                   twStyle="w-1/2 aspect-[16/9]"
                   text="<audio>"
-                  encKey={encKey}
+                  encKey={isPublic ? null : encKey}
                   audioFormats={audioFormats}
                   storageNetwork={process.env.NEXT_PUBLIC_S5}
                 />
