@@ -106,7 +106,7 @@ export default function Teams() {
               {teams.teamsName}
             </h2>
             <div className="flex items-center mt-4 w-full">
-              <input
+              <Input
                 type="text"
                 value={teams.teamsName}
                 onChange={handleInputChange}

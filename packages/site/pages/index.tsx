@@ -9,6 +9,7 @@ const Gun = require('gun');
 const SEA = require('gun/sea');
 
 import { Button } from '../src/ui-components/button';
+import { Input } from '../src/ui-components/input';
 import { Description, Label } from '../src/ui-components/fieldset';
 import { Textarea } from '../src/ui-components/textarea';
 import { Field as HeadlessField } from '@headlessui/react';
@@ -1024,7 +1025,7 @@ const Index = () => {
           </div>
         </HeadlessField>
 
-        <input
+        <Input
           type="file"
           style={{ display: 'none' }}
           ref={fileImportKeysRef}

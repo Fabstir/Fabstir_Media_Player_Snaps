@@ -54,24 +54,15 @@ export const Header = ({
   };
 
   return (
-    <header className="flex justify-between items-center p-6 border-b border-gray-200">
-      <div className="flex items-center">
-        <SnapLogo color="text-gray-700" size={36} />
-        <p className="font-bold ml-3 hidden sm:block">Template Snap</p>
-        {/* <div>
-          <select
-            value={theme}
-            onChange={(e) => handleThemeChange(e.target.value)}
-            className="h-10 mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md ml-1"
-          >
-            <option className="p-2" value="light">
-              Light Mode
-            </option>
-            <option value="dark">Dark Mode</option>
-          </select>
-        </div> */}
-       
-      </div>
+    <header
+        className={`flex justify-between items-center p-6 border-b border-gray-200 ${
+          theme === 'dark' ? 'bg-dark-background text-white' : 'bg-white text-black'
+        }`}
+      >
+        <div className="flex items-center">
+          <SnapLogo color={theme === 'dark' ? 'text-gray-100' : 'text-gray-700'} size={36} />
+          <p className="font-bold ml-3 hidden sm:block">Template Snap</p>
+        </div>
       <div className="flex items-center">
       <button
           type="button"
@@ -123,7 +114,7 @@ export const Header = ({
             </svg>
           </span>
         </button>
-        <HeaderButtons state={state} onConnectClick={handleConnectClick} />
+        <HeaderButtons state={state} theme = {theme} onConnectClick={handleConnectClick} />
       </div>
     </header>
   );

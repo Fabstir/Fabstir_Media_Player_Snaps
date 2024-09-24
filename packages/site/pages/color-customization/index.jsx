@@ -12,6 +12,9 @@ import { ChevronDoubleLeftIcon } from 'heroiconsv1/solid';
 import { useRecoilValue } from 'recoil';
 import { userauthpubstate } from '../../src/atoms/userAuthAtom';
 import useUserProfile from '../../src/hooks/useUserProfile';
+import { ButtonGroupProvider } from '@nextui-org/react';
+import { Button } from '../../src/ui-components/button';
+import { Input } from '../../src/ui-components/input';
 
 const defaultColors = {
   light: {
@@ -43,7 +46,7 @@ const Color = () => {
   const [showPickerSecondary, setShowPickerSecondary] = useState(false);
   const [colorMode, setColorMode] = useState('light'); // 'light' or 'dark'
   const [saturation, setSaturation] = useState(0); // Default saturation value
-  const [loader, setLoader] = useState(false);
+  const [loader, setLoader] = useState(true);
   const [primaryColorState, setPrimaryColorState] = useState({
     primaryColor: '#4699eb',
     primaryContentColor: '#05192d',
@@ -69,6 +72,24 @@ const Color = () => {
   useEffect(() => {
     if (userAuthPub) {
       fetchColor();
+    } else {
+      // Function to set CSS variables
+      const setCSSVariables = (colorObj, prefix = '') => {
+        if (!colorObj) return;
+
+        Object.keys(colorObj).forEach((key) => {
+          const cssVariableName = `--${prefix}${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
+          const cssValue = colorObj[key];
+          // Set the CSS variable dynamically
+          document.documentElement.style.setProperty(cssVariableName, cssValue);
+        });
+      };
+
+      setCSSVariables(primaryColorState, '');
+      setCSSVariables(secondaryColorState, '');
+      setCSSVariables(utilityColors, '');
+      setCSSVariables(neutralsColorState?.light, 'light-');
+      setCSSVariables(neutralsColorState?.dark, 'dark-');
     }
   }, [userAuthPub]);
 
@@ -324,6 +345,7 @@ const Color = () => {
           document.documentElement.style.setProperty(cssVariableName, cssValue);
         });
       };
+
       // Set CSS variables for colors
       setCSSVariables(primaryColor, '');
       setCSSVariables(secondaryColor, '');
@@ -387,16 +409,16 @@ const Color = () => {
                 </p>
               </div>
               <div className="relative mb-4">
-                <button
+                <Button
                   className="flex w-full items-center rounded-full p-1 shadow-xl transition-colors"
                   onClick={() => setShowPicker(!showPicker)}
                   style={{
                     color: primaryColorState?.primaryContentColor,
                     border: '2px solid rgb(194, 215, 235)',
                     background: primaryColorState?.primaryColor,
-                  }}
+                  }}>
                   aria-label="Select Primary Color"
-                >
+                </Button>
                   <div
                     className="grid h-8 w-8 place-content-center rounded-full"
                     style={{
@@ -418,7 +440,6 @@ const Color = () => {
                   <span className="w-full text-center">
                     {primaryColorState?.primaryColor}
                   </span>
-                </button>
 
                 {showPicker && (
                   <div className="absolute mt-2 z-10">
@@ -545,16 +566,16 @@ const Color = () => {
                 </label>
               </div> */}
               <div className="relative mb-4">
-                <button
+                <Button
                   className="flex w-full items-center rounded-full p-1 shadow-xl transition-colors"
                   onClick={() => setShowPickerSecondary(!showPickerSecondary)}
                   style={{
                     color: secondaryColorState?.secondaryContentColor,
                     border: '2px solid rgb(194, 215, 235)',
                     background: secondaryColorState?.secondaryColor,
-                  }}
+                  }}>
                   aria-label="Select Secondary Color"
-                >
+                </Button>
                   <div
                     className="grid h-8 w-8 place-content-center rounded-full"
                     style={{
@@ -576,7 +597,6 @@ const Color = () => {
                   <span className="w-full text-center">
                     {secondaryColorState?.secondaryColor}
                   </span>
-                </button>
 
                 {showPickerSecondary && (
                   <div className="absolute mt-2 z-10">
@@ -669,7 +689,7 @@ const Color = () => {
                   <span>Saturation</span>
                   <span className="">More</span>
                 </label>
-                <input
+                <Input
                   type="range"
                   id="base-palette-saturation"
                   min="0"
@@ -686,14 +706,14 @@ const Color = () => {
                 }}
                 className="relative flex w-full items-center rounded-full p-1 shadow-xl transition-colors"
               >
-                <button
+                <Button
                   className="text-sm font-medium flex items-center justify-center gap-2 p-2 transition-colors w-full relative z-10 rounded-full"
                   style={{
                     color: '#fafbfd',
                     background: colorMode === 'dark' ? '#262626' : '#262626',
                   }}
-                  onClick={() => setColorMode('light')}
-                >
+                  onClick={() => setColorMode('light')}>
+                  </Button>
                   <svg
                     stroke="currentColor"
                     fill="none"
@@ -708,15 +728,15 @@ const Color = () => {
                     <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                   </svg>
                   <span className="relative z-10">Light</span>
-                </button>
-                <button
+                
+                <Button
                   className="text-sm font-medium flex items-center justify-center gap-2 p-2 transition-colors w-full relative z-10 rounded-full"
                   style={{
                     color: '#262626',
                     background: colorMode === 'dark' ? '#fafbfd' : '#fafbfd',
                   }}
-                  onClick={() => setColorMode('dark')}
-                >
+                  onClick={() => setColorMode('dark')}>
+                  </Button>
                   <svg
                     stroke="currentColor"
                     fill="none"
@@ -739,7 +759,7 @@ const Color = () => {
                     <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                   </svg>
                   <span className="relative z-10">Dark</span>
-                </button>
+          
               </div>
             </div>
             <div className="grid grid-cols-3 gap-4">
@@ -920,14 +940,14 @@ const Color = () => {
             </div>
           </div>
           <div className="w-full text-right py-5 border-t-2 border-slate-200">
-            <button
+            <Button 
               className=" bg-primary text-primary-content hover:bg-primary-light 
         active:bg-primary-dark focus:ring-2 focus:ring-primary-dark 
         disabled:bg-primary-light/50 shadow-md rounded px-4 py-3 text-lg font-medium"
-              onClick={() => onSubmit()}
-            >
+              onClick={() => onSubmit()}>
               Save Changes
-            </button>
+              
+              </Button>
           </div>
         </div>
       )}
