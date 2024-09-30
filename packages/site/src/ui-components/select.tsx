@@ -42,6 +42,17 @@ export const Select: React.FC<SelectProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Sync selected options with the incoming value
+    setSelectedOptions(
+      multiple
+        ? options.filter(
+            (option) => Array.isArray(value) && value.includes(option.value),
+          )
+        : options.filter((option) => option.value === value),
+    );
+  }, [value, options, multiple]);
+
+  useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         containerRef.current &&
@@ -69,22 +80,33 @@ export const Select: React.FC<SelectProps> = ({
     }
     setSelectedOptions(newSelectedOptions);
 
+    const newValue = multiple
+    ? newSelectedOptions.map((o) => o.value)
+    : newSelectedOptions[0].value;
+
     if (onChange) {
-      onChange(
-        multiple
-          ? newSelectedOptions.map((o) => o.value)
-          : newSelectedOptions[0].value,
-      );
+      // onChange(
+      //   multiple
+      //     ? newSelectedOptions.map((o) => o.value)
+      //     : newSelectedOptions[0].value,
+      // );
+      onChange(newValue);
     }
     if (register && register.onChange) {
+      // const event = {
+      //   target: {
+      //     name: register.name,
+      //     value: multiple
+      //       ? newSelectedOptions.map((o) => o.value)
+      //       : newSelectedOptions[0].value,
+      //   },
+      // } as React.ChangeEvent<HTMLSelectElement>;
       const event = {
         target: {
           name: register.name,
-          value: multiple
-            ? newSelectedOptions.map((o) => o.value)
-            : newSelectedOptions[0].value,
+          value: newValue,
         },
-      } as React.ChangeEvent<HTMLSelectElement>;
+      } as unknown as React.ChangeEvent<HTMLSelectElement>;
       register.onChange(event);
     }
   };

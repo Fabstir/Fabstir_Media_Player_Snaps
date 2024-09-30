@@ -306,10 +306,10 @@ export const defaultAudioAttributes = [
 ]
 
 export const defaultImageAttributes = [
-  {
-    key: 'color_scheme',
-    value: ['Monochrome', 'Colorful', 'Pastel', 'Dark', 'Vibrant', 'Muted'],
-  }, // array of strings: dominant color scheme of the image
+  // {
+  //   key: 'color_scheme',
+  //   value: ['Monochrome', 'Colorful', 'Pastel', 'Dark', 'Vibrant', 'Muted'],
+  // }, // array of strings: dominant color scheme of the image
   {
     key: 'copyright_status',
     value: ['Copyrighted', 'Public Domain', 'Creative Commons'],

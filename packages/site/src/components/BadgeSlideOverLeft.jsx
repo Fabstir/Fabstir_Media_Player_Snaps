@@ -2,6 +2,8 @@ import React, { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import TokenAttributes from './TokenAttributes';
+import { Select } from '../../src/ui-components/select';
+import clsx from 'clsx';
 
 import {
   currentbadgecategories,
@@ -172,12 +174,19 @@ const BadgeSlideOverLeft = ({
               Category
             </label>
             <div className="mt-1 rounded-lg border-2 ">
-              <select
+              <select 
+              className={clsx(
+              'w-full rounded-md',
+              'bg-foreground dark:bg-dark-foreground',
+              'text-copy dark:text-dark-copy text-left',
+              'border border-border dark:border-dark-border',
+              'focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-dark-primary focus:border-primary dark:focus:border-dark-primary',
+              'disabled:bg-background disabled:dark:bg-dark-background disabled:cursor-not-allowed disabled:opacity-75',
+              )}
                 id="category"
                 // value={userProfile.country}
                 type="text"
                 {...register('category')}
-                className="sm:text-md block w-full "
               >
                 {currentBadgeCategories.map((currentBadgeCategory) => (
                   <option key={currentBadgeCategory}>

@@ -15,6 +15,8 @@ import useUserProfile from '../../src/hooks/useUserProfile';
 import { ButtonGroupProvider } from '@nextui-org/react';
 import { Button } from '../../src/ui-components/button';
 import { Input } from '../../src/ui-components/input';
+import tinycolor from 'tinycolor2';
+//import { color } from '../../src/colors';
 
 const defaultColors = {
   light: {
@@ -44,6 +46,8 @@ const Color = () => {
   const { signOut, putUserColor } = useCreateUser();
   const [showPicker, setShowPicker] = useState(false);
   const [showPickerSecondary, setShowPickerSecondary] = useState(false);
+  const [showNeutralPicker, setShowNeutralPicker] = useState(false);
+  const [showUtilityPicker, setShowUtilityPicker] = useState(false);
   const [colorMode, setColorMode] = useState('light'); // 'light' or 'dark'
   const [saturation, setSaturation] = useState(0); // Default saturation value
   const [loader, setLoader] = useState(true);
@@ -69,6 +73,18 @@ const Color = () => {
   });
   const [neutralsColorState, setNeutralsColorState] = useState(defaultColors);
 
+  // Function to invert colors for dark mode to ensure contrast
+  const invertColor = (color) => {
+    const tc = tinycolor(color);
+    const rgb = tc.toRgb();
+    const inverted = {
+      r: 255 - rgb.r,
+      g: 255 - rgb.g,
+      b: 255 - rgb.b,
+    };
+    return tinycolor(inverted).toHexString();
+  };
+
   useEffect(() => {
     if (userAuthPub) {
       fetchColor();
@@ -93,6 +109,38 @@ const Color = () => {
     }
   }, [userAuthPub]);
 
+  // NeutralsColorChange function for Use Customize
+  const handleNeutralsColorChange = (newColor , field) => {
+    console.log(`${newColor} , ${field} color configured`);
+
+    let darkColor = newColor;
+    darkColor = invertColor(darkColor);
+
+    setNeutralsColorState((prevState) => ({
+      ...prevState,
+      light: {
+        ...prevState.light,
+        [field]: newColor.hex,
+      },
+      dark: {
+        ...prevState.dark,
+        [field]: darkColor,
+      },
+    }));
+  }
+
+  // NeutralsColorChange function for Use Customize
+  const handleUtilityColorChange = (newColor , field) => {
+    console.log(`${newColor} , ${field} color configured`);
+
+    setUtilityColors((prevState) => ({
+      ...prevState,
+      [field]: newColor.hex,
+    }));
+  }
+
+
+  // PrimaryColorChange function
   const handlePrimaryColorChange = (newColor) => {
     const updatedPrimaryColor = newColor.hex;
     const isLightColor = chroma(updatedPrimaryColor).luminance() > 0.5;
@@ -417,7 +465,7 @@ const Color = () => {
                     border: '2px solid rgb(194, 215, 235)',
                     background: primaryColorState?.primaryColor,
                   }}>
-                  aria-label="Select Primary Color"
+                  Select Primary Color
                 </Button>
                   <div
                     className="grid h-8 w-8 place-content-center rounded-full"
@@ -574,7 +622,7 @@ const Color = () => {
                     border: '2px solid rgb(194, 215, 235)',
                     background: secondaryColorState?.secondaryColor,
                   }}>
-                  aria-label="Select Secondary Color"
+                  Select Secondary Color
                 </Button>
                   <div
                     className="grid h-8 w-8 place-content-center rounded-full"
@@ -763,7 +811,37 @@ const Color = () => {
               </div>
             </div>
             <div className="grid grid-cols-3 gap-4">
-              <div>
+              {['foreground' , 'background' , 'border' , 'copy' , 'copyLight' , 'copyLighter'].map((field) => (
+                  <div key={field}>
+                    <div
+                      className="mb-2 w-full rounded-xl shadow-md transition-colors cursor-pointer"
+                      style={{
+                        background: neutralsColorState?.light?.[field], // Assuming light mode for simplicity
+                        height: '5rem',
+                      }}
+                      onClick={() =>
+                        setShowNeutralPicker((prev) => ({
+                          ...prev,
+                          [field]: !prev[field],
+                        }))
+                      }
+                    ></div>
+                    <p className="-mb-1 ml-1 text-lg font-semibold">
+                      {field.charAt(0).toUpperCase() + field.slice(1)} {/* Capitalize */}
+                    </p>
+                    <span className="ml-1 text-sm ">{neutralsColorState?.light?.[field]}</span>
+          
+                    {/* Show color picker */}
+                    {showNeutralPicker[field] && (
+                      <ChromePicker
+                        color={neutralsColorState?.light?.[field]}
+                        onChange={(color) => handleNeutralsColorChange(color, field)}
+                      />
+                    )}
+                    </div>
+              ))}
+            </div>
+              {/* <div>
                 <div
                   className="mb-2 w-full rounded-xl shadow-md transition-colors"
                   style={{
@@ -840,8 +918,8 @@ const Color = () => {
                 <span className="ml-1 text-sm ">
                   {neutralsColorState?.[colorMode]?.copyLighter}
                 </span>
-              </div>
-            </div>
+              </div> 
+            </div>*/}
           </div>
           <div className="mb-12 grid grid-cols-1 gap-12 md:grid-cols-[250px_1fr]">
             <div>
@@ -853,7 +931,36 @@ const Color = () => {
               </div>
             </div>
             <div className="grid grid-cols-3 gap-4">
-              <div>
+            {['successColor' , 'warningColor' , 'errorColor' , 'successContentColor' , 'warningContentColor' , 'errorContentColor'].map((field) => (
+                  <div key={field}>
+                    <div
+                      className="mb-2 w-full rounded-xl shadow-md transition-colors cursor-pointer"
+                      style={{
+                        background: utilityColors?.[field], // Assuming light mode for simplicity
+                        height: '5rem',
+                      }}
+                      onClick={() =>
+                        setShowUtilityPicker((prev) => ({
+                          ...prev,
+                          [field]: !prev[field],
+                        }))
+                      }
+                    ></div>
+                    <p className="-mb-1 ml-1 text-lg font-semibold">
+                      {field.charAt(0).toUpperCase() + field.slice(1)} {/* Capitalize */}
+                    </p>
+                    <span className="ml-1 text-sm ">{utilityColors?.[field]}</span>
+          
+                    {/* Show color picker */}
+                    {showUtilityPicker[field] && (
+                      <ChromePicker
+                        color={utilityColors?.[field]}
+                        onChange={(color) => handleUtilityColorChange(color, field)}
+                      />
+                    )}
+                    </div>
+              ))}
+              {/* <div>
                 <div
                   className="mb-2 w-full rounded-xl shadow-md transition-colors"
                   style={{
@@ -936,8 +1043,8 @@ const Color = () => {
                 <span className="ml-1 text-sm ">
                   {utilityColors?.errorContentColor}
                 </span>
-              </div>
-            </div>
+              </div>*/}
+            </div> 
           </div>
           <div className="w-full text-right py-5 border-t-2 border-slate-200">
             <Button 
