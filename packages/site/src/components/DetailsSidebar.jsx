@@ -1,6 +1,6 @@
 import { ChevronDoubleDownIcon } from '@heroicons/react/24/solid';
 import { PencilIcon } from 'heroiconsv2/24/outline';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState , useContext } from 'react';
 import { user } from '../user';
 
 import { saveAs } from 'file-saver';
@@ -46,6 +46,7 @@ import {
 import { stringifyArrayProperties } from '../utils/stringifyProperties';
 import TeamsView from './TeamsView';
 import { Button } from '../ui-components/button';
+import { ThemeContext } from './ThemeContext';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -146,6 +147,8 @@ export default function DetailsSidebar({
     useRecoilState(transfernftslideoverstate);
 
   const [teams, setTeams] = useRecoilState(teamsstate);
+
+  const { theme, setTheme } = useContext(ThemeContext);
 
   console.log('UserNFTView: inside DetailsSidebar');
   console.log('DetailsSidebar: nft = ', nft);
@@ -697,7 +700,7 @@ export default function DetailsSidebar({
   return (
     <aside
       className={classNames(
-        'mx-auto flex-1 rounded-sm border-l border-dark-gray bg-white px-8 pb-8 pt-2 shadow-lg lg:block',
+        'mx-auto flex-1 rounded-sm border-l border-dark-gray bg-background dark:bg-dark-background px-8 pb-8 pt-2 shadow-lg lg:block text-copy dark:text-dark-copy',
         width1,
       )}
     >

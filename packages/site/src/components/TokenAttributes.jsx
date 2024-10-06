@@ -126,7 +126,7 @@ export default function TokenAttributes({ typeValue, setValueTokenData }) {
               onChange={(value) => {
                 field.onChange(value);
               }}
-              className="block w-full bg-white py-2 pl-2 pr-8 text-dark-gray"
+              className="block w-full bg-background dark:bg-dark-background py-2 pl-2 pr-8 text-dark-gray"
             />
           )}
         />
@@ -173,7 +173,7 @@ export default function TokenAttributes({ typeValue, setValueTokenData }) {
                         render={({ field }) => (
                           <Input
                             {...field}
-                            className="relative inline-block w-full truncate bg-light-gray py-2 pl-2 text-light-gray"
+                            className="relative inline-block w-full truncate bg-background dark:bg-dark-background py-2 pl-2 text-copy dark:text-dark-copy"
                             title={item.key}
                             type={item.type === 'date' ? 'date' : 'text'} // Add this line
                             pattern={
@@ -211,13 +211,13 @@ export default function TokenAttributes({ typeValue, setValueTokenData }) {
               type="text"
               placeholder="key"
               register={register('key')}
-              className=" bg-light-gray py-2 pl-2"
+              className="bg-background dark:bg-dark-background py-2 pl-2 text-copy dark:text-dark-copy"
             />
             <div>
               <Input
                 placeholder="value"
                 register={register('value')}
-                className=" bg-light-gray py-2 pl-2"
+                className="bg-background dark:bg-dark-background py-2 pl-2 text-copy dark:text-dark-copy"
               />
             </div>
           </div>

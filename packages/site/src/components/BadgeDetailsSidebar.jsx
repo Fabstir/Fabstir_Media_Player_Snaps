@@ -1,6 +1,7 @@
 import { AddressZero } from '@ethersproject/constants';
 import { ChevronDoubleDownIcon } from 'heroiconsv1/solid';
 import React, { useEffect, useState } from 'react';
+import { useContext } from 'react';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { saveAs } from 'file-saver';
@@ -19,6 +20,8 @@ import usePortal from '../hooks/usePortal';
 import useUserProfile from '../hooks/useUserProfile';
 import BadgeContextMenu from './BadgeContextMenu';
 import DropFile from './DropFile';
+import { ThemeContext } from './ThemeContext';
+
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -71,6 +74,9 @@ export default function BadgeDetailsSidebar({
     rerenderBadgeDetailsSidebarState,
     setRerenderBadgeDetailsSidebarState,
   ] = useState(0);
+
+  
+  const { theme, setTheme } = useContext(ThemeContext);
 
   useEffect(() => {
     setRerenderBadgeDetailsSidebarState((prev) => prev + 1);
@@ -224,8 +230,8 @@ export default function BadgeDetailsSidebar({
     <FormProvider {...methods}>
       <aside
         className={classNames(
-          'mx-auto w-full  flex-1 rounded-sm border-l border-dark-gray bg-gray-700 px-8 pb-8 pt-2 lg:block',
-          width1,
+          'mx-auto w-full  flex-1 rounded-sm border-l border-dark-gray bg-background dark:bg-dark-background px-8 pb-8 pt-2 lg:block text-copy dark:text-dark-copy',
+          width1, 
         )}
       >
         {badge && (

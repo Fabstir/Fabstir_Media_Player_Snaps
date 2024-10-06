@@ -20,7 +20,7 @@ import tinycolor from 'tinycolor2';
 
 const defaultColors = {
   light: {
-    background: '#f0f0f0',
+    background: '#f02244',
     foreground: '#fbfbfb',
     border: '#dfdfdf',
     copy: '#262626',
@@ -175,6 +175,8 @@ const Color = () => {
         : chroma(updatedPrimaryColor).set('hsl.h', 0).darken(2).hex(), // Less bright in dark mode
     });
 
+    
+    setSaturation(0);
     setNeutralsColorState({
       light: {
         foreground: blendWithPrimary(
@@ -236,6 +238,7 @@ const Color = () => {
           updatedPrimaryColor,
         ),
       },
+      
     });
   };
 
