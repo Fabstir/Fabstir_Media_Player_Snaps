@@ -241,7 +241,11 @@ const NFTSlideOverLeft = ({
                 className="mt-1"
               />
             </div>
+          </div>
 
+          <br />
+
+          <div className="flex flex-row gap-x-4">
             <div className="col-span-1 ml-2">
               <Checkbox
                 id="deployed"
@@ -252,57 +256,64 @@ const NFTSlideOverLeft = ({
                 className="items-center"
               />
             </div>
-          </div>
 
-          <br />
-          <div className="">
-            <div className="">
-              <Link
-                href="/teams"
-                onClick={() => {
-                  // setTeams({
-                  //   teamsName: nft.teamsName || 'Teams',
-                  //   teams: nft.teams,
-                  // });
-                  setCurrentNFTForm(getValues());
-                }}
-              >
-                <div className="flex flex-1 flex-row">
-                  <div className="text-fabstir-dark-gray text-lg">
-                    {teams.teamsName}&nbsp;
-                  </div>
-                  <UsersIcon
-                    className="h-6 w-6 text-fabstir-white transition duration-100 hover:scale-125 hover:bg-fabstir-gray-700 hover:text-fabstir-white focus:outline-none focus:ring-2 focus:ring-fabstir-gray"
-                    aria-hidden="true"
-                  />
-                </div>
-              </Link>
-              <TeamsView teams={teams.teams} />
-
-              <Link
-                href="/permissions"
-                onClick={() => {
-                  // setTeams({
-                  //   teamsName: nft.teamsName || 'Teams',
-                  //   teams: nft.teams,
-                  // });
-                  setCurrentNFTForm(getValues());
-                }}
-              >
-                <div className="flex flex-1 flex-row">
-                  <div className="text-fabstir-dark-gray text-lg mr-1">
-                    Permissions
-                  </div>
-                  <ShareIcon
-                    className="h-6 w-6 text-fabstir-white transition duration-100 hover:scale-125 hover:bg-fabstir-gray-700 hover:text-fabstir-white focus:outline-none focus:ring-2 focus:ring-fabstir-gray"
-                    aria-hidden="true"
-                  />
-                </div>
-              </Link>
-
-              <TeamsView teams={permissions} />
+            <div className="col-span-1 ml-2">
+              <Checkbox
+                id="isNestable"
+                label="Nestable"
+                defaultChecked={false}
+                register={register('isNestable')}
+                error={errors.isNestable?.message}
+                className="items-center"
+              />
             </div>
           </div>
+
+          <div className="flex flex-row gap-x-4 mt-4">
+            <Link
+              href="/teams"
+              onClick={() => {
+                // setTeams({
+                //   teamsName: nft.teamsName || 'Teams',
+                //   teams: nft.teams,
+                // });
+                setCurrentNFTForm(getValues());
+              }}
+            >
+              <div className="flex flex-1 flex-row">
+                <div className="text-fabstir-dark-gray text-lg">
+                  {teams.teamsName}&nbsp;
+                </div>
+                <UsersIcon
+                  className="h-6 w-6 text-fabstir-white transition duration-100 hover:scale-125 hover:bg-fabstir-gray-700 hover:text-fabstir-white focus:outline-none focus:ring-2 focus:ring-fabstir-gray"
+                  aria-hidden="true"
+                />
+              </div>
+            </Link>
+            <TeamsView teams={teams.teams} />
+
+            <Link
+              href="/permissions"
+              onClick={() => {
+                // setTeams({
+                //   teamsName: nft.teamsName || 'Teams',
+                //   teams: nft.teams,
+                // });
+                setCurrentNFTForm(getValues());
+              }}
+            >
+              <div className="flex flex-1 flex-row">
+                <div className="text-fabstir-dark-gray text-lg mr-1">
+                  Permissions
+                </div>
+                <ShareIcon
+                  className="h-6 w-6 text-fabstir-white transition duration-100 hover:scale-125 hover:bg-fabstir-gray-700 hover:text-fabstir-white focus:outline-none focus:ring-2 focus:ring-fabstir-gray"
+                  aria-hidden="true"
+                />
+              </div>
+            </Link>
+          </div>
+          <TeamsView teams={permissions} />
           <br />
 
           <div className="sm:col-span-3">

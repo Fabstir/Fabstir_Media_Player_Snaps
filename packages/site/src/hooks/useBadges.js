@@ -14,6 +14,8 @@ const fetchBadges = async (
   console.log('useBadges: userPub = ', userPub);
 
   const userProfile = await getUserProfile(userPub);
+  if (!userProfile) return [];
+
   console.log('useBadges: userProfile.address = ', userProfile.accountAddress);
 
   let resultArray = await dbClientOnce(

@@ -22,6 +22,8 @@ import useNFTMedia from '../hooks/useNFTMedia';
 import { teamsstate } from '../atoms/teamsAtom';
 import { refetchnftscountstate } from '../atoms/renderStateAtom';
 import { selectedparentnftaddressid } from '../atoms/nestableNFTAtom';
+import useMintNestableNFT from '../blockchain/useMintNestableNFT';
+import { useMintNestableERC1155NFT } from '../blockchain/useMintNestableERC1155NFT';
 
 /**
  * Default values for the form fields.
@@ -45,6 +47,7 @@ let defaultFormValues = {
   animationAudioUrls: [],
   subtitlesUrl: [],
   audioUrls: [],
+  fileUrls: [],
   multiToken: false,
   tokenise: false,
   deployed: false,
@@ -186,6 +189,9 @@ const NFTSlideOver = ({
 
   const { mutate: createNFT, ...createNFTInfo } = useCreateNFT();
   const { mintNFT } = useMintNFT();
+  const { mintNestableNFT } = useMintNestableNFT();
+  const { mintNestableNFT: mintNestableERC1155NFT } =
+    useMintNestableERC1155NFT();
 
   const [currentNFT, setCurrentNFT] = useRecoilState(currentnftmetadata);
 
@@ -284,7 +290,15 @@ const NFTSlideOver = ({
     });
 
     try {
-      const { address, id, uri } = await mintNFT(userAuthPub, nft.current);
+      const { address, id, uri } = !nft.current.isNestable
+        ? await mintNFT(userAuthPub, nft.current)
+        : nft.current.multiToken
+          ? await mintNestableERC1155NFT(
+              userAuthPub,
+              nft.current,
+              nft.current.supply,
+            )
+          : await mintNestableNFT(userAuthPub, nft.current);
 
       nft.current = {
         ...nft.current,

@@ -58,11 +58,14 @@ const DropMultipleAudio = ({
   const { uploadFile } = usePortal(storageNetwork);
   const { transcodeAudio } = useTranscodeAudio();
   const { getTranscodeProgress } = useNFTMedia();
+  const [ffmpegProgress, setFFMPEGProgress] = useState(0);
+  const intervalRef = useRef(); // Create a ref to store the interval ID
 
   const [fileProgress, setFileProgress] = useState({});
+  const [progressMessage, setProgressMessage] = useState('');
+
   const [fileNames, setFileNames] = useState([]);
   const [failedFiles, setFailedFiles] = useState([]);
-  const intervalRefs = useRef({});
 
   const onDrop = useCallback(
     async (acceptedFiles) => {
@@ -78,6 +81,9 @@ const DropMultipleAudio = ({
 
       const isEncrypted = encKey ? true : false;
       const customOptions = { encrypt: isEncrypted };
+      setProgressMessage('Uploading...');
+
+      const fileProgressMap = {}; // Track progress of each file
 
       for (const file of acceptedFiles) {
         const sourceCID = await uploadFile(file, customOptions).catch(
@@ -111,24 +117,30 @@ const DropMultipleAudio = ({
 
         if (!taskId) continue; // Skip this file if transcoding failed
 
-        setFileProgress((prev) => ({ ...prev, [file.name]: 0 }));
+        setFFMPEGProgress(0);
+        setProgressMessage('Queued for transcoding...');
 
-        intervalRefs.current[file.name] = setInterval(async () => {
-          const progress = await getTranscodeProgress(taskId).catch((error) => {
-            console.error('Error getting transcode progress:', error);
-            setFailedFiles((prev) => [...prev, file.name]);
-            return -1; // Indicate error in progress
-          });
+        fileProgressMap[file.name] = 0; // Initialize progress for this file
 
-          if (progress === -1) return; // Skip updating progress on error
+        intervalRef.current = setInterval(async () => {
+          const progress = await getTranscodeProgress(taskId);
+          fileProgressMap[file.name] = progress; // Update progress for this file
 
-          setFileProgress((prev) => ({ ...prev, [file.name]: progress }));
+          // Calculate overall progress
+          const totalProgress = Object.values(fileProgressMap).reduce(
+            (acc, curr) => acc + curr,
+            0,
+          );
+          const overallProgress = totalProgress / acceptedFiles.length;
 
-          if (progress >= 100) {
-            clearInterval(intervalRefs.current[file.name]);
-            delete intervalRefs.current[file.name];
+          setFFMPEGProgress(overallProgress);
+          setProgressMessage('Transcoding in progress...');
+          console.log('DropVideo: overallProgress = ', overallProgress);
+
+          if (overallProgress >= 100) {
+            clearInterval(intervalRef.current); // Clear interval using the ref
           }
-        }, PROGRESS_UPDATE_INTERVAL);
+        }, PROGRESS_UPDATE_INTERVAL); // The interval time
       }
     },
     [
@@ -145,8 +157,11 @@ const DropMultipleAudio = ({
   );
 
   useEffect(() => {
+    // Cleanup function to clear the interval when the component unmounts
     return () => {
-      Object.values(intervalRefs.current).forEach(clearInterval);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
     };
   }, []);
 
@@ -183,18 +198,9 @@ const DropMultipleAudio = ({
           <p>{text}</p>
         ) : (
           <div className="mt-4">
-            {fileNames.map((fileName, index) => (
-              <div key={index} className="mb-2 flex items-center">
-                <p>{fileName}</p>
-                {failedFiles.includes(fileName) ? (
-                  <XCircleIcon className="h-6 w-6 text-red-600 ml-2" />
-                ) : (
-                  <ProgressBar
-                    progressPercentage={fileProgress[fileName] || 0}
-                  />
-                )}
-              </div>
-            ))}
+            <div className="mb-2 flex items-center">
+              <p>{fileNames.join(', ')}</p>
+            </div>
           </div>
         )}
         {errors[field] && (
@@ -202,6 +208,25 @@ const DropMultipleAudio = ({
             {errors[field].message}
           </p>
         )}
+
+        {progressMessage && ffmpegProgress < 100 && (
+          <div
+            className={`flex flex-col ${twStyle} mx-auto rounded-md border-2 border-fabstir-gray bg-fabstir-light-gray fill-current text-fabstir-dark-gray shadow-sm sm:items-center sm:justify-center sm:text-center sm:text-sm w-2/3`}
+          >
+            <span>{progressMessage}</span>
+          </div>
+        )}
+
+        {ffmpegProgress === 100 && (
+          <div
+            className={`flex flex-col ${twStyle} mx-auto rounded-md border-2 border-fabstir-gray bg-fabstir-light-gray fill-current text-fabstir-dark-gray shadow-sm sm:items-center sm:justify-center sm:text-center sm:text-sm w-2/3`}
+          >
+            <span>Transcode completed!</span>
+          </div>
+        )}
+        <div className="absolute bottom-0 w-full">
+          <ProgressBar progressPercentage={ffmpegProgress} />
+        </div>
       </div>
     </div>
   );

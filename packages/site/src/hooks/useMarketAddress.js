@@ -6,14 +6,10 @@ export default function useMarketAddress() {
   const { getChainIdAddressFromChainIdAndAddress } = useContractUtils();
 
   const getMarketAddressFromUser = async (userPub, chainId) => {
-    const marketAddresses = await dbClient
-      .user(userPub)
-      .get('NFT market addresses')
-      .load();
-    // const marketAddresses = await dbClientOnce(
-    //   dbClient.user(userPub).get('NFT market addresses'),
-    //   process_env.GUN_WAIT_TIME
-    // )
+    const marketAddresses = await dbClientLoad(
+      dbClient.user(userPub).get('NFT market addresses'),
+      process.env.NEXT_PUBLIC_GUN_WAIT_TIME,
+    );
 
     // Find result element from resultArray string array whose value ends with chainId
     const marketAddress = marketAddresses?.find((element) =>

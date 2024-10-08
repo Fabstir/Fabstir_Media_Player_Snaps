@@ -1,4 +1,5 @@
 import createDBClient from 'fabstirdb-lib';
+import { parseArrayProperties } from './utils/stringifyProperties';
 /**
  * Instance of the OrbitDB client, created using the backend URL.
  */
@@ -45,15 +46,23 @@ async function dbClientOnce(
   isParse = false,
 ) {
   try {
-    const maxTimeOut = timeout1 + (timeout2 ? timeout2 : timeout1 * 2);
-    const timeoutPromise = new Promise((resolve, reject) => {
-      setTimeout(() => {
-        reject(new Error('Timeout exceeded'));
-      }, maxTimeOut);
-    });
+    const resultObject = await path.load();
+    if (resultObject === undefined) {
+      return undefined;
+    }
 
-    const resultArray = await Promise.race([path.load(), timeoutPromise]);
-    return resultArray;
+    const resultArray = Object.values(resultObject);
+    console.log('gunLoad: resultArray = ', resultArray);
+
+    const parsedResultArray = [];
+    for (const result of resultArray) {
+      let parsedResult = isParse ? JSON.parse(result) : result;
+      parsedResult = parseArrayProperties(parsedResult); // Apply parseArrayProperties to the linked object
+      parsedResultArray.push(parsedResult);
+    }
+    console.log('gunLoad: parsedResultArray = ', parsedResultArray);
+
+    return parsedResultArray;
   } catch (error) {
     console.error(error);
   }

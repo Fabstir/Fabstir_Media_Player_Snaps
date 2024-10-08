@@ -189,7 +189,6 @@ export default function DetailsSidebar({
     getChildrenOfNestableNFT,
     addChildToNestableNFT,
     removeChildFromNestableNFT,
-    upgradeToNestableNFT,
     getIsOwnNFT,
   } = useMintNestableNFT();
 
@@ -197,7 +196,6 @@ export default function DetailsSidebar({
     getChildrenOfNestableNFT: getChildrenOfNestableERC1155NFT,
     addChildToNestableNFT: addChildToNestableERC1155NFT,
     removeChildFromNestableNFT: removeChildFromNestableERC1155NFT,
-    upgradeToNestableNFT: upgradeToNestableERC1155NFT,
     getIsOwnNFT: getIsOwnERC1155NFT,
     getNFTQuantity,
   } = useMintNestableERC1155NFT();
@@ -439,47 +437,6 @@ export default function DetailsSidebar({
   }
 
   /**
-   * Function to handle upgrading an NFT to a nestable NFT.
-   * It checks if the parent NFT is defined and if the selectedNFTs array is not empty.
-   * If the parent NFT is not defined or the selectedNFTs array is empty, it returns.
-   * Otherwise, it creates a new nestable NFT with the selected NFTs as children and updates the parent NFT's metadata.
-   *
-   * @function
-   * @returns {void}
-   */
-  async function handleUpgradeToNestableNFT() {
-    if (!nft) return;
-
-    let addressId = {};
-
-    if (await getIsERC721(nft)) {
-      addressId = await upgradeToNestableNFT(nft);
-    } else if (await getIsERC1155(nft)) {
-      const amount = await getNFTQuantity(userAuthPub, nft);
-      addressId = await upgradeToNestableERC1155NFT(nft, amount);
-    } else
-      throw new Error(
-        'DetailsSidebar: handleUpgradeToNestableNFT: NFT is neither ERC721 nor ERC1155',
-      );
-
-    console.log(
-      'DetailsSidebar: handleUpgradeToNestableNFT: addressId = ',
-      addressId,
-    );
-
-    if (process.env.NEXT_PUBLIC_IS_USE_FABSTIRDB === 'true')
-      upgradeNFTToParent(nft, addressId);
-    else {
-      // now need to swap NFT address with nestable NFT address in Snaps state
-      const newAddress = `${addressId.address}_${addressId.id}`;
-      await replaceAddress(`${nft.address}_${nft.id}`, newAddress);
-    }
-
-    setCurrentNFT(null);
-    // setRefetchNFTsCount((prev) => prev + 1);
-  }
-
-  /**
    * Function to handle adding an NFT to the selectedNFTs array.
    * It checks if the NFT is defined and if the selectedNFTs array already contains the NFT.
    * If the NFT is not defined or already exists in the selectedNFTs array, it returns.
@@ -566,33 +523,11 @@ export default function DetailsSidebar({
       theSelectedParentNFTType = NFTType.ERC1155;
     } else
       throw new Error(
-        'DetailsSidebar: handleUpgradeToNestableNFT: NFT is neither ERC721 nor ERC1155',
+        'DetailsSidebar: handleRemoveFromNestableNFT: NFT is neither ERC721 nor ERC1155',
       );
 
     if (process.env.NEXT_PUBLIC_IS_USE_FABSTIRDB === 'true') {
       removeChildNFT(nft, { address: nft.parentAddress, id: nft.parentId });
-
-      let children;
-
-      if (theSelectedParentNFTType === NFTType.ERC721) {
-        children = await getChildrenOfNestableNFT(nft.parentId);
-      } else if (theSelectedParentNFTType === NFTType.ERC1155) {
-        children = await getChildrenOfNestableERC1155NFT(nft.parentId);
-      } else
-        throw new Error(
-          'DetailsSidebar: handleRemoveFromNestableNFT: theSelectedParentNFTType is neither ERC721 nor ERC1155',
-        );
-
-      if (children.length === 0) {
-        deleteNFT(
-          { address: nft.parentAddress, id: nft.parentId },
-          {
-            onSuccess: () => {
-              setCurrentNFT(null);
-            },
-          },
-        );
-      }
     } else {
       const newAddress = `${address.address}_${address.id}`;
       await addAddress(newAddress);
@@ -622,7 +557,7 @@ export default function DetailsSidebar({
    * @returns {void}
    */
   async function handleSelectedToParent() {
-    if (!selectedNFTs?.length > 0 || !nft?.parentId) return;
+    if (!selectedNFTs?.length > 0 || !nft?.isNestable) return;
 
     let numberOfChildren;
     console.log(
@@ -638,8 +573,8 @@ export default function DetailsSidebar({
     };
     let theSelectedParentNFTType;
 
-    if (await getIsERC721Address(nft.parentAddress)) {
-      const children = await getChildrenOfNestableNFT(nft.parentId);
+    if (await getIsERC721Address(nft.address)) {
+      const children = await getChildrenOfNestableNFT(nft.id);
       console.log(
         'DetailsSidebar: handleSelectedToParent: children = ',
         children,
@@ -652,8 +587,8 @@ export default function DetailsSidebar({
       );
       theSelectedNFTs = await filterNFTsByType(selectedNFTs, getIsERC721);
       theSelectedParentNFTType = NFTType.ERC721;
-    } else if (await getIsERC1155Address(nft.parentAddress)) {
-      const children = await getChildrenOfNestableERC1155NFT(nft.parentId);
+    } else if (await getIsERC1155Address(nft.address)) {
+      const children = await getChildrenOfNestableERC1155NFT(nft.id);
       console.log(
         'DetailsSidebar: handleSelectedToParent: children = ',
         children,
@@ -677,15 +612,15 @@ export default function DetailsSidebar({
     for (const selectedNFT of theSelectedNFTs) {
       if (theSelectedParentNFTType === NFTType.ERC721) {
         nestableNFT = await addChildToNestableNFT(
-          nft.parentAddress,
-          nft.parentId,
+          nft.address,
+          nft.id,
           numberOfChildren - 1,
           selectedNFT,
         );
       } else if (theSelectedParentNFTType === NFTType.ERC1155) {
         nestableNFT = await addChildToNestableERC1155NFT(
-          nft.parentAddress,
-          nft.parentId,
+          nft.address,
+          nft.id,
           numberOfChildren - 1,
           selectedNFT,
           [],
@@ -699,8 +634,8 @@ export default function DetailsSidebar({
 
       if (process.env.NEXT_PUBLIC_IS_USE_FABSTIRDB === 'true') {
         updateNFTToPointToParent(selectedNFT, {
-          address: nft.parentAddress,
-          id: nft.parentId,
+          address: nft.address,
+          id: nft.id,
         });
       } else {
         const addressId = constructNFTAddressId(
@@ -907,7 +842,7 @@ export default function DetailsSidebar({
           !selectedParentNFTAddressId &&
           nftQuantity?.gt(0) && (
             <div className="flex justify-between mt-4">
-              <div className="flex flex-1 justify-center">
+              <div className="flex flex-1 justify-center gap-x-2">
                 <Button
                   variant="primary"
                   size="medium"
@@ -918,13 +853,14 @@ export default function DetailsSidebar({
                 >
                   Transfer
                 </Button>
-                <button
+                <Button
+                  variant="primary"
                   type="button"
                   onClick={handlePermissions}
-                  className="w-28 rounded-md border border-gray-300 bg-fabstir-light-purple px-4 py-2 text-sm font-medium tracking-wide text-fabstir-white shadow-sm shadow-fabstir-light-purple/50 hover:bg-fabstir-lighter-purple focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                  className="w-28 rounded-md border border-transparent px-4 py-2 text-sm font-medium tracking-wide"
                 >
                   Resell
-                </button>{' '}
+                </Button>{' '}
               </div>
             </div>
           )}
@@ -951,17 +887,8 @@ export default function DetailsSidebar({
             openNFTMetaData === false && 'hidden'
           }`}
         >
-          {!nft?.parentId ? (
+          {!nft?.isNestable ? (
             <div className="mt-2 flex flex-1 flex-row justify-between">
-              <Button
-                className="p-1 text-sm"
-                variant="primary"
-                size="medium"
-                onClick={handleUpgradeToNestableNFT}
-              >
-                Upgrade to Nestable
-              </Button>
-
               {isNFTSelected ? (
                 <Button
                   className="p-1 text-sm"
@@ -994,16 +921,18 @@ export default function DetailsSidebar({
               </Button>
             </div>
           ) : (
-            <div className="mt-2 flex flex-1 flex-row justify-between">
-              <Button
-                className="p-1 text-sm"
-                variant="primary"
-                size="medium"
-                onClick={handleRemoveFromNestableNFT}
-              >
-                Remove from Parent
-              </Button>
-            </div>
+            nft?.parentAddress && (
+              <div className="mt-2 flex flex-1 flex-row justify-between">
+                <Button
+                  className="p-1 text-sm"
+                  variant="primary"
+                  size="medium"
+                  onClick={handleRemoveFromNestableNFT}
+                >
+                  Remove from Parent
+                </Button>
+              </div>
+            )
           )}
 
           <div className="group">

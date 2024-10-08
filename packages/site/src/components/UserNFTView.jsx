@@ -97,12 +97,10 @@ export default function UserNFTView({
     })();
   }, [nft]);
 
+  // When the user double clicks on the NFT, set the selectedParentNFTAddressId to the NFT's address and id.
   function handleDoubleClick() {
-    if (nft?.parentAddress && nft?.parentId) {
-      const parentAddressId = constructNFTAddressId(
-        nft?.parentAddress,
-        nft?.parentId,
-      );
+    if (nft?.isNestable && nft?.address && nft?.id) {
+      const parentAddressId = constructNFTAddressId(nft?.address, nft?.id);
       setSelectedParentNFTAddressId(parentAddressId);
 
       console.log(

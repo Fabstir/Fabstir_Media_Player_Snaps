@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import { clsx } from 'clsx';
 import Link from 'next/link';
 
@@ -10,14 +10,20 @@ type TextProps = {
   HTMLParagraphElement | HTMLSpanElement | HTMLDivElement | HTMLInputElement
 >;
 
-export const Text: React.FC<TextProps> = ({
-  as: Component = 'p',
-  className,
-  children,
-  ...props
-}) => {
+export const Text = forwardRef<
+  HTMLParagraphElement | HTMLSpanElement | HTMLDivElement | HTMLInputElement,
+  TextProps
+>(({ as: Component = 'p', className, children, ...props }, ref) => {
   return (
     <Component
+      ref={
+        ref as React.Ref<
+          HTMLParagraphElement &
+            HTMLSpanElement &
+            HTMLDivElement &
+            HTMLInputElement
+        >
+      }
       className={clsx(
         'text-copy dark:text-dark-copy',
         Component === 'input' &&
@@ -29,7 +35,9 @@ export const Text: React.FC<TextProps> = ({
       {children}
     </Component>
   );
-};
+});
+
+Text.displayName = 'Text';
 
 type StrongProps = {
   children: React.ReactNode;

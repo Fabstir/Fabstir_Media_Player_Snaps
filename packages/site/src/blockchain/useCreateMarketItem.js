@@ -549,6 +549,39 @@ export default function useCreateMarketItem() {
     ]);
   };
 
+  // extra parameters for platform unlock fee and period for subscriptions
+  const getMarketPlatformUnlockFee = async (marketAddress) => {
+    const fnftMarketCreateFacet = newReadOnlyContract(
+      marketAddress,
+      FNFTMarketCreateFacet.abi,
+    );
+
+    const platformUnlockFee = await fnftMarketCreateFacet.platformUnlockFee();
+    return platformUnlockFee;
+  };
+
+  const getMarketPlatformUnlockPeriod = async (marketAddress) => {
+    const fnftMarketCreateFacet = newReadOnlyContract(
+      marketAddress,
+      FNFTMarketCreateFacet.abi,
+    );
+
+    const platformUnlockPeriod =
+      await fnftMarketCreateFacet.platformUnlockPeriod();
+    return platformUnlockPeriod;
+  };
+
+  const getMarketPlatformUnlockFeeToken = async (marketAddress) => {
+    const fnftMarketCreateFacet = newReadOnlyContract(
+      marketAddress,
+      FNFTMarketCreateFacet.abi,
+    );
+
+    const platformUnlockFeeToken =
+      await fnftMarketCreateFacet.platformUnlockFeeToken();
+    return platformUnlockFeeToken;
+  };
+
   return {
     createMarketDAOItem,
     createMarketNFT721Item,
@@ -559,5 +592,8 @@ export default function useCreateMarketItem() {
     getMarketPlatformCreatorFeeRatio,
     createMarketNFTItem,
     storeMediaKeyLicense,
+    getMarketPlatformUnlockFee,
+    getMarketPlatformUnlockPeriod,
+    getMarketPlatformUnlockFeeToken,
   };
 }

@@ -1,4 +1,4 @@
-import React, { use, useEffect, useRef, useState } from 'react';
+import React, { forwardRef, use, useEffect, useRef, useState } from 'react';
 import {
   Controller,
   useFieldArray,
@@ -17,7 +17,7 @@ import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import { Select } from '../ui-components/select';
 import { Text } from '../ui-components/text';
 
-export default function TokenAttributes({ typeValue, setValueTokenData }) {
+const TokenAttributes = forwardRef(({ typeValue, setValueTokenData }, ref) => {
   // const { register, control, watch, setValue, getValues, reset } = useForm({
   //   defaultValues: {
   //     attributes: [],
@@ -237,4 +237,6 @@ export default function TokenAttributes({ typeValue, setValueTokenData }) {
       {/* <Input type="submit" /> */}
     </div>
   );
-}
+});
+
+export default TokenAttributes;

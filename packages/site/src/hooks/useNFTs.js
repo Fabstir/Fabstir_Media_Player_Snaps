@@ -21,110 +21,6 @@ import { useContext, useEffect } from 'react';
 import BlockchainContext from '../../state/BlockchainContext';
 import { refetchnftscountstate } from '../atoms/renderStateAtom.js';
 
-const swapAnyNestableNFTWithFirstChild = async (
-  userPub,
-  nfts,
-  getIsNestableNFT,
-  getChildrenOfNestable721NFT,
-  getChildrenOfNestable1155NFT,
-  selectedParentNFTAddressId,
-  newReadOnlyContract,
-  getChainIdFromChainIdAddress,
-  getChainIdAddressFromChainIdAndAddress,
-  getIsNestableERC1155NFT,
-) => {
-  if (!nfts) return [];
-
-  const updatedNFTs = [];
-
-  const { address: parentAddress, id: parentId } = selectedParentNFTAddressId
-    ? splitNFTAddressId(selectedParentNFTAddressId)
-    : { address: null, id: null };
-
-  for (const idx in nfts) {
-    const nft = nfts[idx];
-
-    // if any are nestableNFTs then use the first child as `nft`
-    console.log('useMintNFt: swapAnyParentWithFirstChild: nft = ', nft);
-    const nftAddress = nft.address;
-    const isNestable = await getIsNestableNFT(nft.address);
-    const isNestableERC1155 = await getIsNestableERC1155NFT(nft.address);
-    console.log(
-      'useMintNFt: swapAnyParentWithFirstChild: isNestable = ',
-      isNestable,
-    );
-
-    if (isNestable || isNestableERC1155) {
-      console.log(
-        `useMintNFt: swapAnyParentWithFirstChild: nftAddress = ${nftAddress}`,
-      );
-      console.log('useMintNFt: swapAnyParentWithFirstChild: before childOf');
-      let child;
-
-      if (isNestable) {
-        const contractNestableNFT = newReadOnlyContract(
-          nftAddress,
-          FNFTNestable.abi,
-        );
-
-        child = await contractNestableNFT.childOf(BigNumber.from(nft.id), Zero);
-      } else {
-        const contractNestableNFT = newReadOnlyContract(
-          nftAddress,
-          FNFTNestableERC1155.abi,
-        );
-
-        child = await contractNestableNFT.childOf(BigNumber.from(nft.id), Zero);
-      }
-
-      console.log('useMintNFt: swapAnyParentWithFirstChild: child = ', child);
-
-      let nftAddressId = constructNFTAddressId(
-        child.contractAddress,
-        child.tokenId.toString(),
-      );
-      const chainId = getChainIdFromChainIdAddress(nft.address);
-      nftAddressId = getChainIdAddressFromChainIdAndAddress(
-        chainId,
-        nftAddressId,
-      );
-
-      const childNFT = await fetchNFT(userPub, nftAddressId);
-
-      console.log(
-        'useMintNFt: swapAnyParentWithFirstChild: childNFT = ',
-        childNFT,
-      );
-
-      if (parentId || selectedParentNFTAddressId) {
-        childNFT.parentId = parentId;
-
-        if (isNestable || isNestableERC1155) {
-          const modelUris = await getModelUrisFromNestedNFT(
-            userPub,
-            chainId,
-            parentId,
-            childNFT.multiToken
-              ? getChildrenOfNestableERC1155NFT
-              : getChildrenOfNestableERC721NFT,
-            getChainIdAddressFromChainIdAndAddress,
-          );
-          if (modelUris && modelUris.length > 0) {
-            childNFT.fileUrls.push(...modelUris);
-          }
-        }
-      }
-
-      updatedNFTs.push({ ...childNFT, isNestable: true });
-    } else {
-      if (!nft.parentId || Number(nft.parentId) === Number(parentId))
-        updatedNFTs.push(nft);
-    }
-  }
-
-  return updatedNFTs;
-};
-
 export const fetchScopedNFTs = async (userPub, userProfile) => {
   console.log('useNFTs: timeout = ', process.env.NEXT_PUBLIC_GUN_TIMEOUT);
 
@@ -134,25 +30,7 @@ export const fetchScopedNFTs = async (userPub, userProfile) => {
   );
 
   console.log('fetchNFTs: resultArray = ', resultArray);
-
-  console.log('fetchNFTs: userProfile = ', userProfile);
-  console.log(
-    'fetchNFTs: userProfile?.accountAddress = ',
-    userProfile?.accountAddress,
-  );
-
-  const parsedResultArray = resultArray.map((element) =>
-    parseArrayProperties(element),
-  );
-  return parsedResultArray;
-
-  // const userAccountAddress = userProfile.accountAddress
-
-  // const ownNFTs = await getOwnNFTs(userAccountAddress, resultArray)
-
-  // console.log('fetchNFTs: ownNFTs = ', ownNFTs)
-
-  // return ownNFTs
+  return resultArray;
 };
 
 async function getModelUrisFromNestedNFT(
@@ -218,13 +96,13 @@ export const fetchNFTs = async (
 
   const userProfile = await getUserProfile(userPub);
 
+  // Inside a parent NFT, need to fetch all the children NFTs
   if (selectedParentNFTAddressId) {
-    const userAccountAddress = userProfile.accountAddress;
     const { address: parentAddress, id: parentId } = splitNFTAddressId(
       selectedParentNFTAddressId,
     );
 
-    ownNFTs = await getOwnNFTs(userAccountAddress, [
+    ownNFTs = await getOwnNFTs(userProfile.accountAddress, [
       { address: parentAddress, id: parentId },
     ]);
     if (ownNFTs.length === 0) return [];
@@ -256,24 +134,13 @@ export const fetchNFTs = async (
 
     ownNFTs = nfts;
   } else {
+    // Fetch all the NFTs owned by the user
     ownNFTs = await fetchScopedNFTs(userPub, userProfile);
+    ownNFTs = await getOwnNFTs(userProfile.accountAddress, ownNFTs);
   }
 
   console.log('fetchNFTs: ownNFTs from parent = ', ownNFTs);
-  const resultNFTs = await swapAnyNestableNFTWithFirstChild(
-    userPub,
-    ownNFTs,
-    getIsNestableNFT,
-    getChildrenOfNestable721NFT,
-    getChildrenOfNestable1155NFT,
-    selectedParentNFTAddressId,
-    newReadOnlyContract,
-    getChainIdFromChainIdAddress,
-    getChainIdAddressFromChainIdAndAddress,
-    getIsNestableERC1155NFT,
-  );
-  console.log('fetchNFTs: ownNFTs from resultNFTs = ', resultNFTs);
-  return resultNFTs;
+  return ownNFTs;
 };
 
 export default function useNFTs(userPub) {

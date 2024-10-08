@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { BigNumber } from '@ethersproject/bignumber';
-import { parseUnits, parseEther } from '@ethersproject/units';
+import { parseUnits, parseEther, formatUnits } from '@ethersproject/units';
 import { v4 as uuidv4 } from 'uuid';
 
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -34,6 +34,7 @@ import {
   currentmarketitemmarketaddressstate,
   marketitemdeleteslideoverstate,
 } from '../atoms/MarketItemPendingSlideOverAtom.js';
+import useMaths from '../utils/useMaths';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -79,12 +80,16 @@ export default function PermissionUserView({
   const { createMarketNFTItem, getMarketPlatformCreatorFeeRatio } =
     useCreateMarketItem();
 
-  const { getDecimalPlaceFromCurrency } = useCurrencyUtils();
+  const { getDecimalPlaceFromCurrency, getCurrencyFromContractAddress } =
+    useCurrencyUtils();
 
   const {
     getMarketFabstirFeeRatio,
     getMarketPlatformFeeRatio,
     deleteMarketItemPending,
+    getMarketPlatformUnlockFee,
+    getMarketPlatformUnlockPeriod,
+    getMarketPlatformUnlockFeeToken,
   } = useCreateMarketItem();
   const currentNFT = useRecoilValue(currentnftmetadata);
 
@@ -95,11 +100,16 @@ export default function PermissionUserView({
   const [platformCreatorFeePercentage, setPlatformCreatorFeePercentage] =
     useState();
 
+  const [platformUnlockFee, setPlatformUnlockFee] = useState();
+  const [platformUnlockPeriod, setPlatformUnlockPeriod] = useState();
+
   const [marketItemStatusAmounts, setMarketItemStatusAmounts] = useState('');
   const setCurrentMarketItemMarketAddress = useSetRecoilState(
     currentmarketitemmarketaddressstate,
   );
   const setCurrentMarketItemId = useSetRecoilState(currentmarketitemidstate);
+
+  const { epsilon } = useMaths();
 
   const defaultCurrencySymbolName =
     'NEXT_PUBLIC_DEFAULT_CURRENCY_' + connectedChainId;
@@ -155,6 +165,15 @@ export default function PermissionUserView({
         .transform(function (value, originalValue) {
           return originalValue === undefined ? this.parent.startPrice : value;
         }),
+      resellerUnlockFee: yup
+        .number()
+        .required()
+        .positive('Unlock fee must be a positive number')
+        .nullable(true),
+      resellerUnlockPeriod: yup
+        .number()
+        .required()
+        .positive('Unlock period must be a positive number'),
       fabstirFeePercentage: yup.number().min(0).required(),
       resellerFeePercentage: yup.number().min(0).required(),
       creatorFeePercentage: yup.number().min(0).required(),
@@ -369,6 +388,33 @@ export default function PermissionUserView({
             'creatorFeePercentage',
             bigNumberToFloat(platformCreatorFeeRatio) * 100,
           );
+          const platformUnlockFeeToken =
+            await getMarketPlatformUnlockFeeToken(marketAddress);
+
+          const currency = await getCurrencyFromContractAddress(
+            platformUnlockFeeToken,
+          );
+          // setCurrency(currency)
+          const decimalPlaces = getDecimalPlaceFromCurrency(currency);
+
+          const platformUnlockFeeBN =
+            await getMarketPlatformUnlockFee(marketAddress);
+          const platformUnlockFee = formatUnits(
+            platformUnlockFeeBN,
+            decimalPlaces,
+          );
+
+          if (platformUnlockFee && !watch('resellerUnlockFee'))
+            setValue('resellerUnlockFee', platformUnlockFee);
+
+          const platformUnlockPeriodBN =
+            await getMarketPlatformUnlockPeriod(marketAddress);
+
+          if (platformUnlockPeriodBN && !watch('resellerUnlockPeriod'))
+            setValue(
+              'resellerUnlockPeriod',
+              Number(platformUnlockPeriodBN.toString()) / (24 * 60 * 60),
+            );
         } else {
           setValue('fabstirFeePercentage', null);
           setValue('resellerFeePercentage', null);
@@ -430,6 +476,34 @@ export default function PermissionUserView({
               'creatorFeePercentage',
               bigNumberToFloat(platformCreatorFeeRatio) * 100,
             );
+
+          const platformUnlockFeeToken =
+            await getMarketPlatformUnlockFeeToken(marketAddress);
+
+          const currency = await getCurrencyFromContractAddress(
+            platformUnlockFeeToken,
+          );
+          // setCurrency(currency)
+          const decimalPlaces = getDecimalPlaceFromCurrency(currency);
+
+          const platformUnlockFeeBN =
+            await getMarketPlatformUnlockFee(marketAddress);
+          const platformUnlockFee = formatUnits(
+            platformUnlockFeeBN,
+            decimalPlaces,
+          );
+
+          if (platformUnlockFee && !watch('resellerUnlockFee'))
+            setValue('resellerUnlockFee', platformUnlockFee);
+
+          const platformUnlockPeriodBN =
+            await getMarketPlatformUnlockPeriod(marketAddress);
+
+          if (platformUnlockPeriodBN && !watch('resellerUnlockPeriod'))
+            setValue(
+              'resellerUnlockPeriod',
+              Number(platformUnlockPeriodBN.toString()) / (24 * 60 * 60),
+            );
         } else {
           setValue('fabstirFeePercentage', null);
           setValue('resellerFeePercentage', 0);
@@ -449,6 +523,17 @@ export default function PermissionUserView({
   }, [watch('userPub')]);
 
   useEffect(() => {
+    console.log(
+      'PermissionUserView: Number(watch(`resellerUnlockFee`)) = ',
+      Number(watch('resellerUnlockFee')),
+    );
+    console.log(
+      'PermissionUserView: Number(platformUnlockFee) = ',
+      Number(platformUnlockFee),
+    );
+  }, [watch('resellerUnlockFee')]);
+
+  useEffect(() => {
     (async () => {
       const marketAddress = watch('marketAddress');
       if (marketAddress) {
@@ -463,6 +548,30 @@ export default function PermissionUserView({
           await getMarketPlatformCreatorFeeRatio(marketAddress);
         setPlatformCreatorFeePercentage(
           bigNumberToFloat(platformCreatorFeeRatio) * 100,
+        );
+
+        const platformUnlockFeeToken =
+          await getMarketPlatformUnlockFeeToken(marketAddress);
+
+        const currency = await getCurrencyFromContractAddress(
+          platformUnlockFeeToken,
+        );
+        // setCurrency(currency)
+        const decimalPlaces = getDecimalPlaceFromCurrency(currency);
+
+        const platformUnlockFeeBN =
+          await getMarketPlatformUnlockFee(marketAddress);
+        const platformUnlockFee = formatUnits(
+          platformUnlockFeeBN,
+          decimalPlaces,
+        );
+
+        setPlatformUnlockFee(platformUnlockFee);
+
+        const platformUnlockPeriodBN =
+          await getMarketPlatformUnlockPeriod(marketAddress);
+        setPlatformUnlockPeriod(
+          Number(platformUnlockPeriodBN.toString()) / (24 * 60 * 60),
         );
       }
     })();
@@ -488,18 +597,38 @@ export default function PermissionUserView({
     setValue('creatorFeePercentage', 0);
   }
 
+  async function handleResetToPlatformUnlockFee() {
+    const userPub = watch('userPub');
+
+    if (userPub && marketAddress && platformUnlockFee) {
+      setValue('platformUnlockFee', platformUnlockFee);
+      return;
+    }
+    setValue('platformUnlockFee', 0);
+  }
+
+  async function handleResetToPlatformUnlockPeriod() {
+    const userPub = watch('userPub');
+
+    if (userPub && marketAddress && platformUnlockPeriod) {
+      setValue('platformUnlockPeriod', platformUnlockPeriod);
+      return;
+    }
+    setValue('platformUnlockPeriod', 0);
+  }
+
   return (
-    <div className="mx-auto max-w-2xl w-full">
+    <div className="mx-auto max-w-2xl w-fit border-2 border-fabstir-gray p-4">
       {' '}
       {/* Increased max-width */}
       <div className="space-y-4">
         {' '}
         {/* Increased spacing */}
-        <div className="w-full border-t border-fabstir-divide-color1" />
+        <div className="border-t border-fabstir-divide-color1" />
         <div className="flex items-center justify-center">
           <form
             onSubmit={handleSubmit(handleSavePermission)}
-            className="space-y-4"
+            className="space-y-4 w-80"
           >
             <div className="col-span-3 sm:col-span-4">
               <label
@@ -768,8 +897,12 @@ export default function PermissionUserView({
                       className="block text-sm font-medium text-fabstir-light-gray"
                     >
                       Reseller Fee %{' '}
-                      {watch('resellerFeePercentage') === platformFeePercentage
-                        ? '(Default)'
+                      {watch('resellerFeePercentage') !== null &&
+                      watch('resellerFeePercentage') !== undefined &&
+                      Math.abs(
+                        watch('resellerFeePercentage') - platformFeePercentage,
+                      ) < epsilon
+                        ? ':- Default'
                         : ''}
                     </label>
                     <div className="flex flex-1 flex-row">
@@ -811,9 +944,13 @@ export default function PermissionUserView({
                       className="block text-sm font-medium text-fabstir-light-gray"
                     >
                       Creator Fee %{' '}
-                      {watch('creatorFeePercentage') ===
-                      platformCreatorFeePercentage
-                        ? '(Default)'
+                      {watch('creatorFeePercentage') !== null &&
+                      watch('creatorFeePercentage') !== undefined &&
+                      Math.abs(
+                        watch('creatorFeePercentage') -
+                          platformCreatorFeePercentage,
+                      ) < epsilon
+                        ? ':- Default'
                         : ''}
                     </label>
                     <div className="flex flex-1 flex-row">
@@ -865,6 +1002,101 @@ export default function PermissionUserView({
                   </p>
                 </div>
               )}
+              <div className="col-span-3 sm:col-span-4">
+                <div className="flex flex-col">
+                  <div>
+                    <label
+                      htmlFor="resellerUnlockFee"
+                      className="block text-sm font-medium text-fabstir-light-gray"
+                    >
+                      Unlock Fee ({watch('currency')})
+                      {watch('resellerUnlockFee') !== null &&
+                      watch('resellerUnlockFee') !== undefined &&
+                      Math.abs(
+                        Number(watch('resellerUnlockFee')) -
+                          Number(platformUnlockFee),
+                      ) < epsilon
+                        ? ':- Default'
+                        : ''}
+                    </label>
+                    <div className="flex flex-1 flex-row">
+                      <div className="mt-1 w-full max-w-full rounded-lg border-2 border-fabstir-white">
+                        <input
+                          type="number"
+                          name="resellerUnlockFee"
+                          {...register('resellerUnlockFee')}
+                          className="block w-full bg-fabstir-gray"
+                          readOnly={!isEditable || watch('isPermissionless')}
+                          step="any"
+                        />
+                      </div>
+                      {(isEditable || watch('isPermissionless')) &&
+                        watch('marketAddress') &&
+                        watch('resellerUnlockFee') !== platformUnlockFee && (
+                          <div className="ml-4 min-h-fit">
+                            <button
+                              onClick={handleResetToPlatformUnlockFee}
+                              className="mt-1 bg-fabstir-medium-light-gray px-2 py-3"
+                            >
+                              Reset
+                            </button>
+                          </div>
+                        )}
+                    </div>
+                    <p className="mt-1 text-fabstir-light-pink">
+                      {errors.resellerUnlockFee?.message}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="col-span-3 sm:col-span-4">
+                <div className="flex flex-col">
+                  <div>
+                    <label
+                      htmlFor="resellerUnlockPeriod"
+                      className="block text-sm font-medium text-fabstir-light-gray"
+                    >
+                      Unlock Period (days)
+                      {watch('resellerUnlockPeriod') !== null &&
+                      watch('resellerUnlockPeriod') !== undefined &&
+                      Math.abs(
+                        Number(watch('resellerUnlockPeriod')) -
+                          Number(platformUnlockPeriod),
+                      ) < epsilon
+                        ? ':- Default'
+                        : ''}
+                    </label>
+                    <div className="flex flex-1 flex-row">
+                      <div className="mt-1 w-full max-w-full rounded-lg border-2 border-fabstir-white">
+                        <input
+                          type="number"
+                          name="resellerUnlockPeriod"
+                          {...register('resellerUnlockPeriod')}
+                          className="block w-full bg-fabstir-gray"
+                          readOnly={!isEditable || watch('isPermissionless')}
+                          step="any"
+                        />
+                      </div>
+                      {(isEditable || watch('isPermissionless')) &&
+                        watch('marketAddress') &&
+                        watch('resellerUnlockPeriod') !==
+                          platformUnlockPeriod && (
+                          <div className="ml-4 min-h-fit">
+                            <button
+                              onClick={handleResetToPlatformUnlockPeriod}
+                              className="mt-1 bg-fabstir-medium-light-gray px-2 py-3"
+                            >
+                              Reset
+                            </button>
+                          </div>
+                        )}
+                    </div>
+                    <p className="mt-1 text-fabstir-light-pink">
+                      {errors.resellerUnlockPeriod?.message}
+                    </p>
+                  </div>
+                </div>
+              </div>
               {marketItemStatusAmounts &&
                 Object.keys(marketItemStatusAmounts).length > 0 && (
                   <div className="col-span-3 mt-1 sm:col-span-4">

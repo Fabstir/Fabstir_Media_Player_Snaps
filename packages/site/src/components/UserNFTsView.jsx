@@ -7,6 +7,7 @@ import { useRouter } from 'next/router';
 import { Button } from '@headlessui/react';
 import { TextLink } from '../../src/ui-components/text';
 import { currentnftmetadata } from '../atoms/nftSlideOverAtom';
+import { getNFTAddressId } from '../utils/nftUtils';
 
 /**
  * UserNFTsView component to render the user's NFTs in a gallery view.
@@ -77,7 +78,7 @@ export default function UserNFTsView({
           ?.filter((nft) => nft !== null) // Filter out null NFTs
           .map((nft) => (
             <li
-              key={nft.name}
+              key={getNFTAddressId(nft)}
               className="mr-4 transform items-center transition duration-100 ease-in hover:scale-105 hover:text-fabstir-light-gray"
             >
               <UserNFTView

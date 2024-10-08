@@ -116,9 +116,7 @@ const DropFile = ({
               </svg>
               {fileNamesState ? (
                 <div className="mt-4">
-                  {fileNamesState.map((fileName) => (
-                    <p>{fileName}</p>
-                  ))}
+                  <p>{fileNamesState.join(', ')}</p>
                 </div>
               ) : (
                 <div>{text}</div>

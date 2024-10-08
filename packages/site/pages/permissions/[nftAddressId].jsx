@@ -136,11 +136,11 @@ export default function PermissionsTeams() {
 
         {/* NFT image */}
         {nft && (
-          <div className="relative mx-auto mb-8 mt-12 w-1/3">
+          <div className="relative mx-auto mb-8 mt-12">
             <svg
               className="absolute right-0 top-0 -mr-14 -mt-10 hidden transform stroke-fabstir-light-purple lg:block"
-              width={400}
-              height={300}
+              width="100%"
+              height="100%"
               fill="none"
               viewBox="0 0 400 300"
               aria-hidden="true"
@@ -171,7 +171,7 @@ export default function PermissionsTeams() {
               />
             </svg>
 
-            <div className="aspect-h-7 aspect-w-10 mt-16 block w-full overflow-hidden rounded-lg shadow-2xl shadow-fabstir-black/50">
+            <div className="aspect-h-7 aspect-w-10 mt-16 block overflow-hidden rounded-lg shadow-2xl shadow-fabstir-black/50 w-full">
               <img
                 src={currentNFTImage}
                 alt=""

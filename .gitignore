@@ -125,3 +125,5 @@ packages/site/assets/
 
 start-chrome-debug.bat
 *.xlsx
+
+copybuild1.bat

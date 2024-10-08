@@ -1,7 +1,8 @@
 function isStringifiedArray(str) {
   if (typeof str === 'string') {
     try {
-      return Array.isArray(JSON.parse(str));
+      const parsed = JSON.parse(str);
+      return Array.isArray(parsed);
     } catch (error) {
       return false;
     }
@@ -13,58 +14,47 @@ function isStringifiedArray(str) {
 export const stringifyArrayProperties = (obj) => {
   let myObject = {};
 
-  Object?.entries(obj).forEach(([key, value]) => {
+  Object.entries(obj).forEach(([key, value]) => {
     if (Array.isArray(value)) {
-      // Stringify array properties
+      // Stringify all arrays, regardless of their content
       myObject[key] = JSON.stringify(value);
     } else if (typeof value === 'object' && value !== null) {
       // Process object properties
-      myObject[key] = {};
-      Object.entries(value).forEach(([nestedKey, nestedValue]) => {
-        if (Array.isArray(nestedValue)) {
-          myObject[key][nestedKey] = JSON.stringify(nestedValue);
-        } else {
-          myObject[key][nestedKey] = nestedValue;
-        }
-      });
+      myObject[key] = stringifyArrayProperties(value); // Recursively stringify nested objects
     } else {
       // Copy value types as is
       myObject[key] = value;
     }
   });
+
+  console.log('stringifyArrayProperties: myObject = ', myObject);
 
   return myObject;
 };
 
 export const parseArrayProperties = (obj) => {
-  if (!obj) return;
+  if (obj === undefined || typeof obj !== 'object' || obj === null) {
+    return obj;
+  }
 
   let myObject = {};
 
-  Object?.entries(obj).forEach(([key, value]) => {
+  Object.entries(obj).forEach(([key, value]) => {
     if (key === '_') return; // Skip this key
 
     if (typeof value === 'string' && isStringifiedArray(value)) {
-      // Parse stringified array properties
+      // Parse all stringified array properties
       myObject[key] = JSON.parse(value);
     } else if (typeof value === 'object' && value !== null) {
       // Process object properties
-      myObject[key] = {};
-      Object.entries(value).forEach(([nestedKey, nestedValue]) => {
-        if (
-          typeof nestedValue === 'string' &&
-          isStringifiedArray(nestedValue)
-        ) {
-          myObject[key][nestedKey] = JSON.parse(nestedValue);
-        } else {
-          myObject[key][nestedKey] = nestedValue;
-        }
-      });
+      myObject[key] = parseArrayProperties(value); // Recursively parse nested objects
     } else {
       // Copy value types as is
       myObject[key] = value;
     }
   });
+
+  console.log('parseArrayProperties: myObject = ', myObject);
 
   return myObject;
 };

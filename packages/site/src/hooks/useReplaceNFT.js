@@ -37,6 +37,7 @@ export default function useReplaceNFT() {
     let updatedNewNFT = {
       ...newNFT,
       isNestable: true,
+      userPub: oldNFT.userPub,
     };
 
     if (oldNFT.multiToken)

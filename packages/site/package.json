@@ -46,7 +46,7 @@
     "eslint-config-next": "^13.4.19",
     "eslint-plugin-react": "latest",
     "ethers": "^6.12.1",
-    "fabstirdb-lib": "E:\\\\dev\\\\Fabstir\\\\partners\\\\Sia\\\\GitHub\\\\\\\\fabstirdb-lib\\\\fabstirdb-lib-v1.0.80.tgz",
+    "fabstirdb-lib": "./fabstirdb-lib-v1.0.145.tgz",
     "file-saver": "^2.0.5",
     "gun": "^0.2020.1240",
     "heroiconsv1": "npm:@heroicons/react@^1.0.6",

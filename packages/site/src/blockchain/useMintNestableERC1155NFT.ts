@@ -20,8 +20,13 @@ import useAccountAbstractionPayment, {
 import { AccountAbstractionPayment } from '../../types';
 import useUserProfile from '../hooks/useUserProfile';
 import { useSetRecoilState } from 'recoil';
-import { constructNFTAddressId } from '../utils/nftUtils';
+import {
+  constructNFTAddressId,
+  convertAttributesToNFT721Convention,
+} from '../utils/nftUtils';
 import { selectedparentnftaddressid } from '../atoms/nestableNFTAtom';
+import useIPFS from '../hooks/useIPFS';
+import useS5net from '../hooks/useS5';
 
 const chainIdAddress = 'YOUR_CHAIN_ID_ADDRESS';
 
@@ -36,6 +41,7 @@ type MintNestableNFTResponse = {
   address: string;
   id: string;
   amount: number;
+  uri: string;
 };
 
 /**
@@ -68,6 +74,7 @@ export function useMintNestableERC1155NFT() {
     getIsERC1155,
     getIsERC1155Address,
     getNFTQuantity: getNFTQuantityFromStandard,
+    uploadNFTMetadataAndReturnCID,
   } = useMintNFT();
   const [getUserProfile] = useUserProfile();
 
@@ -180,6 +187,11 @@ export function useMintNestableERC1155NFT() {
     if (!connectedChainId)
       throw new Error('useMintNestableNFT: No connected chain id');
 
+    if (!getIsERC1155Address)
+      throw new Error('useMintNestableNFT: No getIsERC1155Address');
+
+    if (!nft) throw new Error('addChildToNestableNFT: No NFT');
+
     console.log(
       `useMintNestableNFT: addChildToNestableNFT parentId ${parentId}, childIndex ${childIndex}, nft ${nft}}`,
     );
@@ -199,7 +211,6 @@ export function useMintNestableERC1155NFT() {
     }
 
     const nftAddress = nft.address;
-    // const userOps = []
 
     // 3. transfer ownership of NFT to ERC7401 contract
     const nftContract = newContract(
@@ -467,12 +478,13 @@ export function useMintNestableERC1155NFT() {
    *
    * @async
    * @function
-   * @param {string} recipientAccountAddress - The recipient account address.
+   * @param {string} userPub - The recipient account address.
    * @param {number} amount - The amount of tokens to mint.
    * @returns {Promise<MintNestableNFTResponse>} A promise that resolves to a `MintNestableNFTResponse` object.
    */
   const mintNestableNFT = async (
-    recipientAccountAddress: string,
+    userPub: string,
+    nft: NFT,
     amount: number,
   ): Promise<MintNestableNFTResponse> => {
     console.log(`mintNestableNFT: nestableNFT: smartAccount: ${smartAccount}`);
@@ -490,17 +502,10 @@ export function useMintNestableERC1155NFT() {
 
     console.log(
       'mintNestableNFT: nestableNFT: mintNFT: recipientAccountAddress = ',
-      recipientAccountAddress,
+      userPub,
       'amount = ',
       amount,
     );
-
-    // Here we are minting NFT to the recipient address
-    const data = nestableNFTInterface.encodeFunctionData('mint', [
-      recipientAccountAddress,
-      amount,
-    ]);
-    console.log(`mintNestableNFT: nestableNFT: data: ${data}`);
 
     if (connectedChainId === null || connectedChainId === undefined) {
       throw new Error('connectedChainId is null or undefined.');
@@ -511,12 +516,40 @@ export function useMintNestableERC1155NFT() {
       'NEXT_PUBLIC_NESTABLENFT_ERC1155_ADDRESS',
     );
 
-    const transaction = [{ data }, nestableNFTAddress];
+    const cid = await uploadNFTMetadataAndReturnCID(nft);
 
-    console.log(`mintNestableNFT: nestableNFT: transaction: ${transaction}`);
+    console.log(
+      'useMintNFT: NEXT_PUBLIC_NESTABLENFT_ADDRESS',
+      process.env.NEXT_PUBLIC_NESTABLENFT_ADDRESS,
+    );
+    // console.log('mintNestableNFT: nftAddress = ', nftAddress);
+    // console.log('mintNestableNFT: smartAccountAddress = ', smartAccountAddress);
+    console.log('mintNestableNFT: cid = ', cid);
+
+    // const isERC721 = await getIsERC721Address(nftAddress)
+    // console.log('useMintNFT: isERC721 = ', isERC721)
+
+    const fnftNestable = newContract(
+      nestableNFTAddress,
+      FNFTNestableERC1155.abi,
+      smartAccountProvider,
+    );
+
+    const smartAccountAddress = await getSmartAccountAddress(smartAccount);
 
     try {
-      const { receipt } = await processTransactionBundle([transaction]);
+      const { receipt } = await processTransactionBundle([
+        [
+          await fnftNestable.populateTransaction.mintToken(
+            smartAccountAddress,
+            0,
+            cid,
+            amount,
+            [],
+          ),
+          nestableNFTAddress,
+        ],
+      ]);
       const iface = new Interface(TipERC1155.abi);
       const parsedLogs = receipt.logs.map((log: any) => {
         try {
@@ -551,6 +584,7 @@ export function useMintNestableERC1155NFT() {
         address: nestableNFTAddress,
         id: tokenId ? tokenId.toString() : undefined,
         amount: mintedAmount ? mintedAmount.toString() : undefined,
+        uri: cid,
       };
     } catch (e) {
       const errorMessage = 'mintNestableNFT: nestableNFT: error received';

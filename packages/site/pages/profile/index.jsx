@@ -83,7 +83,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
 
         reset(profile);
 
-        const linkUrl = await getBlobUrl(profile.image);
+        const linkUrl = profile?.image ? await getBlobUrl(profile.image) : null;
         setWatchUrl(linkUrl);
       }
     })();

@@ -149,35 +149,7 @@ export default function useMintNFT() {
         'useMintNFT:NFT supply is required and must be a whole number',
       );
 
-    let nftMetaData = { ...nft };
-    // if (!nftMetaData.deployed) {
-    //   delete nftMetaData.name;
-    //   delete nftMetaData.symbol;
-    // }
-    delete nftMetaData.supply;
-    delete nftMetaData.members;
-    delete nftMetaData.address;
-    delete nftMetaData.tokenise;
-    delete nftMetaData.badgesGated;
-    delete nftMetaData.playlist;
-    console.log('useMintNFT: nftMetaData = ', nftMetaData);
-
-    if (nftMetaData.attributes)
-      nftMetaData.attributes = convertAttributesToNFT721Convention(
-        nftMetaData.attributes,
-      );
-
-    const metaDataFileObject = new File(
-      [
-        new Blob([JSON.stringify(nftMetaData)], {
-          lastModified: Date.now(), // optional - default = now
-          type: 'text/plain', // optional - default = ''
-        }),
-      ],
-      'ERC721Metadata.json',
-    );
-
-    const cid = await defaultStorage.uploadFile(metaDataFileObject);
+    const cid = await uploadNFTMetadataAndReturnCID(nft);
     console.log(`useMintNFT: cid = ${cid} for storage ${defaultStorage}`);
 
     let nftAddress = '';
@@ -239,8 +211,6 @@ export default function useMintNFT() {
           'NEXT_PUBLIC_TIPERC721_ADDRESS',
         );
 
-      const userOps = [];
-
       console.log(
         'useMintNFT: process_env.TIPERC721_ADDRESS',
         process.env.NEXT_PUBLIC_TIPERC721_ADDRESS,
@@ -258,19 +228,17 @@ export default function useMintNFT() {
         smartAccountProvider,
       );
 
-      userOps.push([
-        await tipERC721Contract.populateTransaction.safeMint(
-          smartAccountAddress,
-          cid,
-        ),
-        nftAddress,
-      ]);
-
-      console.log(`useMintNFT: userOps = `, userOps);
-
       console.log(`useMintNFT: before await processTransactionBundle(userOps)`);
 
-      const result = await processTransactionBundle(userOps);
+      const result = await processTransactionBundle([
+        [
+          await tipERC721Contract.populateTransaction.safeMint(
+            smartAccountAddress,
+            cid,
+          ),
+          nftAddress,
+        ],
+      ]);
       console.log(`useMintNFT: result = `, result);
 
       const receipt = result.receipt;
@@ -430,7 +398,7 @@ export default function useMintNFT() {
   const getIsERC721 = async (nft: any) => {
     if (!nft?.address) return false;
 
-    return getIsERC721Address(nft.address);
+    return await getIsERC721Address(nft.address);
   };
 
   // call ERC-165 supportsInterface
@@ -652,6 +620,42 @@ export default function useMintNFT() {
     return quantity;
   };
 
+  const uploadNFTMetadataAndReturnCID = async (nft) => {
+    let nftMetaData = { ...nft };
+    // if (!nftMetaData.deployed) {
+    //   delete nftMetaData.name;
+    //   delete nftMetaData.symbol;
+    // }
+
+    delete nftMetaData.supply;
+    delete nftMetaData.members;
+    delete nftMetaData.address;
+    delete nftMetaData.tokenise;
+    delete nftMetaData.badgesGated;
+    delete nftMetaData.playlist;
+    console.log('useMintNFT: nftMetaData = ', nftMetaData);
+
+    if (nftMetaData.attributes)
+      nftMetaData.attributes = convertAttributesToNFT721Convention(
+        nftMetaData.attributes,
+      );
+
+    const metaDataFileObject = new File(
+      [
+        new Blob([JSON.stringify(nftMetaData)], {
+          lastModified: Date.now(), // optional - default = now
+          type: 'text/plain', // optional - default = ''
+        }),
+      ],
+      'ERC721Metadata.json',
+    );
+
+    const cid = await defaultStorage.uploadFile(metaDataFileObject);
+    console.log(`useMintNFT: cid = ${cid} for storage ${defaultStorage}`);
+
+    return cid;
+  };
+
   return {
     mintNFT,
     getIsERC721,
@@ -663,5 +667,6 @@ export default function useMintNFT() {
     getNFTQuantity,
     transferNFT,
     getHoldersAndRatioFromNFT,
+    uploadNFTMetadataAndReturnCID,
   };
 }

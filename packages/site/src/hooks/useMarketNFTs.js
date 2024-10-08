@@ -80,12 +80,11 @@ export default function useMarketNFTs(marketAddress) {
       const isMarketItemActive = await getIsMarketItemActive(marketItem.itemId);
       console.log('useMarketNFTs: isMarketItemActive', isMarketItemActive);
 
-      const priceCurrencySymbol = getCurrencyFromContractAddress(
+      const priceCurrency = getCurrencyFromContractAddress(
         marketItem.baseToken,
       );
 
-      const numOfDecimalPlaces =
-        getDecimalPlaceFromCurrency(priceCurrencySymbol);
+      const numOfDecimalPlaces = getDecimalPlaceFromCurrency(priceCurrency);
 
       const startPriceCurrency = ethers.utils.formatUnits(
         marketItem.startPrice,
@@ -127,7 +126,7 @@ export default function useMarketNFTs(marketAddress) {
             amount: marketItem.amount.toString(),
             startPrice: startPriceCurrency,
             reservePrice: reservePriceCurrency,
-            priceCurrencySymbol,
+            priceCurrency,
             startTime,
             endTime,
             resellerFeePercentage:
@@ -164,12 +163,11 @@ export default function useMarketNFTs(marketAddress) {
       const isMarketItemActive = await getIsMarketItemActive(marketItem.itemId);
       console.log('useMarketNFTs: isMarketItemActive', isMarketItemActive);
 
-      const priceCurrencySymbol = getCurrencyFromContractAddress(
+      const priceCurrency = getCurrencyFromContractAddress(
         marketItem.baseToken,
       );
 
-      const numOfDecimalPlaces =
-        getDecimalPlaceFromCurrency(priceCurrencySymbol);
+      const numOfDecimalPlaces = getDecimalPlaceFromCurrency(priceCurrency);
 
       const startPriceCurrency = ethers.utils.formatUnits(
         marketItem.startPrice,
@@ -211,7 +209,7 @@ export default function useMarketNFTs(marketAddress) {
             amount: marketItem.amount.toString(),
             startPrice: startPriceCurrency,
             reservePrice: reservePriceCurrency,
-            priceCurrencySymbol,
+            priceCurrency,
             startTime,
             endTime,
             resellerFeePercentage:
@@ -249,12 +247,11 @@ export default function useMarketNFTs(marketAddress) {
         nftAddressId,
       );
 
-      const priceCurrencySymbol = getCurrencyFromContractAddress(
+      const priceCurrency = getCurrencyFromContractAddress(
         marketItemPending.baseToken,
       );
 
-      const numOfDecimalPlaces =
-        getDecimalPlaceFromCurrency(priceCurrencySymbol);
+      const numOfDecimalPlaces = getDecimalPlaceFromCurrency(priceCurrency);
 
       const startPriceCurrency = ethers.utils.formatUnits(
         marketItemPending.startPrice,
@@ -291,7 +288,7 @@ export default function useMarketNFTs(marketAddress) {
           amount: marketItemPending.amount.toString(),
           startPrice: startPriceCurrency,
           reservePrice: reservePriceCurrency,
-          priceCurrencySymbol,
+          priceCurrency,
           startTime,
           endTime,
           resellerFeePercentage:

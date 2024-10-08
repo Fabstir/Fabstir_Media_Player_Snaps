@@ -13032,15 +13032,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fabstirdb-lib@file:E:\\\\dev\\\\Fabstir\\\\partners\\\\Sia\\\\GitHub\\\\\\\\fabstirdb-lib\\\\fabstirdb-lib-v1.0.75.tgz::locator=site%40workspace%3Apackages%2Fsite":
-  version: 1.0.75
-  resolution: "fabstirdb-lib@file:/E://dev//Fabstir//partners//Sia//GitHub////fabstirdb-lib//fabstirdb-lib-v1.0.75.tgz::locator=site%40workspace%3Apackages%2Fsite"
+"fabstirdb-lib@file:./fabstirdb-lib-v1.0.145.tgz::locator=site%40workspace%3Apackages%2Fsite":
+  version: 1.0.145
+  resolution: "fabstirdb-lib@file:./fabstirdb-lib-v1.0.145.tgz::locator=site%40workspace%3Apackages%2Fsite"
   dependencies:
     bcryptjs: ^2.4.3
     crypto: ^1.0.1
     dotenv: ^16.4.5
     libsodium-wrappers: ^0.7.13
-  checksum: 077ed842f398f847be489bf5caa536074f7ea069af84f7b53ebaaef6cb140a9a9b30d7e2d939286a500a9570d2e13c016785ddb0c50291aacdc6d2da50d0ce2e
+  checksum: 3918dca9a71533f5e390404a798cdba82599b5139404ce3a559c264f868b4bb4f5ca4260d5632117c17bb0f68850f50b1768025a7458e329a4d3ce92a1ba810c
   languageName: node
   linkType: hard
 
@@ -16050,7 +16050,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"libsodium-wrappers@npm:^0.7.11, libsodium-wrappers@npm:^0.7.13":
+"libsodium-wrappers@npm:^0.7.11":
   version: 0.7.13
   resolution: "libsodium-wrappers@npm:0.7.13"
   dependencies:
@@ -16059,10 +16059,26 @@ __metadata:
   languageName: node
   linkType: hard
 
+"libsodium-wrappers@npm:^0.7.13":
+  version: 0.7.15
+  resolution: "libsodium-wrappers@npm:0.7.15"
+  dependencies:
+    libsodium: ^0.7.15
+  checksum: 35bd4d4a4ced47ed69b0e1f1772651507a7224285d6487c4c0d9a5ab80e0daf2c225e069474d0cd640fcd4152608b51005fff8f107e12e04545a92e8db45e422
+  languageName: node
+  linkType: hard
+
 "libsodium@npm:^0.7.13":
   version: 0.7.13
   resolution: "libsodium@npm:0.7.13"
   checksum: 75a5f70e84c197d54d9b67dcbd852abbd41cca8facd510767c7c8400a52a23da293e83eebf1693831b2c0c0498f266bd9350a8c27ec66f46a055890dff758d38
+  languageName: node
+  linkType: hard
+
+"libsodium@npm:^0.7.15":
+  version: 0.7.15
+  resolution: "libsodium@npm:0.7.15"
+  checksum: c641fee43415c8c516c531303439ab89cd1e72de56e3f9fd9e07f695a2cf0fe8f3095f6015db5e351ae4693a1ba50ac18cb19b3e0d241be0546b82319166abe0
   languageName: node
   linkType: hard
 
@@ -20716,7 +20732,7 @@ __metadata:
     eslint-plugin-prettier: ^5.0.0
     eslint-plugin-react: latest
     ethers: ^6.12.1
-    fabstirdb-lib: "E:\\\\dev\\\\Fabstir\\\\partners\\\\Sia\\\\GitHub\\\\\\\\fabstirdb-lib\\\\fabstirdb-lib-v1.0.75.tgz"
+    fabstirdb-lib: ./fabstirdb-lib-v1.0.145.tgz
     file-saver: ^2.0.5
     gun: ^0.2020.1240
     heroiconsv1: "npm:@heroicons/react@^1.0.6"
