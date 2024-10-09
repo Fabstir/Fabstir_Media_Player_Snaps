@@ -348,7 +348,7 @@ const VideoJS = ({
           this.updateButtonText();
         },
         createItems: function () {
-          return player.options_.sources?.map((source) => {
+          return mainSource?.map((source) => {
             return new ResolutionMenuItem(player, {
               label: source.label || source.res,
               src: source.src,
@@ -765,7 +765,7 @@ const VideoJS = ({
   }, [isPlayClicked]);
 
   const UnmuteButton = ({ isMuted }) => (
-    <div className="absolute bottom-7 right-6 z-20">
+    <div className="absolute top-7 right-6 z-20">
       <button
         id="unmute-button"
         style={{

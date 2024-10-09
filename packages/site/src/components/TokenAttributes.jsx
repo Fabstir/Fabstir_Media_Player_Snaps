@@ -126,7 +126,7 @@ const TokenAttributes = forwardRef(({ typeValue, setValueTokenData }, ref) => {
               onChange={(value) => {
                 field.onChange(value);
               }}
-              className="block w-full bg-fabstir-white py-2 pl-2 pr-8 text-fabstir-dark-gray"
+              className="block w-full bg-light-gray py-2 pl-2 pr-8 text-fabstir-dark-gray"
             />
           )}
         />

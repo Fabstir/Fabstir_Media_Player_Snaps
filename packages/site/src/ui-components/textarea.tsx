@@ -27,7 +27,8 @@ export const Textarea: React.FC<TextareaProps> = ({
       {label && (
         <label
           htmlFor={name}
-          className="block text-sm font-medium text-copy dark:text-dark-copy mb-1"
+          // className="block text-sm font-medium text-copy dark:text-dark-copy mb-1"
+          className="block text-sm font-medium text-copy mb-1"
         >
           {label}
         </label>

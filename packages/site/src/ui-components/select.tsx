@@ -36,14 +36,20 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(
     const [isOpen, setIsOpen] = useState(false);
     const [selectedOptions, setSelectedOptions] = useState<
       { value: string; label: string }[]
-    >(
-      multiple
-        ? options.filter(
-            (option) => Array.isArray(value) && value.includes(option.value),
-          )
-        : options.filter((option) => option.value === value),
-    );
+    >([]);
+
     const containerRef = useRef<HTMLDivElement>(null);
+
+    // Synchronize internal state with value prop
+    useEffect(() => {
+      setSelectedOptions(
+        multiple
+          ? options.filter(
+              (option) => Array.isArray(value) && value.includes(option.value),
+            )
+          : options.filter((option) => option.value === value),
+      );
+    }, [value, options, multiple]);
 
     useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
@@ -100,7 +106,8 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(
         {label && (
           <label
             htmlFor={props.id}
-            className="block text-sm font-medium text-copy dark:text-dark-copy mb-1"
+            // className="block text-sm font-medium text-copy dark:text-dark-copy mb-1"
+            className="block text-sm font-medium text-copy mb-1"
           >
             {label}
           </label>

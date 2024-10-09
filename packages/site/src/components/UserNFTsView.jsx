@@ -63,9 +63,9 @@ export default function UserNFTsView({
           </button>
         ) : (
           <TextLink href="/">
-            <div className="flex justify-start">
+            <div className="flex justify-start text-fabstir-dark-gray">
               <ChevronDoubleLeftIcon
-                className="h-6 w-6 font-bold text-gray-500 lg:h-8 lg:w-8 pb-2"
+                className="h-6 w-6 font-bold text-fabstir-gray lg:h-8 lg:w-8 pb-2"
                 aria-hidden="true"
               />
               Back to Root
@@ -92,3 +92,4 @@ export default function UserNFTsView({
     </>
   );
 }
+``;

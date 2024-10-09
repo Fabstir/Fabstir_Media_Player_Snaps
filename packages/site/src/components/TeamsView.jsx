@@ -13,7 +13,7 @@ export default function TeamsView({ teams }) {
   return (
     <>
       {teams?.length > 0 && (
-        <div className="mt-4">
+        <div className="mt-2 space-y-2">
           {teams.map((team, index) => {
             const allImagesUndefinedOrNull = team?.users?.every(
               (user) => user.image === undefined || user.image === null,
@@ -43,13 +43,13 @@ export default function TeamsView({ teams }) {
                     }, [])}
                   </div>
                 ) : (
-                  <div className="mt-4">
+                  <div>
                     <div className="pr-3 text-fabstir-dark-gray font-semibold">
                       {team.name}
                     </div>
-                    <div className="flex flex-wrap space-x-4 space-y-2 mt-2">
+                    <div className="flex flex-wrap space-x-4 mt-2">
                       {team.users?.map((user) => (
-                        <div key={user?.userPub} className="m-2">
+                        <div key={user?.userPub} className="flex-shrink-0 w-32">
                           <TeamUserView user={user} isReadOnly={true} />
                         </div>
                       ))}

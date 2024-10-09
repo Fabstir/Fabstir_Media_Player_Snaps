@@ -1055,13 +1055,13 @@ export default function DetailsSidebar({
                           key={index}
                           className="flex justify-between py-3 text-sm font-medium"
                         >
-                          <dt className="text-fabstir-light-gray">
+                          <dt className="text-fabstir-gray">
                             {openNFTAttributes ? key : key + ':'}
                             {'\u00A0'}
                           </dt>
                           <dd
                             className={
-                              'text-fabstir-light-gray ' +
+                              'text-gray-500 ' +
                               (openNFTAttributes ? '' : 'line-clamp-1')
                             }
                           >

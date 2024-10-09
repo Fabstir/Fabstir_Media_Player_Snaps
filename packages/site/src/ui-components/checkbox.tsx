@@ -54,7 +54,8 @@ export const Checkbox: React.FC<CheckboxProps> = ({
           <label
             htmlFor={props.id}
             className={clsx(
-              'font-medium text-copy dark:text-dark-copy',
+              'font-medium text-copy',
+              // 'font-medium text-copy dark:text-dark-copy',
               props.disabled && 'opacity-50 cursor-not-allowed',
             )}
           >
