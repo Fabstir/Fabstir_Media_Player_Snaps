@@ -400,7 +400,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
               onChange={(value) => {
                 field.onChange(value);
               }}
-              className="block w-full bg-white py-2 pl-2 pr-8 text-text dark:text-dark-text"
+              className="block w-full bg-background dark:bg-dark-background py-2 pl-2 pr-8 text-copy dark:text-dark-copy"
             />
           )}
         />
@@ -422,7 +422,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
   }
 
   return (
-    <div className="h-screen">
+    <div className="h-auto">
       <div className="flex justify-start ml-4">
         <TextLink
           className="mt-6"
@@ -431,14 +431,14 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
         >
           <div className="flex items-center">
             <ChevronDoubleLeftIcon
-              className="h-6 w-6 font-bold text-gray-500 lg:h-8 lg:w-8 mr-2"
+              className="h-6 w-6 font-bold text-copy dark:text-dark-copy lg:h-8 lg:w-8 mr-2"
               aria-hidden="true"
             />
-            <span className="text-text dark:text-dark-text">Back to Root</span>
+            <span className="text-copy dark:text-dark-copy">Back to Root</span>
           </div>
         </TextLink>
       </div>
-      <div className="mx-auto grid max-w-3xl grid-cols-1 bg-gray-700">
+      <div className="mx-auto grid max-w-3xl grid-cols-1 bg-background dark:bg-dark-background">
         <form
           onSubmit={handleSubmit(handlesubmit_save)}
           className="space-y-8 divide-y divide-gray"
@@ -446,10 +446,10 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
           <div className="space-y-8 divide-y divide-gray">
             <div>
               <div>
-                <h3 className="text-2xl font-medium leading-6 text-text dark:text-dark-text">
+                <h3 className="text-2xl font-medium leading-6 text-copy dark:text-dark-copy">
                   Profile
                 </h3>
-                <p className="mt-1 text-sm text-text dark:text-dark-text">
+                <p className="mt-1 text-sm text-copy dark:text-dark-copy">
                   This information will be displayed publicly so be careful what
                   you share.
                 </p>
@@ -458,7 +458,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                 <div className="mt-4 sm:col-span-4">
                   <label
                     htmlFor="userName"
-                    className="block text-sm font-medium text-text dark:text-dark-text"
+                    className="block text-sm font-medium text-copy dark:text-dark-copy"
                   >
                     Username
                   </label>
@@ -469,7 +469,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                       autoComplete="given-name"
                       readOnly={inputReadOnly}
                       register={register('userName')}
-                      className="block w-full rounded-md border-gray bg-white shadow-sm sm:text-sm"
+                      className="block w-full rounded-md border-gray bg-background dark:bg-dark-background shadow-sm sm:text-sm"
                     />
                   </div>
                   <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error dark:text-dark-error">
@@ -481,10 +481,10 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
 
                 <div className="mt-4 sm:col-span-6">
                   <div>
-                    <h3 className="text-lg font-medium leading-6 text-text dark:text-dark-text">
+                    <h3 className="text-lg font-medium leading-6 text-copy dark:text-dark-copy">
                       About
                     </h3>
-                    <p className="mt-1 text-sm text-text dark:text-dark-text">
+                    <p className="mt-1 text-sm text-copy dark:text-dark-copy">
                       Write a few sentences about yourself.
                     </p>
                   </div>
@@ -496,7 +496,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                       rows={3}
                       readOnly={inputReadOnly}
                       register={register('about')}
-                      className="block w-full rounded-md border border-gray bg-white shadow-sm sm:text-sm text-text dark:text-dark-text"
+                      className="block w-full rounded-md border border-gray bg-background dark:bg-dark-background shadow-sm sm:text-sm text-copy dark:text-dark-copy"
                       defaultValue={''}
                     />
                   </div>
@@ -511,7 +511,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                   <div className="">
                     <label
                       htmlFor="photo"
-                      className="block text-sm font-medium text-text dark:text-dark-text"
+                      className="block text-sm font-medium text-copy dark:text-dark-copy"
                     >
                       Photo
                     </label>
@@ -540,7 +540,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                   <div className="sm:col-span-3">
                     <label
                       htmlFor="role"
-                      className="block text-sm font-medium text-text dark:text-dark-text"
+                      className="block text-sm font-medium text-copy dark:text-dark-copy"
                     >
                       Role(s)
                     </label>
@@ -560,17 +560,17 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                 <div className="sm:col-span-6">
                   <label
                     htmlFor="cover-photo"
-                    className="block text-sm font-medium text-text dark:text-dark-text"
+                    className="block text-sm font-medium text-copy dark:text-dark-copy"
                   >
                     Cover photo
                   </label>
                   <div
                     {...getRootProps()}
-                    className="mt-1 flex justify-center rounded-md border-2 border-dashed border-gray bg-white px-6 pb-6 pt-5"
+                    className="mt-1 flex justify-center rounded-md border-2 border-dashed border-gray bg-background dark:bg-dark-background px-6 pb-6 pt-5"
                   >
                     <div className="space-y-1 text-center">
                       <svg
-                        className="mx-auto h-12 w-12 text-gray-400"
+                        className="mx-auto h-12 w-12 text-copy dark:text-dark-copy"
                         stroke="currentColor"
                         fill="none"
                         viewBox="0 0 48 48"
@@ -584,7 +584,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                         />
                       </svg>
 
-                      <div className="flex text-sm text-gray-600">
+                      <div className="flex text-sm text-copy dark:text-dark-copy">
                         <label
                           htmlFor="file-upload"
                           className="relative cursor-pointer rounded-md font-medium focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2"
@@ -602,7 +602,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                         <p className="pl-1">or drag and drop</p>
                       </div>
 
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-copy dark:text-dark-copy">
                         PNG, JPG, GIF up to 10MB
                       </p>
                     </div>
@@ -613,10 +613,10 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
 
             <div className="pt-8">
               <div>
-                <h3 className="text-lg font-medium leading-6 text-text dark:text-dark-text">
+                <h3 className="text-lg font-medium leading-6 text-copy dark:text-dark-copy">
                   Personal Information
                 </h3>
-                <p className="mt-1 text-sm text-text dark:text-dark-text">
+                <p className="mt-1 text-sm text-copy dark:text-dark-copy">
                   Use a permanent address where you can receive mail.
                 </p>
               </div>
@@ -624,7 +624,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                 <div className="sm:col-span-3">
                   <label
                     htmlFor="firstName"
-                    className="block text-sm font-medium text-text dark:text-dark-text"
+                    className="block text-sm font-medium text-copy dark:text-dark-copy"
                   >
                     First name
                   </label>
@@ -635,7 +635,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                       autoComplete="given-name"
                       readOnly={inputReadOnly}
                       register={register('firstName')}
-                      className="block w-full rounded-md border-gray bg-white shadow-sm sm:text-sm"
+                      className="block w-full rounded-md border-gray bg-background dark:bg-dark-background shadow-sm sm:text-sm"
                     />
                   </div>
                   <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error dark:text-dark-error">
@@ -646,7 +646,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                 <div className="sm:col-span-3">
                   <label
                     htmlFor="lastName"
-                    className="block text-sm font-medium text-text dark:text-dark-text"
+                    className="block text-sm font-medium text-copy dark:text-dark-copy"
                   >
                     Last name
                   </label>
@@ -668,7 +668,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                 <div className="sm:col-span-5">
                   <label
                     htmlFor="company"
-                    className="block text-sm font-medium text-text dark:text-dark-text"
+                    className="block text-sm font-medium text-copy dark:text-dark-copy"
                   >
                     Company
                   </label>
@@ -679,7 +679,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                       autoComplete="company"
                       readOnly={inputReadOnly}
                       register={register('company')}
-                      className="block w-full rounded-md border-gray bg-white shadow-sm sm:text-sm"
+                      className="block w-full rounded-md border-gray bg-background dark:bg-dark-background shadow-sm sm:text-sm"
                     />
                   </div>
                   <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error dark:text-dark-error">
@@ -690,7 +690,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                 <div className="sm:col-span-6">
                   <label
                     htmlFor="accountAddress"
-                    className="block text-sm font-medium text-text dark:text-dark-text"
+                    className="block text-sm font-medium text-copy dark:text-dark-copy"
                   >
                     Account
                   </label>
@@ -714,7 +714,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                 <div className="sm:col-span-6">
                   <label
                     htmlFor="userPub"
-                    className="block text-sm font-medium text-text dark:text-dark-text"
+                    className="block text-sm font-medium text-copy dark:text-dark-copy"
                   >
                     Public Key
                   </label>
@@ -734,7 +734,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                 <div className="sm:col-span-4">
                   <label
                     htmlFor="email"
-                    className="block text-sm font-medium text-text dark:text-dark-text"
+                    className="block text-sm font-medium text-copy dark:text-dark-copy"
                   >
                     Email address
                   </label>
@@ -745,7 +745,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                       autoComplete="email"
                       readOnly={inputReadOnly}
                       register={register('emailAddress')}
-                      className="block w-full rounded-md border-gray bg-white shadow-sm sm:text-sm"
+                      className="block w-full rounded-md border-gray bg-background dark:bg-dark-background shadow-sm sm:text-sm"
                     />
                   </div>
                   <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error dark:text-dark-error">
@@ -756,7 +756,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                 <div className="sm:col-span-3">
                   <label
                     htmlFor="country"
-                    className="block text-sm font-medium text-text dark:text-dark-text"
+                    className="block text-sm font-medium text-copy dark:text-dark-copy"
                   >
                     Country
                   </label>
@@ -780,7 +780,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                 <div className="col-start-1 sm:col-span-6">
                   <label
                     htmlFor="street-address"
-                    className="block text-sm font-medium text-text dark:text-dark-text"
+                    className="block text-sm font-medium text-copy dark:text-dark-copy"
                   >
                     Street address
                   </label>
@@ -791,7 +791,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                       autoComplete="street-address"
                       readOnly={inputReadOnly}
                       register={register('streetAddress')}
-                      className="block w-full rounded-md border-gray bg-white shadow-sm  sm:text-sm"
+                      className="block w-full rounded-md border-gray bg-background dark:bg-dark-background shadow-sm  sm:text-sm"
                     />
                   </div>
                   <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error dark:text-dark-error">
@@ -802,7 +802,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                 <div className="sm:col-span-2">
                   <label
                     htmlFor="city"
-                    className="block text-sm font-medium text-text dark:text-dark-text"
+                    className="block text-sm font-medium text-copy dark:text-dark-copy"
                   >
                     City
                   </label>
@@ -812,7 +812,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                       autoComplete="address-level2"
                       readOnly={inputReadOnly}
                       register={register('city')}
-                      className="block w-full rounded-md border-gray bg-white shadow-sm  sm:text-sm"
+                      className="block w-full rounded-md border-gray bg-background dark:bg-dark-background shadow-sm  sm:text-sm"
                     />
                   </div>
                   <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error dark:text-dark-error">
@@ -823,7 +823,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                 <div className="sm:col-span-2">
                   <label
                     htmlFor="region"
-                    className="block text-sm font-medium text-text dark:text-dark-text"
+                    className="block text-sm font-medium text-copy dark:text-dark-copy"
                   >
                     State / Province
                   </label>
@@ -834,7 +834,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                       autoComplete="address-level1"
                       readOnly={inputReadOnly}
                       register={register('region')}
-                      className="block w-full rounded-md border-gray bg-white shadow-sm  sm:text-sm"
+                      className="block w-full rounded-md border-gray bg-background dark:bg-dark-background shadow-sm  sm:text-sm"
                     />
                   </div>
                   <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error dark:text-dark-error">
@@ -845,7 +845,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                 <div className="sm:col-span-2">
                   <label
                     htmlFor="postal-code"
-                    className="block text-sm font-medium text-text dark:text-dark-text"
+                    className="block text-sm font-medium text-copy dark:text-dark-copy"
                   >
                     ZIP / Postal code
                   </label>
@@ -856,7 +856,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                       autoComplete="postal-code"
                       readOnly={inputReadOnly}
                       register={register('zipPostcode')}
-                      className="block w-full rounded-md border-gray bg-white shadow-sm  sm:text-sm"
+                      className="block w-full rounded-md border-gray bg-background dark:bg-dark-background shadow-sm  sm:text-sm"
                     />
                   </div>
                   <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error dark:text-dark-error">

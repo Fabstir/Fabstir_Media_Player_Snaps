@@ -56,7 +56,7 @@ export const Header = ({
   return (
     <header
         className={`flex justify-between items-center p-6 border-b border-gray-200 ${
-          theme === 'dark' ? 'bg-dark-background text-white' : 'bg-white text-black'
+          theme === 'dark' ? 'bg-dark-background text-dark-copy' : 'bg-background text-copy'
         }`}
       >
         <div className="flex items-center">
@@ -66,7 +66,7 @@ export const Header = ({
       <div className="flex items-center">
       <button
           type="button"
-          className="dark:hidden block  font-medium text-black rounded-full bg-slate-100 hover:bg-slate-300 focus:outline-none focus:bg-slate-300"
+          className="dark:hidden block  font-medium text-copy rounded-full bg-background hover:bg-slate-300 focus:outline-none focus:bg-slate-300"
           onClick={() => handleThemeChange('dark')}
         >
           <span className="group inline-flex shrink-0 justify-center items-center size-12">
@@ -87,7 +87,7 @@ export const Header = ({
         </button>
         <button
           type="button"
-          className="dark:block hidden font-medium text-black rounded-full bg-slate-100 hover:bg-slate-300 focus:outline-none focus:bg-slate-300"
+          className="dark:block hidden font-medium text-dark-copy rounded-full bg-dark-background hover:bg-slate-300 focus:outline-none focus:bg-slate-300"
           onClick={() => handleThemeChange('light')}
         >
           <span className="group inline-flex shrink-0 justify-center items-center size-12">

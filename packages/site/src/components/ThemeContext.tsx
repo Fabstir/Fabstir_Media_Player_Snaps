@@ -26,7 +26,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme }}>
-      <div className={` ${theme} ${theme === 'dark' ? 'bg-dark-background text-white' : 'bg-white text-black'}`}>{children}</div>
+      <div className={` ${theme} ${theme === 'dark' ? 'bg-dark-background text-dark-copy' : 'bg-background text-dark-copy'}`}>{children}</div>
     </ThemeContext.Provider>
   );
 };

@@ -112,19 +112,11 @@ const Color = () => {
   // NeutralsColorChange function for Use Customize
   const handleNeutralsColorChange = (newColor , field) => {
     console.log(`${newColor} , ${field} color configured`);
-
-    let darkColor = newColor;
-    darkColor = invertColor(darkColor);
-
     setNeutralsColorState((prevState) => ({
       ...prevState,
-      light: {
-        ...prevState.light,
+      [colorMode]: {
+        ...prevState[colorMode],
         [field]: newColor.hex,
-      },
-      dark: {
-        ...prevState.dark,
-        [field]: darkColor,
       },
     }));
   }
@@ -819,7 +811,9 @@ const Color = () => {
                     <div
                       className="mb-2 w-full rounded-xl shadow-md transition-colors cursor-pointer"
                       style={{
-                        background: neutralsColorState?.light?.[field], // Assuming light mode for simplicity
+                        background: colorMode === 'dark'
+                        ? neutralsColorState?.dark?.[field]
+                        : neutralsColorState?.light?.[field], // Assuming light mode for simplicity
                         height: '5rem',
                       }}
                       onClick={() =>
@@ -832,12 +826,16 @@ const Color = () => {
                     <p className="-mb-1 ml-1 text-lg font-semibold">
                       {field.charAt(0).toUpperCase() + field.slice(1)} {/* Capitalize */}
                     </p>
-                    <span className="ml-1 text-sm ">{neutralsColorState?.light?.[field]}</span>
+                    <span className="ml-1 text-sm ">{colorMode === 'dark'
+                        ? neutralsColorState?.dark?.[field]
+                        : neutralsColorState?.light?.[field]}</span>
           
                     {/* Show color picker */}
                     {showNeutralPicker[field] && (
                       <ChromePicker
-                        color={neutralsColorState?.light?.[field]}
+                        color={colorMode === 'dark'
+                        ? neutralsColorState?.dark?.[field]
+                        : neutralsColorState?.light?.[field]}
                         onChange={(color) => handleNeutralsColorChange(color, field)}
                       />
                     )}
@@ -963,90 +961,6 @@ const Color = () => {
                     )}
                     </div>
               ))}
-              {/* <div>
-                <div
-                  className="mb-2 w-full rounded-xl shadow-md transition-colors"
-                  style={{
-                    background: utilityColors?.successColor,
-                    height: '5rem',
-                  }}
-                ></div>
-                <p className="-mb-1 ml-1 text-lg font-semibold">Success</p>
-                <span className="ml-1 text-sm ">
-                  {utilityColors?.successColor}
-                </span>
-              </div>
-              <div>
-                <div
-                  className="mb-2 w-full rounded-xl shadow-md transition-colors"
-                  style={{
-                    background: utilityColors?.warningColor,
-                    height: '5rem',
-                  }}
-                ></div>
-                <p className="-mb-1 ml-1 text-lg font-semibold">Warning</p>
-                <span className="ml-1 text-sm ">
-                  {utilityColors?.warningColor}
-                </span>
-              </div>
-              <div>
-                <div
-                  className="mb-2 w-full rounded-xl shadow-md transition-colors"
-                  style={{
-                    background: utilityColors?.errorColor,
-                    height: '5rem',
-                  }}
-                ></div>
-                <p className="-mb-1 ml-1 text-lg font-semibold">Error</p>
-                <span className="ml-1 text-sm ">
-                  {utilityColors?.errorColor}
-                </span>
-              </div>
-              <div>
-                <div
-                  className="mb-2 w-full rounded-xl shadow-md transition-colors"
-                  style={{
-                    background: utilityColors?.successContentColor,
-                    height: '5rem',
-                  }}
-                ></div>
-                <p className="-mb-1 ml-1 text-lg font-semibold">
-                  Success Content
-                </p>
-                <span className="ml-1 text-sm ">
-                  {utilityColors?.successContentColor}
-                </span>
-              </div>
-              <div>
-                <div
-                  className="mb-2 w-full rounded-xl shadow-md transition-colors"
-                  style={{
-                    background: utilityColors?.warningContentColor,
-                    height: '5rem',
-                  }}
-                ></div>
-                <p className="-mb-1 ml-1 text-lg font-semibold">
-                  Warning Content
-                </p>
-                <span className="ml-1 text-sm ">
-                  {utilityColors?.warningContentColor}
-                </span>
-              </div>
-              <div>
-                <div
-                  className="mb-2 w-full rounded-xl shadow-md transition-colors"
-                  style={{
-                    background: utilityColors?.errorContentColor,
-                    height: '5rem',
-                  }}
-                ></div>
-                <p className="-mb-1 ml-1 text-lg font-semibold">
-                  Error Content
-                </p>
-                <span className="ml-1 text-sm ">
-                  {utilityColors?.errorContentColor}
-                </span>
-              </div>*/}
             </div> 
           </div>
           <div className="w-full text-right py-5 border-t-2 border-slate-200">

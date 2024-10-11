@@ -8,7 +8,7 @@ export const InstallFlaskButton = ({ theme } : {theme: string}) => (
   <a
     href="https://metamask.io/flask/"
     target="_blank"
-    className={`flex items-center justify-center text-sm rounded border border-white font-bold px-4 py-2 cursor-pointer hover:bg-transparent hover:text-white transition-all ${theme === 'dark' ? 'bg-dark-background text-white' : 'bg-white text-black' }` }
+    className={`flex items-center justify-center text-sm rounded border border-white font-bold px-4 py-2 cursor-pointer hover:bg-transparent hover:text-white transition-all ${theme === 'dark' ? 'bg-dark-background text-dark-copy' : 'bg-background text-copy' }` }
   >
     <FlaskFox />
     <span className="ml-3">Install MetaMask Flask</span>
