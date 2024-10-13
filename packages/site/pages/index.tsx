@@ -12,7 +12,6 @@ import {
   TableBody,
   TableCell,
   TableHead,
-  TableHeader,
   TableRow,
 } from '../src/ui-components/table';
 
@@ -242,8 +241,9 @@ const Index = () => {
       STIR: 'assets/coins/fabstir_logo_official.png',
     });
 
-    const theCurrencies =
-      process.env.NEXT_PUBLIC_WHITELISTED_CURRENCIES.split(',');
+    const theCurrencies = process.env.NEXT_PUBLIC_WHITELISTED_CURRENCIES
+      ? process.env.NEXT_PUBLIC_WHITELISTED_CURRENCIES.split(',')
+      : [];
     console.log('index: theCurrencies = ', theCurrencies);
     setCurrencies(theCurrencies);
 
@@ -399,7 +399,7 @@ const Index = () => {
 
           const isNestable = await getIsNestableNFT(theAddress);
           if (!isNestable) {
-            deleteNFT({ address: theAddress, id });
+            deleteNFT({ address: theAddress, id } as any);
           } else {
             await deleteNestableNFT({ address: theAddress, id });
           }

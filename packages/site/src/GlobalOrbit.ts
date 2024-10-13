@@ -56,7 +56,7 @@ async function dbClientOnce(
 
     const parsedResultArray = [];
     for (const result of resultArray) {
-      let parsedResult = isParse ? JSON.parse(result) : result;
+      let parsedResult = isParse ? JSON.parse(result as string) : result;
       parsedResult = parseArrayProperties(parsedResult); // Apply parseArrayProperties to the linked object
       parsedResultArray.push(parsedResult);
     }

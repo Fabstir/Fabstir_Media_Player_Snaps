@@ -555,17 +555,17 @@ export default function useMintNFT() {
     } else throw new Error('NFT is not ERC721 or ERC1155');
   };
 
-  const getHoldersAndRatioFromNFT = async (nft) => {
+  const getHoldersAndRatioFromNFT = async (nft: any) => {
     const holders = [];
     const holdersRatio = [];
 
     if (nft?.collaboratives?.length > 0) {
       const totalRoyalties = nft.collaboratives
-        .flatMap((collaborative) => collaborative.users)
-        .reduce((total, member) => total + (member?.royalty || 0), 0);
+        .flatMap((collaborative: any) => collaborative.users)
+        .reduce((total: any, member: any) => total + (member?.royalty || 0), 0);
 
       const totalUsers = nft.collaboratives.flatMap(
-        (collaborative) => collaborative.users,
+        (collaborative: any) => collaborative.users,
       ).length;
 
       for (const collaborative of nft.collaboratives) {
@@ -620,7 +620,7 @@ export default function useMintNFT() {
     return quantity;
   };
 
-  const uploadNFTMetadataAndReturnCID = async (nft) => {
+  const uploadNFTMetadataAndReturnCID = async (nft: any) => {
     let nftMetaData = { ...nft };
     // if (!nftMetaData.deployed) {
     //   delete nftMetaData.name;
@@ -643,7 +643,7 @@ export default function useMintNFT() {
     const metaDataFileObject = new File(
       [
         new Blob([JSON.stringify(nftMetaData)], {
-          lastModified: Date.now(), // optional - default = now
+          // lastModified: Date.now(), // optional - default = now
           type: 'text/plain', // optional - default = ''
         }),
       ],

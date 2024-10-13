@@ -1,11 +1,9 @@
 import { Interface } from '@ethersproject/abi';
-
+import { Web3Provider } from '@ethersproject/providers';
 import { useContext } from 'react';
 import IERC165 from '../../contracts/IERC165.json';
 import TipERC721 from '../../contracts/TipERC721.json';
-import TipERC1155 from '../../contracts/TipERC1155.json';
 import FNFTNestable from '../../contracts/FNFTNestable.json';
-import INestableERC1155 from '../../contracts/INestableERC1155.json';
 
 import BlockchainContext, {
   BlockchainContextType,
@@ -21,8 +19,6 @@ import { AccountAbstractionPayment } from '../../types';
 import useUserProfile from '../hooks/useUserProfile';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { userauthpubstate } from '../atoms/userAuthAtom';
-import useCreateNFT from '../hooks/useCreateNFT';
-import { currentnftmetadata } from '../atoms/nftSlideOverAtom';
 import {
   constructNFTAddressId,
   convertAttributesToNFT721Convention,
@@ -80,9 +76,6 @@ export default function useMintNestableNFT() {
   } = useMintNFT();
   const [getUserProfile] = useUserProfile();
 
-  const { mutate: createNFT, ...createNFTInfo } = useCreateNFT();
-  const setCurrentNFT = useSetRecoilState(currentnftmetadata);
-
   const setSelectedParentNFTAddressId = useSetRecoilState(
     selectedparentnftaddressid,
   );
@@ -105,11 +98,6 @@ export default function useMintNestableNFT() {
       getIsNestableNFT: async () => {
         throw new Error(
           'Cannot check if NFT is nestable: smartAccount is not defined',
-        );
-      },
-      upgradeToNestableNFT: async () => {
-        throw new Error(
-          'Cannot upgrade to nestable NFT: smartAccount is not defined',
         );
       },
       addChildToNestableNFT: async () => {
@@ -272,7 +260,7 @@ export default function useMintNestableNFT() {
 
     if (!smartAccount) {
       throw new Error(
-        'upgradeToNestableNFT: nestableNFT: smartAccount is undefined',
+        'addChildToNestableNFT: nestableNFT: smartAccount is undefined',
       );
     }
 
@@ -297,7 +285,7 @@ export default function useMintNestableNFT() {
       nestableContractAddress,
     );
 
-    const signer = smartAccountProvider.getSigner();
+    const signer = (smartAccountProvider as Web3Provider).getSigner();
     const signerAddress = await signer.getAddress();
 
     if (await getIsOwnNFT(signerAddress, nft)) {
@@ -374,12 +362,13 @@ export default function useMintNestableNFT() {
 
       if (receipt.isSuccess) {
         setSelectedParentNFTAddressId(
-          constructNFTAddressId(parentAddress, parentId),
+          constructNFTAddressId(parentAddress, parentId) as any,
         );
 
         return {
           address: String(nestableNFTContractAddress), // Ensure the address is a string
           id: parentId,
+          uri: '',
         };
       } else
         throw new Error(
@@ -441,6 +430,9 @@ export default function useMintNestableNFT() {
       connectedChainId,
       'NEXT_PUBLIC_NESTABLENFT_ADDRESS',
     );
+
+    if (!uploadNFTMetadataAndReturnCID)
+      throw new Error('mintNestableNFT: uploadNFTMetadataAndReturnCID is null');
 
     const cid = await uploadNFTMetadataAndReturnCID(nft);
     console.log(`useMintNFT: cid = ${cid} for storage ${defaultStorage}`);
@@ -590,7 +582,7 @@ export default function useMintNestableNFT() {
 
     if (!smartAccount)
       throw new Error(
-        'upgradeToNestableNFT: nestableNFT: smartAccount is undefined',
+        'useMintNestableNFT: nestableNFT: smartAccount is undefined',
       );
 
     const smartAccountAddress = await getSmartAccountAddress(smartAccount);
@@ -647,6 +639,7 @@ export default function useMintNestableNFT() {
       return {
         address: childAddress,
         id: childId.toString(),
+        uri: '',
       };
     } catch (e) {
       const errorMessage =

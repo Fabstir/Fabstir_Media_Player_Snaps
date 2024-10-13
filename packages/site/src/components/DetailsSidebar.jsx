@@ -611,14 +611,14 @@ export default function DetailsSidebar({
     let nestableNFT;
     for (const selectedNFT of theSelectedNFTs) {
       if (theSelectedParentNFTType === NFTType.ERC721) {
-        nestableNFT = await addChildToNestableNFT(
+        await addChildToNestableNFT(
           nft.address,
           nft.id,
           numberOfChildren - 1,
           selectedNFT,
         );
       } else if (theSelectedParentNFTType === NFTType.ERC1155) {
-        nestableNFT = await addChildToNestableERC1155NFT(
+        await addChildToNestableERC1155NFT(
           nft.address,
           nft.id,
           numberOfChildren - 1,
@@ -652,11 +652,6 @@ export default function DetailsSidebar({
       removeFromNestableNFT(selectedNFT);
 
       setCurrentNFT(null);
-      // setRefetchNFTsCount((prev) => prev + 1);
-
-      console.log(
-        `DetailsSidebar: handleSelectedToParent: added nft address ${selectedNFT.address} with token id ${selectedNFT.id} to nestableNFT = ${nestableNFT}`,
-      );
     }
   }
 

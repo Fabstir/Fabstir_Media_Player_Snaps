@@ -1,14 +1,11 @@
 import { useState, useCallback, useContext } from 'react';
 import { Zero } from '@ethersproject/constants';
-import { BigNumber } from '@ethersproject/bignumber';
-import { keccak256 } from '@ethersproject/keccak256';
-import { toUtf8Bytes } from '@ethersproject/strings';
+import { Web3Provider } from '@ethersproject/providers';
 import { Interface } from '@ethersproject/abi';
 import TipERC1155 from '../../contracts/TipERC1155.json';
 import FNFTNestableERC1155 from '../../contracts/FNFTNestableERC1155.json';
 
 import IERC165 from '../../contracts/IERC165.json';
-import { AddressZero } from '@ethersproject/constants';
 import BlockchainContext, {
   BlockchainContextType,
 } from '../../state/BlockchainContext';
@@ -123,43 +120,6 @@ export function useMintNestableERC1155NFT() {
     return result;
   };
 
-  const upgradeToNestableNFT = async (nft: NFT, amount: number) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      console.log(`useMintNestableNFT: smartAccount: ${smartAccount}`);
-
-      if (!smartAccount)
-        throw new Error(
-          'upgradeToNestableNFT: nestableNFT: smartAccount is undefined',
-        );
-
-      const smartAccountAddress = await getSmartAccountAddress(smartAccount);
-
-      const nestableNFT = await mintNestableNFT(smartAccountAddress, amount);
-
-      const nestableNFTWithChild = await addChildToNestableNFT(
-        nestableNFT.address,
-        Number(nestableNFT.id),
-        0,
-        nft,
-        [],
-      );
-
-      setIsLoading(false);
-
-      setSelectedParentNFTAddressId(
-        constructNFTAddressId(nestableNFT.address, nestableNFT.id),
-      );
-
-      return nestableNFTWithChild;
-    } catch (err: any) {
-      setError(err);
-      setIsLoading(false);
-      throw err;
-    }
-  };
-
   /**
    * Asynchronously adds a child NFT to a parent nestable NFT.
    *
@@ -200,7 +160,7 @@ export function useMintNestableERC1155NFT() {
 
     if (!smartAccount) {
       throw new Error(
-        'upgradeToNestableNFT: nestableNFT: smartAccount is undefined',
+        'useMintNestableNFT: nestableNFT: smartAccount is undefined',
       );
     }
 
@@ -231,7 +191,7 @@ export function useMintNestableERC1155NFT() {
       nestableContractAddress,
     );
 
-    const signer = smartAccountProvider.getSigner();
+    const signer = (smartAccountProvider as Web3Provider).getSigner();
     const signerAddress = await signer.getAddress();
 
     if (await getIsOwnNFT(signerAddress, nft)) {
@@ -307,7 +267,7 @@ export function useMintNestableERC1155NFT() {
 
       if (receipt.isSuccess) {
         setSelectedParentNFTAddressId(
-          constructNFTAddressId(parentAddress, parentId),
+          constructNFTAddressId(parentAddress, parentId) as any,
         );
 
         return {
@@ -351,7 +311,7 @@ export function useMintNestableERC1155NFT() {
       `useMintNestableNFT: removeChildFromNestableNFT: parentId ${parentId}, childAddress ${childAddress}, childId ${childId}}`,
     );
 
-    const children = await getChildrenOfNestableNFT(parentId);
+    const children = await getChildrenOfNestableNFT(parentId.toString());
     console.log(
       'useMintNestableNFT: removeChildFromNestableNFT: children = ',
       children,
@@ -392,6 +352,10 @@ export function useMintNestableERC1155NFT() {
     );
 
     const chainId = getChainIdFromChainIdAddress(childAddress);
+    if (!getIsERC1155Address)
+      throw new Error(
+        'useMintNestableNFT: removeChildFromNestableNFT: No getIsERC1155Address',
+      );
     if (
       !getIsERC1155Address(
         getChainIdAddressFromChainIdAndAddress(chainId, child.contractAddress),
@@ -411,7 +375,7 @@ export function useMintNestableERC1155NFT() {
 
     if (!smartAccount)
       throw new Error(
-        'upgradeToNestableNFT: nestableNFT: smartAccount is undefined',
+        'useMintNestableNFT: nestableNFT: smartAccount is undefined',
       );
 
     const smartAccountAddress = await getSmartAccountAddress(smartAccount);
@@ -515,6 +479,9 @@ export function useMintNestableERC1155NFT() {
       connectedChainId,
       'NEXT_PUBLIC_NESTABLENFT_ERC1155_ADDRESS',
     );
+
+    if (!uploadNFTMetadataAndReturnCID)
+      throw new Error('mintNestableNFT: No uploadNFTMetadataAndReturnCID');
 
     const cid = await uploadNFTMetadataAndReturnCID(nft);
 
@@ -680,6 +647,8 @@ export function useMintNestableERC1155NFT() {
       return;
 
     let isOwnNFT;
+    if (!getIsERC1155) throw new Error('getIsOwnNFT: No getIsERC1155');
+
     if (nft.parentAddress && (await getIsNestableNFT(nft.parentAddress))) {
       const nestableNFTContract = newReadOnlyContract(
         getChainIdAddressFromContractAddresses(
@@ -736,6 +705,9 @@ export function useMintNestableERC1155NFT() {
     const userAuthProfile = await getUserProfile(userPub);
 
     let quantity = Zero;
+    if (!getNFTQuantityFromStandard)
+      throw new Error('getNFTQuantity: No getNFTQuantityFromStandard');
+
     if (nft.parentAddress && nft.parentId) {
       quantity = await getNFTQuantityFromStandard(userPub, {
         address: nft.parentAddress,
@@ -753,7 +725,6 @@ export function useMintNestableERC1155NFT() {
     isLoading,
     error,
     getIsNestableNFT,
-    upgradeToNestableNFT,
     addChildToNestableNFT,
     removeChildFromNestableNFT,
     mintNestableNFT,
