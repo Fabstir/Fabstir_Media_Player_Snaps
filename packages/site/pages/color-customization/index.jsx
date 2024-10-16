@@ -134,8 +134,9 @@ const Color = () => {
 
   // PrimaryColorChange function
   const handlePrimaryColorChange = (newColor) => {
-    const updatedPrimaryColor = newColor.hex;
-    const isLightColor = chroma(updatedPrimaryColor).luminance() > 0.5;
+     const updatedPrimaryColor = newColor.hex;
+     const isLightColor = chroma(updatedPrimaryColor).luminance() > 0.5;
+
 
     setPrimaryColorState({
       primaryColor: updatedPrimaryColor,
@@ -235,7 +236,7 @@ const Color = () => {
   };
 
   const handleSecondaryColorChange = (newColor) => {
-    const updatedSecondaryColor = newColor.hex;
+    const updatedSecondaryColor = newColor.hex; // Use rgba format
     const isLightColor = chroma(updatedSecondaryColor).luminance() > 0.5;
 
     setSecondaryColorState({
@@ -489,6 +490,7 @@ const Color = () => {
                     <ChromePicker
                       color={primaryColorState?.primaryColor}
                       onChange={handlePrimaryColorChange}
+                      disableAlpha={true}
                     />
                   </div>
                 )}
@@ -646,6 +648,7 @@ const Color = () => {
                     <ChromePicker
                       color={secondaryColorState?.secondaryColor}
                       onChange={handleSecondaryColorChange}
+                      disableAlpha={true}
                     />
                   </div>
                 )}
@@ -837,6 +840,7 @@ const Color = () => {
                         ? neutralsColorState?.dark?.[field]
                         : neutralsColorState?.light?.[field]}
                         onChange={(color) => handleNeutralsColorChange(color, field)}
+                        disableAlpha={true}
                       />
                     )}
                     </div>
@@ -957,6 +961,7 @@ const Color = () => {
                       <ChromePicker
                         color={utilityColors?.[field]}
                         onChange={(color) => handleUtilityColorChange(color, field)}
+                        disableAlpha={true}
                       />
                     )}
                     </div>
