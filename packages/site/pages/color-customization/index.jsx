@@ -20,7 +20,7 @@ import tinycolor from 'tinycolor2';
 
 const defaultColors = {
   light: {
-    background: '#f02244',
+    background: '#e5e5e5',
     foreground: '#fbfbfb',
     border: '#dfdfdf',
     copy: '#262626',
@@ -72,18 +72,8 @@ const Color = () => {
     errorContentColor: '#ffffff',
   });
   const [neutralsColorState, setNeutralsColorState] = useState(defaultColors);
+  const [neutralsColorStateOrigin, setNeutralsColorStateOrigin] = useState(defaultColors);
 
-  // Function to invert colors for dark mode to ensure contrast
-  const invertColor = (color) => {
-    const tc = tinycolor(color);
-    const rgb = tc.toRgb();
-    const inverted = {
-      r: 255 - rgb.r,
-      g: 255 - rgb.g,
-      b: 255 - rgb.b,
-    };
-    return tinycolor(inverted).toHexString();
-  };
 
   useEffect(() => {
     if (userAuthPub) {
@@ -111,11 +101,22 @@ const Color = () => {
 
   // NeutralsColorChange function for Use Customize
   const handleNeutralsColorChange = (newColor , field) => {
+    setSaturation(1);
     console.log(`${newColor} , ${field} color configured`);
+    setNeutralsColorStateOrigin((prevState) => ({
+      ...prevState,
+      [colorMode]: {
+        ...prevState[colorMode],
+        //[field]: newColor.hex,
+        [field]: newColor.hex,
+      },
+    }));
+
     setNeutralsColorState((prevState) => ({
       ...prevState,
       [colorMode]: {
         ...prevState[colorMode],
+        //[field]: newColor.hex,
         [field]: newColor.hex,
       },
     }));
@@ -169,8 +170,71 @@ const Color = () => {
     });
 
     
-    setSaturation(0);
+    setSaturation(1);
     setNeutralsColorState({
+      light: {
+        foreground: blendWithPrimary(
+          defaultColors.light.foreground,
+          2,
+          updatedPrimaryColor,
+        ),
+        background: blendWithPrimary(
+          defaultColors.light.background,
+          2,
+          updatedPrimaryColor,
+        ),
+        border: blendWithPrimary(
+          defaultColors.light.border,
+          2,
+          updatedPrimaryColor,
+        ),
+        copy: blendWithPrimary(
+          defaultColors.light.copy,
+          1,
+          updatedPrimaryColor,
+        ),
+        copyLight: blendWithPrimary(
+          defaultColors.light.copyLight,
+          2,
+          updatedPrimaryColor,
+        ),
+        copyLighter: blendWithPrimary(
+          defaultColors.light.copyLighter,
+          5,
+          updatedPrimaryColor,
+        ),
+      },
+      dark: {
+        foreground: blendWithPrimary(
+          defaultColors.dark.foreground,
+          2,
+          updatedPrimaryColor,
+        ),
+        background: blendWithPrimary(
+          defaultColors.dark.background,
+          2,
+          updatedPrimaryColor,
+        ),
+        border: blendWithPrimary(
+          defaultColors.dark.border,
+          2,
+          updatedPrimaryColor,
+        ),
+        copy: blendWithPrimary(defaultColors.dark.copy, 1, updatedPrimaryColor),
+        copyLight: blendWithPrimary(
+          defaultColors.dark.copyLight,
+          2,
+          updatedPrimaryColor,
+        ),
+        copyLighter: blendWithPrimary(
+          defaultColors.dark.copyLighter,
+          5,
+          updatedPrimaryColor,
+        ),
+      },
+      
+    });
+    setNeutralsColorStateOrigin({
       light: {
         foreground: blendWithPrimary(
           defaultColors.light.foreground,
@@ -248,87 +312,94 @@ const Color = () => {
       secondaryDarkColor: chroma(updatedSecondaryColor).darken(1).hex(),
     });
   };
-
+  
   const handleSaturation = (value) => {
     setSaturation(value);
-    if (value == 0) {
-      setNeutralsColorState(defaultColors);
-    } else {
-      setNeutralsColorState({
-        light: {
-          foreground: blendWithPrimary(
-            defaultColors.light.foreground,
-            2,
-            primaryColorState?.primaryColor,
-          ),
-          background: blendWithPrimary(
-            defaultColors.light.background,
-            2,
-            primaryColorState?.primaryColor,
-          ),
-          border: blendWithPrimary(
-            defaultColors.light.border,
-            2,
-            primaryColorState?.primaryColor,
-          ),
-          copy: blendWithPrimary(
-            defaultColors.light.copy,
-            1,
-            primaryColorState?.primaryColor,
-          ),
-          copyLight: blendWithPrimary(
-            defaultColors.light.copyLight,
-            2,
-            primaryColorState?.primaryColor,
-          ),
-          copyLighter: blendWithPrimary(
-            defaultColors.light.copyLighter,
-            5,
-            primaryColorState?.primaryColor,
-          ),
-        },
-        dark: {
-          foreground: blendWithPrimary(
-            defaultColors.dark.foreground,
-            2,
-            primaryColorState?.primaryColor,
-          ),
-          background: blendWithPrimary(
-            defaultColors.dark.background,
-            2,
-            primaryColorState?.primaryColor,
-          ),
-          border: blendWithPrimary(
-            defaultColors.dark.border,
-            2,
-            primaryColorState?.primaryColor,
-          ),
-          copy: blendWithPrimary(
-            defaultColors.dark.copy,
-            1,
-            primaryColorState?.primaryColor,
-          ),
-          copyLight: blendWithPrimary(
-            defaultColors.dark.copyLight,
-            2,
-            primaryColorState?.primaryColor,
-          ),
-          copyLighter: blendWithPrimary(
-            defaultColors.dark.copyLighter,
-            5,
-            primaryColorState?.primaryColor,
-          ),
-        },
-      });
-    }
+    // if (value == 0) {
+    //   setNeutralsColorState(defaultColors);
+    // } else {
+    setNeutralsColorState({
+      light: {
+        foreground: blendWithoutPrimary(
+          neutralsColorStateOrigin.light.foreground,
+          2,
+        ),
+        background: blendWithoutPrimary(
+          neutralsColorStateOrigin.light.background,
+          2,
+        ),
+        border: blendWithoutPrimary(
+          neutralsColorStateOrigin.light.border,
+          2,
+        ),
+        copy: blendWithoutPrimary(
+          neutralsColorStateOrigin.light.copy,
+          1,
+        ),
+        copyLight: blendWithoutPrimary(
+          neutralsColorStateOrigin.light.copyLight,
+          2,
+        ),
+        copyLighter: blendWithoutPrimary(
+          neutralsColorStateOrigin.light.copyLighter,
+          5, 
+        ),
+      },
+      dark: {
+        foreground: blendWithoutPrimary(
+          neutralsColorStateOrigin.dark.foreground,
+          2,
+        ),
+        background: blendWithoutPrimary(
+          neutralsColorStateOrigin.dark.background,
+          2,
+        ),
+        border: blendWithoutPrimary(
+          neutralsColorStateOrigin.dark.border,
+          2,
+        ),
+        copy: blendWithoutPrimary(
+          neutralsColorStateOrigin.dark.copy,
+          1,
+        ),
+        copyLight: blendWithoutPrimary(
+          neutralsColorStateOrigin.dark.copyLight,
+          2,
+        ),
+        copyLighter: blendWithoutPrimary(
+          neutralsColorStateOrigin.dark.copyLighter,
+          5,
+        ),
+      }
+    });
+    //}
+    console.log(saturation);
   };
 
-  const blendWithPrimary = (color, amount, primaryColor) => {
+  const blendWithoutPrimary = (color, amount) => {
+    // Ensure 'color' is a valid chroma color
+  const validColor = chroma(color);
+
+  // Use the 'set' method to modify saturation directly
+  // When saturation = 0, the color will be fully desaturated (grayscale)
+  // When saturation = 1, the color will retain its original vibrancy
+  const adjustedColor = validColor.set('hsl.s', saturation).hex();
+
+  return adjustedColor;
+  };
+  
+  
+
+  const blendWithPrimary = (color , amount , primaryColor) => {
     return chroma
       .mix(color, primaryColor, 0.1)
       .saturate(saturation * amount) // Increase saturation
       .brighten(saturation / 10) // Lighten the color based on saturation level
       .hex(); // Return the hex value
+    // return chroma
+    // .saturate(color, saturation * amount) // Increase saturation only for the color
+    // .brighten(saturation / 10) // Lighten the color based on saturation level
+    // .hex(); // Return the hex value
   };
 
   const onSubmit = async () => {
@@ -735,89 +806,91 @@ const Color = () => {
                   <span>Saturation</span>
                   <span className="">More</span>
                 </label>
-                <Input
-                  type="range"
-                  id="base-palette-saturation"
-                  min="0"
-                  max="0.35"
-                  step=".025"
-                  className="w-full"
-                  value={saturation}
-                  onChange={(e) => handleSaturation(parseFloat(e.target.value))} // Ensure value is parsed as float
-                />
+                <div className="w-full px-0">
+                  <Input
+                    type="range"
+                    id="base-palette-saturation"
+                    min="0"
+                    max="1"
+                    step=".05"
+                    className="w-full"
+                    padding="px-0"
+                    value={saturation}
+                    onChange={(e) => handleSaturation(parseFloat(e.target.value))} // Ensure value is parsed as float
+                  />
+                </div>
               </div>
               <div
-                style={{
-                  background: colorMode === 'dark' ? '#262626' : '#fafbfd',
-                }}
-                className="relative flex w-full items-center rounded-full p-1 shadow-xl transition-colors"
-              >
-                <Button
-                  className="text-sm font-medium flex items-center justify-center gap-2 p-2 transition-colors w-full relative z-10 rounded-full"
-                  style={{
-                    color: '#fafbfd',
-                    background: colorMode === 'dark' ? '#262626' : '#262626',
-                  }}
-                  onClick={() => setColorMode('light')}>
-                  </Button>
-                  <svg
-                    stroke="currentColor"
-                    fill="none"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="relative z-10 md:text-sm"
-                    height="1em"
-                    width="1em"
-                  >
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                  </svg>
-                  <span className="relative z-10">Light</span>
-                
-                <Button
-                  className="text-sm font-medium flex items-center justify-center gap-2 p-2 transition-colors w-full relative z-10 rounded-full"
-                  style={{
-                    color: '#262626',
-                    background: colorMode === 'dark' ? '#fafbfd' : '#fafbfd',
-                  }}
-                  onClick={() => setColorMode('dark')}>
-                  </Button>
-                  <svg
-                    stroke="currentColor"
-                    fill="none"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="relative z-10 md:text-sm"
-                    height="1em"
-                    width="1em"
-                  >
-                    <circle cx="12" cy="12" r="5"></circle>
-                    <line x1="12" y1="1" x2="12" y2="3"></line>
-                    <line x1="12" y1="21" x2="12" y2="23"></line>
-                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                    <line x1="1" y1="12" x2="3" y2="12"></line>
-                    <line x1="21" y1="12" x2="23" y2="12"></line>
-                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                  </svg>
-                  <span className="relative z-10">Dark</span>
-          
-              </div>
+  style={{
+    background: colorMode === 'dark' ? '#191818' : '#faf5f5', // Dark background for dark mode, light green for light mode
+  }}
+  className="relative flex w-full items-center rounded-full p-1 shadow-xl transition-colors"
+>
+  <div
+    className="text-sm font-medium flex items-center justify-center gap-2 p-2 transition-colors w-full relative z-10 rounded-full text-black bg-white cursor-pointer"
+    onClick={() => {
+      setColorMode('light');
+    }}
+  >
+    <svg
+      stroke="currentColor"
+      fill="none"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="relative z-10 md:text-sm"
+      height="1em"
+      width="1em"
+    >
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+    </svg>
+    <span className="relative z-10 text-black">Light</span>
+  </div>
+
+  <div
+    className="text-sm font-medium flex items-center justify-center gap-2 p-2 transition-colors w-full relative z-10 rounded-full text-white bg-black cursor-pointer"
+    onClick={() => {
+      setColorMode('dark');
+    }}
+  >
+    <svg
+      stroke="currentColor"
+      fill="none"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="relative z-10 md:text-sm"
+      height="1em"
+      width="1em"
+    >
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+    <span className="relative z-10 text-white">Dark</span>
+  </div>
+</div>
+
             </div>
             <div className="grid grid-cols-3 gap-4">
               {['foreground' , 'background' , 'border' , 'copy' , 'copyLight' , 'copyLighter'].map((field) => (
                   <div key={field}>
                     <div
-                      className="mb-2 w-full rounded-xl shadow-md transition-colors cursor-pointer"
+                      className="mb-2 w-full rounded-xl shadow-md transition-colors cursor-pointer relative group"
                       style={{
                         background: colorMode === 'dark'
                         ? neutralsColorState?.dark?.[field]
                         : neutralsColorState?.light?.[field], // Assuming light mode for simplicity
                         height: '5rem',
+                        position: 'relative', // Ensure the button has relative positioning
                       }}
                       onClick={() =>
                         setShowNeutralPicker((prev) => ({
@@ -825,7 +898,21 @@ const Color = () => {
                           [field]: !prev[field],
                         }))
                       }
-                    ></div>
+                    >
+                     {/* SVG Icon - hidden initially, appears on hover */}
+                     <svg
+                        className="absolute top-1 left-1 text-gray-500 transition-opacity duration-300 opacity-0 group-hover:opacity-100" 
+                        stroke="currentColor"
+                        fill="currentColor"
+                        strokeWidth="0"
+                        viewBox="0 0 16 16"
+                        height="1.5em" 
+                        width="1.5em"
+                      >
+                        <path d="M13.354.646a1.207 1.207 0 0 0-1.708 0L8.5 3.793l-.646-.647a.5.5 0 1 0-.708.708L8.293 5l-7.147 7.146A.5.5 0 0 0 1 12.5v1.793l-.854.853a.5.5 0 1 0 .708.707L1.707 15H3.5a.5.5 0 0 0 .354-.146L11 7.707l1.146 1.147a.5.5 0 0 0 .708-.708l-.647-.646 3.147-3.146a1.207 1.207 0 0 0 0-1.708l-2-2zM2 12.707l7-7L10.293 7l-7 7H2v-1.293z"></path>
+                      </svg>
+
+                    </div>
                     <p className="-mb-1 ml-1 text-lg font-semibold">
                       {field.charAt(0).toUpperCase() + field.slice(1)} {/* Capitalize */}
                     </p>
@@ -837,8 +924,8 @@ const Color = () => {
                     {showNeutralPicker[field] && (
                       <ChromePicker
                         color={colorMode === 'dark'
-                        ? neutralsColorState?.dark?.[field]
-                        : neutralsColorState?.light?.[field]}
+                        ? neutralsColorStateOrigin?.dark?.[field]
+                        : neutralsColorStateOrigin?.light?.[field]}
                         onChange={(color) => handleNeutralsColorChange(color, field)}
                         disableAlpha={true}
                       />
@@ -846,85 +933,6 @@ const Color = () => {
                     </div>
               ))}
             </div>
-              {/* <div>
-                <div
-                  className="mb-2 w-full rounded-xl shadow-md transition-colors"
-                  style={{
-                    background: neutralsColorState?.[colorMode]?.foreground,
-                    height: '5rem',
-                  }}
-                ></div>
-                <p className="-mb-1 ml-1 text-lg font-semibold">Foreground</p>
-                <span className="ml-1 text-sm ">
-                  {neutralsColorState?.[colorMode]?.foreground}
-                </span>
-              </div>
-              <div>
-                <div
-                  className="mb-2 w-full rounded-xl shadow-md transition-colors"
-                  style={{
-                    background: neutralsColorState?.[colorMode]?.background,
-                    height: '5rem',
-                  }}
-                ></div>
-                <p className="-mb-1 ml-1 text-lg font-semibold">Background</p>
-                <span className="ml-1 text-sm ">
-                  {neutralsColorState?.[colorMode]?.background}
-                </span>
-              </div>
-              <div>
-                <div
-                  className="mb-2 w-full rounded-xl shadow-md transition-colors"
-                  style={{
-                    background: neutralsColorState?.[colorMode]?.border,
-                    height: '5rem',
-                  }}
-                ></div>
-                <p className="-mb-1 ml-1 text-lg font-semibold">Border</p>
-                <span className="ml-1 text-sm ">
-                  {neutralsColorState?.[colorMode]?.border}
-                </span>
-              </div>
-              <div>
-                <div
-                  className="mb-2 w-full rounded-xl shadow-md transition-colors"
-                  style={{
-                    background: neutralsColorState?.[colorMode]?.copy,
-                    height: '5rem',
-                  }}
-                ></div>
-                <p className="-mb-1 ml-1 text-lg font-semibold">Copy</p>
-                <span className="ml-1 text-sm ">
-                  {neutralsColorState?.[colorMode]?.copy}
-                </span>
-              </div>
-              <div>
-                <div
-                  className="mb-2 w-full rounded-xl shadow-md transition-colors"
-                  style={{
-                    background: neutralsColorState?.[colorMode]?.copyLight,
-                    height: '5rem',
-                  }}
-                ></div>
-                <p className="-mb-1 ml-1 text-lg font-semibold">Copy Light</p>
-                <span className="ml-1 text-sm ">
-                  {neutralsColorState?.[colorMode]?.copyLight}
-                </span>
-              </div>
-              <div>
-                <div
-                  className="mb-2 w-full rounded-xl shadow-md transition-colors"
-                  style={{
-                    background: neutralsColorState?.[colorMode]?.copyLighter,
-                    height: '5rem',
-                  }}
-                ></div>
-                <p className="-mb-1 ml-1 text-lg font-semibold">Copy Lighter</p>
-                <span className="ml-1 text-sm ">
-                  {neutralsColorState?.[colorMode]?.copyLighter}
-                </span>
-              </div> 
-            </div>*/}
           </div>
           <div className="mb-12 grid grid-cols-1 gap-12 md:grid-cols-[250px_1fr]">
             <div>
@@ -939,7 +947,7 @@ const Color = () => {
             {['successColor' , 'warningColor' , 'errorColor' , 'successContentColor' , 'warningContentColor' , 'errorContentColor'].map((field) => (
                   <div key={field}>
                     <div
-                      className="mb-2 w-full rounded-xl shadow-md transition-colors cursor-pointer"
+                      className="mb-2 w-full rounded-xl shadow-md transition-colors cursor-pointer relative group"
                       style={{
                         background: utilityColors?.[field], // Assuming light mode for simplicity
                         height: '5rem',
@@ -950,7 +958,20 @@ const Color = () => {
                           [field]: !prev[field],
                         }))
                       }
-                    ></div>
+                    >
+                      {/* SVG Icon - hidden initially, appears on hover */}
+                      <svg
+                        className="absolute top-1 left-1 text-gray-500 transition-opacity opacity-0 group-hover:opacity-100"
+                        stroke="currentColor"
+                        fill="currentColor"
+                        strokeWidth="0"
+                        viewBox="0 0 16 16"
+                        height="1.5em"
+                        width="1.5em"
+                      >
+                        <path d="M13.354.646a1.207 1.207 0 0 0-1.708 0L8.5 3.793l-.646-.647a.5.5 0 1 0-.708.708L8.293 5l-7.147 7.146A.5.5 0 0 0 1 12.5v1.793l-.854.853a.5.5 0 1 0 .708.707L1.707 15H3.5a.5.5 0 0 0 .354-.146L11 7.707l1.146 1.147a.5.5 0 0 0 .708-.708l-.647-.646 3.147-3.146a1.207 1.207 0 0 0 0-1.708l-2-2zM2 12.707l7-7L10.293 7l-7 7H2v-1.293z"></path>
+                      </svg>
+                    </div>
                     <p className="-mb-1 ml-1 text-lg font-semibold">
                       {field.charAt(0).toUpperCase() + field.slice(1)} {/* Capitalize */}
                     </p>
