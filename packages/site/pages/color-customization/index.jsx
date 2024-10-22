@@ -924,8 +924,8 @@ const Color = () => {
                     {showNeutralPicker[field] && (
                       <ChromePicker
                         color={colorMode === 'dark'
-                        ? neutralsColorStateOrigin?.dark?.[field]
-                        : neutralsColorStateOrigin?.light?.[field]}
+                        ? neutralsColorState?.dark?.[field]
+                        : neutralsColorState?.light?.[field]}
                         onChange={(color) => handleNeutralsColorChange(color, field)}
                         disableAlpha={true}
                       />
