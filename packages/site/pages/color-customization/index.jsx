@@ -473,6 +473,7 @@ const Color = () => {
       setSecondaryColorState(secondaryColor);
       setUtilityColors(utilityColors);
       setNeutralsColorState(neutralsColor);
+      setNeutralsColorStateOrigin(neutralsColor);
       setSaturation(saturationNumber);
     } catch (error) {
       handleError(error);
