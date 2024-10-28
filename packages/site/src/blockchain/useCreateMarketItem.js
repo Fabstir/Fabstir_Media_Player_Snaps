@@ -33,8 +33,11 @@ import {
 } from '../utils/nftUtils';
 import { fetchNFT } from '../hooks/useNFT.js';
 import { connect } from '@particle-network/auth-core';
+import { useConfig } from '../../state/configContext';
 
 export default function useCreateMarketItem() {
+  const config = useConfig();
+
   const blockchainContext = useContext(BlockchainContext);
   const { connectedChainId, smartAccountProvider, smartAccount } =
     blockchainContext;
@@ -429,7 +432,7 @@ export default function useCreateMarketItem() {
       await putMediaKey(cidWithoutKey, mediaSEAPair, key);
 
       const passphrase = await FEA.secret(
-        process.env.NEXT_PUBLIC_SUBSCRIPTION_CONTROLLER_EPUB,
+        config.subscriptionControllerEPub,
         user._.sea,
       );
 

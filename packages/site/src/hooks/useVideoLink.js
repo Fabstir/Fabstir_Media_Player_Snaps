@@ -4,6 +4,7 @@ import {
 } from '../utils/s5EncryptCIDHelper';
 import useNFTMedia from './useNFTMedia';
 import useIPFS from './useIPFS';
+import { useConfig } from '../../state/configContext';
 
 /**
  * `useVideoLink` is a custom React hook designed to manage and provide video links for playback within a React application.
@@ -15,6 +16,8 @@ import useIPFS from './useIPFS';
  * and manipulation of video links for playback.
  */
 export default function useVideoLink() {
+  const config = useConfig();
+
   const portNumber = parseInt(window.location.port, 10);
 
   const { removeIPFSPrefix } = useIPFS();
@@ -40,10 +43,10 @@ export default function useVideoLink() {
         let src;
         if (videoFormat.cid.startsWith(process.env.NEXT_PUBLIC_IPFS_PREFIX)) {
           const cid = removeIPFSPrefix(videoFormat.cid);
-          src = `${process.env.NEXT_PUBLIC_IPFS_GATEWAY}/ipfs/${cid}`;
+          src = `${config.ipfsGateway}/ipfs/${cid}`;
         } else {
           const cid = removeS5Prefix(videoFormat.cid);
-          src = `${process.env.NEXT_PUBLIC_S5_PORTAL_STREAMING_URL}:${portNumber}/s5/blob/${cid}?mediaType=${videoFormat.type}`;
+          src = `${config.s5PortalStreamingUrlL}:${portNumber}/s5/blob/${cid}?mediaType=${videoFormat.type}`;
         }
 
         const source = {
@@ -57,10 +60,10 @@ export default function useVideoLink() {
         let src;
         if (videoFormat.cid.startsWith(process.env.NEXT_PUBLIC_IPFS_PREFIX)) {
           src = removeIPFSPrefix(videoFormat.cid);
-          src = `${process.env.NEXT_PUBLIC_IPFS_GATEWAY}/ipfs/${src}`;
+          src = `${config.ipfsGateway}/ipfs/${src}`;
         } else {
           src = removeS5Prefix(videoFormat.cid);
-          src = `${process.env.NEXT_PUBLIC_S5_PORTAL_STREAMING_URL}:${portNumber}/s5/blob/${src}?mediaType=${videoFormat.type}`;
+          src = `${config.s5PortalStreamingUrlL}:${portNumber}/s5/blob/${src}?mediaType=${videoFormat.type}`;
         }
 
         let source = {
@@ -73,10 +76,10 @@ export default function useVideoLink() {
         let src;
         if (videoFormat.cid.startsWith(process.env.NEXT_PUBLIC_IPFS_PREFIX)) {
           src = removeIPFSPrefix(videoFormat.cid);
-          src = `${process.env.NEXT_PUBLIC_IPFS_GATEWAY}/ipfs/${src}`;
+          src = `${config.ipfsGateway}/ipfs/${src}`;
         } else {
           src = removeS5Prefix(videoFormat.cid);
-          src = `${process.env.NEXT_PUBLIC_S5_PORTAL_STREAMING_URL}:${portNumber}/s5/blob/${src}?mediaType=text%2Fplain`;
+          src = `${config.s5PortalStreamingUrlL}:${portNumber}/s5/blob/${src}?mediaType=text%2Fplain`;
         }
 
         let source = {

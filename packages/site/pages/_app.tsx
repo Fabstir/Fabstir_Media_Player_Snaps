@@ -28,14 +28,25 @@ import {
   getSupportedChains,
   getSupportedChainIds,
 } from '../src/utils/chainUtils';
-
-// Import the ParticleAuth type
-import { ParticleAuth } from '../types';
+import axios from 'axios';
+import { ConfigContext } from '../state/configContext';
+import { Config } from '../state/types';
+import { fetchConfig } from '../src/fetchConfig';
 
 // Create a client
 export const queryClient = new QueryClient();
 
 function MyApp({ Component, pageProps }: AppProps) {
+  const [config, setConfig] = useState<Config | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const config = await fetchConfig();
+      console.log('MyApp: config: ', config);
+      setConfig(config);
+    })();
+  }, [fetchConfig]);
+
   const [userInfo, setUserInfo] = useState<ParticleAuthModule.UserInfo | null>(
     null,
   );
@@ -137,6 +148,8 @@ function MyApp({ Component, pageProps }: AppProps) {
     </QueryClientProvider>
   );
 
+  if (!config) return <div>Loading...</div>;
+
   return (
     <BlockchainContext.Provider
       value={{
@@ -153,46 +166,48 @@ function MyApp({ Component, pageProps }: AppProps) {
       }}
     >
       <RecoilRoot>
-        {isParticleEnabled ? (
-          <DynamicAuthCoreContextProvider
-            options={{
-              projectId: process.env.NEXT_PUBLIC_PARTICLE_PROJECT_ID || '',
-              clientKey: process.env.NEXT_PUBLIC_PARTICLE_CLIENT_KEY || '',
-              appId: process.env.NEXT_PUBLIC_PARTICLE_APP_ID || '',
-              erc4337: {
-                name: 'BICONOMY',
-                version: '2.0.0',
-              },
-              authTypes: [AuthType.email, AuthType.google, AuthType.apple],
-              themeType: 'dark', // light or dark
-              fiatCoin: 'USD',
-              language: 'en',
-              customStyle: {
-                logo: 'https://xxxx', // image url
-                projectName: 'xxx',
-                modalBorderRadius: 10,
-                theme: {
-                  light: {
-                    textColor: '#000',
-                  },
-                  dark: {
-                    textColor: '#fff',
-                  },
+        <ConfigContext.Provider value={config}>
+          {isParticleEnabled ? (
+            <DynamicAuthCoreContextProvider
+              options={{
+                projectId: config.projectId || '',
+                clientKey: config.clientKey || '',
+                appId: config.appId || '',
+                erc4337: {
+                  name: 'BICONOMY',
+                  version: '2.0.0',
                 },
-              },
-              wallet: {
-                visible: true,
+                authTypes: [AuthType.email, AuthType.google, AuthType.apple],
+                themeType: 'dark', // light or dark
+                fiatCoin: 'USD',
+                language: 'en',
                 customStyle: {
-                  supportChains,
+                  logo: 'https://xxxx', // image url
+                  projectName: 'xxx',
+                  modalBorderRadius: 10,
+                  theme: {
+                    light: {
+                      textColor: '#000',
+                    },
+                    dark: {
+                      textColor: '#fff',
+                    },
+                  },
                 },
-              },
-            }}
-          >
-            {content}
-          </DynamicAuthCoreContextProvider>
-        ) : (
-          content
-        )}
+                wallet: {
+                  visible: true,
+                  customStyle: {
+                    supportChains,
+                  },
+                },
+              }}
+            >
+              {content}
+            </DynamicAuthCoreContextProvider>
+          ) : (
+            content
+          )}
+        </ConfigContext.Provider>
       </RecoilRoot>
     </BlockchainContext.Provider>
   );

@@ -65,12 +65,14 @@ import useDeleteNestableNFT from '../src/hooks/useDeleteNestableNFT';
 import UserProfile from './profile';
 import { useMintNestableERC1155NFT } from '../src/blockchain/useMintNestableERC1155NFT';
 import useNFTSale from '../src/hooks/useNFTSale';
+import { useConfig } from '../state/configContext';
 
 type Addresses = {
   [key: string]: any; // Replace `any` with the actual type of the values
 };
 
 const Index = () => {
+  const config = useConfig();
   const [state, dispatch] = useContext(MetaMaskContext);
   const [triggerEffect, setTriggerEffect] = useState(0);
 
@@ -584,15 +586,15 @@ const Index = () => {
     smartAccountAddress: string,
     eoaAddress: string,
   ) => {
-    if (!process.env.NEXT_PUBLIC_FABSTIR_SALT_PAIR)
+    if (!config.fabstirSaltPair)
       throw new Error('logInOrCreateNewUser: Salt pair is not set');
 
     const password = generatePassword(
       smartAccountAddress,
-      process.env.NEXT_PUBLIC_FABSTIR_SALT_KEY as string,
+      config.fabstirSaltKey as string,
     );
 
-    const pair = JSON.parse(process.env.NEXT_PUBLIC_FABSTIR_SALT_PAIR);
+    const pair = JSON.parse(config.fabstirSaltPair);
 
     console.log('SEA = ', SEA);
 
@@ -601,8 +603,8 @@ const Index = () => {
 
     console.log('logInOrCreateNewUser: passw = ', passw);
 
-    const testUserName = `${username}_${process.env.NEXT_PUBLIC_FABSTIR_MEDIA_PLAYER_INSTANCE}`;
-    const testPassword = `${passw}_${process.env.NEXT_PUBLIC_FABSTIR_MEDIA_PLAYER_INSTANCE}`;
+    const testUserName = `${username}_${config.fabstirMediaPlayerInstance}`;
+    const testPassword = `${passw}_${config.fabstirMediaPlayerInstance}`;
 
     let loggedIn = false;
     if (await isUserExists(testUserName)) {

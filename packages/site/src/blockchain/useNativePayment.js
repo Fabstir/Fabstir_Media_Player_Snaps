@@ -2,12 +2,14 @@ import { ethers } from 'ethers';
 import useContractUtils from './useContractUtils';
 import { useContext } from 'react';
 import BlockchainContext from '../../state/BlockchainContext';
+import { useConfig } from '../../state/configContext';
 
 export default function useNativePayment(signer) {
   const blockchainContext = useContext(BlockchainContext);
   const { connectedChainId } = blockchainContext;
 
   const { addressType, getProviderFromChainId } = useContractUtils();
+  const config = useConfig();
 
   // Ensures the signer is correctly provided and alerts if not
   if (!signer) {
@@ -107,7 +109,7 @@ export default function useNativePayment(signer) {
 
     // Update with your provider URL
     const wallet = new ethers.Wallet(
-      process.env.NEXT_PUBLIC_SPONSORED_ACCOUNT_PRIVATE_KEY,
+      config.sponsoredAccountPrivateKey,
       provider,
     );
 

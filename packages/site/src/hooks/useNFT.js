@@ -120,10 +120,6 @@ export const fetchNFT1155OnChain = async (
  */
 export default function useNFT(address_id) {
   const customClientOptions = {};
-  const client = new S5Client(
-    process.env.NEXT_PUBLIC_PORTAL_URL,
-    customClientOptions,
-  );
   const { downloadFile } = usePortal();
   const { newReadOnlyContract } = useContractUtils();
 

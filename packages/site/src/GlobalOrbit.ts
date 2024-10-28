@@ -1,12 +1,29 @@
 import createDBClient from 'fabstirdb-lib';
 import { parseArrayProperties } from './utils/stringifyProperties';
+import { fetchConfig } from './fetchConfig';
+
 /**
- * Instance of the OrbitDB client, created using the backend URL.
+ * Initialize the OrbitDB client using the backend URL from the configuration.
  */
-const dbClient = createDBClient(
-  process.env.NEXT_PUBLIC_FABSTIRDB_BACKEND_URL || '',
-  '',
-);
+let dbClient: any;
+
+const initializeDBClient = async () => {
+  const config = await fetchConfig();
+
+  if (!config || !config.fabstirDbBackendUrl)
+    throw new Error('No FabstirDB backend URL provided in the configuration');
+
+  dbClient = createDBClient(config.fabstirDbBackendUrl, '');
+
+  console.log(
+    'GlobalOrbit.ts: config.fabstirDbBackendUrl: ',
+    config.fabstirDbBackendUrl,
+  );
+  console.log('GlobalOrbit.ts: dbClient: ', dbClient);
+};
+
+// Create a Promise that resolves when dbClient is initialized
+const dbClientInitialized = initializeDBClient();
 
 /**
  * Retrieves the current user from the database client.
@@ -14,18 +31,12 @@ const dbClient = createDBClient(
  * @returns The current user object if it exists, or null if no user is logged in.
  */
 const getUser = () => {
-  if (!dbClient.user) return null;
+  if (!dbClient || !dbClient.user) return null;
 
   const user = dbClient.user();
   console.log('GlobalOrbit.ts: user: ', user);
   return user;
 };
-
-console.log(
-  'GlobalOrbit.ts: process.env.NEXT_PUBLIC_FABSTIRDB_BACKEND_URL: ',
-  process.env.NEXT_PUBLIC_FABSTIRDB_BACKEND_URL,
-);
-console.log('GlobalOrbit.ts: dbClient: ', dbClient);
 
 /**
  * FabstirDB serves as an interface API for storing data in a graph database. Based off of GUN API
@@ -78,4 +89,4 @@ async function dbClientLoad(
   return resultArray;
 }
 
-export { dbClient, getUser, dbClientOnce, dbClientLoad };
+export { dbClient, dbClientInitialized, getUser, dbClientOnce, dbClientLoad };

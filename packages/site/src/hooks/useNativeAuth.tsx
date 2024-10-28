@@ -5,6 +5,7 @@ import { useContext } from 'react';
 import BlockchainContext from '../../state/BlockchainContext';
 import { getConnectedChainId } from '../utils/chainUtils';
 import { createEOAAccount } from '../utils/eoaUtils';
+import { useConfig } from '../../state/configContext';
 
 export default function useNativeAuth() {
   const blockchainContext = useContext(BlockchainContext);
@@ -18,6 +19,7 @@ export default function useNativeAuth() {
   } = blockchainContext;
 
   const { getProviderFromChainId } = useContractUtils();
+  const config = useConfig();
 
   /**
    * Logs in the user natively. If the environment variable `NEXT_PUBLIC_DEFAULT_ALLOW_AA_SPONSORED` is set to 'true',
@@ -32,7 +34,7 @@ export default function useNativeAuth() {
 
     if (process.env.NEXT_PUBLIC_DEFAULT_ALLOW_AA_SPONSORED === 'true') {
       const wallet = new ethers.Wallet(
-        process.env.NEXT_PUBLIC_SPONSORED_ACCOUNT_PRIVATE_KEY as string,
+        config.sponsoredAccountPrivateKey as string,
       );
 
       if (!connectedChainId)

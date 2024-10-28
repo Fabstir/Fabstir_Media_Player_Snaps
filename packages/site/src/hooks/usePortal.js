@@ -1,7 +1,10 @@
+import { useConfig } from '../../state/configContext';
 import useIPFS from './useIPFS';
 import useS5net from './useS5';
 
 export default function usePortal(storageNetwork = process.env.NEXT_PUBLIC_S5) {
+  const config = useConfig();
+
   const s5 = useS5net();
   const ipfs = useIPFS();
 
@@ -53,7 +56,7 @@ export default function usePortal(storageNetwork = process.env.NEXT_PUBLIC_S5) {
     } else return 's5';
   }
 
-  if (process.env.NEXT_PUBLIC_PORTAL_TYPE === `ipfs`)
+  if (config.portalType === `ipfs`)
     return {
       uploadFile: ipfs.uploadFile,
       downloadFile,

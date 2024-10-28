@@ -1,3 +1,4 @@
+import { useConfig } from '../../state/configContext';
 import { saveState, loadState } from '../utils';
 import {
   combineKeytoEncryptedCid,
@@ -14,6 +15,8 @@ import useNFTMedia from './useNFTMedia';
  * @returns {Object} An object containing the audio link state and any associated utility functions.
  */
 export default function useAudioLink() {
+  const config = useConfig();
+
   const { removeIPFSPrefix } = useIPFS();
 
   const portNumber = parseInt(window.location.port, 10);
@@ -34,14 +37,14 @@ export default function useAudioLink() {
       if (audioFormat.cid.startsWith(process.env.NEXT_PUBLIC_IPFS_PREFIX)) {
         const cid = removeIPFSPrefix(audioFormat.cid);
         source = {
-          src: `${process.env.NEXT_PUBLIC_IPFS_GATEWAY}/ipfs/${cid}`,
+          src: `${config.ipfsGateway}/ipfs/${cid}`,
           type: audioFormat.type,
           label: audioFormat.label,
         };
       } else {
         const cid = removeS5Prefix(audioFormat.cid);
         source = {
-          src: `${process.env.NEXT_PUBLIC_S5_PORTAL_STREAMING_URL}:${portNumber}/s5/blob/${cid}`,
+          src: `${config.s5PortalStreamingUrlL}:${portNumber}/s5/blob/${cid}`,
           type: audioFormat.type,
           label: audioFormat.label,
         };

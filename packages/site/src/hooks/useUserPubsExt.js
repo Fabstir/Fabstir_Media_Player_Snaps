@@ -1,9 +1,12 @@
 import { SEA } from 'gun';
 
 import { dbClient } from '../GlobalOrbit';
+import { useConfig } from '../../state/configContext';
 
 export default function useUserPubsExt() {
-  const USERS_CONTENT = `#Fabstir${process.env.NEXT_PUBLIC_FABSTIR_MEDIA_PLAYER_INSTANCE}_users`;
+  const config = useConfig();
+
+  const USERS_CONTENT = `#Fabstir${config.fabstirMediaPlayerInstance}_users`;
 
   const fetchUserPubs = async (filter) => {
     const userPubs = [];

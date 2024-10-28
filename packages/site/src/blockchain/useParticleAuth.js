@@ -18,6 +18,8 @@ import BlockchainContext from '../../state/BlockchainContext';
 import { getSupportedChainIds } from '../utils/chainUtils';
 import { process_env } from '../utils/process_env';
 import useContractUtils from './useContractUtils';
+import { useConfig } from '../../state/configContext';
+import { fetchConfig } from '../fetchConfig';
 
 /* eslint-disable node/no-process-env */
 
@@ -29,6 +31,8 @@ import useContractUtils from './useContractUtils';
 export default function useParticleAuth() {
   const blockchainContext = useContext(BlockchainContext);
   const { connectedChainId, setConnectedChainId } = blockchainContext;
+
+  const config = useConfig();
 
   console.log(
     'useParticleAuth: process.env.NEXT_PUBLIC_ENABLE_OTHER_WALLET = ',
@@ -80,17 +84,23 @@ export default function useParticleAuth() {
     const supportedChainIds = getSupportedChainIds();
 
     for (const chainId of supportedChainIds) {
+      console.log(
+        'createAndSetParticleSmartAccount: Fetching config for chainId:',
+        chainId,
+      ); // Log the chainId
+      const config = await fetchConfig(chainId);
+      console.log('createAndSetParticleSmartAccount: Fetched config:', config);
+
       paymasterApiKeys.push({
         chainId: chainId,
-        apiKey:
-          process_env[`NEXT_PUBLIC_BICONOMY_PAYMASTER_API_KEY_${chainId}`],
+        apiKey: config.apiKey,
       });
     }
 
     const smartAccount = new SmartAccount(particleProvider, {
-      projectId: process.env.NEXT_PUBLIC_PARTICLE_PROJECT_ID,
-      clientKey: process.env.NEXT_PUBLIC_PARTICLE_CLIENT_KEY,
-      appId: process.env.NEXT_PUBLIC_PARTICLE_APP_ID,
+      projectId: config.projectId,
+      clientKey: config.clientKey,
+      appId: config.appId,
       aaOptions: {
         accountContracts: {
           BICONOMY: [

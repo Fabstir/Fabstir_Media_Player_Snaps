@@ -1,4 +1,5 @@
 import { S5Client } from '../../../../node_modules/s5client-js/dist/mjs/index';
+import { useConfig } from '../../state/configContext';
 
 import {
   getKeyFromEncryptedCid,
@@ -15,19 +16,18 @@ import mime from 'mime/lite';
  * @returns {Object} - The S5 network object.
  */
 export default function useS5net() {
+  const config = useConfig();
+
   const headers = {
     'Content-Type': 'text/plain; charset=UTF-8',
   };
   const customClientOptions = {
-    authToken: process.env.NEXT_PUBLIC_PORTAL_AUTH_TOKEN,
+    authToken: config.portalAuthToken,
     headers,
     withCredentials: false,
   };
 
-  const client = new S5Client(
-    process.env.NEXT_PUBLIC_PORTAL_URL,
-    customClientOptions,
-  );
+  const client = new S5Client(config.s5PortalUrl, customClientOptions);
 
   async function uploadFile(file, customOptions = {}) {
     console.log(`useS5net: uploadFile await client.uploadFile`);

@@ -178,11 +178,15 @@ export default function useParticlePayment(smartAccount) {
    * it handles the payment process using Biconomy's Account Abstraction (AA) feature with a sponsor. Otherwise, it handles the payment process using AA without a sponsor.
    *
    * @async
-   * @param {Array<Array<string, string>>} transactions - An array of pairs, each containing transaction data and a chain ID address.
+   * @function
+   * @param {Array<{data: string, chainId: string}>} transactions - An array of objects, each containing transaction data and a chain ID address.
    * @returns {Promise<Object>} A promise that resolves to an object containing the user operation hash, transaction details, and receipt.
    * @throws {Error} If the smart account is undefined or the connected chain ID is null or undefined.
    */
-  async function processTransactionBundle(transactions) {
+  async function processTransactionBundle(
+    transactions,
+    isSponsored = process.env.NEXT_PUBLIC_DEFAULT_ALLOW_AA_SPONSORED,
+  ) {
     const createdTransactions = [];
 
     for (const [transactionData, chainIdAddress] of transactions) {
@@ -195,10 +199,7 @@ export default function useParticlePayment(smartAccount) {
       createdTransactions.push(createdTransaction);
     }
 
-    if (
-      process.env.NEXT_PUBLIC_DEFAULT_ALLOW_AA_SPONSORED === 'all' ||
-      process.env.NEXT_PUBLIC_DEFAULT_ALLOW_AA_SPONSORED === 'true'
-    ) {
+    if (isSponsored === 'all' || isSponsored === 'true') {
       return await handleAAPaymentSponsor(createdTransactions);
     } else return await handleAAPayment(createdTransactions);
   }

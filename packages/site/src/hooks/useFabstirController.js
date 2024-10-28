@@ -6,21 +6,24 @@ import { dbClient } from '../GlobalOrbit';
 
 import axios from 'axios';
 import useUploadEncKey from './useUploadEncKey';
+import { useConfig } from '../../state/configContext';
 
 export default function useFabstirController() {
+  const config = useConfig();
+
   const submitKeyToController = async (userPub, addressId, encKey) => {
     console.log(
-      'useFabstirController: process.env.NEXT_PUBLIC_SUBSCRIPTION_CONTROLLER_EPUB =',
-      process.env.NEXT_PUBLIC_SUBSCRIPTION_CONTROLLER_EPUB,
+      'useFabstirController: config.subscriptionControllerEPub =',
+      config.subscriptionControllerEPub,
     );
     console.log(
-      'useFabstirController: process.env.NEXT_PUBLIC_FABSTIR_CONTROLLER_URL =',
-      process.env.NEXT_PUBLIC_FABSTIR_CONTROLLER_URL,
+      'useFabstirController: config.fabstirControllerUrl =',
+      config.fabstirControllerUrl,
     );
     console.log('useFabstirController: user._.sea =', user._.sea);
 
     const passphrase = await dbClient.secret(
-      process.env.NEXT_PUBLIC_SUBSCRIPTION_CONTROLLER_EPUB,
+      config.subscriptionControllerEPub,
       user._.sea,
     );
 
@@ -28,7 +31,7 @@ export default function useFabstirController() {
     const scrambledKeySEAPair = await SEA.encrypt(encKey, passphrase);
 
     // save encKey
-    const SUBMISSION_ENDPOINT = `${process.env.NEXT_PUBLIC_FABSTIR_CONTROLLER_URL}/submit_key`; // Change to your actual endpoint
+    const SUBMISSION_ENDPOINT = `${config.fabstirControllerUrl}/submit_key`; // Change to your actual endpoint
     const payload = {
       userPub, // Owner's GUN user public key
       nftAddressId: addressId, // Subscription Plan ID
@@ -55,12 +58,12 @@ export default function useFabstirController() {
       // Mark this function as async
       try {
         const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_FABSTIR_CONTROLLER_URL}/retrieve_key/${userPub}/${creatorPub}/${nftAddressId}/${parentAddressId}`,
+          `${config.fabstirControllerUrl}/retrieve_key/${userPub}/${creatorPub}/${nftAddressId}/${parentAddressId}`,
         );
 
         if (response.data && response.data.scrambleKeySEAPair) {
           const passphrase = await dbClient.secret(
-            process.env.NEXT_PUBLIC_SUBSCRIPTION_CONTROLLER_EPUB,
+            config.subscriptionControllerEPub,
             user._.sea,
           );
 

@@ -1,12 +1,11 @@
 import axios from 'axios';
+import { useConfig } from '../../state/configContext';
 
 /**
  * Custom React hook to interact with IPFS via Pinata using JWT for authentication.
  */
 export default function useIPFS() {
-  const pinataBaseUrl = 'https://api.pinata.cloud';
-  const pinataApiKey = process.env.NEXT_PUBLIC_PINATA_API_KEY;
-  const pinataApiSecret = process.env.NEXT_PUBLIC_PINATA_API_SECRET;
+  const config = useConfig();
 
   /**
    * Uploads a file to IPFS via Pinata.
@@ -14,7 +13,7 @@ export default function useIPFS() {
    * @returns {Promise<string>} The IPFS hash of the uploaded file.
    */
   async function uploadFile(file) {
-    const url = `${pinataBaseUrl}/pinning/pinFileToIPFS`;
+    const url = `${config.pinataBaseUrl}/pinning/pinFileToIPFS`;
 
     // Prepare form data
     let data = new FormData();
@@ -42,7 +41,7 @@ export default function useIPFS() {
    * @returns {Promise<string>} The IPFS hash of the uploaded directory.
    */
   async function uploadDirectory(files, directoryName) {
-    const url = `${pinataBaseUrl}/pinning/pinFileToIPFS`;
+    const url = `${config.pinataBaseUrl}/pinning/pinFileToIPFS`;
 
     // Prepare form data
     let data = new FormData();
@@ -52,8 +51,8 @@ export default function useIPFS() {
 
     // Pinata request headers
     const headers = {
-      pinata_api_key: pinataApiKey,
-      pinata_secret_api_key: pinataApiSecret,
+      pinata_api_key: config.pinataApiKey,
+      pinata_secret_api_key: config.pinataApiSecret,
       'Content-Type': 'multipart/form-data',
     };
 
@@ -73,7 +72,7 @@ export default function useIPFS() {
    */
   function getPortalLinkUrl(ipfsHash) {
     ipfsHash = removeIPFSPrefix(ipfsHash);
-    return `${process.env.NEXT_PUBLIC_IPFS_GATEWAY}/ipfs/${ipfsHash}`;
+    return `${config.ipfsGateway}/ipfs/${ipfsHash}`;
   }
 
   async function uploadLargeFile(file) {

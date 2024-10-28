@@ -3,8 +3,11 @@ import { user } from '../user';
 import { SEA } from 'gun';
 
 import axios from 'axios';
+import { useConfig } from '../../state/configContext';
 
 export default function useMarketKeys() {
+  const config = useConfig();
+
   const createMediaSEAPair = async () => {
     const mediaSEAPair = await SEA.pair();
     return mediaSEAPair;
@@ -15,7 +18,7 @@ export default function useMarketKeys() {
     cidWithoutKey,
     scrambledMediaSEAPair,
   ) => {
-    const SUBMISSION_ENDPOINT = `${process.env.NEXT_PUBLIC_FABSTIR_CONTROLLER_URL}/submit_media_key`;
+    const SUBMISSION_ENDPOINT = `${config.fabstirControllerUrl}/submit_media_key`;
 
     const encodedCidWithoutKey = encodeURIComponent(cidWithoutKey);
     const payload = {
@@ -49,7 +52,7 @@ export default function useMarketKeys() {
   const retrieveEncryptedMediaKey = (sellerPub, cidWithoutKey, buyerPub) => {
     return new Promise((resolve, reject) => {
       const encodedCidWithoutKey = encodeURIComponent(cidWithoutKey);
-      const url = `${process.env.NEXT_PUBLIC_FABSTIR_CONTROLLER_URL}/retrieve_media_key/${sellerPub}/${encodedCidWithoutKey}/${buyerPub}`;
+      const url = `${config.fabstirControllerUrl}/retrieve_media_key/${sellerPub}/${encodedCidWithoutKey}/${buyerPub}`;
       console.log('useMarketKeys: retrieveEncryptedMediaKey: url = ', url);
       axios
         .get(url)

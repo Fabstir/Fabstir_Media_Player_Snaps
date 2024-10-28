@@ -136,7 +136,7 @@ export const fetchNFTs = async (
   } else {
     // Fetch all the NFTs owned by the user
     ownNFTs = await fetchScopedNFTs(userPub, userProfile);
-    ownNFTs = await getOwnNFTs(userProfile.accountAddress, ownNFTs);
+    ownNFTs = await getOwnNFTs(userProfile?.accountAddress, ownNFTs);
   }
 
   console.log('fetchNFTs: ownNFTs from parent = ', ownNFTs);
