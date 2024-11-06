@@ -20,6 +20,7 @@ import BlockchainContext from '../../state/BlockchainContext';
 import usePortal from './usePortal';
 import { fetchNFTOnChain, fetchNFT1155OnChain } from '../hooks/useNFT';
 import useFabstirController from './useFabstirController';
+import { useConfig } from '../../state/configContext';
 
 /**
  * Custom React hook for fetching and managing NFT media data.
@@ -37,6 +38,7 @@ export default function useNFTMedia() {
 
   const userAuthPub = useRecoilValue(userauthpubstate);
   const getEncKey = useEncKey();
+  const config = useConfig();
 
   const { getIsERC721Address, getIsERC1155 } = useMintNFT();
   const { mutate: createNFT, ...createNFTInfo } = useCreateNFT();
@@ -271,7 +273,7 @@ export default function useNFTMedia() {
   async function getTranscodedMetadata(taskId) {
     if (!taskId) return;
 
-    const transcodeUrl = `${process.env.NEXT_PUBLIC_TRANSCODER_CLIENT_URL}/get_transcoded/${taskId}`;
+    const transcodeUrl = `${config.transcodeUrl}/get_transcoded/${taskId}`;
     console.log('getTranscodedMetadata: transcoded url = ', transcodeUrl);
 
     try {
@@ -332,7 +334,7 @@ export default function useNFTMedia() {
   async function getTranscodeProgress(taskId) {
     if (!taskId) return;
 
-    const transcodeUrl = `${process.env.NEXT_PUBLIC_TRANSCODER_CLIENT_URL}/get_transcoded/${taskId}`;
+    const transcodeUrl = `${config.transcodeUrl}/get_transcoded/${taskId}`;
     console.log('getTranscodeProgress: transcoded url = ', transcodeUrl);
 
     try {

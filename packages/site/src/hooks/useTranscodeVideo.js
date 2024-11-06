@@ -1,3 +1,4 @@
+import { useConfig } from '../../state/configContext';
 import { removeKeyFromEncryptedCid } from '../utils/s5EncryptCIDHelper';
 import useNFTMedia from './useNFTMedia';
 
@@ -12,6 +13,7 @@ import useNFTMedia from './useNFTMedia';
  */
 export default function useTranscodeVideo() {
   const { setTranscodePending } = useNFTMedia();
+  const config = useConfig();
 
   async function transcodeVideo(cid, isEncrypted, isGPU, videoFormats) {
     if (!cid) return cid;
@@ -19,7 +21,7 @@ export default function useTranscodeVideo() {
     console.log('useTranscodeVideo: cid = ', cid);
 
     const url = `${
-      process.env.NEXT_PUBLIC_TRANSCODER_CLIENT_URL
+      config.transcodeUrl
     }/transcode?source_cid=${cid}&media_formats=${JSON.stringify(
       videoFormats,
     )}&is_encrypted=${isEncrypted}&is_gpu=${isGPU}`;

@@ -1,3 +1,4 @@
+import { useConfig } from '../../state/configContext';
 import { removeKeyFromEncryptedCid } from '../utils/s5EncryptCIDHelper';
 import useNFTMedia from './useNFTMedia';
 
@@ -11,6 +12,7 @@ import useNFTMedia from './useNFTMedia';
  */
 export default function useTranscodeAudio() {
   const { setTranscodePending } = useNFTMedia();
+  const config = useConfig();
 
   /**
    * Transcodes the audio file with the given CID.
@@ -24,7 +26,7 @@ export default function useTranscodeAudio() {
     console.log('useTranscodeAudio: cid = ', cid);
 
     const url = `${
-      process.env.NEXT_PUBLIC_TRANSCODER_CLIENT_URL
+      config.transcodeUrl
     }/transcode?source_cid=${cid}&media_formats=${JSON.stringify(
       audioFormats,
     )}&is_encrypted=${isEncrypted}&is_gpu=false`;
