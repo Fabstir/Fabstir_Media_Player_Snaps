@@ -1,9 +1,9 @@
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { MetamaskActions, MetaMaskContext } from '../hooks';
-import { connectSnap, getThemePreference, getSnap } from '../utils';
+import { connectSnap, getSnap } from '../utils';
 import { HeaderButtons } from './Buttons';
 import { SnapLogo } from './SnapLogo';
-
+import { ThemeContext } from './ThemeContext';
 /**
  * Header component to render the app header.
  *
@@ -18,6 +18,7 @@ export const Header = ({
   handleToggleClick(): void;
 }) => {
   const [state, dispatch] = useContext(MetaMaskContext);
+  const { theme, setTheme } = useContext(ThemeContext);
 
   /**
    * Function to handle the connect click event.
@@ -41,14 +42,88 @@ export const Header = ({
     }
   };
 
+  /**
+   * Function to save the selected theme mode in localStorage.
+   * It listens to the change event of the select dropdown and stores the selected mode.
+   *
+   * @function
+   * @param {React.ChangeEvent<HTMLSelectElement>} event - The change event triggered by selecting a theme mode.
+   */
+  const handleThemeChange = (selectedTheme: string) => {
+    setTheme(selectedTheme);
+  };
+
   return (
-    <header className="flex justify-between items-center p-6 border-b border-gray-200">
+    <header
+      className={`flex justify-between items-center p-6 border-b border-gray-200 ${
+        theme === 'dark'
+          ? 'bg-dark-background text-dark-copy'
+          : 'bg-background text-copy'
+      }`}
+    >
       <div className="flex items-center">
-        <SnapLogo color="text-gray-700" size={36} />
-        <p className="font-bold ml-3 hidden sm:block">template-snap</p>
+        <SnapLogo
+          color={theme === 'dark' ? 'text-gray-100' : 'text-gray-700'}
+          size={36}
+        />
+        <p className="font-bold ml-3 hidden sm:block">Template Snap</p>
       </div>
       <div className="flex items-center">
-        <HeaderButtons state={state} onConnectClick={handleConnectClick} />
+        <button
+          type="button"
+          className="dark:hidden block  font-medium text-copy rounded-full bg-background hover:bg-slate-300 focus:outline-none focus:bg-slate-300"
+          onClick={() => handleThemeChange('dark')}
+        >
+          <span className="group inline-flex shrink-0 justify-center items-center size-12">
+            <svg
+              className="shrink-0 size-6"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+            </svg>
+          </span>
+        </button>
+        <button
+          type="button"
+          className="dark:block hidden font-medium text-dark-copy rounded-full bg-dark-background hover:bg-slate-300 focus:outline-none focus:bg-slate-300"
+          onClick={() => handleThemeChange('light')}
+        >
+          <span className="group inline-flex shrink-0 justify-center items-center size-12">
+            <svg
+              className="shrink-0 size-6"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="12" r="4"></circle>
+              <path d="M12 2v2"></path>
+              <path d="M12 20v2"></path>
+              <path d="m4.93 4.93 1.41 1.41"></path>
+              <path d="m17.66 17.66 1.41 1.41"></path>
+              <path d="M2 12h2"></path>
+              <path d="M20 12h2"></path>
+              <path d="m6.34 17.66-1.41 1.41"></path>
+              <path d="m19.07 4.93-1.41 1.41"></path>
+            </svg>
+          </span>
+        </button>
+        <HeaderButtons
+          state={state}
+          theme={theme}
+          onConnectClick={handleConnectClick}
+        />
       </div>
     </header>
   );

@@ -109,5 +109,17 @@ export default function useUserProfile() {
 
       console.log('useUserProfile: setMarketAddress = ', marketAddress);
     },
+    // return color
+    async (userPub) => {
+      const colors = await new Promise((res) =>
+        dbClient
+          .user(userPub)
+          .get('color')
+          .once((final_value) => res(final_value)),
+      );
+      if (!colors) return null;
+
+      return JSON.parse(colors);
+    },
   ];
 }

@@ -109,33 +109,27 @@ const NFTSlideOverLeft = ({
 
           <div className="mt-6 grid grid-cols-3 gap-x-4 gap-y-6 sm:grid-cols-4">
             <div className="col-span-3 sm:col-span-4">
-              <label
-                htmlFor="name"
-                className="block text-sm font-medium fabstir-black"
-              >
+              <label htmlFor="name" className="block text-sm font-medium">
                 Name
               </label>
-              <div className="mt-1 rounded-lg border-2 border-fabstir-white">
+              <div className="mt-1 rounded-lg border-2 border-white">
                 <Input
                   type="text"
                   name="name"
                   register={register('name')}
-                  className="block w-full bg-fabstir-white"
+                  className="block w-full"
                 />
               </div>
-              <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
+              <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error dark:text-dark-error">
                 {errors.name?.message}
               </p>
             </div>
 
             <div className="sm:col-span-1">
-              <label
-                htmlFor="symbol"
-                className="block text-sm font-medium fabstir-black"
-              >
+              <label htmlFor="symbol" className="block text-sm font-medium">
                 Symbol
               </label>
-              <div className="mt-1 rounded-lg border-2 border-fabstir-white">
+              <div className="mt-1 rounded-lg border-2 border-white">
                 <Input
                   type="text"
                   name="symbol"
@@ -143,19 +137,16 @@ const NFTSlideOverLeft = ({
                   className="block w-full bg-fabstir-white sm:text-sm"
                 />
               </div>
-              <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
+              <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error dark:text-dark-error">
                 {errors.symbol?.message}
               </p>
             </div>
 
             <div className="sm:col-span-2">
-              <label
-                htmlFor="supply"
-                className="block text-sm font-medium fabstir-black"
-              >
+              <label htmlFor="supply" className="block text-sm font-medium">
                 Supply
               </label>
-              <div className="mt-1 rounded-lg border-2 border-fabstir-white">
+              <div className="mt-1 rounded-lg border-2 border-white">
                 <Input
                   type="number"
                   id="supply"
@@ -168,10 +159,10 @@ const NFTSlideOverLeft = ({
                   }}
                   register={register('supply')}
                   disabled={!watch('multiToken')}
-                  className="block w-full bg-fabstir-white sm:text-sm"
+                  className="block w-full sm:text-sm"
                 />
               </div>
-              <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
+              <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error dark:text-dark-error">
                 {errors.supply?.message}
               </p>
             </div>
@@ -287,11 +278,11 @@ const NFTSlideOverLeft = ({
             }}
           >
             <div className="flex flex-1 flex-row mt-6">
-              <div className="text-fabstir-dark-gray text-lg font-semibold">
+              <div className="text-lg font-semibold">
                 {teams.teamsName}&nbsp;
               </div>
               <UsersIcon
-                className="h-6 w-6 text-fabstir-white transition duration-100 hover:scale-125 hover:bg-fabstir-gray-700 hover:text-fabstir-white focus:outline-none focus:ring-2 focus:ring-fabstir-gray"
+                className="h-6 w-6 text-white transition duration-100 hover:scale-125 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-gray"
                 aria-hidden="true"
               />
             </div>
@@ -310,11 +301,9 @@ const NFTSlideOverLeft = ({
             }}
           >
             <div className="flex flex-1 flex-row mt-6">
-              <div className="text-fabstir-dark-gray text-lg mr-1 font-semibold">
-                Permissions
-              </div>
+              <div className="text-lg mr-1 font-semibold">Permissions</div>
               <ShareIcon
-                className="h-6 w-6 text-fabstir-white transition duration-100 hover:scale-125 hover:bg-fabstir-gray-700 hover:text-fabstir-white focus:outline-none focus:ring-2 focus:ring-fabstir-gray"
+                className="h-6 w-6 text-white transition duration-100 hover:scale-125 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-gray"
                 aria-hidden="true"
               />
             </div>
@@ -326,33 +315,29 @@ const NFTSlideOverLeft = ({
           <div className="sm:col-span-3">
             <label
               htmlFor="attributes"
-              className="block text-sm font-medium fabstir-black"
+              className="block text-sm font-medium black"
             >
               Attributes
             </label>
-            <div className="mt-1 rounded-lg border-2 border-dotted border-fabstir-white p-4">
+            <div className="mt-1 rounded-lg border-2 border-dotted border-white p-4">
               <TokenAttributes
                 typeValue={watch('type')}
                 setValueTokenData={setValue}
               />
             </div>
           </div>
-          <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
+          <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error dark:text-dark-error">
             {errors.attributes?.message}
           </p>
         </section>
 
-        <div className="mt-10 border-t border-fabstir-white pt-8 sm:flex sm:items-center sm:justify-between">
-          <Button
-            variant="primary"
-            size="medium"
-            color="fabstir-gray"
-            className="w-full rounded-md border border-transparent bg-fabstir-light-purple px-2 py-2 text-sm font-medium text-white shadow-sm hover:bg-fabstir-dark-purple focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50 sm:mr-6 bg-slate-800"
+        <div className="mt-10 border-t border-white pt-8 sm:flex sm:items-center sm:justify-between">
+          <Input
             type="submit"
-          >
-            {submitText}
-          </Button>
-          <p className="mt-4 text-center text-sm text-fabstir-medium-light-gray sm:mt-0 sm:text-left">
+            className="w-full rounded-md border border-transparent px-2 py-2 text-sm font-medium shadow-sm hover: focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50 sm:mr-6 bg-slate-800"
+            value={submitText}
+          />
+          <p className="mt-4 text-center text-sm  sm:mt-0 sm:text-left">
             You won't be charged until the next step.
           </p>
         </div>

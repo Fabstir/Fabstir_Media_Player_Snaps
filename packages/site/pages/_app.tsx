@@ -28,10 +28,12 @@ import {
   getSupportedChains,
   getSupportedChainIds,
 } from '../src/utils/chainUtils';
-import axios from 'axios';
 import { ConfigContext } from '../state/configContext';
 import { Config } from '../state/types';
 import { fetchConfig } from '../src/fetchConfig';
+import { ThemeProvider } from '../src/components/ThemeContext';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // Create a client
 export const queryClient = new QueryClient();
@@ -136,16 +138,18 @@ function MyApp({ Component, pageProps }: AppProps) {
     process.env.NEXT_PUBLIC_IS_PARTICLE_ENABLED === 'true';
 
   const content = (
-    <QueryClientProvider client={queryClient}>
-      <Head>
-        <title>Web3 Media Player</title>
-      </Head>
-      <div className="flex flex-col w-full min-h-screen max-w-full">
-        <Header handleToggleClick={toggleTheme} />
-        <Component {...pageProps} />
-        {/* <Footer /> */}
-      </div>
-    </QueryClientProvider>
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <Head>
+          <title>Web3 Media Player</title>
+        </Head>
+        <div className="flex flex-col w-full min-h-screen max-w-full">
+          <Header handleToggleClick={toggleTheme} />
+          <Component {...pageProps} />
+        </div>
+      </QueryClientProvider>
+      <ToastContainer />
+    </ThemeProvider>
   );
 
   if (!config) return <div>Loading...</div>;

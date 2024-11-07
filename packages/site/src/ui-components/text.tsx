@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import React from 'react';
 import { clsx } from 'clsx';
 import Link from 'next/link';
 
@@ -10,20 +10,14 @@ type TextProps = {
   HTMLParagraphElement | HTMLSpanElement | HTMLDivElement | HTMLInputElement
 >;
 
-export const Text = forwardRef<
-  HTMLParagraphElement | HTMLSpanElement | HTMLDivElement | HTMLInputElement,
-  TextProps
->(({ as: Component = 'p', className, children, ...props }, ref) => {
+export const Text: React.FC<TextProps> = ({
+  as: Component = 'p',
+  className,
+  children,
+  ...props
+}) => {
   return (
     <Component
-      ref={
-        ref as React.Ref<
-          HTMLParagraphElement &
-            HTMLSpanElement &
-            HTMLDivElement &
-            HTMLInputElement
-        >
-      }
       className={clsx(
         'text-copy dark:text-dark-copy',
         Component === 'input' &&
@@ -35,9 +29,7 @@ export const Text = forwardRef<
       {children}
     </Component>
   );
-});
-
-Text.displayName = 'Text';
+};
 
 type StrongProps = {
   children: React.ReactNode;
@@ -78,7 +70,6 @@ export const TextLink: React.FC<TextLinkProps> = ({
     <Link
       href={href}
       className={clsx(
-        'text-primary hover:text-primary-dark dark:text-dark-primary dark:hover:text-dark-primary-light',
         'underline transition-colors duration-200',
         className,
       )}
@@ -97,7 +88,7 @@ export const Code: React.FC<CodeProps> = ({ className, ...props }) => {
       {...props}
       className={clsx(
         'rounded border px-0.5 text-sm font-medium sm:text-[0.8125rem]',
-        'border-border bg-background text-copy',
+        'border-border bg-background dark:bg-dark-background',
         'dark:border-dark-border dark:bg-dark-background dark:text-dark-copy',
         className,
       )}

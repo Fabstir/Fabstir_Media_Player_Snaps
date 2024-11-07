@@ -7,9 +7,10 @@ type InputProps = {
   placeholder?: string;
   className?: string;
   error?: string;
-  type?: 'text' | 'password' | 'email' | 'number';
+  type?: 'text' | 'password' | 'email' | 'number' | 'range'; // Include range type
   icon?: React.ReactNode;
   register: UseFormRegisterReturn; // Make register prop required
+  padding?: string; // Add optional padding prop
 } & Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'>;
 
 export const Input: React.FC<InputProps> = ({
@@ -20,6 +21,7 @@ export const Input: React.FC<InputProps> = ({
   type = 'text',
   icon,
   register,
+  padding = 'px-4', // Default padding
   ...props
 }) => {
   return (
@@ -55,7 +57,7 @@ export const Input: React.FC<InputProps> = ({
               ? 'border-error dark:border-dark-error'
               : 'hover:border-primary dark:hover:border-dark-primary',
             'transition-colors duration-200',
-            'px-4 py-2 sm:text-sm',
+            `py-2 sm:text-sm ${padding}`, // Use padding prop here
             icon && 'pl-10',
           )}
         />

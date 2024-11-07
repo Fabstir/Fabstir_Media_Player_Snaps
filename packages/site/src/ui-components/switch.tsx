@@ -3,8 +3,7 @@ import { Switch as HeadlessSwitch } from '@headlessui/react';
 import { clsx } from 'clsx';
 import { UseFormRegisterReturn } from 'react-hook-form';
 
-interface SwitchProps
-  extends Omit<React.HTMLAttributes<HTMLButtonElement>, 'onChange'> {
+interface SwitchProps extends React.HTMLAttributes<HTMLButtonElement> {
   checked: boolean;
   onChange: (checked: boolean) => void;
   label?: string;

@@ -3,6 +3,7 @@ const Gun = require('gun');
 const SEA = require('gun/sea');
 
 import { Button } from '../src/ui-components/button';
+import { Input } from '../src/ui-components/input';
 import { Description, Label } from '../src/ui-components/fieldset';
 import { Textarea } from '../src/ui-components/textarea';
 import { Field as HeadlessField } from '@headlessui/react';
@@ -91,7 +92,7 @@ const Index = () => {
 
   const queryClient = useQueryClient();
   const user = getUser();
-  const [getUserProfile] = useUserProfile();
+  const [getUserProfile, , , , , , getUserColor] = useUserProfile();
 
   // Define a type for the hook's return value
   type UseTranscodeVideoS5Return = {
@@ -688,7 +689,8 @@ const Index = () => {
     href: string;
     label: string;
     isDisabled: boolean;
-    className?: string; // Optional prop for additional classes
+    className?: string;
+    color?: string; // Optional prop for additional classes
   };
   // ButtonLink Component with TypeScript
   const ButtonLink: React.FC<ButtonLinkProps> = ({
@@ -696,14 +698,16 @@ const Index = () => {
     label,
     isDisabled,
     className,
+    color,
   }) => {
     return isDisabled ? (
       <div className={className}>
         <Button
-          variant="primary"
+          variant=""
           size="medium"
-          className="p-1 text-2xl font-semibold"
+          className="p-1 text-2xl font-semibold "
           disabled={true}
+          style={{ backgroundColor: color }}
         >
           <p className="text-lg p-1 font-bold">{label}</p>
         </Button>
@@ -711,10 +715,11 @@ const Index = () => {
     ) : (
       <Link href={href} className={className}>
         <Button
-          variant="primary"
+          variant=""
           size="medium"
-          className="p-1 text-2xl font-semibold"
+          className="p-1 text-2xl font-semibold "
           disabled={false}
+          style={{ backgroundColor: color }}
         >
           <p className="text-lg p-1 font-bold">{label}</p>
         </Button>
@@ -722,8 +727,122 @@ const Index = () => {
     );
   };
 
+  const fetchColor = async () => {
+    try {
+      const colors = await getUserColor(userAuthPub);
+      const {
+        primaryColor,
+        secondaryColor,
+        utilityColors,
+        neutralsColor,
+        saturationNumber,
+      } = colors ?? {};
+
+      // Function to set CSS variables
+      const setCSSVariables = (colorObj: any, prefix = '') => {
+        if (!colorObj) return;
+
+        Object.keys(colorObj).forEach((key) => {
+          const cssVariableName = `--${prefix}${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
+          const cssValue = colorObj[key];
+          // Set the CSS variable dynamically
+          document.documentElement.style.setProperty(cssVariableName, cssValue);
+        });
+      };
+      // Set CSS variables for colors
+      setCSSVariables(primaryColor, '');
+      setCSSVariables(secondaryColor, '');
+      setCSSVariables(utilityColors, '');
+      setCSSVariables(neutralsColor?.light, 'light-');
+      setCSSVariables(neutralsColor?.dark, 'dark-');
+
+      // Save colors to state
+    } catch (error) {
+      // handleError(error);
+    }
+  };
+
+  const setDefaultColors = () => {
+    const defaultColors = {
+      light: {
+        '--primary-color': '#4699eb',
+        '--primary-content-color': '#05192d',
+        '--primary-dark-color': '#1980e5',
+        '--primary-light-color': '#74b2f0',
+
+        '--secondary-color': '#eb9846',
+        '--secondary-content-color': '#2d1905',
+        '--secondary-dark-color': '#e57e19',
+        '--secondary-light-color': '#f0b274',
+
+        '--success-color': '#46eb46',
+        '--success-content-color': '#052d05',
+
+        '--warning-color': '#ebeb46',
+        '--warning-content-color': '#2d2d05',
+
+        '--error-color': '#eb4646',
+        '--error-content-color': '#ffffff',
+
+        '--light-foreground': '#fafbfd',
+        '--light-background': '#eaf0f5',
+        '--light-border': '#d4dfea',
+
+        '--light-copy': '#192634',
+        '--light-copy-light': '#42668a',
+        '--light-copy-lighter': '#648cb4',
+      },
+      dark: {
+        '--primary-color': '#4699eb',
+        '--primary-content-color': '#05192d',
+        '--primary-dark-color': '#1980e5',
+        '--primary-light-color': '#74b2f0',
+
+        '--secondary-color': '#eb9846',
+        '--secondary-content-color': '#2d1905',
+        '--secondary-dark-color': '#e57e19',
+        '--secondary-light-color': '#f0b274',
+
+        '--success-color': '#46eb46',
+        '--success-content-color': '#052d05',
+
+        '--warning-color': '#ebeb46',
+        '--warning-content-color': '#2d2d05',
+
+        '--error-color': '#eb4646',
+        '--error-content-color': '#ffffff',
+
+        '--dark-foreground': '#192634',
+        '--dark-background': '#111a22',
+        '--dark-border': '#294056',
+
+        '--dark-copy': '#fafbfd',
+        '--dark-copy-light': '#cbd9e6',
+        '--dark-copy-lighter': '#87a6c5',
+      },
+    };
+
+    // Set light mode colors
+    Object.entries(defaultColors.light).forEach(([key, value]) => {
+      document.documentElement.style.setProperty(key, value as string);
+    });
+
+    // Set dark mode colors
+    Object.entries(defaultColors.dark).forEach(([key, value]) => {
+      document.documentElement.style.setProperty(key, value as string);
+    });
+  };
+
+  useEffect(() => {
+    if (smartAccountAddress) {
+      fetchColor();
+    } else {
+      setDefaultColors();
+    }
+  }, [smartAccountAddress]);
+
   return (
-    <div className="p-4 max-w-6xl mx-auto bg-background dark:bg-background">
+    <div className="p-4 max-w-6xl mx-auto bg-background  dark:bg-dark-background text-copy dark:text-dark-copy">
       <h1 className="uppercase text-2xl font-bold mb-5">Web3 Media Player</h1>
 
       {userName && smartAccount && (
@@ -762,7 +881,7 @@ const Index = () => {
       {smartAccount && (
         <Button
           onClick={handleLogout}
-          variant="primary"
+          variant=""
           size="medium"
           className="mt-2 mb-6 "
         >
@@ -784,13 +903,20 @@ const Index = () => {
           isDisabled={isDisabled}
           className="ml-4"
         />
+
+        <ButtonLink
+          href="/color-customization"
+          label="Color Customization"
+          isDisabled={isDisabled}
+          className="ml-4 "
+        />
       </div>
 
       {/* <h1 className="mt-7 mb-4">List of Addresses</h1>{' '} */}
 
       <div className="mt-6 mb-10">
         <Button
-          variant="primary"
+          variant=""
           size="medium"
           className="text-xl mt-4"
           disabled={isDisabled}
@@ -900,7 +1026,7 @@ const Index = () => {
         </HeadlessField>
 
         <Button
-          variant="primary"
+          variant=""
           size="medium"
           className="p-1 h-8 m-4 col-span-1"
           onClick={handleExportKeys}
@@ -929,7 +1055,7 @@ const Index = () => {
           </div>
         </HeadlessField>
 
-        <input
+        <Input
           type="file"
           style={{ display: 'none' }}
           ref={fileImportKeysRef}
@@ -937,7 +1063,7 @@ const Index = () => {
           accept=".json"
         />
         <Button
-          variant="primary"
+          variant=""
           size="medium"
           className="p-1 h-8 m-4 col-span-1"
           onClick={handleButtonImportKeys}
