@@ -20,17 +20,15 @@ export default function useTranscodeAudio() {
    * @param {boolean} isEncrypted - Indicates whether the audio file is encrypted.
    * @returns {Promise<string>} - The CID of the transcoded audio file.
    */
-  async function transcodeAudio(cid, isEncrypted, isGPU, audioFormats) {
+  async function transcodeAudio(cid, isEncrypted, isGpu, mediaFormats) {
     if (!cid) return cid;
 
     console.log('useTranscodeAudio: cid = ', cid);
 
-    const url = `${
-      config.transcodeUrl
-    }/transcode?source_cid=${cid}&media_formats=${JSON.stringify(
-      audioFormats,
-    )}&is_encrypted=${isEncrypted}&is_gpu=false`;
-    console.log('useTranscodeAudio: url = ', url);
+    const url = `/api/transcode?sourceCid=${cid}&mediaFormats=${encodeURIComponent(
+      JSON.stringify(mediaFormats),
+    )}&isEncrypted=${isEncrypted}&isGpu=${isGpu}`;
+    console.log('useTranscodeVideo: url = ', url);
 
     try {
       const response = await fetch(url, { method: 'POST' });

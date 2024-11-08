@@ -44,7 +44,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     s5PortalUrl: process.env.PORTAL_URL,
     s5PortalUrl3d: process.env.PORTAL_URL_3D,
     portalType: process.env.PORTAL_TYPE,
-    transcodeUrl: process.env.TRANSCODER_CLIENT_URL,
+    fabstirTranscoderUrl: process.env.FABSTIR_TRANSCODER_URL,
     s5PortalStreamingUrlL: process.env.S5_PORTAL_STREAMING_URL,
     sponsoredAccountPrivateKey: process.env.SPONSORED_ACCOUNT_PRIVATE_KEY,
   });

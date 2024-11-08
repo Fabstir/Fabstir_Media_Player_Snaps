@@ -19,7 +19,7 @@ export type Config = {
   s5PortalUrl: string;
   s5PortalUrl3d: string;
   portalType: string;
-  transcodeUrl: string;
+  fabstirTranscoderUrl: string;
   s5PortalStreamingUrlL: string;
   sponsoredAccountPrivateKey: string;
 };

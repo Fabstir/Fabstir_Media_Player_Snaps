@@ -19,7 +19,7 @@ const MediaCaption = ({ nft, setIsPlayClicked, nftQuantity }) => {
   }
 
   return (
-    <>
+    <div className="text-white dark:text-white">
       <div
         className="absolute inset-0"
         style={{ boxShadow: '0 0 25px 25px rgba(0, 0, 0, 0.5)' }}
@@ -59,7 +59,7 @@ const MediaCaption = ({ nft, setIsPlayClicked, nftQuantity }) => {
       </div>
       {nftQuantity && <div className="px-2">{`Qty: ${nftQuantity}`}</div>}
       <span className="sr-only">Favorite</span>
-    </>
+    </div>
   );
 };
 

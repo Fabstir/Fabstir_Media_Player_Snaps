@@ -273,11 +273,11 @@ export default function useNFTMedia() {
   async function getTranscodedMetadata(taskId) {
     if (!taskId) return;
 
-    const transcodeUrl = `${config.transcodeUrl}/get_transcoded/${taskId}`;
-    console.log('getTranscodedMetadata: transcoded url = ', transcodeUrl);
+    const url = `/api/getTranscoded?taskId=${taskId}`;
+    console.log('getTranscodedMetadata: url = ', url);
 
     try {
-      const response = await fetch(transcodeUrl, { method: 'POST' });
+      const response = await fetch(url, { method: 'GET' });
       console.log('getTranscodedMetadata: response = ', response);
 
       if (!response.ok) {
@@ -334,11 +334,12 @@ export default function useNFTMedia() {
   async function getTranscodeProgress(taskId) {
     if (!taskId) return;
 
-    const transcodeUrl = `${config.transcodeUrl}/get_transcoded/${taskId}`;
-    console.log('getTranscodeProgress: transcoded url = ', transcodeUrl);
+    const url = `/api/getTranscoded?taskId=${taskId}`;
+    console.log('getTranscodeProgress: url = ', url);
 
     try {
-      const response = await fetch(transcodeUrl, { method: 'GET' });
+      const response = await fetch(url, { method: 'GET' });
+      console.log('getTranscodeProgress: response = ', response);
 
       if (!response.ok) {
         console.log(

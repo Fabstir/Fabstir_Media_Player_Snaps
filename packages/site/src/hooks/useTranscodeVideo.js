@@ -15,16 +15,14 @@ export default function useTranscodeVideo() {
   const { setTranscodePending } = useNFTMedia();
   const config = useConfig();
 
-  async function transcodeVideo(cid, isEncrypted, isGPU, videoFormats) {
+  async function transcodeVideo(cid, isEncrypted, isGpu, mediaFormats) {
     if (!cid) return cid;
 
     console.log('useTranscodeVideo: cid = ', cid);
 
-    const url = `${
-      config.transcodeUrl
-    }/transcode?source_cid=${cid}&media_formats=${JSON.stringify(
-      videoFormats,
-    )}&is_encrypted=${isEncrypted}&is_gpu=${isGPU}`;
+    const url = `/api/transcode?sourceCid=${cid}&mediaFormats=${encodeURIComponent(
+      JSON.stringify(mediaFormats),
+    )}&isEncrypted=${isEncrypted}&isGpu=${isGpu}`;
     console.log('useTranscodeVideo: url = ', url);
 
     try {
@@ -40,12 +38,14 @@ export default function useTranscodeVideo() {
 
         return data.task_id;
       } else {
-        throw new Error(data.error_message);
+        throw new Error(data.error);
       }
     } catch (error) {
       console.error(error);
     }
   }
 
-  return { transcodeVideo };
+  return {
+    transcodeVideo,
+  };
 }
