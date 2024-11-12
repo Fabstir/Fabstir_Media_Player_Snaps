@@ -25,17 +25,19 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Setting required folders to packages/site
-        run: | 
-          curl -L -O --silent "${{secrets.FABSTIR_LIB_URL}}" \ 
-          && ls && cp ./fabstirdb-lib-v1.0.146.tgz ./packages/site/
+        run: |
+          sudo apt update -y && sudo apt install curl unzip
+          curl -L "${{secrets.FABSTIR_LIB_URL}}" --output fabstirdb-lib-v1.0.146.tgz
+          cp ./fabstirdb-lib-v1.0.146.tgz ./packages/site/
           
-          curl -L -O --silent "${{secrets.PUBLIC_ASSETS_URL}}" \
-          && unzip public.zip \
-          && cp -r ./public ./packages/site/
+          curl -L "${{secrets.PUBLIC_ASSETS_URL}}" --output public.zip
+          unzip public.zip
+          cp -r ./public ./packages/site
 
-          curl -L -O --silent "${{secrets.CONTRACTS_ZIP_URL}}" \
-          && unzip contracts.zip
-          && cp -r ./contracts ./packages/site/
+          curl -L "${{secrets.CONTRACTS_ZIP_URL}}" --output contracts.zip
+          unzip contracts.zip
+          cp -r ./contracts ./packages/site/
+          
           ## cleanup
           rm -rf ./public ./contracts
           rm contracts.zip public.zip fabstirdb-lib-v1.0.146.tgz
