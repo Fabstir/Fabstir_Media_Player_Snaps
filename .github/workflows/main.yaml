@@ -26,15 +26,16 @@ jobs:
 
       - name: Setting required folders to packages/site
         run: | 
-          sudo apt update -y && sudo apt install -y curl unzip
-          curl -L -O --silent ${{secrets.FABSTIR_LIB_URL}}
-          cp ./fabstirdb-lib-v1.0.146.tgz ./packages/site/
-          curl -L -O --silent ${{secrets.PUBLIC_ASSETS_URL}}
-          unzip public.zip
-          cp -r ./public ./packages/site/
-          curl -L -O --silent ${{secrets.CONTRACTS_ZIP_URL}}
-          unzip contracts.zip
-          cp -r ./contracts ./packages/site/
+          curl -L -O --silent "${{secrets.FABSTIR_LIB_URL}}" \ 
+          && ls && cp ./fabstirdb-lib-v1.0.146.tgz ./packages/site/
+          
+          curl -L -O --silent "${{secrets.PUBLIC_ASSETS_URL}}" \
+          && unzip public.zip \
+          && cp -r ./public ./packages/site/
+
+          curl -L -O --silent "${{secrets.CONTRACTS_ZIP_URL}}" \
+          && unzip contracts.zip
+          && cp -r ./contracts ./packages/site/
           ## cleanup
           rm -rf ./public ./contracts
           rm contracts.zip public.zip fabstirdb-lib-v1.0.146.tgz
