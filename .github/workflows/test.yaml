@@ -2,7 +2,8 @@ name: Build Step
 
 on:
   push:
-    branches: ["*"]
+    branches-ignore: ["main"]
+  
 
 jobs:  
   build-and-push-docker:
@@ -26,15 +27,16 @@ jobs:
 
       - name: Setting required folders to packages/site
         run: |
-          curl -L -O --silent "${{secrets.FABSTIR_LIB_URL}}" 
+          sudo apt update -y && sudo apt install curl unzip
+          curl -L -O "${{secrets.FABSTIR_LIB_URL}}" 
           ls
           cp ./fabstirdb-lib-v1.0.146.tgz ./packages/site/
           
-          curl -L -O --silent "${{secrets.PUBLIC_ASSETS_URL}}"
+          curl -L -O "${{secrets.PUBLIC_ASSETS_URL}}"
           unzip public.zip
           cp -r ./public ./packages/site
 
-          curl -L -O --silent "${{secrets.CONTRACTS_ZIP_URL}}"
+          curl -L -O "${{secrets.CONTRACTS_ZIP_URL}}"
           unzip contracts.zip
           cp -r ./contracts ./packages/site/
           ## cleanup
