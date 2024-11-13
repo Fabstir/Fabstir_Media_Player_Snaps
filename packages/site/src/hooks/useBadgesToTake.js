@@ -36,9 +36,9 @@ const fetchBadges = async (userAuthPub, userPub, isUsed, gettokenURI) => {
 
         console.log('useBadgesToTake: result = ', result);
 
-        if (result.attributes)
-          result['attributes'] = JSON.parse(result.attributes);
-        if (result.fileUrls) result['fileUrls'] = JSON.parse(result.fileUrls);
+        // if (result.attributes)
+        //   result['attributes'] = JSON.parse(result.attributes);
+        // if (result.fileUrls) result['fileUrls'] = JSON.parse(result.fileUrls);
 
         resultArray.push(result);
       }

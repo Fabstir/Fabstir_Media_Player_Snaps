@@ -34,7 +34,7 @@ export default function RenderModel({ nft, modelUris }) {
   // useEffect(() => {
   //   init()
   //     .then(() => {
-  //       console.log('DetailsSidebar1: WebAssembly module initialized');
+  //       console.log('DetailsSidebar1: WebAssembly module initializeDBClient');
   //       setIsWasmReady(true);
   //     })
   //     .catch((e) => {
@@ -89,7 +89,7 @@ export default function RenderModel({ nft, modelUris }) {
   useEffect(() => {
     init()
       .then((wasmInstance) => {
-        console.log('DetailsSidebar1: WebAssembly module initialized');
+        console.log('DetailsSidebar1: WebAssembly module initializeDBClient');
         setIsWasmReady(true);
       })
       .catch((e) => {

@@ -58,3 +58,14 @@ export const parseArrayProperties = (obj) => {
 
   return myObject;
 };
+
+export const sortObjectProperties = (obj) => {
+  const sortedKeys = Object.keys(obj).sort();
+  const sortedObj = {};
+
+  sortedKeys.forEach((key) => {
+    sortedObj[key] = obj[key];
+  });
+
+  return sortedObj;
+};

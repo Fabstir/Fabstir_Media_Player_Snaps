@@ -3,7 +3,8 @@ import { Switch as HeadlessSwitch } from '@headlessui/react';
 import { clsx } from 'clsx';
 import { UseFormRegisterReturn } from 'react-hook-form';
 
-interface SwitchProps extends React.HTMLAttributes<HTMLButtonElement> {
+interface SwitchProps
+  extends Omit<React.HTMLAttributes<HTMLButtonElement>, 'onChange'> {
   checked: boolean;
   onChange: (checked: boolean) => void;
   label?: string;
@@ -45,50 +46,26 @@ export const Switch = forwardRef<HTMLButtonElement, SwitchProps>(
               </HeadlessSwitch.Label>
             )}
             {description && (
-              <HeadlessSwitch.Description
-                as="span"
-                className="text-sm text-copy-light dark:text-dark-copy-light"
-              >
+              <span className="text-sm text-copy dark:text-dark-copy">
                 {description}
-              </HeadlessSwitch.Description>
+              </span>
             )}
           </span>
         )}
         <HeadlessSwitch
           checked={checked}
           onChange={onChange}
-          className={clsx(
-            checked
-              ? 'bg-primary dark:bg-dark-primary'
-              : 'bg-copy-lighter dark:bg-dark-copy-lighter',
-            'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-dark-primary focus:ring-offset-2',
-          )}
-          ref={ref}
+          className="relative inline-flex items-center h-6 rounded-full w-11"
           {...props}
+          ref={ref}
         >
           <span
-            aria-hidden="true"
             className={clsx(
-              checked ? 'translate-x-5' : 'translate-x-0',
-              'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-foreground dark:bg-dark-foreground shadow ring-0 transition duration-200 ease-in-out',
+              checked ? 'translate-x-6' : 'translate-x-1',
+              'inline-block w-4 h-4 transform bg-white rounded-full transition-transform',
             )}
           />
         </HeadlessSwitch>
-        {register && (
-          <input
-            type="checkbox"
-            className="sr-only"
-            id={id}
-            name={name}
-            ref={register.ref}
-            onChange={(e) => {
-              register.onChange(e);
-              onChange(e.target.checked);
-            }}
-            onBlur={register.onBlur}
-            checked={checked}
-          />
-        )}
       </HeadlessSwitch.Group>
     );
   },

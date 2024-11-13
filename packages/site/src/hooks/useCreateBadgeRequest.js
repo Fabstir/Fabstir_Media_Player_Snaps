@@ -10,19 +10,27 @@ export default function useCreateBadgeRequest() {
       console.log('useCreateBadgeRequest: badge = ', badge);
 
       const user = getUser();
-      const pair = user._.sea;
 
-      const certificate = await SEA.certify(
-        badge.giver,
-        [{ '#': { '*': 'badges' } }],
-        pair,
-      );
+      //const pair = user._.sea
+      const userPub = user.is.pub;
+      if (userPub !== badge.taker)
+        throw new Error(
+          'useCreateBadgeRequest: Current user must be badge.taker',
+        );
+
+      // const certificate = await SEA.certify(
+      //   badge.giver,
+      //   [{ '#': { '*': 'badges' } }],
+      //   pair,
+      // );
 
       let newBadge = stringifyArrayProperties(badge);
       const giver = newBadge.giver;
-      newBadge = JSON.stringify({ ...newBadge, cert: certificate });
+      // newBadge = JSON.stringify({ ...newBadge, cert: certificate });
 
-      var hash = await SEA.work(newBadge, null, null, { name: 'SHA-256' });
+      var hash = await SEA.work(sortObjectProperties(newBadge), null, null, {
+        name: 'SHA-256',
+      });
 
       dbClient
         .get('#Fabstir_badge_requests:' + giver)

@@ -24,7 +24,7 @@ export default function useNativePayment(signer) {
       logs: [], // Aggregate logs from all transactions
     };
 
-    // Optionally initialize arrays to store hashes and details for all transactions
+    // Optionally initializeDBClient arrays to store hashes and details for all transactions
     const [transactionData, address, gasEstimate] = transactions[0];
     console.log(
       `useNativePayment: handleAAPayment: transactionData = ${transactionData}`,
@@ -100,7 +100,7 @@ export default function useNativePayment(signer) {
       logs: [], // Aggregate logs from all transactions
     };
 
-    // Optionally initialize arrays to store hashes and details for all transactions
+    // Optionally initializeDBClient arrays to store hashes and details for all transactions
     const transactionHashes = [];
     const transactionDetails = [];
 

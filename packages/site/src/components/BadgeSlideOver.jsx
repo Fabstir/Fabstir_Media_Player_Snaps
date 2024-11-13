@@ -5,7 +5,7 @@ import {
   DialogPanel,
 } from '@headlessui/react';
 import { yupResolver } from '@hookform/resolvers/yup';
-import React, { Fragment, useEffect, useRef } from 'react';
+import React, { Fragment, useContext, useEffect, useRef } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import * as yup from 'yup';
@@ -18,6 +18,7 @@ import useCreateBadgeToGive from '../hooks/useCreateBadgeToGive';
 import useUserProfile from '../hooks/useUserProfile';
 import BadgeSlideOverLeft from './BadgeSlideOverLeft';
 import BadgeSlideOverRight from './BadgeSlideOverRight';
+import BlockchainContext from '../../state/BlockchainContext';
 
 const defaultFormValues = {
   name: '',
@@ -43,6 +44,9 @@ const BadgeSlideOver = ({
   setSubmitText,
   clearOnSubmit,
 }) => {
+  const blockchainContext = useContext(BlockchainContext);
+  const { connectedChainId } = blockchainContext;
+
   const summaryMax = 250;
   const descriptionMax = 4000;
   const symbolMax = 10;
@@ -121,7 +125,7 @@ const BadgeSlideOver = ({
 
       badge.current = {
         ...badge.current,
-        from: userAuthProfile.accountAddress,
+        from: `${connectedChainId}:${userAuthProfile.accountAddress}`,
         giver: userAuthPub,
         address,
       };

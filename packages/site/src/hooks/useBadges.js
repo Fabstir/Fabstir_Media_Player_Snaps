@@ -14,8 +14,6 @@ const fetchBadges = async (
   console.log('useBadges: userPub = ', userPub);
 
   const userProfile = await getUserProfile(userPub);
-  if (!userProfile) return [];
-
   console.log('useBadges: userProfile.address = ', userProfile.accountAddress);
 
   let resultArray = await dbClientOnce(
@@ -25,20 +23,20 @@ const fetchBadges = async (
 
   console.log('useBadges: fetchBadges resultArray = ', resultArray);
 
-  let newArray = [];
-  for (let item of resultArray) {
-    let tokenURI;
-    try {
-      tokenURI = await gettokenURI(item);
-    } catch (err) {}
+  // let newArray = []
+  // for (let item of resultArray) {
+  //   let tokenURI
+  //   try {
+  //     tokenURI = await gettokenURI(item)
+  //   } catch (err) {}
 
-    if (tokenURI) {
-      if (item.attributes) item['attributes'] = JSON.parse(item.attributes);
-      if (item.fileUrls) item['fileUrls'] = JSON.parse(item.fileUrls);
-      newArray.push(item);
-    }
-  }
-  resultArray = newArray;
+  //   if (tokenURI) {
+  //     // if (item.attributes) item['attributes'] = JSON.parse(item.attributes)
+  //     // if (item.fileUrls) item['fileUrls'] = JSON.parse(item.fileUrls)
+  //     newArray.push(item)
+  //   }
+  // }
+  // resultArray = newArray
 
   console.log('useBadges: fetchBadges userPub = ', userPub);
   console.log(

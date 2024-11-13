@@ -10,6 +10,6 @@ export const userauthpubstate = atom({
 
 export const userauthusernamestate = atom({
   key: 'userAuthUserNameAtom',
-  default: null,
+  default: '',
   effects_UNSTABLE: [persistAtom],
 });

@@ -7,7 +7,7 @@ type InputProps = {
   placeholder?: string;
   className?: string;
   error?: string;
-  type?: 'text' | 'password' | 'email' | 'number' | 'range'; // Include range type
+  type?: 'text' | 'password' | 'email' | 'number' | 'range' | 'file'; // Include range type
   icon?: React.ReactNode;
   register: UseFormRegisterReturn; // Make register prop required
   padding?: string; // Add optional padding prop

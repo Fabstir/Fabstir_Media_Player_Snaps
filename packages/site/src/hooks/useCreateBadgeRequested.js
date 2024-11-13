@@ -32,7 +32,7 @@ export default function useCreateBadgeRequested() {
               console.log('useCreateBadgeRequested: ack.err = ', ack.err);
             } else console.log('useCreateBadgeRequested: success');
           },
-          { opt: { cert: badge.cert } },
+          // { opt: { cert: badge.cert } },
         );
       console.log(
         'useCreateBadgeRequested: newBadge2.address = ',

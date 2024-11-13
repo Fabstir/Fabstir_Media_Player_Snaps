@@ -45,7 +45,11 @@ import { saveAs } from 'file-saver';
 import { iswasmreadystate } from '../src/atoms/renderStateAtom';
 import { getSmartAccountAddress } from '../src/blockchain/useAccountAbstractionPayment';
 import { createEOAAccount, generatePassword } from '../src/utils/eoaUtils';
-import { getUser } from '../src/GlobalOrbit';
+import {
+  initializeDBClient,
+  isDBClientInitialized,
+  getUser,
+} from '../src/GlobalOrbit';
 import { useQueryClient } from '@tanstack/react-query';
 import { getConnectedChainId } from '../src/utils/chainUtils';
 import useMintNFT from '../src/blockchain/useMintNFT';
@@ -59,7 +63,10 @@ import { getNFTAddressId, splitNFTAddressId } from '../src/utils/nftUtils';
 import useNFTs, { fetchScopedNFTs } from '../src/hooks/useNFTs';
 import { userpubstate } from '../src/atoms/userAtom';
 import useDeleteNFT from '../src/hooks/useDeleteNFT';
-import { userauthpubstate } from '../src/atoms/userAuthAtom';
+import {
+  userauthpubstate,
+  userauthusernamestate,
+} from '../src/atoms/userAuthAtom';
 import useNFTMedia from '../src/hooks/useNFTMedia';
 import useUserProfile from '../src/hooks/useUserProfile';
 import useDeleteNestableNFT from '../src/hooks/useDeleteNestableNFT';
@@ -77,7 +84,7 @@ const Index = () => {
   const [state, dispatch] = useContext(MetaMaskContext);
   const [triggerEffect, setTriggerEffect] = useState(0);
 
-  const [addresses, setAddresses] = useState<Addresses>({}); // initialize with an empty array of type string[]
+  const [addresses, setAddresses] = useState<Addresses>({}); // initializeDBClient with an empty array of type string[]
   const [newAddresses, setNewAddresses] = useState<string>('');
   const [removeAddresses, setRemoveAddresses] = useState<string>('');
   const [importKeys, setImportKeys] = useState<string>('');
@@ -151,7 +158,7 @@ const Index = () => {
   const { createUser, signOut, isUserExists, login } =
     useCreateUser() as CreateUser;
 
-  const [userName, setUserName] = useState<string>('');
+  const [userName, setUserName] = useRecoilState(userauthusernamestate);
   const { removeNFTsNotOwned } = useNFTSale();
 
   const [errorsAddAddresses, setErrorsAddAddresses] = useState<string>('');
@@ -267,14 +274,14 @@ const Index = () => {
 
   useEffect(() => {
     (async () => {
-      if (userAuthPub) {
+      if (userAuthPub && isDBClientInitialized) {
         const userAuthProfile = await getUserProfile(userAuthPub);
         setUserName(userAuthProfile?.userName);
       } else {
         setUserName('');
       }
     })();
-  }, [userAuthPub]);
+  }, [userAuthPub, isDBClientInitialized]);
 
   useEffect(() => {
     setIsDisabled(!(smartAccount && connectedChainId));
@@ -496,7 +503,7 @@ const Index = () => {
     const exportKeysSplit = exportKeys.split('\n');
     for (let key of exportKeysSplit) {
       // Iterate over exportKeys
-      if (key in addresses) {
+      if (addresses && key in addresses) {
         result[key] = addresses[key]; // If key is in addresses, add it to result
       }
     }
@@ -510,33 +517,39 @@ const Index = () => {
     setExportKeys('');
   };
 
+  useEffect(() => {
+    const init = async () => {
+      await initializeDBClient();
+    };
+
+    init();
+  }, []);
+
   const loadAddresses = async () => {
     if (process.env.NEXT_PUBLIC_IS_USE_FABSTIRDB === 'true') {
-      // const nftAddresses = nfts?.data?.reduce(
-      //   (acc: { [key: string]: {} }, nft: any) => {
-      //     const addressId = getNFTAddressId(nft);
-      //     acc[addressId] = {};
-      //     return acc;
-      //   },
-      //   {},
-      // );
-      const userProfile = await getUserProfile(userPub);
-      const nfts = await fetchScopedNFTs(userPub, userProfile);
-      const nftAddresses = nfts?.reduce(
-        (acc: { [key: string]: {} }, nft: any) => {
-          if (nft.parentId === undefined) {
-            // Only proceed if nft.parentId is not defined
-            const addressId = getNFTAddressId(nft);
-            acc[addressId] = {};
-          }
-          return acc;
-        },
-        {},
-      );
+      if (isDBClientInitialized) {
+        const userProfile = await getUserProfile(userPub);
+        const nfts = await fetchScopedNFTs(userPub, userProfile);
+        const nftAddresses = nfts?.reduce(
+          (acc: { [key: string]: {} }, nft: any) => {
+            if (nft.parentId === undefined) {
+              // Only proceed if nft.parentId is not defined
+              const addressId = getNFTAddressId(nft);
+              acc[addressId] = {};
+            }
+            return acc;
+          },
+          {},
+        );
 
-      setAddresses(nftAddresses || {});
-      return nftAddresses || {};
-    } else {
+        setAddresses(nftAddresses || {});
+        return nftAddresses || {};
+      }
+    }
+  };
+
+  if (process.env.NEXT_PUBLIC_IS_USE_FABSTIRDB !== 'true') {
+    (async () => {
       type Addresses = {
         state?: any; // Replace `any` with the actual type of `state`
         // Define other properties of `state.addresses` here
@@ -554,8 +567,8 @@ const Index = () => {
       setAddresses(state.addresses.state);
 
       return state.addresses.state;
-    }
-  };
+    })();
+  }
 
   /**
    * Handles loading the saved state of addresses.
@@ -563,7 +576,7 @@ const Index = () => {
    */
   const handleLoadAddresses = async () => {
     const addresses = await loadAddresses();
-    setAddresses(addresses);
+    setAddresses(addresses || {});
   };
 
   const handleConnectClick = async () => {
@@ -622,6 +635,8 @@ const Index = () => {
         eoaAddress,
       };
 
+      setUserName(String(publicUsername));
+      console.log('logInOrCreateNewUser: publicUsername = ', publicUsername);
       loggedIn = await createUser(testUserName, testPassword, userProfile);
     }
 
@@ -1055,7 +1070,7 @@ const Index = () => {
           </div>
         </HeadlessField>
 
-        <Input
+        <input
           type="file"
           style={{ display: 'none' }}
           ref={fileImportKeysRef}

@@ -1,4 +1,4 @@
-import { dbClient, dbClientInitialized } from './GlobalOrbit';
+import { dbClient, dbClientWaitForInitialized } from './GlobalOrbit';
 
 // Database
 
@@ -6,7 +6,7 @@ import { dbClient, dbClientInitialized } from './GlobalOrbit';
 export let user = {};
 
 const initializeUser = async () => {
-  await dbClientInitialized; // Wait for dbClient to be initialized
+  await dbClientWaitForInitialized; // Wait for dbClient to be isDBClientInitialized
 
   if (typeof window !== 'undefined' && dbClient) {
     console.log('user: before');

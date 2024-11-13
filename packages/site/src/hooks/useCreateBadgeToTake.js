@@ -4,7 +4,10 @@ import { useMutation } from '@tanstack/react-query';
 import { queryClient } from '../../pages/_app.tsx';
 import { userpubstate } from '../atoms/userAtom';
 import { dbClient } from '../GlobalOrbit';
-import { stringifyArrayProperties } from '../utils/stringifyProperties';
+import {
+  stringifyArrayProperties,
+  sortObjectProperties,
+} from '../utils/stringifyProperties';
 
 export default function useCreateBadgeToTake() {
   const userPub = useRecoilValue(userpubstate);
@@ -15,7 +18,7 @@ export default function useCreateBadgeToTake() {
 
       const newBadge = JSON.stringify(stringifyArrayProperties(badge));
 
-      var hash = await SEA.work(newBadge, null, null, {
+      var hash = await SEA.work(sortObjectProperties(newBadge), null, null, {
         name: 'SHA-256',
       });
       console.log('useCreateBadgeToTake: hash = ', hash);

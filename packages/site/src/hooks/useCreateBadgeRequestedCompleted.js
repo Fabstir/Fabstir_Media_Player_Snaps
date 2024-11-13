@@ -16,6 +16,7 @@ export default function useCreateBadgeRequestedCompleted() {
 
       delete newBadge2.userPub;
       delete newBadge2.cert;
+
       const user = getUser();
 
       user

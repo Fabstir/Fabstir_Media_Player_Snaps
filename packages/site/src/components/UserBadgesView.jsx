@@ -27,24 +27,25 @@ export default function UserBadgesView({
   }, [badges, handleBadgeOnClick]);
 
   return (
-    <div className={twStyle}>
-      {theBadges
-        ?.filter((badge) => badge !== null)
-        .map((badge, index) => (
-          <li
-            key={index}
-            className="mr-4 items-center hover:text-fabstir-light-gray"
-          >
-            <UserBadgeView
-              badge={badge}
-              userPub={userPub}
-              twTitleStyle={twTitleStyle}
-              twTextStyle={twTextStyle}
-              setOpenBadge={setOpenBadgeDetails}
-              handleBadgeOnClick={handleBadgeOnClick}
-            />
-          </li>
-        ))}
-    </div>
+    <></>
+    // <div className={twStyle}>
+    //   {theBadges
+    //     ?.filter((badge) => badge !== null)
+    //     .map((badge, index) => (
+    //       <li
+    //         key={index}
+    //         className="mr-4 items-center hover:text-fabstir-light-gray"
+    //       >
+    //         <UserBadgeView
+    //           badge={badge}
+    //           userPub={userPub}
+    //           twTitleStyle={twTitleStyle}
+    //           twTextStyle={twTextStyle}
+    //           setOpenBadge={setOpenBadgeDetails}
+    //           handleBadgeOnClick={handleBadgeOnClick}
+    //         />
+    //       </li>
+    //     ))}
+    // </div>
   );
 }

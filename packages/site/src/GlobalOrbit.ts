@@ -1,17 +1,24 @@
 import createDBClient from 'fabstirdb-lib';
 import { parseArrayProperties } from './utils/stringifyProperties';
-import { fetchConfig } from './fetchConfig';
+import { fetchConfig } from '../src/fetchConfig';
 
-/**
- * Initialize the OrbitDB client using the backend URL from the configuration.
- */
 let dbClient: any;
+let isDBClientInitialized = false;
 
-const initializeDBClient = async () => {
+const initializeDBClientFunction = async () => {
+  if (typeof window === 'undefined') {
+    // Do not run this code on the server
+    return;
+  }
+
   const config = await fetchConfig();
+  if (!config) {
+    throw new Error('Failed to fetch configuration');
+  }
 
-  if (!config || !config.fabstirDbBackendUrl)
+  if (!config.fabstirDbBackendUrl) {
     throw new Error('No FabstirDB backend URL provided in the configuration');
+  }
 
   dbClient = createDBClient(config.fabstirDbBackendUrl, '');
 
@@ -20,16 +27,19 @@ const initializeDBClient = async () => {
     config.fabstirDbBackendUrl,
   );
   console.log('GlobalOrbit.ts: dbClient: ', dbClient);
+
+  isDBClientInitialized = true;
 };
 
-// Create a Promise that resolves when dbClient is initialized
-const dbClientInitialized = initializeDBClient();
+// Create a Promise that resolves when dbClient is isDBClientInitialized
+const dbClientWaitForInitialized = initializeDBClientFunction();
 
-/**
- * Retrieves the current user from the database client.
- *
- * @returns The current user object if it exists, or null if no user is logged in.
- */
+const initializeDBClient = async () => {
+  if (!isDBClientInitialized) {
+    await dbClientWaitForInitialized;
+  }
+};
+
 const getUser = () => {
   if (!dbClient || !dbClient.user) return null;
 
@@ -38,24 +48,12 @@ const getUser = () => {
   return user;
 };
 
-/**
- * FabstirDB serves as an interface API for storing data in a graph database. Based off of GUN API
- * it rejects with a timeout error. Optionally, it can parse the result if `isParse` is set to true.
- *
- * @async
- * @function dbClientOnce
- * @param {any} path - The database path or query to execute.
- * @param {number} timeout1 - The primary timeout duration in milliseconds.
- * @param {number} [timeout2] - The secondary timeout duration in milliseconds. If not provided, it defaults to twice the primary timeout.
- * @param {boolean} [isParse=false] - Flag indicating whether to parse the result of the database operation.
- * @returns {Promise<any>} A promise that resolves with the result of the database operation or rejects with a timeout error.
- */
-async function dbClientOnce(
+const dbClientOnce = async (
   path: any,
   timeout1: number,
   timeout2: number,
   isParse = false,
-) {
+) => {
   try {
     const resultObject = await path.load();
     if (resultObject === undefined) {
@@ -77,16 +75,24 @@ async function dbClientOnce(
   } catch (error) {
     console.error(error);
   }
-}
+};
 
-async function dbClientLoad(
+const dbClientLoad = async (
   path: any,
   timeout1: number,
   timeout2: number,
   isParse = false,
-) {
+) => {
   const resultArray = await dbClientOnce(path, timeout1, timeout2, isParse);
   return resultArray;
-}
+};
 
-export { dbClient, dbClientInitialized, getUser, dbClientOnce, dbClientLoad };
+export {
+  dbClient,
+  isDBClientInitialized,
+  dbClientWaitForInitialized,
+  initializeDBClient,
+  getUser,
+  dbClientOnce,
+  dbClientLoad,
+};
