@@ -13,6 +13,8 @@ WORKDIR /app/packages/site
 RUN yarn
 RUN yarn build
 
+# removing env from container
+RUN rm ./.env.local
 
 
 EXPOSE 3000
