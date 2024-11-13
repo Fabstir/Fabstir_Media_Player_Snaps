@@ -8,9 +8,14 @@ WORKDIR /app
 COPY . .
 
 
+
+RUN echo '' > yarn.lock
+RUN yarn install
+
+
 WORKDIR /app/packages/site
 
-RUN yarn
+
 RUN yarn build
 
 # removing env from container
