@@ -154,14 +154,23 @@ export const NFTVideoJS = ({
           cidWithoutKey: nft.animation_url,
         });
 
+        let videoSources = null;
+        let audioTracks = null;
+        let subtitleTracks = null;
+
         if (trailerData) {
-          const { videoSources, audioTracks, subtitleTracks } =
-            separateSubtitlesFromSources(trailerData);
-          setTrailerSource(videoSources);
-          setTrailerAudioTracks(audioTracks);
-          setTrailerSubtitleTracks(subtitleTracks);
+          ({ videoSources, audioTracks, subtitleTracks } =
+            separateSubtitlesFromSources(trailerData));
         }
-      } else setTrailerSource(null);
+
+        setTrailerSource(videoSources);
+        setTrailerAudioTracks(audioTracks);
+        setTrailerSubtitleTracks(subtitleTracks);
+      } else {
+        setTrailerSource(null);
+        setTrailerAudioTracks(null);
+        setTrailerSubtitleTracks(null);
+      }
 
       console.log('NFTVideoJS: nft.name useEffect getVideoLink');
       console.log('NFTVideoJS: mainSource = ', mainSource);
