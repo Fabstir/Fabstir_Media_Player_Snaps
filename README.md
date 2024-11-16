@@ -75,4 +75,4 @@ The project follows the same release process as the other libraries in the MetaM
 ## Notes
 
 - Babel is used for transpiling TypeScript to JavaScript, so when building with the CLI,
-  `transpilationMode` must be set to `localOnly` (default) or `localAndDeps`.
+  `transpilationMode` must be set to `localOnly` (default) or `localAndDeps`. 
