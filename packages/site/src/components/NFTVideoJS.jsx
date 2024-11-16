@@ -142,6 +142,10 @@ export const NFTVideoJS = ({
         setMainSource(videoSources);
         setMainAudioTracks(audioTracks);
         setMainSubtitleTracks(subtitleTracks);
+      } else {
+        setMainSource(null);
+        setMainAudioTracks(null);
+        setMainSubtitleTracks(null);
       }
 
       if (nft.animation_url) {
