@@ -7,6 +7,9 @@ import {
   currentbadgecategories,
   currentbadgeformstate,
 } from '../atoms/badgeSlideOverAtom';
+import { Input } from '../ui-components/input';
+import { Select } from '../ui-components/select';
+import { Textarea } from '../ui-components/textarea';
 
 const BadgeSlideOverLeft = ({
   userPub,
@@ -62,7 +65,7 @@ const BadgeSlideOverLeft = ({
         <section aria-labelledby="payment-heading">
           <h2
             id="payment-heading"
-            className="text-lg font-medium tracking-wider text-fabstir-light-gray"
+            className="text-lg font-medium tracking-wider text-fabstir-white"
           >
             CREATE BADGE (A.K.A. SOULBOUND TOKEN)
           </h2>
@@ -76,10 +79,10 @@ const BadgeSlideOverLeft = ({
                 Name
               </label>
               <div className="mt-1 rounded-lg border-2 border-fabstir-gray">
-                <input
+                <Input
                   type="text"
                   id="name"
-                  {...register('name')}
+                  register={register('name')}
                   className="block w-full bg-fabstir-dark-gray"
                 />
               </div>
@@ -96,10 +99,10 @@ const BadgeSlideOverLeft = ({
                 Symbol
               </label>
               <div className="mt-1 rounded-lg border-2 border-fabstir-gray">
-                <input
+                <Input
                   type="text"
                   id="symbol"
-                  {...register('symbol')}
+                  register={register('symbol')}
                   className="block w-full bg-fabstir-dark-gray sm:text-sm"
                 />
               </div>
@@ -121,11 +124,11 @@ const BadgeSlideOverLeft = ({
                 </span>
               </div>
               <div className="mt-1 rounded-lg border-2 border-fabstir-gray">
-                <textarea
+                <Textarea
                   type="text"
                   id="summary"
                   rows={2}
-                  {...register('summary')}
+                  register={register('summary')}
                   className="block w-full bg-fabstir-dark-gray px-4 py-3"
                   defaultValue={''}
                 />
@@ -148,10 +151,10 @@ const BadgeSlideOverLeft = ({
                 </span>
               </div>
               <div className="mt-1 rounded-lg border-2 border-fabstir-gray">
-                <textarea
+                <Textarea
                   id="description"
                   rows={4}
-                  {...register('description')}
+                  register={register('description')}
                   className="block w-full bg-fabstir-dark-gray px-4 py-3"
                   defaultValue={''}
                 />
@@ -172,19 +175,16 @@ const BadgeSlideOverLeft = ({
               Category
             </label>
             <div className="mt-1 rounded-lg border-2 border-fabstir-gray">
-              <select
+              <Select
                 id="category"
-                // value={userProfile.country}
-                type="text"
-                {...register('category')}
+                options={currentBadgeCategories.map((currentBadgeCategory) => ({
+                  value: currentBadgeCategory,
+                  label: currentBadgeCategory,
+                }))}
+                register={register('category')}
                 className="sm:text-md block w-full bg-fabstir-dark-gray"
-              >
-                {currentBadgeCategories.map((currentBadgeCategory) => (
-                  <option key={currentBadgeCategory}>
-                    {currentBadgeCategory}
-                  </option>
-                ))}
-              </select>
+                error={errors.category?.message}
+              />
             </div>
             <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
               {errors.category?.message}
@@ -202,10 +202,10 @@ const BadgeSlideOverLeft = ({
               <div className="mt-1 rounded-lg border-2 border-dotted border-fabstir-gray p-4">
                 <TokenAttributes setValueTokenData={setValue} />
 
-                {/* <textarea
+                {/* <Textarea
                   name="attributes"
                   rows={4}
-                  {...register('attributes')}
+                  register={register('attributes')}
                   className="py-3 px-4 block w-full bg-fabstir-dark-gray"
                   defaultValue={''}
                 /> */}
@@ -218,7 +218,7 @@ const BadgeSlideOverLeft = ({
         </section>
 
         <div className="mt-10 border-t border-fabstir-gray pt-8 sm:flex sm:items-center sm:justify-between">
-          <input
+          <Input
             type="submit"
             className="w-full rounded-md border border-transparent bg-fabstir-light-purple px-2 py-2 text-sm font-medium text-white shadow-sm hover:bg-fabstir-dark-purple focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50 sm:mr-6"
             value={submitText}

@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
+import { AddressZero } from '@ethersproject/constants';
+
 import { ArrowLongLeftIcon } from '@heroicons/react/24/solid';
 import { getNFTAddressId } from '../../src/utils/nftUtils';
 
@@ -204,7 +206,7 @@ export default function UserNFTs() {
       const userAuthProfile = await getUserProfile(userAuthPub);
 
       if (
-        minter === ethers.constants.AddressZero ||
+        minter === AddressZero ||
         (userAuthProfile.accountAddress === minter && badge.from === minter)
       ) {
         setHandleGiveBadgeToNFTText('Giving...');
@@ -252,7 +254,7 @@ export default function UserNFTs() {
       const userAuthProfile = await getUserProfile(userAuthPub);
 
       if (
-        minter === ethers.constants.AddressZero ||
+        minter === AddressZero ||
         (userAuthProfile.accountAddress === minter && badge.from === minter)
       ) {
         setHandleGiveBadgeText('Giving...');
@@ -296,10 +298,7 @@ export default function UserNFTs() {
       const minter = await minterOf(badge);
       const userAuthProfile = await getUserProfile(userAuthPub);
 
-      if (
-        minter === ethers.constants.AddressZero ||
-        userAuthProfile.accountAddress === minter
-      ) {
+      if (minter === AddressZero || userAuthProfile.accountAddress === minter) {
         setUserPubGive(userPub);
         setCurrentBadgeRequesting(badge);
         setHandleGiveBadgeForAccountText('Give Pending....');
@@ -568,7 +567,7 @@ export default function UserNFTs() {
         const userAuthProfile = await getUserProfile(userAuthPub);
 
         if (
-          minter === ethers.constants.AddressZero ||
+          minter === AddressZero ||
           userAuthProfile.accountAddress === minter
         ) {
           setHandleRequestedBadgeText('Giving...');
@@ -616,7 +615,7 @@ export default function UserNFTs() {
         const userAuthProfile = await getUserProfile(userAuthPub);
 
         if (
-          minter === ethers.constants.AddressZero ||
+          minter === AddressZero ||
           userAuthProfile.accountAddress === minter
         ) {
           setHandleRequestedBadgeText('Deleting...');
@@ -645,7 +644,7 @@ export default function UserNFTs() {
         const userAuthProfile = await getUserProfile(userAuthPub);
 
         if (
-          minter === ethers.constants.AddressZero ||
+          minter === AddressZero ||
           userAuthProfile.accountAddress === minter
         ) {
           setHandleRequestedBadgeText('Give');

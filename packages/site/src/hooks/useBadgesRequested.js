@@ -13,9 +13,9 @@ const getBadgesRequestedCompleted = async (userPub) => {
 };
 
 const fetchBadges = async (userPub) => {
-  const results = await gunLoad(
-    gun.get('#Fabstir_badge_requests:' + userPub),
-    process_env.GUN_WAIT_TIME,
+  const results = await dbClientLoad(
+    dbClient.get('#Fabstir_badge_requests:' + userPub),
+    process.env.NEXT_PUBLIC_GUN_WAIT_TIME,
     null,
   );
 

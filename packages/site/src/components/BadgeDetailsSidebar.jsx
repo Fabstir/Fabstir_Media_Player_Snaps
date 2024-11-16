@@ -19,6 +19,7 @@ import usePortal from '../hooks/usePortal';
 import useUserProfile from '../hooks/useUserProfile';
 import BadgeContextMenu from './BadgeContextMenu';
 import DropFile from './DropFile';
+import { Button } from '../ui-components/button';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -244,7 +245,7 @@ export default function BadgeDetailsSidebar({
               <img
                 src={badgeImage}
                 alt=""
-                className="object-cover"
+                className="object-cover mx-auto"
                 crossOrigin="anonymous"
               />
             </div>

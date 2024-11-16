@@ -61,7 +61,7 @@ const dbClientOnce = async (
     }
 
     const resultArray = Object.values(resultObject);
-    console.log('gunLoad: resultArray = ', resultArray);
+    console.log('dbClientOnce: resultArray = ', resultArray);
 
     const parsedResultArray = [];
     for (const result of resultArray) {
@@ -69,7 +69,7 @@ const dbClientOnce = async (
       parsedResult = parseArrayProperties(parsedResult); // Apply parseArrayProperties to the linked object
       parsedResultArray.push(parsedResult);
     }
-    console.log('gunLoad: parsedResultArray = ', parsedResultArray);
+    console.log('dbClientOnce: parsedResultArray = ', parsedResultArray);
 
     return parsedResultArray;
   } catch (error) {
