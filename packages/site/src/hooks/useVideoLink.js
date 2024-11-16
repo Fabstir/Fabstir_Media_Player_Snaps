@@ -22,11 +22,7 @@ export default function useVideoLink() {
     let port = parseInt(window.location.port, 10);
 
     if (isNaN(port)) {
-      if (window.location.protocol === 'http:') {
-        port = 80; // Default port for HTTP
-      } else if (window.location.protocol === 'https:') {
-        port = 443; // Default port for HTTPS
-      }
+      port = '';
     }
 
     return port;
@@ -58,7 +54,7 @@ export default function useVideoLink() {
           src = `${config.ipfsGateway}/ipfs/${cid}`;
         } else {
           const cid = removeS5Prefix(videoFormat.cid);
-          src = `${config.s5PortalStreamingUrlL}:${portNumber}/s5/blob/${cid}?mediaType=${videoFormat.type}`;
+          src = `${config.s5PortalStreamingUrlL}${portNumber ? ':' + portNumber : ''}/s5/blob/${cid}?mediaType=${videoFormat.type}`;
         }
 
         const source = {
