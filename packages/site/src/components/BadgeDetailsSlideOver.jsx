@@ -18,6 +18,7 @@ const BadgeDetailsSlideOver = ({
   setRerender1,
   setRerender2,
   isFileDrop,
+  childComponent,
 }) => {
   console.log('BadgeDetailsSlideOver: open = ', open);
   console.log(
@@ -58,6 +59,7 @@ const BadgeDetailsSlideOver = ({
                   setRerender1={setRerender1}
                   setRerender2={setRerender2}
                   isFileDrop={isFileDrop}
+                  childComponent={childComponent}
                 />
               </div>
             </Transition.Child>

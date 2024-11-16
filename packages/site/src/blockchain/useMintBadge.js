@@ -27,6 +27,7 @@ export default function useMintBadge() {
   const {
     getChainIdAddressFromContractAddresses,
     getChainIdAddressFromChainIdAndAddress,
+    getAddressFromChainIdAddress,
     newReadOnlyContract,
     newContract,
   } = useContractUtils();
@@ -140,19 +141,25 @@ export default function useMintBadge() {
 
     userOps.push([
       await abtToken.populateTransaction.setEOA(
-        badge.to,
+        getAddressFromChainIdAddress(badge.to),
         userProfileTo.eoaAddress,
       ),
-      abtToken.address,
+      getChainIdAddressFromChainIdAndAddress(
+        connectedChainId,
+        abtToken.address,
+      ),
     ]);
 
     userOps.push([
       await abtToken.populateTransaction.give(
-        badge.to,
+        getAddressFromChainIdAddress(badge.to),
         badge.uri,
         badge.signature,
       ),
-      abtToken.address,
+      getChainIdAddressFromChainIdAndAddress(
+        connectedChainId,
+        abtToken.address,
+      ),
     ]);
 
     const { receipt } = await processTransactionBundle(userOps);
@@ -189,11 +196,14 @@ export default function useMintBadge() {
     const { receipt } = await processTransactionBundle([
       [
         await abtToken.populateTransaction.take(
-          badge.from,
+          getAddressFromChainIdAddress(badge.from),
           badge.uri,
           badge.signature,
         ),
-        abtToken.address,
+        getChainIdAddressFromChainIdAndAddress(
+          connectedChainId,
+          abtToken.address,
+        ),
       ],
     ]);
 
@@ -237,11 +247,61 @@ export default function useMintBadge() {
           badge.uri,
           badge.signature,
         ),
-        abtToken.address,
+        getChainIdAddressFromChainIdAndAddress(
+          connectedChainId,
+          abtToken.address,
+        ),
       ],
     ]);
 
     console.log(`useMintBadge: exit revokeBadge`);
+  };
+
+  // Giver cancels taker's request
+  const cancelRequest = async (badge) => {
+    if (!isABTToken(badge)) return;
+
+    // newly deployed Badge, token starts from id 1
+
+    const abtToken = newContract(
+      badge.address,
+      ABTToken.abi,
+      smartAccountProvider,
+    );
+
+    console.log(
+      `useMintBadge: cancelRequest to=${badge.to}, uri=${badge.uri}, signature=${badge.signature}`,
+    );
+
+    const userProfileTo = await getUserProfile(badge.taker);
+
+    const userOps = [];
+
+    userOps.push([
+      await abtToken.populateTransaction.setEOA(
+        getAddressFromChainIdAddress(badge.to),
+        userProfileTo.eoaAddress,
+      ),
+      getChainIdAddressFromChainIdAndAddress(
+        connectedChainId,
+        abtToken.address,
+      ),
+    ]);
+
+    userOps.push([
+      await abtToken.populateTransaction.cancelRequest(
+        getAddressFromChainIdAddress(badge.to),
+        badge.uri,
+        badge.signature,
+      ),
+      getChainIdAddressFromChainIdAndAddress(
+        connectedChainId,
+        abtToken.address,
+      ),
+    ]);
+
+    const { receipt } = await processTransactionBundle(userOps);
+    console.log('useMintBadge: cancelRequest: receipt = ', receipt);
   };
 
   const unequip = async (userPub, badge) => {
@@ -369,7 +429,7 @@ export default function useMintBadge() {
 
     const used = await abtToken.isUsed(
       activeProfile.accountAddress,
-      badge.from,
+      getAddressFromChainIdAddress(badge.from),
       badge.uri,
     );
     console.log('useMintBadge: used = ', used);
@@ -387,6 +447,7 @@ export default function useMintBadge() {
     giveBadge,
     takeBadge,
     revokeBadge,
+    cancelRequest,
     deployBadge,
     isABTToken,
     getOwnBadges,

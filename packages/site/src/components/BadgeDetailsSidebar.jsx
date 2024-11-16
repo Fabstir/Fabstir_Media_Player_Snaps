@@ -20,6 +20,7 @@ import useUserProfile from '../hooks/useUserProfile';
 import BadgeContextMenu from './BadgeContextMenu';
 import DropFile from './DropFile';
 import { Button } from '../ui-components/button';
+import BadgeGiveToUserOrNFT from './BadgeGiveToUserOrNFT';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -65,6 +66,7 @@ export default function BadgeDetailsSidebar({
   setRerender1,
   setRerender2,
   isFileDrop = false,
+  childComponent,
 }) {
   const [badge, setBadge] = useRecoilState(currentbadgemetadata);
   const [nft, setNFT] = useRecoilState(currentnftmetadata);
@@ -225,7 +227,7 @@ export default function BadgeDetailsSidebar({
     <FormProvider {...methods}>
       <aside
         className={classNames(
-          'mx-auto w-full  flex-1 rounded-sm border-l border-fabstir-dark-gray bg-fabstir-gray-700 px-8 pb-8 pt-2 lg:block',
+          'mx-auto w-full  flex-1 rounded-sm border-l border-fabstir-dark-gray bg-background px-8 pb-8 pt-2 lg:block',
           width1,
         )}
       >
@@ -385,75 +387,83 @@ export default function BadgeDetailsSidebar({
               </div>
             </div>
 
-            <div className="flex flex-1">
-              {isFileDrop ? (
-                <form
-                  onSubmit={handleSubmit(handleSubmit_Badge)}
-                  className="w-full"
-                >
-                  {badgeDetailsFunction1 &&
-                    function1Name &&
-                    (!badgeDetailsFilterAccountAddresses ||
-                      (badgeDetailsFilterAccountAddresses &&
-                        (userAuthPubAddress === owner ||
-                          minter === AddressZero ||
-                          userAuthPubAddress === minter))) && (
-                      <Button
-                        type="submit"
-                        variant="primary"
-                        size="medium"
-                        className="w-full rounded-md border border-transparent px-4 py-2 text-sm font-medium tracking-wide"
-                      >
-                        {function1Name}
-                      </Button>
-                    )}
-                </form>
-              ) : (
-                <>
-                  {badgeDetailsFunction1 &&
-                    function1Name &&
-                    (!badgeDetailsFilterAccountAddresses ||
-                      (badgeDetailsFilterAccountAddresses &&
-                        (userAuthPubAddress === owner ||
-                          minter === AddressZero ||
-                          userAuthPubAddress === minter))) && (
-                      <Button
-                        variant="primary"
-                        size="medium"
-                        onClick={() => {
-                          (async () => {
-                            await badgeDetailsFunction1(badge, nft);
+            {badgeDetailsFunction1Name && childComponent ? (
+              <>
+                <BadgeGiveToUserOrNFT badge={badge} />
+              </>
+            ) : (
+              <div className="flex flex-1">
+                {isFileDrop ? (
+                  <form
+                    onSubmit={handleSubmit(handleSubmit_Badge)}
+                    className="w-full"
+                  >
+                    {badgeDetailsFunction1 &&
+                      function1Name &&
+                      (!badgeDetailsFilterAccountAddresses ||
+                        (badgeDetailsFilterAccountAddresses &&
+                          (userAuthPubAddress === owner ||
+                            minter === AddressZero ||
+                            userAuthPubAddress === minter))) && (
+                        <Button
+                          type="submit"
+                          variant="primary"
+                          size="medium"
+                          className="w-full rounded-md border border-transparent px-4 py-2 text-sm font-medium tracking-wide"
+                        >
+                          {function1Name}
+                        </Button>
+                      )}
+                  </form>
+                ) : (
+                  <>
+                    {badgeDetailsFunction1 &&
+                      function1Name &&
+                      (!badgeDetailsFilterAccountAddresses ||
+                        (badgeDetailsFilterAccountAddresses &&
+                          (userAuthPubAddress === owner ||
+                            minter === AddressZero ||
+                            userAuthPubAddress === minter))) && (
+                        <Button
+                          variant="primary"
+                          size="medium"
+                          onClick={() => {
+                            (async () => {
+                              await badgeDetailsFunction1(badge, nft);
 
-                            if (setRerender1) setRerender1((prev) => prev + 1);
-                            if (setRerender2) setRerender2((prev) => prev + 2);
-                          })();
-                        }}
-                        className="w-full rounded-md border border-transparent px-4 py-2 text-sm font-medium tracking-wide"
-                      >
-                        {function1Name}
-                      </Button>
-                    )}
-                </>
-              )}
+                              if (setRerender1)
+                                setRerender1((prev) => prev + 1);
+                              if (setRerender2)
+                                setRerender2((prev) => prev + 2);
+                            })();
+                          }}
+                          className="w-full rounded-md border border-transparent px-4 py-2 text-sm font-medium tracking-wide"
+                        >
+                          {function1Name}
+                        </Button>
+                      )}
+                  </>
+                )}
 
-              {badgeDetailsFunction2 && badgeDetailsFunction2Name && (
-                <Button
-                  variant="primary"
-                  size="medium"
-                  onClick={() => {
-                    (async () => {
-                      await badgeDetailsFunction2(badge, nft);
+                {badgeDetailsFunction2 && badgeDetailsFunction2Name && (
+                  <Button
+                    variant="primary"
+                    size="medium"
+                    onClick={() => {
+                      (async () => {
+                        await badgeDetailsFunction2(badge, nft);
 
-                      if (setRerender1) setRerender1((prev) => prev + 1);
-                      if (setRerender2) setRerender2((prev) => prev + 2);
-                    })();
-                  }}
-                  className="ml-3 w-full rounded-md border border-transparent px-4 py-2 text-sm font-medium tracking-wide"
-                >
-                  {badgeDetailsFunction2Name}
-                </Button>
-              )}
-            </div>
+                        if (setRerender1) setRerender1((prev) => prev + 1);
+                        if (setRerender2) setRerender2((prev) => prev + 2);
+                      })();
+                    }}
+                    className="ml-3 w-full rounded-md border border-transparent px-4 py-2 text-sm font-medium tracking-wide"
+                  >
+                    {badgeDetailsFunction2Name}
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </aside>

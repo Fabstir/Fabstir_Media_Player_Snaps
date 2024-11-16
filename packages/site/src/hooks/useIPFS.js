@@ -21,7 +21,7 @@ export default function useIPFS() {
 
     // Pinata request headers using Bearer token (JWT) for authentication
     const headers = {
-      Authorization: `Bearer ${process.env.NEXT_PUBLIC_PINATA_JWT}`,
+      Authorization: `Bearer ${config.pinataJwt}`,
       'Content-Type': 'multipart/form-data',
     };
 

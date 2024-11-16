@@ -64,6 +64,7 @@ import useCreateBadgeRequested from '../../src/hooks/useCreateBadgeRequested';
 import useCreateBadgeRequestedCompleted from '../../src/hooks/useCreateBadgeRequestedCompleted';
 import TransferNFT from '../../src/components/TransferNFT';
 import { transfernftslideoverstate } from '../../src/atoms/transferNFTOverAtom';
+import BadgeGiveToUserOrNFT from '../../src/components/BadgeGiveToUserOrNFT';
 
 /**
  * Tailwind CSS style for title text.
@@ -101,6 +102,7 @@ export default function UserNFTs() {
     giveBadge,
     takeBadge,
     revokeBadge,
+    cancelRequest,
     unequip,
     getNextTokenId,
   } = useMintBadge();
@@ -615,10 +617,12 @@ export default function UserNFTs() {
         const userAuthProfile = await getUserProfile(userAuthPub);
 
         if (
-          minter === AddressZero ||
-          userAuthProfile.accountAddress === minter
+          minter === ethers.constants.AddressZero ||
+          userAuthProfile.accountAddress.toLowerCase() === minter.toLowerCase()
         ) {
           setHandleRequestedBadgeText('Deleting...');
+          await cancelRequest(badge); // ensure that badge can no longer be taken
+
           createBadgeRequestedCompleted(badge);
 
           setHandleRequestedBadgeText('Deleted!');
@@ -631,7 +635,6 @@ export default function UserNFTs() {
       minterOf,
       userAuthPub,
       userPub,
-      createBadgeRequestedCompleted,
       setHandleRequestedBadgeText,
       setOpenBadgeRequested,
     ],
@@ -769,6 +772,7 @@ export default function UserNFTs() {
             badgeDetailsFunction1={handleGiveBadgeForAccount}
             badgeDetailsFunction1Name={handleGiveBadgeForAccountText}
             setRerender1={setRerenderBadgesToTake}
+            childComponent={BadgeGiveToUserOrNFT}
           />
         )}
         <BadgeDetailsSlideOver

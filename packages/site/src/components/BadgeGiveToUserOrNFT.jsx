@@ -1,26 +1,69 @@
+import { AddressZero } from '@ethersproject/constants';
+import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useContext, useState } from 'react';
 import * as yup from 'yup';
+import { Input } from '../ui-components/input';
+import useMintBadge from '../blockchain/useMintBadge';
+import useUserProfile from '../hooks/useUserProfile';
+import { useRecoilValue, useSetRecoilState } from 'recoil';
+import { userauthpubstate } from '../atoms/userAuthAtom';
+import { badgetogiveforaccountslideoverstate } from '../atoms/badgeDetailsSlideOverFunctions';
+import useContractUtils from '../blockchain/useContractUtils';
+import BlockchainContext from '../../state/BlockchainContext';
+import useSendBadge from '../hooks/useSendBadge';
+import useCreateBadgeToTake from '../hooks/useCreateBadgeToTake';
 
-export default function BadgeGiveToUserOrNFT() {
+const defaultFormValues = {
+  userPub: '',
+  nftAddress: '',
+  nftTokenId: '',
+};
+
+export default function BadgeGiveToUserOrNFT({ badge }) {
+  const blockchainContext = useContext(BlockchainContext);
+  const { providers, connectedChainId } = blockchainContext;
+
+  const userAuthPub = useRecoilValue(userauthpubstate);
+
   const [submitText, setSubmitText] = useState('Give');
 
-  const giveBadgeSchema = yup.object().shape({
-    userPub: yup.string().required('Must have a user public key.'),
-    nftAddress: yup.string().when('nftTokenId', {
-      is: (val) => val !== undefined && val !== '',
-      then: yup
-        .string()
-        .required('Both nftAddress and nftTokenId must be defined.'),
-      otherwise: yup.string().notRequired(),
-    }),
-    nftTokenId: yup.string().when('nftAddress', {
-      is: (val) => val !== undefined && val !== '',
-      then: yup
-        .string()
-        .required('Both nftAddress and nftTokenId must be defined.'),
-      otherwise: yup.string().notRequired(),
-    }),
-  });
+  const { minterOf, getSignature } = useMintBadge();
+  const [getUserProfile] = useUserProfile();
+
+  const setOpenBadgeToGiveForAccount = useSetRecoilState(
+    badgetogiveforaccountslideoverstate,
+  );
+
+  const { createUri } = useSendBadge();
+
+  const { mutate: createBadgeToTake, ...createBadgeToTakeInfo } =
+    useCreateBadgeToTake();
+
+  const { getChainIdAddressFromChainIdAndAddress } = useContractUtils();
+
+  const giveBadgeSchema = yup
+    .object()
+    .shape({
+      userPub: yup.string().required('Must have a user public key.'),
+      nftAddress: yup.string().nullable(),
+      nftTokenId: yup.string().nullable(),
+    })
+    .test(
+      'nftAddress-nftTokenId',
+      'Both nftAddress and nftTokenId must be defined if one is defined.',
+      function (value) {
+        const { nftAddress, nftTokenId } = value;
+        if ((nftAddress && !nftTokenId) || (!nftAddress && nftTokenId)) {
+          return new yup.ValidationError(
+            'Both nftAddress and nftTokenId must be defined if one is defined.',
+            null,
+            'nftAddress',
+          );
+        }
+        return true;
+      },
+    );
 
   const {
     register,
@@ -30,8 +73,8 @@ export default function BadgeGiveToUserOrNFT() {
     getValues,
     setValue,
   } = useForm({
-    defaultValues: defaultBuy,
-    resolver: yupResolver(buySchema),
+    defaultValues: defaultFormValues,
+    resolver: yupResolver(giveBadgeSchema),
   });
 
   const handleGiveBadgeToNFT = async (badge, nft) => {
@@ -40,15 +83,24 @@ export default function BadgeGiveToUserOrNFT() {
 
     if (
       minter === AddressZero ||
-      (userAuthProfile.accountAddress === minter && badge.from === minter)
+      (userAuthProfile.accountAddress.toLowerCase() === minter.toLowerCase() &&
+        badge.from.toLowerCase() ===
+          getChainIdAddressFromChainIdAndAddress(
+            connectedChainId,
+            minter,
+          ).toLowerCase())
     ) {
-      setHandleGiveBadgeToNFTText('Giving...');
+      setSubmitText('Giving...');
       const userAuthPubProfile = await getUserProfile(userAuthPub);
 
       const uri = await createUri(badge);
 
-      const newBadge = { ...badge, uri };
-      const signature = await getSignature(userPub, newBadge, newBadge.giver);
+      const newBadge = { ...badge, uri, taker: badge.taker };
+      const signature = await getSignature(
+        badge.taker,
+        newBadge,
+        newBadge.giver,
+      );
 
       console.log('BadgeDropdown: newBadge = ', newBadge);
 
@@ -59,9 +111,9 @@ export default function BadgeGiveToUserOrNFT() {
         nftOwner: nft.creator,
         nftTokenId: nft.id,
       });
-      setHandleGiveBadgeToNFTText('Given!');
+      setSubmitText('Given!');
     } else {
-      setHandleGiveBadgeToNFTText('Error!');
+      setSubmitText('Error!');
     }
 
     setCurrentBadgeRequesting(null);
@@ -70,20 +122,29 @@ export default function BadgeGiveToUserOrNFT() {
     setOpenBadgeToGiveToNFT(false);
   };
 
-  const handleGiveBadgeToAccount = async (badge, nft) => {
+  const handleGiveBadgeToAccount = async (badge) => {
     const minter = await minterOf(badge);
     const userAuthProfile = await getUserProfile(userAuthPub);
 
     if (
       minter === AddressZero ||
-      (userAuthProfile.accountAddress === minter && badge.from === minter)
+      (userAuthProfile.accountAddress.toLowerCase() === minter.toLowerCase() &&
+        badge.from.toLowerCase() ===
+          getChainIdAddressFromChainIdAndAddress(
+            connectedChainId,
+            minter,
+          ).toLowerCase())
     ) {
-      setHandleGiveBadgeText('Giving...');
+      setSubmitText('Giving...');
       //        const userAuthPubProfile = await getUserProfile(userAuthPub)
       const uri = await createUri(badge);
 
-      const newBadge = { ...badge, uri };
-      const signature = await getSignature(userPub, newBadge, newBadge.giver);
+      const newBadge = { ...badge, uri, taker: badge.taker };
+      const signature = await getSignature(
+        badge.taker,
+        newBadge,
+        newBadge.giver,
+      );
 
       console.log('BadgeDropdown: newBadge = ', newBadge);
 
@@ -91,15 +152,24 @@ export default function BadgeGiveToUserOrNFT() {
         ...newBadge,
         signature,
       });
-      setHandleGiveBadgeText('Given!');
+      setSubmitText('Given!');
     } else {
-      setHandleGiveBadgeText('Error!');
+      setSubmitText('Error!');
     }
     setOpenBadgeToGiveForAccount(false);
-    setUserPubGive(null);
   };
 
-  const handleGiveBadge = async (badge, nft) => {};
+  const handleGiveBadge = async (data) => {
+    const newBadge = { ...badge, taker: data.userPub };
+    if (data.nftAddress && data.nftTokenId) {
+      await handleGiveBadgeToNFT(newBadge, {
+        address: data.nftAddress,
+        id: data.nftTokenId,
+      });
+    } else {
+      await handleGiveBadgeToAccount(newBadge);
+    }
+  };
 
   return (
     <>
@@ -111,22 +181,14 @@ export default function BadgeGiveToUserOrNFT() {
           <body class="h-full">
           ```
         */}
-      <div className="flex min-h-full flex-1 items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
+      <div className="flex min-h-full flex-1 items-center justify-center px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-sm space-y-10">
           <div>
-            <img
-              alt="Your Company"
-              src="https://tailwindui.com/plus/img/logos/mark.svg?color=indigo&shade=600"
-              className="mx-auto h-10 w-auto"
-            />
-            <h2 className="mt-10 text-center text-2xl/9 font-bold tracking-tight text-gray-900">
+            <h2 className="mt-4 text-center text-2xl/9 font-bold tracking-tight text-gray-900">
               Give to User or NFT
             </h2>
           </div>
-          <form
-            onSubmit={handleSubmit(handle_DeleteMarketNFT)}
-            className="space-y-6"
-          >
+          <form onSubmit={handleSubmit(handleGiveBadge)} className="space-y-6">
             <div className="relative -space-y-px rounded-md shadow-sm">
               <div className="pointer-events-none absolute inset-0 z-10 rounded-md ring-1 ring-inset ring-gray-300" />
               <div>
@@ -152,8 +214,7 @@ export default function BadgeGiveToUserOrNFT() {
                   id="nftAddress"
                   name="nftAddress"
                   type="nftAddress"
-                  required
-                  placeholder="NFT Address"
+                  placeholder="NFT Address (optional)"
                   autoComplete="current-nftAddress"
                   className="relative block w-full rounded-b-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-100 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm/6"
                   register={register('nftAddress')}
@@ -167,8 +228,7 @@ export default function BadgeGiveToUserOrNFT() {
                   id="nftTokenId"
                   name="nftTokenId"
                   type="nftTokenId"
-                  required
-                  placeholder="NFTTokenId"
+                  placeholder="NFT Token Id (optional)"
                   autoComplete="current-nftTokenId"
                   className="relative block w-full rounded-b-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-100 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm/6"
                   register={register('nftTokenId')}
@@ -179,7 +239,7 @@ export default function BadgeGiveToUserOrNFT() {
             <div>
               <button
                 type="submit"
-                className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                className="flex w-full justify-center rounded-md bg-primary text-primary-content hover:bg-primary-dark px-3 py-1.5 text-sm/6 font-semibold text-white hover:bg- focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 "
               >
                 {submitText}
               </button>

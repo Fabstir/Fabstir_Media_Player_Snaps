@@ -10,21 +10,19 @@ import {
 } from '../utils/stringifyProperties';
 
 export default function useCreateBadgeToTake() {
-  const userPub = useRecoilValue(userpubstate);
-
   return useMutation(
     async (badge) => {
       console.log('useCreateBadgeToTake: badge = ', badge);
 
       const newBadge = JSON.stringify(stringifyArrayProperties(badge));
 
-      var hash = await SEA.work(sortObjectProperties(newBadge), null, null, {
+      var hash = await SEA.work(newBadge, null, null, {
         name: 'SHA-256',
       });
       console.log('useCreateBadgeToTake: hash = ', hash);
 
       dbClient
-        .get('#' + userPub)
+        .get('#' + badge.taker)
         .get(hash)
         .put(newBadge, (ack) => {
           if (ack.err) {
@@ -46,12 +44,15 @@ export default function useCreateBadgeToTake() {
       onMutate: (newBadge) => {
         console.log('useCreateBadge onMutate newBadge = ', newBadge);
 
-        queryClient.cancelQueries([userPub, 'badges to take']);
+        queryClient.cancelQueries([newBadge.taker, 'badges to take']);
 
-        let oldBadges = queryClient.getQueryData([userPub, 'badges to take']);
+        let oldBadges = queryClient.getQueryData([
+          newBadge.taker,
+          'badges to take',
+        ]);
         console.log('useCreateBadge oldBadges = ', oldBadges);
 
-        queryClient.setQueryData([userPub, 'badges to take'], (old) => {
+        queryClient.setQueryData([newBadge.taker, 'badges to take'], (old) => {
           return old
             ? [
                 ...old,
@@ -68,20 +69,26 @@ export default function useCreateBadgeToTake() {
               ];
         });
 
-        const newBadges = queryClient.getQueryData([userPub, 'badges to take']);
+        const newBadges = queryClient.getQueryData([
+          newBadge.taker,
+          'badges to take',
+        ]);
         console.log('useCreateBadge newBadges = ', newBadges);
 
         return () =>
-          queryClient.setQueryData([userPub, 'badges to take'], oldBadges);
+          queryClient.setQueryData(
+            [newBadge.taker, 'badges to take'],
+            oldBadges,
+          );
       },
       onError: (error, newBadge, rollback) => {
         console.log('useCreateBadgeToTake: error = ', error);
         rollback();
       },
       onSuccess: (data, newBadge) => {
-        queryClient.invalidateQueries([userPub, 'badges to take']);
+        queryClient.invalidateQueries([newBadge.taker, 'badges to take']);
 
-        queryClient.getQueryData([userPub, 'badges to take']);
+        queryClient.getQueryData([newBadge.taker, 'badges to take']);
       },
     },
   );
