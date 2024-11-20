@@ -112,14 +112,10 @@ export default function BadgeGiveToUserOrNFT({ badge }) {
         nftTokenId: nft.id,
       });
       setSubmitText('Given!');
+      setOpen(false);
     } else {
       setSubmitText('Error!');
     }
-
-    setCurrentBadgeRequesting(null);
-    setUserPubRequest(null);
-
-    setOpenBadgeToGiveToNFT(false);
   };
 
   const handleGiveBadgeToAccount = async (badge) => {

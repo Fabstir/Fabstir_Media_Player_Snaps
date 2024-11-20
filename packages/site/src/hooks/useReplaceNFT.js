@@ -32,7 +32,7 @@ export default function useReplaceNFT() {
       parentAddress: newNFT.address,
     };
 
-    createNFT(updatedNFT);
+    await createNFT(updatedNFT);
 
     let updatedNewNFT = {
       ...newNFT,
@@ -43,7 +43,7 @@ export default function useReplaceNFT() {
     if (oldNFT.multiToken)
       updatedNewNFT = { ...updatedNewNFT, multiToken: oldNFT.multiToken };
 
-    createNFT(updatedNewNFT);
+    await createNFT(updatedNewNFT);
 
     // // Wait for deleteNFT to complete and check for success
     // if (deleteNFTInfo.isSuccess) {
@@ -66,7 +66,7 @@ export default function useReplaceNFT() {
     // }
   };
 
-  const updateNFTToPointToParent = (oldNFT, parentNFT) => {
+  const updateNFTToPointToParent = async (oldNFT, parentNFT) => {
     console.log('useReplaceNFT: updateNFTToPointToParent: oldNFT = ', oldNFT);
     console.log(
       'useReplaceNFT: updateNFTToPointToParent: parentNFT = ',
@@ -83,10 +83,10 @@ export default function useReplaceNFT() {
       updatedNFT,
     );
 
-    createNFT(updatedNFT);
+    await createNFT(updatedNFT);
   };
 
-  const removeChildNFT = (childNFT, parentNFT) => {
+  const removeChildNFT = async (childNFT, parentNFT) => {
     if (!childNFT || !parentNFT || childNFT.parentId !== parentNFT.id)
       throw new Error('useReplaceNFT: childNFT.parentId !== parentNFT.id');
 
@@ -98,7 +98,7 @@ export default function useReplaceNFT() {
     updatedChild.parentId = null;
     updatedChild.parentAddress = null;
 
-    createNFT(updatedChild);
+    await createNFT(updatedChild);
 
     console.log('useReplaceNFT: removeChildNFT: updatedChild = ', updatedChild);
   };

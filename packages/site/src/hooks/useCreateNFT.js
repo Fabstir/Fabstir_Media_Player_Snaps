@@ -71,17 +71,25 @@ export default function useCreateNFT() {
       const addressId = getNFTAddressId(newNFT);
       console.log('useCreateNFT: addressId = ', addressId);
 
+      const putNFT = (addressId, newNFT) => {
+        return new Promise((resolve, reject) => {
+          user
+            .get('nfts')
+            .get(addressId)
+            .put(newNFT, function (ack) {
+              if (ack.err) {
+                console.error('useCreateNFT: Error writing data:', ack.err);
+                reject(ack.err);
+              } else {
+                console.log('useCreateNFT: newNFT.address = ', newNFT.address);
+                resolve(newNFT);
+              }
+            });
+        });
+      };
+
       if (process.env.NEXT_PUBLIC_IS_USE_FABSTIRDB === 'true')
-        user
-          .get('nfts')
-          .get(addressId)
-          .put(newNFT, function (ack) {
-            if (ack.err) {
-              console.error('useCreateNFT: Error writing data:', ack.err);
-            } else {
-              console.log('useCreateNFT: newNFT.address = ', newNFT.address);
-            }
-          });
+        await putNFT(addressId, newNFT);
       else await saveNFTtoState(`${nft.address}_${nft.id}`, newState);
       console.log('useCreateNFT: newState = ', newState);
 
@@ -152,19 +160,6 @@ export default function useCreateNFT() {
           'nfts',
           selectedParentNFTAddressId,
         ]);
-        const currentNFTs =
-          queryClient.getQueryData([
-            userPub,
-            'nfts',
-            selectedParentNFTAddressId,
-          ]) || [];
-        const updatedNFTs = [...currentNFTs, newNFT]; // Or use `data` if it contains the updated list
-        queryClient.setQueryData(
-          [userPub, 'nfts', selectedParentNFTAddressId],
-          updatedNFTs,
-        );
-
-        console.log('useCreateNFT: Updated NFTs:', updatedNFTs);
       },
     },
   );

@@ -55,6 +55,14 @@ export default function UserBadgesRequestedSection({
   }, [rerender]);
 
   useEffect(() => {
+    console.log(
+      'UserBadgesRequestedSection: badgesRequestedCompleted = ',
+      badgesRequestedCompleted,
+    );
+    console.log(
+      'UserBadgesRequestedSection: badgesRequestedCompleted.isSuccess = ',
+      badgesRequestedCompleted.isSuccess,
+    );
     console.log('UserBadgesRequestedSection: useEffect');
     if (badgesRequested.isSuccess && badgesRequestedCompleted.isSuccess) {
       console.log('UserBadgesRequestedSection: inside loop');

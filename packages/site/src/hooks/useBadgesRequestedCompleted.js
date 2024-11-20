@@ -12,7 +12,7 @@ const fetchBadges = async () => {
   );
 
   console.log('useBadgesRequestedCompleted: fetchBadges results = ', results);
-  return results;
+  return results || [];
 };
 
 export default function useBadgesRequestedCompleted() {

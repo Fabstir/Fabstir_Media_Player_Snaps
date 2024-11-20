@@ -545,7 +545,7 @@ export default function useNFTMedia() {
     nft = { ...nft, id, ...additionalMetaData };
     console.log('index: nft = ', nft);
 
-    createNFT(nft);
+    await createNFT(nft);
 
     let encKey = null;
 
@@ -609,7 +609,7 @@ export default function useNFTMedia() {
   ) => {
     if (await getIsNestableNFT(nft.address)) {
       {
-        createNFT(nft);
+        await createNFT(nft);
 
         getChildrenOfNestableNFT(nft.id).then(async (children) => {
           for (const child of children) {

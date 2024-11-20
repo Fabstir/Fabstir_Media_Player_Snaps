@@ -389,7 +389,7 @@ export default function BadgeDetailsSidebar({
 
             {badgeDetailsFunction1Name && childComponent ? (
               <>
-                <BadgeGiveToUserOrNFT badge={badge} />
+                <BadgeGiveToUserOrNFT badge={badge} setOpen={setOpen} />
               </>
             ) : (
               <div className="flex flex-1">
@@ -404,7 +404,8 @@ export default function BadgeDetailsSidebar({
                         (badgeDetailsFilterAccountAddresses &&
                           (userAuthPubAddress === owner ||
                             minter === AddressZero ||
-                            userAuthPubAddress === minter))) && (
+                            userAuthPubAddress.toLowerCase() ===
+                              minter.toLowerCase()))) && (
                         <Button
                           type="submit"
                           variant="primary"
@@ -423,7 +424,8 @@ export default function BadgeDetailsSidebar({
                         (badgeDetailsFilterAccountAddresses &&
                           (userAuthPubAddress === owner ||
                             minter === AddressZero ||
-                            userAuthPubAddress === minter))) && (
+                            userAuthPubAddress.toLowerCase() ===
+                              minter.toLowerCase()))) && (
                         <Button
                           variant="primary"
                           size="medium"

@@ -209,7 +209,9 @@ export default function UserNFTs() {
 
       if (
         minter === AddressZero ||
-        (userAuthProfile.accountAddress === minter && badge.from === minter)
+        (userAuthProfile.accountAddress.toLowerCase() ===
+          minter.toLowerCase() &&
+          badge.from.toLowerCase() === minter.toLowerCase())
       ) {
         setHandleGiveBadgeToNFTText('Giving...');
         const userAuthPubProfile = await getUserProfile(userAuthPub);
@@ -257,7 +259,9 @@ export default function UserNFTs() {
 
       if (
         minter === AddressZero ||
-        (userAuthProfile.accountAddress === minter && badge.from === minter)
+        (userAuthProfile.accountAddress.toLowerCase() ===
+          minter.toLowerCase() &&
+          badge.from.toLowerCase() === minter.toLowerCase())
       ) {
         setHandleGiveBadgeText('Giving...');
         //        const userAuthPubProfile = await getUserProfile(userAuthPub)
@@ -300,7 +304,10 @@ export default function UserNFTs() {
       const minter = await minterOf(badge);
       const userAuthProfile = await getUserProfile(userAuthPub);
 
-      if (minter === AddressZero || userAuthProfile.accountAddress === minter) {
+      if (
+        minter === AddressZero ||
+        userAuthProfile.accountAddress.toLowerCase() === minter.toLowerCase()
+      ) {
         setUserPubGive(userPub);
         setCurrentBadgeRequesting(badge);
         setHandleGiveBadgeForAccountText('Give Pending....');
@@ -426,7 +433,9 @@ export default function UserNFTs() {
       const minter = await minterOf(badge);
       const userAuthProfile = await getUserProfile(userAuthPub);
 
-      if (userAuthProfile.accountAddress === minter) {
+      if (
+        userAuthProfile.accountAddress.toLowerCase() === minter.toLowerCase()
+      ) {
         setHandleTakeBadgeText('Revoking...');
 
         try {
@@ -495,7 +504,7 @@ export default function UserNFTs() {
       const minter = await minterOf(badge);
       const userAuthProfile = await getUserProfile(userAuthPub);
 
-      if (userAuthProfile.accountAddress === minter)
+      if (userAuthProfile.accountAddress.toLowerCase() === minter.toLowerCase())
         setHandleBurnBadgeText('Revoking...');
       else setHandleBurnBadgeText('Burning...');
 
@@ -503,7 +512,9 @@ export default function UserNFTs() {
         await unequip(userAuthPub, badge);
         await deleteBadge(badge);
 
-        if (userAuthProfile.accountAddress === minter)
+        if (
+          userAuthProfile.accountAddress.toLowerCase() === minter.toLowerCase()
+        )
           setHandleBurnBadgeText('Revoked!');
         else setHandleBurnBadgeText('Burnt!');
 
@@ -511,7 +522,9 @@ export default function UserNFTs() {
       } catch (err) {
         alert(err.message);
 
-        if (userAuthProfile.accountAddress === minter)
+        if (
+          userAuthProfile.accountAddress.toLowerCase() === minter.toLowerCase()
+        )
           setHandleBurnBadgeText('Revoke');
         else setHandleBurnBadgeText('Burn');
       }
@@ -536,7 +549,9 @@ export default function UserNFTs() {
         const minter = await minterOf(badge);
         const userAuthProfile = await getUserProfile(userAuthPub);
 
-        if (userAuthProfile.accountAddress === minter)
+        if (
+          userAuthProfile.accountAddress.toLowerCase() === minter.toLowerCase()
+        )
           setHandleBurnBadgeText('Revoke');
         else setHandleBurnBadgeText('Burn');
       }
@@ -549,7 +564,7 @@ export default function UserNFTs() {
       const minter = await minterOf(badge);
       const userAuthProfile = await getUserProfile(userAuthPub);
 
-      if (userAuthProfile.accountAddress === minter)
+      if (userAuthProfile.accountAddress.toLowerCase() === minter.toLowerCase())
         setHandleTakeBadgeText('Revoke');
       else setHandleTakeBadgeText('Burn');
     }
@@ -570,10 +585,12 @@ export default function UserNFTs() {
 
         if (
           minter === AddressZero ||
-          userAuthProfile.accountAddress === minter
+          userAuthProfile.accountAddress.toLowerCase() === minter.toLowerCase()
         ) {
           setHandleRequestedBadgeText('Giving...');
-          const tokenId = await getNextTokenId(badge);
+          const tokenId = await giveBadge(badge);
+          if (!tokenId)
+            throw new Error('Giving the badge failed. Token ID not found');
 
           const newBadge = {
             ...badge,
@@ -648,7 +665,7 @@ export default function UserNFTs() {
 
         if (
           minter === AddressZero ||
-          userAuthProfile.accountAddress === minter
+          userAuthProfile.accountAddress.toLowerCase() === minter.toLowerCase()
         ) {
           setHandleRequestedBadgeText('Give');
         } else setHandleRequestedBadgeText('');

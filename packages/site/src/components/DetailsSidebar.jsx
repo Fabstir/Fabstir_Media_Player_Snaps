@@ -527,7 +527,10 @@ export default function DetailsSidebar({
       );
 
     if (process.env.NEXT_PUBLIC_IS_USE_FABSTIRDB === 'true') {
-      removeChildNFT(nft, { address: nft.parentAddress, id: nft.parentId });
+      await removeChildNFT(nft, {
+        address: nft.parentAddress,
+        id: nft.parentId,
+      });
     } else {
       const newAddress = `${address.address}_${address.id}`;
       await addAddress(newAddress);
@@ -633,7 +636,7 @@ export default function DetailsSidebar({
       numberOfChildren++;
 
       if (process.env.NEXT_PUBLIC_IS_USE_FABSTIRDB === 'true') {
-        updateNFTToPointToParent(selectedNFT, {
+        await updateNFTToPointToParent(selectedNFT, {
           address: nft.address,
           id: nft.id,
         });

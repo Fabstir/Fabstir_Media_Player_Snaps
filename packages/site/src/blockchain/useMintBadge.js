@@ -120,7 +120,7 @@ export default function useMintBadge() {
     return signature;
   };
 
-  const giveBadge = async (userPub, badge) => {
+  const giveBadge = async (badge) => {
     if (!isABTToken(badge)) return;
 
     const abtToken = newContract(

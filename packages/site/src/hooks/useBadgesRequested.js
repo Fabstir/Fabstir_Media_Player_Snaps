@@ -23,7 +23,7 @@ const fetchBadges = async (userPub) => {
 
   // Create a hash map of completed badges by their signatures
   const completedBadgesMap = {};
-  badgesRequestedCompleted.forEach((badgeCompleted) => {
+  badgesRequestedCompleted?.forEach((badgeCompleted) => {
     completedBadgesMap[badgeCompleted.signature] = true;
   });
 

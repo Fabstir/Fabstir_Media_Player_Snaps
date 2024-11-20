@@ -370,7 +370,7 @@ const NFTSlideOver = ({
       teams: [...(teams.teams || [])],
       teamsName: teams.teamsName,
     };
-    createNFT(nftMetadata);
+    await createNFT(nftMetadata);
 
     if (encKey) encKey.current = '';
 
