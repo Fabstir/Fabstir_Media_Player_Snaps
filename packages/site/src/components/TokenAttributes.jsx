@@ -58,28 +58,8 @@ export default function TokenAttributes({ typeValue, setValueTokenData }) {
   }, [typeValue, append, reset]);
 
   const saveAttributes = () => {
-    const attributesArray = getValues('attributes');
-    let attributes = {};
-    for (let attr of attributesArray) {
-      attributes[attr.key] = attr.value;
-    }
-
+    const attributes = getValues('attributes');
     setValueTokenData('attributes', attributes);
-    console.log('Saved attributes:', attributes);
-  };
-
-  const edit = (index) => {
-    if (editableIndex === index) {
-      // If editing the same index, save the changes and reset editableIndex
-      saveAttributes();
-      setEditableIndex(null);
-    } else {
-      // If switching to edit a different attribute, save current edits first
-      if (editableIndex !== null) {
-        saveAttributes();
-      }
-      setEditableIndex(index);
-    }
   };
 
   const handleSubmit = (e) => {
