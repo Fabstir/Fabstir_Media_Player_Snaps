@@ -223,6 +223,7 @@ export default function useMintBadge() {
     return tokenId;
   };
 
+  // Revokes a badge from a user by interacting with the ABTToken contract
   const revokeBadge = async (userAuthPub, userPub, badge) => {
     if (!isABTToken(badge)) return;
 
