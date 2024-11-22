@@ -921,7 +921,7 @@ const Index = () => {
 
         <ButtonLink
           href="/color-customization"
-          label="Color Customization"
+          label="Customization"
           isDisabled={isDisabled}
           className="ml-4 "
         />
@@ -934,7 +934,9 @@ const Index = () => {
           variant=""
           size="medium"
           className="text-xl mt-4"
-          disabled={isDisabled}
+          disabled={
+            isDisabled || process.env.NEXT_PUBLIC_IS_USE_SNAPS !== 'true'
+          }
           onClick={handleLoadAddresses}
         >
           Display Addresses
@@ -979,7 +981,9 @@ const Index = () => {
               value={newAddresses}
               onChange={(e) => setNewAddresses(e.target.value)}
               placeholder="Enter address ids"
-              disabled={isDisabled}
+              disabled={
+                isDisabled || process.env.NEXT_PUBLIC_IS_USE_SNAPS !== 'true'
+              }
             />
           </div>
         </HeadlessField>
@@ -989,7 +993,9 @@ const Index = () => {
           size="medium"
           className="p-1 h-8 m-4 col-span-1"
           onClick={() => setTriggerEffect((prev) => prev + 1)}
-          disabled={isDisabled}
+          disabled={
+            isDisabled || process.env.NEXT_PUBLIC_IS_USE_SNAPS !== 'true'
+          }
         >
           Add
         </Button>
@@ -1007,7 +1013,9 @@ const Index = () => {
               value={removeAddresses}
               onChange={(e) => setRemoveAddresses(e.target.value)}
               placeholder="Enter address ids"
-              disabled={isDisabled}
+              disabled={
+                isDisabled || process.env.NEXT_PUBLIC_IS_USE_SNAPS !== 'true'
+              }
             />
           </div>
         </HeadlessField>
@@ -1017,7 +1025,9 @@ const Index = () => {
           size="medium"
           className="p-1 h-8 m-4 col-span-1"
           onClick={handleRemoveAddresses}
-          disabled={isDisabled}
+          disabled={
+            isDisabled || process.env.NEXT_PUBLIC_IS_USE_SNAPS !== 'true'
+          }
         >
           Remove
         </Button>
@@ -1035,7 +1045,9 @@ const Index = () => {
               value={exportKeys}
               onChange={(e) => setExportKeys(e.target.value)}
               placeholder="Enter address ids"
-              disabled={isDisabled}
+              disabled={
+                isDisabled || process.env.NEXT_PUBLIC_IS_USE_SNAPS !== 'true'
+              }
             />
           </div>
         </HeadlessField>
@@ -1045,7 +1057,9 @@ const Index = () => {
           size="medium"
           className="p-1 h-8 m-4 col-span-1"
           onClick={handleExportKeys}
-          disabled={isDisabled}
+          disabled={
+            isDisabled || process.env.NEXT_PUBLIC_IS_USE_SNAPS !== 'true'
+          }
         >
           Export
         </Button>
@@ -1065,7 +1079,9 @@ const Index = () => {
               value={importKeys}
               onChange={(e) => setImportKeys(e.target.value)}
               placeholder="Enter address ids"
-              disabled={isDisabled}
+              disabled={
+                isDisabled || process.env.NEXT_PUBLIC_IS_USE_SNAPS !== 'true'
+              }
             />
           </div>
         </HeadlessField>
@@ -1082,7 +1098,9 @@ const Index = () => {
           size="medium"
           className="p-1 h-8 m-4 col-span-1"
           onClick={handleButtonImportKeys}
-          disabled={isDisabled}
+          disabled={
+            isDisabled || process.env.NEXT_PUBLIC_IS_USE_SNAPS !== 'true'
+          }
         >
           Import
         </Button>
