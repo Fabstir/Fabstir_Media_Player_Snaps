@@ -245,30 +245,19 @@ const NFTSlideOverRight = ({ isPublic, encKey }) => {
             <h2 className="mt-6 text-center text-2xl font-bold text-gray-700">
               Genres
             </h2>
-            <div className="mt-3 flex grid grid-cols-5 justify-center">
+            <ul className="mt-3 grid grid-cols-5 gap-4">
               {videoGenres.map((genre) => (
-                <li
-                  className="form-check form-check-inline col-span-1 flex flex-1"
-                  key={genre}
-                >
-                  <div>
-                    <Checkbox
-                      className="form-check-input float-left mr-2 mt-1 h-4 w-4 cursor-pointer appearance-none rounded-sm border bg-contain bg-center bg-no-repeat align-top transition duration-200"
-                      id="inlineCheckbox1"
-                      checked={videoGenresSet?.has(genre)}
-                      value={genre}
-                      onChange={() => handle_FilmGenres(genre)}
-                    />
-                    <label
-                      className="form-check-label inline-block text-sm text-black"
-                      htmlFor="inlineCheckbox1"
-                    >
-                      {genre}
-                    </label>
-                  </div>
+                <li key={genre} className="flex items-center">
+                  <Checkbox
+                    id={`genre-${genre}`}
+                    label={genre}
+                    checked={videoGenresSet?.has(genre)}
+                    value={genre}
+                    onChange={() => handle_FilmGenres(genre)}
+                  />
                 </li>
               ))}
-            </div>
+            </ul>
           </div>
         )}
 

@@ -721,6 +721,33 @@ export function useMintNestableERC1155NFT() {
     return quantity;
   };
 
+  /**
+   * Approves a spender to manage all assets of the specified NFT by interacting with the TipERC1155 contract.
+   *
+   * @param {Object} nft - The NFT object containing the address of the NFT contract.
+   * @param {string} spender - The address of the spender to be approved.
+   * @returns {Promise<void>} A promise that resolves when the approval transaction is processed.
+   */
+  const approve = async (nft: any, spender: string) => {
+    const tipERC1155Contract = newContract(
+      nft.address,
+      TipERC1155.abi,
+      smartAccountProvider,
+    );
+
+    const { receipt } = await processTransactionBundle([
+      [
+        await tipERC1155Contract.populateTransaction.setApprovalForAll(
+          spender,
+          true,
+        ),
+        nft.address,
+      ],
+    ]);
+
+    console.log('useMintNFT: approve receipt = ', receipt);
+  };
+
   return {
     isLoading,
     error,
@@ -732,5 +759,6 @@ export function useMintNestableERC1155NFT() {
     getChildOfNestableNFT,
     getIsOwnNFT,
     getNFTQuantity,
+    approve,
   };
 }

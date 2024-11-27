@@ -21,9 +21,7 @@ const ProgressBar = ({ progressPercentage }) => {
       <div
         style={{ width: `${progressPercentage}%` }}
         className={`h-full ${
-          progressPercentage < 70
-            ? 'bg-fabstir-gray'
-            : 'bg-fabstir-medium-dark-gray'
+          progressPercentage < 70 ? 'bg-success-content' : 'bg-success'
         }`}
       ></div>
     </div>

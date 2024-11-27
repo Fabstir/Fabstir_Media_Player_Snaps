@@ -119,7 +119,7 @@ export default function PermissionsTeams() {
   return (
     <div className="mx-auto max-w-7xl pl-6 pr-2 pt-12">
       <div className="bg-fabstir-dark-purple">
-        <h2 className="pt-10 text-center text-3xl font-extrabold tracking-tight text-fabstir-white sm:text-4xl">
+        <h2 className="pt-10 text-center text-3xl font-extrabold tracking-tight text-copy sm:text-4xl">
           NFT Permissions
         </h2>
 
@@ -171,7 +171,7 @@ export default function PermissionsTeams() {
               />
             </svg>
 
-            <div className="aspect-h-7 aspect-w-10 mt-16 block overflow-hidden rounded-lg shadow-2xl shadow-fabstir-black/50 w-full">
+            <div className="aspect-h-7 aspect-w-10 mt-16 block overflow-hidden rounded-lg shadow-2xl shadow-fabstir-black/50 w-full max-w-2xl">
               <img
                 src={currentNFTImage}
                 alt=""
@@ -182,15 +182,13 @@ export default function PermissionsTeams() {
             <div className="mt-4 flex items-start justify-between">
               <div>
                 <div className="flex justify-between">
-                  <h2 className="text-lg font-medium text-fabstir-white">
+                  <h2 className="text-lg font-medium text-copy">
                     <span className="sr-only">Details for </span>
                     {nft?.name}
                   </h2>
-                  <p className="text-sm font-medium text-fabstir-light-gray">
-                    {nft?.price}
-                  </p>
+                  <p className="text-sm font-medium text-copy">{nft?.price}</p>
                 </div>
-                <p className="mt-2 text-sm font-medium text-fabstir-light-gray/80">
+                <p className="mt-2 text-sm font-medium text-copy-light">
                   {nft?.summary}
                 </p>
               </div>

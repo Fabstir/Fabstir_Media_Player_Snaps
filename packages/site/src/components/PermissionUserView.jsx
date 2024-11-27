@@ -35,6 +35,8 @@ import {
   marketitemdeleteslideoverstate,
 } from '../atoms/MarketItemPendingSlideOverAtom.js';
 import useMaths from '../utils/useMaths';
+import { Input } from '../../src/ui-components/input';
+import useMintNFT from '../blockchain/useMintNFT';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -83,6 +85,9 @@ export default function PermissionUserView({
   const { getDecimalPlaceFromCurrency, getCurrencyFromContractAddress } =
     useCurrencyUtils();
 
+  const { getIsERC721, approveForAllERC721, approveForAllERC1155 } =
+    useMintNFT();
+
   const {
     getMarketFabstirFeeRatio,
     getMarketPlatformFeeRatio,
@@ -102,6 +107,8 @@ export default function PermissionUserView({
 
   const [platformUnlockFee, setPlatformUnlockFee] = useState();
   const [platformUnlockPeriod, setPlatformUnlockPeriod] = useState();
+
+  const [saveButtonLabel, setSaveButtonLabel] = useState('Save Permission');
 
   const [marketItemStatusAmounts, setMarketItemStatusAmounts] = useState('');
   const setCurrentMarketItemMarketAddress = useSetRecoilState(
@@ -280,22 +287,36 @@ export default function PermissionUserView({
     marketitemdeleteslideoverstate,
   );
 
-  function handleEdit() {
-    setIsEditable(true);
-    handleEditMember();
-  }
-
+  /**
+   * Handles the saving of user permissions by creating a market NFT item and approving the necessary permissions.
+   *
+   * @param {Object} data - The data object containing user permission details.
+   * @param {boolean} data.isPermissionless - Indicates if the permission is permissionless.
+   * @param {string} data.userPub - The public key of the user.
+   * @param {string} data.marketAddress - The address of the market.
+   * @param {number} data.amount - The amount of the NFT.
+   * @param {number} data.startPrice - The starting price of the NFT.
+   * @param {number} data.reservePrice - The reserve price of the NFT.
+   * @param {number} data.startTime - The start time of the permission.
+   * @param {number} data.endTime - The end time of the permission.
+   * @param {number} data.cancelTime - The cancel time of the permission.
+   * @param {number} data.fabstirFeePercentage - The Fabstir fee percentage.
+   * @param {number} data.resellerFeePercentage - The reseller fee percentage.
+   * @param {number} data.creatorFeePercentage - The creator fee percentage.
+   * @param {string} data.currency - The currency used for the transaction.
+   * @returns {Promise<void>} A promise that resolves when the permission is saved.
+   */
   async function handleSavePermission(data) {
+    setSaveButtonLabel('Saving...');
+    const numberOfDecimalPlaces = getDecimalPlaceFromCurrency(data.currency);
+
     const startPrice = parseUnits(
       data.startPrice.toString(),
-      getDecimalPlaceFromCurrency(data.currency),
+      numberOfDecimalPlaces,
     );
 
     const reservePrice = data.reservePrice
-      ? parseUnits(
-          data.reservePrice.toString(),
-          getDecimalPlaceFromCurrency(data.currency),
-        )
+      ? parseUnits(data.reservePrice.toString(), numberOfDecimalPlaces)
       : startPrice;
 
     const resellerFeeRatio = parseEther(
@@ -327,6 +348,13 @@ export default function PermissionUserView({
 
     if (!marketItemId) return;
 
+    const userProfile = await getUserProfile(data.userPub);
+
+    if (getIsERC721(currentNFT))
+      await approveForAllERC721(currentNFT, userProfile.accountAddress, true);
+    else
+      await approveForAllERC1155(currentNFT, userProfile.accountAddress, true);
+
     const updatedUser = {
       ...data,
       userPub: data.userPub ? data.userPub : uuidv4(),
@@ -334,8 +362,13 @@ export default function PermissionUserView({
     };
     handleSubmit_SaveTeamMember(updatedUser);
 
-    if (!handleEditMember) reset(defaultUser);
-    else setIsEditable(false);
+    if (!handleEditMember) {
+      reset(defaultUser);
+      setSaveButtonLabel('Save Permission');
+    } else {
+      setIsEditable(false);
+      setSaveButtonLabel('Save Permission');
+    }
   }
 
   async function handleDeletePermission(e) {
@@ -618,13 +651,9 @@ export default function PermissionUserView({
   }
 
   return (
-    <div className="mx-auto max-w-2xl w-fit border-2 border-fabstir-gray p-4">
-      {' '}
-      {/* Increased max-width */}
+    <div className="mx-auto max-w-2xl w-fit border-2 border-gray p-4">
       <div className="space-y-4">
-        {' '}
-        {/* Increased spacing */}
-        <div className="border-t border-fabstir-divide-color1" />
+        <div className="border-t border-border" />
         <div className="flex items-center justify-center">
           <form
             onSubmit={handleSubmit(handleSavePermission)}
@@ -633,20 +662,20 @@ export default function PermissionUserView({
             <div className="col-span-3 sm:col-span-4">
               <label
                 htmlFor="isPermissionless"
-                className="block text-sm font-medium text-fabstir-light-gray"
+                className="block text-sm font-medium text-copy"
               >
                 Permissionless
               </label>
               <div className="mt-1 flex items-center">
-                <input
+                <Input
                   type="checkbox"
                   name="isPermissionless"
-                  {...register('isPermissionless')}
-                  className="h-5 w-5 text-fabstir-gray"
+                  register={register('isPermissionless')}
+                  className="h-5 w-5 text-gray"
                   readOnly={!isEditable}
                 />
               </div>
-              <p className="mt-1 text-fabstir-light-pink">
+              <p className="mt-1 text-error-content">
                 {errors.isPermissionless?.message}
               </p>
             </div>
@@ -654,16 +683,16 @@ export default function PermissionUserView({
             <div className="col-span-3 mt-3 w-full sm:col-span-4">
               <label
                 htmlFor="userPub"
-                className="block text-sm font-medium text-fabstir-light-gray"
+                className="block text-sm font-medium text-copy"
               >
                 User Public Key
               </label>
-              <div className="mt-1 max-w-full rounded-lg border-2 border-fabstir-white">
-                <input
+              <div className="mt-1 max-w-full rounded-lg border-2 border-white">
+                <Input
                   type="text"
                   name="userPub"
-                  {...register('userPub')}
-                  className="block w-full truncate bg-fabstir-gray"
+                  register={register('userPub')}
+                  className="block w-full truncate bg-gray"
                   readOnly={!isEditable}
                   style={{
                     textOverflow: 'ellipsis',
@@ -672,7 +701,7 @@ export default function PermissionUserView({
                   }}
                 />
               </div>
-              <p className="mt-1 text-fabstir-light-pink">
+              <p className="mt-1 text-error-content">
                 {errors.userPub?.message}
               </p>
             </div>
@@ -682,12 +711,12 @@ export default function PermissionUserView({
                 <div className="col-span-3 sm:col-span-4">
                   <label
                     htmlFor="firstName"
-                    className="block text-sm font-medium text-fabstir-light-gray"
+                    className="block text-sm font-medium text-copy"
                   >
                     First name
                   </label>
-                  <div className="mt-1 max-w-full rounded-lg border-2 border-fabstir-white">
-                    <label className="block w-full bg-fabstir-gray">
+                  <div className="mt-1 max-w-full rounded-lg border-2 border-white">
+                    <label className="block w-full bg-gray">
                       {permissionedUser.firstName}
                     </label>
                   </div>
@@ -697,12 +726,12 @@ export default function PermissionUserView({
                 <div className="col-span-3 mt-1 w-full sm:col-span-4">
                   <label
                     htmlFor="lastName"
-                    className="block text-sm font-medium text-fabstir-light-gray"
+                    className="block text-sm font-medium text-copy"
                   >
                     Last name
                   </label>
-                  <div className="mt-1 max-w-full rounded-lg border-2 border-fabstir-white">
-                    <label className="block w-full bg-fabstir-gray">
+                  <div className="mt-1 max-w-full rounded-lg border-2 border-white">
+                    <label className="block w-full bg-gray">
                       {permissionedUser.lastName}
                     </label>
                   </div>
@@ -712,12 +741,12 @@ export default function PermissionUserView({
                 <div className="col-span-3 mt-1 w-full sm:col-span-4">
                   <label
                     htmlFor="company"
-                    className="block text-sm font-medium text-fabstir-light-gray"
+                    className="block text-sm font-medium text-copy"
                   >
                     Company
                   </label>
-                  <div className="mt-1 max-w-full rounded-lg border-2 border-fabstir-white">
-                    <label className="block w-full bg-fabstir-gray">
+                  <div className="mt-1 max-w-full rounded-lg border-2 border-white">
+                    <label className="block w-full bg-gray">
                       {permissionedUser.company}
                     </label>
                   </div>
@@ -727,18 +756,18 @@ export default function PermissionUserView({
                 <div className="col-span-3 mt-1 w-full sm:col-span-4">
                   <label
                     htmlFor="marketAddress"
-                    className="block text-sm font-medium text-fabstir-light-gray"
+                    className="block text-sm font-medium text-copy"
                   >
                     Market Address
                   </label>
-                  <div className="mt-1 max-w-full rounded-lg border-2 border-fabstir-white">
+                  <div className="mt-1 max-w-full rounded-lg border-2 border-white">
                     <Tippy
                       content={marketAddress}
                       interactive={true}
                       theme="dark"
                       maxWidth="none"
                     >
-                      <label className="block w-full bg-fabstir-medium-dark-gray p-3">
+                      <label className="block w-full bg-medium-dark-gray p-3">
                         {abbreviateAddress2(marketAddress, 16, 8)}
                       </label>
                     </Tippy>
@@ -748,7 +777,7 @@ export default function PermissionUserView({
               <div className="max-w-full sm:col-span-3">
                 <label
                   htmlFor="currency"
-                  className="block text-sm font-medium text-fabstir-light-gray"
+                  className="block text-sm font-medium text-copy"
                 >
                   Currency
                 </label>
@@ -756,145 +785,145 @@ export default function PermissionUserView({
                   type="text"
                   id="currency"
                   {...register(`currency`)}
-                  className="block w-full rounded-md border-gray-300 bg-fabstir-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  className="block w-full rounded-md border-gray-300 bg-dark-gray shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   disabled={!isEditable}
                 >
                   {currencies.map((currency, index) => (
                     <option key={index}>{currency}</option>
                   ))}
                 </select>
-                <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
+                <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error-content">
                   {errors.currency?.message}
                 </p>
               </div>
-              <div className="col-span-3 w-full  sm:col-span-4">
+              <div className="col-span-3 w-full sm:col-span-4">
                 <label
                   htmlFor="amount"
-                  className="block text-sm font-medium text-fabstir-light-gray"
+                  className="block text-sm font-medium text-copy"
                 >
                   Amount
                 </label>
-                <div className="mt-1 max-w-full rounded-lg border-2 border-fabstir-white">
-                  <input
+                <div className="mt-1 max-w-full rounded-lg border-2 border-white">
+                  <Input
                     type="number"
                     name="amount"
-                    {...register('amount')}
-                    className="block w-full bg-fabstir-gray"
+                    register={register('amount')}
+                    className="block w-full bg-gray"
                     readOnly={!isEditable}
                   />
                 </div>
-                <p className="mt-1 text-fabstir-light-pink">
+                <p className="mt-1 text-error-content">
                   {errors.amount?.message}
                 </p>
               </div>
               <div className="col-span-3 w-full sm:col-span-4">
                 <label
                   htmlFor="startPrice"
-                  className="block text-sm font-medium text-fabstir-light-gray"
+                  className="block text-sm font-medium text-copy"
                 >
                   Price
                 </label>
-                <div className="mt-1 max-w-full rounded-lg border-2 border-fabstir-white">
-                  <input
+                <div className="mt-1 max-w-full rounded-lg border-2 border-white">
+                  <Input
                     type="number"
                     name="startPrice"
-                    {...register('startPrice')}
-                    className="block w-full bg-fabstir-gray"
+                    register={register('startPrice')}
+                    className="block w-full bg-gray"
                     readOnly={!isEditable}
                     step="any"
                   />
                 </div>
-                <p className="mt-1 text-fabstir-light-pink">
+                <p className="mt-1 text-error-content">
                   {errors.startPrice?.message}
                 </p>
               </div>
               <div className="col-span-3 w-full sm:col-span-4">
                 <label
                   htmlFor="reservePrice"
-                  className="block text-sm font-medium text-fabstir-light-gray"
+                  className="block text-sm font-medium text-copy"
                 >
                   Reserve Price (optional)
                 </label>
-                <div className="mt-1 max-w-full rounded-lg border-2 border-fabstir-white">
-                  <input
+                <div className="mt-1 max-w-full rounded-lg border-2 border-white">
+                  <Input
                     type="number"
                     name="reservePrice"
-                    {...register('reservePrice')}
-                    className="block w-full bg-fabstir-gray"
+                    register={register('reservePrice')}
+                    className="block w-full bg-gray"
                     readOnly={!isEditable}
                     step="any"
                   />
                 </div>
-                <p className="mt-1 text-fabstir-light-pink">
+                <p className="mt-1 text-error-content">
                   {errors.reservePrice?.message}
                 </p>
               </div>
               <div className="col-span-3 w-full sm:col-span-4">
                 <label
                   htmlFor="startTime"
-                  className="block text-sm font-medium text-fabstir-light-gray"
+                  className="block text-sm font-medium text-copy"
                 >
                   Start Time
                 </label>
-                <div className="mt-1 max-w-full rounded-lg border-2 border-fabstir-white">
-                  <input
+                <div className="mt-1 max-w-full rounded-lg border-2 border-white">
+                  <Input
                     type="datetime-local"
                     name="startTime"
-                    {...register('startTime')}
-                    className="block w-full bg-fabstir-gray"
+                    register={register('startTime')}
+                    className="block w-full bg-gray"
                     readOnly={!isEditable}
                   />
                 </div>
-                <p className="mt-1 text-fabstir-light-pink">
+                <p className="mt-1 text-error-content">
                   {errors.startTime?.message}
                 </p>
               </div>
               <div className="col-span-3 w-full sm:col-span-4">
                 <label
                   htmlFor="endTime"
-                  className="block text-sm font-medium text-fabstir-light-gray"
+                  className="block text-sm font-medium text-copy"
                 >
                   End Time
                 </label>
-                <div className="mt-1 max-w-full rounded-lg border-2 border-fabstir-white">
-                  <input
+                <div className="mt-1 max-w-full rounded-lg border-2 border-white">
+                  <Input
                     type="datetime-local"
                     name="endTime"
-                    {...register('endTime')}
-                    className="block w-full bg-fabstir-gray"
+                    register={register('endTime')}
+                    className="block w-full bg-gray"
                     readOnly={!isEditable}
                   />
                 </div>
-                <p className="mt-1 text-fabstir-light-pink">
+                <p className="mt-1 text-error-content">
                   {errors.endTime?.message}
                 </p>
               </div>
               <div className="col-span-3 w-full sm:col-span-4">
                 <label
                   htmlFor="cancelTime"
-                  className="block text-sm font-medium text-fabstir-light-gray"
+                  className="block text-sm font-medium text-copy"
                 >
                   Cancel Time
                 </label>
-                <div className="mt-1 max-w-full rounded-lg border-2 border-fabstir-white">
-                  <input
+                <div className="mt-1 max-w-full rounded-lg border-2 border-white">
+                  <Input
                     type="datetime-local"
                     name="cancelTime"
-                    {...register('cancelTime')}
-                    className="block w-full bg-fabstir-gray"
+                    register={register('cancelTime')}
+                    className="block w-full bg-gray"
                     readOnly={!isEditable}
                   />
                 </div>
-                <p className="mt-1 text-fabstir-light-pink">
+                <p className="mt-1 text-error-content">
                   {errors.cancelTime?.message}
                 </p>
               </div>
-              <div className="col-span-3 w-full  sm:col-span-4">
+              <div className="col-span-3 w-full sm:col-span-4">
                 <div className="flex flex-col">
                   <div>
                     <label
                       htmlFor="resellerFeePercentage"
-                      className="block text-sm font-medium text-fabstir-light-gray"
+                      className="block text-sm font-medium text-copy"
                     >
                       Reseller Fee %{' '}
                       {watch('resellerFeePercentage') !== null &&
@@ -906,12 +935,12 @@ export default function PermissionUserView({
                         : ''}
                     </label>
                     <div className="flex flex-1 flex-row">
-                      <div className="mt-1 flex w-full max-w-full flex-1 flex-row rounded-lg border-2 border-fabstir-white">
-                        <input
+                      <div className="mt-1 flex w-full max-w-full flex-1 flex-row rounded-lg border-2 border-white">
+                        <Input
                           type="number"
                           name="resellerFeeRatio"
-                          {...register('resellerFeePercentage')}
-                          className="block w-full bg-fabstir-gray"
+                          register={register('resellerFeePercentage')}
+                          className="block w-full bg-gray"
                           readOnly={!isEditable || watch('isPermissionless')}
                           step="any"
                         />
@@ -923,25 +952,25 @@ export default function PermissionUserView({
                           <div className="ml-4 min-h-fit">
                             <button
                               onClick={handleResetToPlatformFee}
-                              className="mt-1 bg-fabstir-medium-light-gray px-2 py-3"
+                              className="mt-1 bg-medium-dark-gray px-2 py-3"
                             >
                               Reset
                             </button>
                           </div>
                         )}
                     </div>
-                    <p className="mt-1 text-fabstir-light-pink">
+                    <p className="mt-1 text-error-content">
                       {errors.resellerFeePercentage?.message}
                     </p>
                   </div>
                 </div>
               </div>
-              <div className="col-span-3 w-full  sm:col-span-4">
+              <div className="col-span-3 w-full sm:col-span-4">
                 <div className="flex flex-col">
                   <div>
                     <label
                       htmlFor="creatorFeePercentage"
-                      className="block text-sm font-medium text-fabstir-light-gray"
+                      className="block text-sm font-medium text-copy"
                     >
                       Creator Fee %{' '}
                       {watch('creatorFeePercentage') !== null &&
@@ -954,12 +983,12 @@ export default function PermissionUserView({
                         : ''}
                     </label>
                     <div className="flex flex-1 flex-row">
-                      <div className="mt-1 w-full max-w-full rounded-lg border-2 border-fabstir-white">
-                        <input
+                      <div className="mt-1 w-full max-w-full rounded-lg border-2 border-white">
+                        <Input
                           type="number"
                           name="creatorFeePercentage"
-                          {...register('creatorFeePercentage')}
-                          className="block w-full bg-fabstir-gray"
+                          register={register('creatorFeePercentage')}
+                          className="block w-full bg-gray"
                           readOnly={!isEditable || watch('isPermissionless')}
                           step="any"
                         />
@@ -971,14 +1000,14 @@ export default function PermissionUserView({
                           <div className="ml-4 min-h-fit">
                             <button
                               onClick={handleResetToPlatformCreatorFee}
-                              className="mt-1 bg-fabstir-medium-light-gray px-2 py-3"
+                              className="mt-1 bg-medium-dark-gray px-2 py-3"
                             >
                               Reset
                             </button>
                           </div>
                         )}
                     </div>
-                    <p className="mt-1 text-fabstir-light-pink">
+                    <p className="mt-1 text-error-content">
                       {errors.creatorFeePercentage?.message}
                     </p>
                   </div>
@@ -988,16 +1017,16 @@ export default function PermissionUserView({
                 <div className="col-span-3 mt-1 w-full sm:col-span-4">
                   <label
                     htmlFor="fabstirFeeRatio"
-                    className="block text-sm font-medium text-fabstir-light-gray"
+                    className="block text-sm font-medium text-copy"
                   >
                     Fabstir Fee %
                   </label>
-                  <div className="mt-1 max-w-full rounded-lg border-2 border-fabstir-white">
-                    <label className="block w-full bg-fabstir-medium-dark-gray p-3">
+                  <div className="mt-1 max-w-full rounded-lg border-2 border-white">
+                    <label className="block w-full bg-medium-dark-gray p-3">
                       {fabstirFeePercentage}
                     </label>
                   </div>
-                  <p className="mt-1 text-fabstir-light-pink">
+                  <p className="mt-1 text-error-content">
                     {errors.fabstirFeePercentage?.message}
                   </p>
                 </div>
@@ -1007,7 +1036,7 @@ export default function PermissionUserView({
                   <div>
                     <label
                       htmlFor="resellerUnlockFee"
-                      className="block text-sm font-medium text-fabstir-light-gray"
+                      className="block text-sm font-medium text-copy"
                     >
                       Unlock Fee ({watch('currency')})
                       {watch('resellerUnlockFee') !== null &&
@@ -1020,12 +1049,12 @@ export default function PermissionUserView({
                         : ''}
                     </label>
                     <div className="flex flex-1 flex-row">
-                      <div className="mt-1 w-full max-w-full rounded-lg border-2 border-fabstir-white">
-                        <input
+                      <div className="mt-1 w-full max-w-full rounded-lg border-2 border-white">
+                        <Input
                           type="number"
                           name="resellerUnlockFee"
-                          {...register('resellerUnlockFee')}
-                          className="block w-full bg-fabstir-gray"
+                          register={register('resellerUnlockFee')}
+                          className="block w-full bg-gray"
                           readOnly={!isEditable || watch('isPermissionless')}
                           step="any"
                         />
@@ -1036,14 +1065,14 @@ export default function PermissionUserView({
                           <div className="ml-4 min-h-fit">
                             <button
                               onClick={handleResetToPlatformUnlockFee}
-                              className="mt-1 bg-fabstir-medium-light-gray px-2 py-3"
+                              className="mt-1 bg-medium-dark-gray px-2 py-3"
                             >
                               Reset
                             </button>
                           </div>
                         )}
                     </div>
-                    <p className="mt-1 text-fabstir-light-pink">
+                    <p className="mt-1 text-error-content">
                       {errors.resellerUnlockFee?.message}
                     </p>
                   </div>
@@ -1054,7 +1083,7 @@ export default function PermissionUserView({
                   <div>
                     <label
                       htmlFor="resellerUnlockPeriod"
-                      className="block text-sm font-medium text-fabstir-light-gray"
+                      className="block text-sm font-medium text-copy"
                     >
                       Unlock Period (days)
                       {watch('resellerUnlockPeriod') !== null &&
@@ -1067,12 +1096,12 @@ export default function PermissionUserView({
                         : ''}
                     </label>
                     <div className="flex flex-1 flex-row">
-                      <div className="mt-1 w-full max-w-full rounded-lg border-2 border-fabstir-white">
-                        <input
+                      <div className="mt-1 w-full max-w-full rounded-lg border-2 border-white">
+                        <Input
                           type="number"
                           name="resellerUnlockPeriod"
-                          {...register('resellerUnlockPeriod')}
-                          className="block w-full bg-fabstir-gray"
+                          register={register('resellerUnlockPeriod')}
+                          className="block w-full bg-gray"
                           readOnly={!isEditable || watch('isPermissionless')}
                           step="any"
                         />
@@ -1084,14 +1113,14 @@ export default function PermissionUserView({
                           <div className="ml-4 min-h-fit">
                             <button
                               onClick={handleResetToPlatformUnlockPeriod}
-                              className="mt-1 bg-fabstir-medium-light-gray px-2 py-3"
+                              className="mt-1 bg-medium-dark-gray px-2 py-3"
                             >
                               Reset
                             </button>
                           </div>
                         )}
                     </div>
-                    <p className="mt-1 text-fabstir-light-pink">
+                    <p className="mt-1 text-error-content">
                       {errors.resellerUnlockPeriod?.message}
                     </p>
                   </div>
@@ -1102,37 +1131,37 @@ export default function PermissionUserView({
                   <div className="col-span-3 mt-1 sm:col-span-4">
                     <label
                       htmlFor="fabstirFeeRatio"
-                      className="block text-sm font-medium text-fabstir-light-gray"
+                      className="block text-sm font-medium text-copy"
                     >
                       Market Status
                     </label>
-                    <div className="mt-1 w-full rounded-lg border-2 border-fabstir-white">
+                    <div className="mt-1 w-full rounded-lg border-2 border-white">
                       <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-fabstir-medium-dark-gray">
+                        <thead className="bg-background">
                           <tr>
                             <th
                               scope="col"
-                              className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-fabstir-light-gray"
+                              className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-copy-light"
                             >
                               Status
                             </th>
                             <th
                               scope="col"
-                              className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-fabstir-light-gray"
+                              className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-copy-light"
                             >
                               Amount
                             </th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-200 bg-fabstir-gray-700">
+                        <tbody className="divide-y divide-gray-200 bg-background">
                           {Object.entries(marketItemStatusAmounts)
                             .filter(([key, value]) => Number(value) !== 0)
                             .map(([key, value]) => (
                               <tr key={key}>
-                                <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-fabstir-light-gray">
+                                <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-copy-light">
                                   {key}
                                 </td>
-                                <td className="whitespace-nowrap px-6 py-4 text-sm text-fabstir-light-gray">
+                                <td className="whitespace-nowrap px-6 py-4 text-sm text-copy-light">
                                   {value}
                                 </td>
                               </tr>
@@ -1141,8 +1170,9 @@ export default function PermissionUserView({
                       </table>
                     </div>
                   </div>
-                )}{' '}
+                )}
             </div>
+
             {showEditButton &&
               !isEditable &&
               user?.userPub !== userAuthPub &&
@@ -1167,15 +1197,14 @@ export default function PermissionUserView({
                 >
                   Cancel
                 </Button>
-
                 <Button
                   type="submit"
                   variant="primary"
                   size="medium"
                   className="w-full rounded-md border border-transparent px-4 py-2"
                 >
-                  Save Permission
-                </Button>
+                  {saveButtonLabel}
+                </Button>{' '}
               </div>
             ) : (
               <></>

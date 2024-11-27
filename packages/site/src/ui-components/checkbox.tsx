@@ -27,7 +27,7 @@ export const Checkbox: React.FC<CheckboxProps> = ({
             {...register}
             {...props}
             className={clsx(
-              'appearance-none mt-2 ml-3 h-6 w-6 rounded',
+              'appearance-none h-6 w-6 rounded',
               'border-2 border-border dark:border-dark-border',
               'bg-gray dark:bg-dark-foreground',
               'checked:bg-gray dark:checked:bg-gray',
@@ -38,12 +38,13 @@ export const Checkbox: React.FC<CheckboxProps> = ({
                 ? 'border-error dark:border-dark-error'
                 : 'hover:border-gray dark:hover:border-gray',
               'transition duration-150 ease-in-out',
+              'p-0 m-0', // Ensure no padding or margin
             )}
           />
           <CheckIcon
             className={clsx(
-              'absolute top-2 left-3 h-6 w-6 text-white dark:text-white',
-              'pointer-events-none opacity-0 transition-opacity duration-150 ease-in-out',
+              'absolute top-0.5 left-0.5 h-4 w-4 text-white dark:text-white',
+              'pointer-events-none transition-opacity duration-150 ease-in-out',
               props.checked ? 'opacity-100' : 'opacity-0',
             )}
           />

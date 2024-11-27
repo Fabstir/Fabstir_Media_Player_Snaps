@@ -656,6 +656,88 @@ export default function useMintNFT() {
     return cid;
   };
 
+  const approveERC721 = async (nft: any, spender: string) => {
+    const tipERC721Contract = newContract(
+      nft.address,
+      TipERC721.abi,
+      smartAccountProvider,
+    );
+
+    const { receipt } = await processTransactionBundle([
+      [
+        await tipERC721Contract.populateTransaction.approve(spender, nft.id),
+        nft.address,
+      ],
+    ]);
+
+    console.log('useMintNFT: tipERC721Contract receipt = ', receipt);
+  };
+
+  const approveForAllERC721 = async (
+    nft: any,
+    spender: string,
+    approved: boolean,
+  ) => {
+    const tipERC721Contract = newContract(
+      nft.address,
+      TipERC721.abi,
+      smartAccountProvider,
+    );
+
+    const { receipt } = await processTransactionBundle([
+      [
+        await tipERC721Contract.populateTransaction.setApprovalForAll(
+          spender,
+          approved,
+        ),
+        nft.address,
+      ],
+    ]);
+
+    console.log('useMintNFT: approveForAllERC721 receipt = ', receipt);
+  };
+
+  const approveERC1155 = async (nft: any, spender: string) => {
+    const tipERC1155Contract = newContract(
+      nft.address,
+      TipERC1155.abi,
+      smartAccountProvider,
+    );
+
+    const { receipt } = await processTransactionBundle([
+      [
+        await tipERC1155Contract.populateTransaction.approve(spender, nft.id),
+        nft.address,
+      ],
+    ]);
+
+    console.log('useMintNFT: approveERC1155 receipt = ', receipt);
+  };
+
+  const approveForAllERC1155 = async (
+    nft: any,
+    spender: string,
+    approved: boolean,
+  ) => {
+    const tipERC1155Contract = newContract(
+      nft.address,
+      TipERC1155.abi,
+      smartAccountProvider,
+    );
+
+    const { receipt } = await processTransactionBundle([
+      [
+        await tipERC1155Contract.populateTransaction.setApprovalForAll(
+          spender,
+          approved,
+        ),
+        nft.address,
+      ],
+    ]);
+
+    console.log('useMintNFT: approveForAllERC1155 receipt = ', receipt);
+  };
+
   return {
     mintNFT,
     getIsERC721,
@@ -668,5 +750,9 @@ export default function useMintNFT() {
     transferNFT,
     getHoldersAndRatioFromNFT,
     uploadNFTMetadataAndReturnCID,
+    approveERC721,
+    approveERC1155,
+    approveForAllERC721,
+    approveForAllERC1155,
   };
 }

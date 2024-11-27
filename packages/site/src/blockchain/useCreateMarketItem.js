@@ -195,7 +195,7 @@ export default function useCreateMarketItem() {
         getAddressFromChainIdAddress(marketAddress),
         theNFT.id,
       ),
-      tipERC721.address,
+      theNFT.address,
     ]);
 
     await processTransactionBundle(userOps);
@@ -234,7 +234,7 @@ export default function useCreateMarketItem() {
         await fnftMarketCreateFacet.populateTransaction.createMarketItem(
           marketItemInput,
         ),
-        fnftMarketCreateFacet.address,
+        marketAddress, //fnftMarketCreateFacet.address,
       ],
     ]);
 
@@ -305,7 +305,7 @@ export default function useCreateMarketItem() {
         getAddressFromChainIdAddress(marketAddress),
         true,
       ),
-      tipERC1155.address,
+      theNFT.address,
     ]);
     await processTransactionBundle(userOps);
     // }
@@ -338,7 +338,7 @@ export default function useCreateMarketItem() {
         await fnftMarketCreateFacet.populateTransaction.createMarketItem(
           marketItemInput,
         ),
-        fnftMarketCreateFacet.address,
+        marketAddress, //fnftMarketCreateFacet.address,
       ],
     ]);
 
