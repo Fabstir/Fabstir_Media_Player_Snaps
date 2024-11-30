@@ -27,14 +27,8 @@ const BadgeDetailsSlideOver = ({
   );
   return (
     <Transition.Root show={open} as={Fragment}>
-      <Dialog
-        as="div"
-        className="fixed inset-0 z-50 overflow-hidden"
-        onClose={setOpen}
-      >
-        <div className="inset-0 overflow-hidden">
-          <Dialog.Overlay className="absolute inset-0" />
-
+      <div className="fixed inset-0 z-30" onClick={() => setOpen(false)}>
+        <div className="inset-0">
           <div className="fixed bottom-0 left-1/2 flex max-w-full -translate-x-1/2 transform pl-10 sm:pl-16">
             <Transition.Child
               as={Fragment}
@@ -45,7 +39,10 @@ const BadgeDetailsSlideOver = ({
               leaveFrom="translate-y-0"
               leaveTo="translate-y-full"
             >
-              <div>
+              <div
+                className="bg-background dark:bg-dark-background text-copy dark:text-dark-copy"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <BadgeDetailsSidebar
                   setOpen={setOpen}
                   badgeDetailsFunction1={badgeDetailsFunction1}
@@ -65,7 +62,7 @@ const BadgeDetailsSlideOver = ({
             </Transition.Child>
           </div>
         </div>
-      </Dialog>
+      </div>
     </Transition.Root>
   );
 };

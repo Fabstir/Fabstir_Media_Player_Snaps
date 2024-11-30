@@ -172,7 +172,7 @@ export default function TransferNFT({ nft, open, setOpen }) {
         // if (setRerender) setRerender((prev) => prev + 1);
         setTimeout(() => {
           setOpen(false);
-        }, 2000);
+        }, process.env.NEXT_PUBLIC_SLIDEOVER_CLOSE_DELAY);
       } catch (err) {
         alert(err.message);
       }

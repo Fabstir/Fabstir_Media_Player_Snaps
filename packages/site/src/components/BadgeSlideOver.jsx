@@ -1,9 +1,4 @@
-import {
-  Dialog,
-  Transition,
-  TransitionChild,
-  DialogPanel,
-} from '@headlessui/react';
+import { Dialog, Transition } from '@headlessui/react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import React, { Fragment, useContext, useEffect, useRef } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -19,6 +14,7 @@ import useUserProfile from '../hooks/useUserProfile';
 import BadgeSlideOverLeft from './BadgeSlideOverLeft';
 import BadgeSlideOverRight from './BadgeSlideOverRight';
 import BlockchainContext from '../../state/BlockchainContext';
+import useContractUtils from '../blockchain/useContractUtils';
 
 const defaultFormValues = {
   name: '',
@@ -30,6 +26,7 @@ const defaultFormValues = {
   attributes: '',
   genres: '',
   image: '',
+  deployed: false,
 };
 
 function classNames(...classes) {
@@ -46,6 +43,8 @@ const BadgeSlideOver = ({
 }) => {
   const blockchainContext = useContext(BlockchainContext);
   const { connectedChainId } = blockchainContext;
+
+  const { getChainIdAddressFromContractAddresses } = useContractUtils();
 
   const summaryMax = 250;
   const descriptionMax = 4000;
@@ -83,6 +82,7 @@ const BadgeSlideOver = ({
     image: yup.string().required('Badge image required'),
 
     fileUrls: yup.array().notRequired(),
+    deployed: yup.boolean().notRequired(),
   });
 
   const methods = useForm({
@@ -121,7 +121,16 @@ const BadgeSlideOver = ({
     delete badge.current.fileNames;
 
     try {
-      const { address } = await deployBadge(userAuthPub, badge.current);
+      let address;
+      if (badge.current.deployed) {
+        const result = await deployBadge(userAuthPub, badge.current);
+        address = result.address;
+      } else {
+        address = getChainIdAddressFromContractAddresses(
+          connectedChainId,
+          'NEXT_PUBLIC_ABTTOKEN_ADDRESS',
+        );
+      }
 
       badge.current = {
         ...badge.current,
@@ -133,8 +142,10 @@ const BadgeSlideOver = ({
       createBadge(badge.current);
       setCurrentBadge(badge.current);
 
-      methods.reset();
-      setOpen(false);
+      setTimeout(() => {
+        methods.reset();
+        setOpen(false);
+      }, process.env.NEXT_PUBLIC_SLIDEOVER_CLOSE_DELAY);
     } catch (err) {
       alert(err.message);
     }
@@ -142,13 +153,13 @@ const BadgeSlideOver = ({
 
   return (
     <FormProvider {...methods}>
-      <Transition show={open} as={Fragment}>
+      <Transition.Root show={open} as={Fragment}>
         <div className="fixed inset-0 z-30" onClick={() => setOpen(false)}>
           <div className="inset-0">
             {/* <Dialog.Overlay className="absolute inset-0" /> */}
 
             <div className="fixed inset-y-0 right-0 flex max-w-full transform border-2 border-gray">
-              <TransitionChild
+              <Transition.Child
                 as={Fragment}
                 enter="transform transition ease-in-out duration-500 sm:duration-700"
                 enterFrom="-translate-x-full"
@@ -197,11 +208,11 @@ const BadgeSlideOver = ({
                     />
                   </div>
                 </div>
-              </TransitionChild>
+              </Transition.Child>
             </div>
           </div>
         </div>
-      </Transition>
+      </Transition.Root>
     </FormProvider>
   );
 };

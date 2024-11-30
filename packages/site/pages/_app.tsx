@@ -1,53 +1,44 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import dynamic from 'next/dynamic';
-
 import Head from 'next/head';
-import { Web3Provider } from '@ethersproject/providers';
+import {
+  Web3Provider,
+  JsonRpcProvider,
+  JsonRpcSigner,
+  Provider,
+} from '@ethersproject/providers';
 import { AuthType } from '@particle-network/auth-core';
-import { AuthCoreContextProvider } from '@particle-network/auth-core-modal';
-
 import type { AppProps } from 'next/app';
-import { useContext, useState } from 'react';
 import { Header } from '../src/components/Header';
-import { Footer } from '../src/components/Footer';
 import '../styles/globals.css';
-import { JsonRpcProvider, Provider } from '@ethersproject/providers';
 import BlockchainContext from '../state/BlockchainContext';
 import { SmartAccount } from '@particle-network/aa';
 import { ToggleThemeContext } from '../src/Root';
 import { RecoilRoot } from 'recoil';
-import { JsonRpcSigner } from '@ethersproject/providers';
-
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-// import useParticleAuth from '../src/blockchain/useParticleAuth';
 import { ParticleAuthModule } from '@biconomy/particle-auth';
-import { getConnectedChainId } from '../src/utils/chainUtils';
-import { process_env } from '../src/utils/process_env';
-import {
-  getChainNameFromChainId,
-  getSupportedChains,
-  getSupportedChainIds,
-} from '../src/utils/chainUtils';
+import { getSupportedChains, getBaseSepolia } from '../src/utils/chainUtils';
 import { ConfigContext } from '../state/configContext';
 import { Config } from '../state/types';
 import { fetchConfig } from '../src/fetchConfig';
 import { ThemeProvider } from '../src/components/ThemeContext';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { process_env } from '../src/utils/process_env';
 
-// Create a client
 export const queryClient = new QueryClient();
+queryClient.clear();
 
 function MyApp({ Component, pageProps }: AppProps) {
   const [config, setConfig] = useState<Config | null>(null);
+  const [baseSepolia, setBaseSepolia] = useState<any>(null);
 
   useEffect(() => {
     (async () => {
-      const config = await fetchConfig();
-      console.log('MyApp: config: ', config);
-      setConfig(config);
+      const fetchedConfig = await fetchConfig();
+      setConfig(fetchedConfig);
     })();
-  }, [fetchConfig]);
+  }, []);
 
   const [userInfo, setUserInfo] = useState<ParticleAuthModule.UserInfo | null>(
     null,
@@ -57,25 +48,33 @@ function MyApp({ Component, pageProps }: AppProps) {
   >(null);
   const [smartAccountProvider, setSmartAccountProvider] =
     useState<Provider | null>(null);
+  const [directProvider, setDirectProvider] = useState<JsonRpcProvider | null>(
+    null,
+  );
   const [connectedChainId, setConnectedChainId] = useState<number | null>(null);
   const [providers, setProviders] = useState<{
     [key: string]: JsonRpcProvider;
   }>({});
 
-  // const { socialLogin } = useParticleAuth() as ParticleAuth;
-
   const toggleTheme = useContext(ToggleThemeContext);
+
+  useEffect(() => {
+    (async () => {
+      const baseSepolia = await getBaseSepolia();
+      setBaseSepolia(baseSepolia);
+    })();
+  }, []);
 
   useEffect(() => {
     navigator.serviceWorker
       .register('/sw.js')
-      .then(function (registration) {
+      .then((registration) => {
         console.log(
           'ServiceWorker registration successful with scope: ',
           registration.scope,
         );
       })
-      .catch(function (err) {
+      .catch((err) => {
         console.log('ServiceWorker registration failed: ', err);
       });
   }, []);
@@ -100,24 +99,21 @@ function MyApp({ Component, pageProps }: AppProps) {
     const rpcProviders = getRpcProviders();
     setProviders(rpcProviders);
 
-    if (
-      // process.env.NEXT_PUBLIC_ENABLE_OTHER_WALLET === 'true' &&
-      window.ethereum
-    ) {
+    if (window.ethereum) {
       const handleChainChanged = async (newChainIdHex: string) => {
         const newChainId = Number.parseInt(newChainIdHex, 16);
         setConnectedChainId(newChainId);
         console.log('_app: Connected chainId: ', newChainId);
 
         const web3Provider = new Web3Provider(window.ethereum);
-        const smartAccount = web3Provider.getSigner();
-        setSmartAccount(smartAccount);
+        const signer = web3Provider.getSigner();
+        setSmartAccount(signer);
         setSmartAccountProvider(web3Provider);
+        setDirectProvider(signer.provider);
       };
 
       window.ethereum.on('chainChanged', handleChainChanged);
 
-      // Return a cleanup function that removes the event listener
       return () => {
         window.ethereum.removeListener('chainChanged', handleChainChanged);
       };
@@ -125,13 +121,15 @@ function MyApp({ Component, pageProps }: AppProps) {
   }, []);
 
   const supportChains = getSupportedChains();
+  // const chainsArray: Chain[] = supportChains;
+  // const chains = chainsArray as [Chain, ...Chain[]];
 
   const DynamicAuthCoreContextProvider = dynamic(
     () =>
-      import('@particle-network/auth-core-modal').then(
+      import('@particle-network/authkit').then(
         (mod) => mod.AuthCoreContextProvider,
       ),
-    { ssr: false }, // This will load the component only on client side
+    { ssr: false },
   );
 
   const isParticleEnabled =
@@ -152,7 +150,9 @@ function MyApp({ Component, pageProps }: AppProps) {
     </ThemeProvider>
   );
 
-  if (!config) return <div>Loading...</div>;
+  if (!config || !baseSepolia) return <div>Loading...</div>;
+
+  const chains: [typeof baseSepolia, ...(typeof baseSepolia)[]] = [baseSepolia];
 
   return (
     <BlockchainContext.Provider
@@ -163,6 +163,8 @@ function MyApp({ Component, pageProps }: AppProps) {
         setSmartAccount,
         providers,
         setProviders,
+        directProvider,
+        setDirectProvider,
         connectedChainId,
         setConnectedChainId,
         smartAccountProvider,
@@ -177,17 +179,14 @@ function MyApp({ Component, pageProps }: AppProps) {
                 projectId: config.projectId || '',
                 clientKey: config.clientKey || '',
                 appId: config.appId || '',
-                erc4337: {
-                  name: 'BICONOMY',
-                  version: '2.0.0',
-                },
+                chains,
                 authTypes: [AuthType.email, AuthType.google, AuthType.apple],
-                themeType: 'dark', // light or dark
+                themeType: 'dark',
                 fiatCoin: 'USD',
                 language: 'en',
                 customStyle: {
-                  logo: 'https://xxxx', // image url
-                  projectName: 'xxx',
+                  logo: 'https://xxxx',
+                  projectName: 'Fabstir Media Player',
                   modalBorderRadius: 10,
                   theme: {
                     light: {
@@ -200,9 +199,13 @@ function MyApp({ Component, pageProps }: AppProps) {
                 },
                 wallet: {
                   visible: true,
-                  customStyle: {
-                    supportChains,
-                  },
+                  // customStyle: {
+                  //   supportChains,
+                  // },
+                },
+                erc4337: {
+                  name: 'BICONOMY',
+                  version: '2.0.0',
                 },
               }}
             >

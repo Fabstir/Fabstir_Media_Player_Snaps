@@ -12,7 +12,8 @@
     "allowJs": true,
     "skipLibCheck": true,
     "incremental": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "moduleResolution": "node"
   },
   "include": [".eslintrc.js", "src", "pages", "globals.ts", "types/*.ts"],
   "exclude": ["node_modules"]

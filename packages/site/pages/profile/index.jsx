@@ -422,34 +422,30 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
   }
 
   return (
-    <div className="h-screen">
+    <div className="min-h-screen bg-background">
       <div className="flex justify-start ml-4">
-        <TextLink
-          className="mt-6"
-          href="/"
-          // onClick={handleBackToRoot}
-        >
+        <TextLink className="mt-6" href="/">
           <div className="flex items-center">
             <ChevronDoubleLeftIcon
-              className="h-6 w-6 font-bold text-gray-500 lg:h-8 lg:w-8 mr-2"
+              className="h-6 w-6 font-bold text-copy lg:h-8 lg:w-8 mr-2"
               aria-hidden="true"
             />
-            <span>Back to Root</span>
+            <span className="text-copy underline">Back to Root</span>
           </div>
         </TextLink>
       </div>
-      <div className="mx-auto grid max-w-3xl grid-cols-1 bg-fabstir-gray-700">
+      <div className="mx-auto grid max-w-3xl grid-cols-1 pb-16">
         <form
           onSubmit={handleSubmit(handlesubmit_save)}
-          className="space-y-8 divide-y divide-fabstir-gray"
+          className="space-y-8 divide-y divide-border"
         >
-          <div className="space-y-8 divide-y divide-fabstir-gray">
+          <div className="space-y-8 divide-y divide-border">
             <div>
               <div>
-                <h3 className="text-2xl font-medium leading-6 text-fabstir-dark-gray">
+                <h3 className="text-2xl font-medium leading-6 text-copy">
                   Profile
                 </h3>
-                <p className="mt-1 text-sm text-fabstir-dark-gray">
+                <p className="mt-1 text-sm text-copy">
                   This information will be displayed publicly so be careful what
                   you share.
                 </p>
@@ -458,65 +454,65 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                 <div className="mt-4 sm:col-span-4">
                   <label
                     htmlFor="userName"
-                    className="block text-sm font-medium text-fabstir-dark-gray"
+                    className="block text-sm font-medium text-copy"
                   >
                     Username
                   </label>
-                  <div className="mt-1 rounded-md border-2 border-fabstir-gray shadow-sm">
+                  <div className="mt-1 rounded-md border-2 border-border shadow-sm">
                     <Input
                       type="text"
                       id="userName"
                       autoComplete="given-name"
                       readOnly={inputReadOnly}
                       register={register('userName')}
-                      className="block w-full rounded-md border-fabstir-gray bg-fabstir-white shadow-sm focus:border-fabstir-focus-colour1 focus:ring-fabstir-focus-colour1 sm:text-sm"
+                      className="block w-full rounded-md border-border bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                     />
                   </div>
-                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
+                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error">
                     {errors.userName?.message}
                   </p>
                 </div>
 
-                <div className=" col-span-6 border-b-1 border-fabstir-gray"></div>
+                <div className="col-span-6 border-b-1 border-border"></div>
 
                 <div className="mt-4 sm:col-span-6">
                   <div>
-                    <h3 className="text-lg font-medium leading-6 text-fabstir-dark-gray">
+                    <h3 className="text-lg font-medium leading-6 text-copy">
                       About
                     </h3>
-                    <p className="mt-1 text-sm text-fabstir-dark-gray">
+                    <p className="mt-1 text-sm text-copy">
                       Write a few sentences about yourself.
                     </p>
                   </div>
 
-                  <div className="mt-1 rounded-md border-2 border-fabstir-gray">
+                  <div className="mt-1 rounded-md border-2 border-border">
                     <Textarea
                       id="about"
                       name="about"
                       rows={3}
                       readOnly={inputReadOnly}
                       register={register('about')}
-                      className="block w-full rounded-md border border-fabstir-gray bg-fabstir-white shadow-sm focus:border-fabstir-focus-colour1 focus:ring-fabstir-focus-colour1 sm:text-sm text-fabstir-dark-gray"
+                      className="block w-full rounded-md border border-border bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm text-copy"
                       defaultValue={''}
                     />
                   </div>
-                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
+                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error">
                     {errors.about?.message}
                   </p>
                 </div>
 
-                <div className=" col-span-6 border-b-1 border-fabstir-gray"></div>
+                <div className="col-span-6 border-b-1 border-border"></div>
 
                 <div className="flex justify-between sm:col-span-6">
                   <div className="">
                     <label
                       htmlFor="photo"
-                      className="block text-sm font-medium text-fabstir-dark-gray"
+                      className="block text-sm font-medium text-copy"
                     >
                       Photo
                     </label>
                     <div className="mt-1 flex items-center">
-                      <span className="h-12 w-12 overflow-hidden rounded-full bg-gray-100 shadow-md">
+                      <span className="h-12 w-12 overflow-hidden rounded-full bg-background shadow-md">
                         <img
                           src={watchUrl}
                           alt=""
@@ -532,7 +528,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                         Change
                       </Button>
                     </div>
-                    <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
+                    <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error">
                       {errors.image?.message}
                     </p>
                   </div>
@@ -540,11 +536,11 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                   <div className="sm:col-span-3">
                     <label
                       htmlFor="role"
-                      className="block text-sm font-medium text-fabstir-dark-gray"
+                      className="block text-sm font-medium text-copy"
                     >
                       Role(s)
                     </label>
-                    <div className="mt-1 rounded-md border-2 border-fabstir-gray">
+                    <div className="mt-1 rounded-md border-2 border-border">
                       <CustomDropdown
                         options={role}
                         name="role"
@@ -552,7 +548,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                         defaultValue={getValues(`role`)}
                       />
                     </div>
-                    <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
+                    <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error">
                       {errors.role?.message}
                     </p>
                   </div>
@@ -560,17 +556,17 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                 <div className="sm:col-span-6">
                   <label
                     htmlFor="cover-photo"
-                    className="block text-sm font-medium text-fabstir-dark-gray"
+                    className="block text-sm font-medium text-copy"
                   >
                     Cover photo
                   </label>
                   <div
                     {...getRootProps()}
-                    className="mt-1 flex justify-center rounded-md border-2 border-dashed border-fabstir-gray bg-fabstir-white px-6 pb-6 pt-5"
+                    className="mt-1 flex justify-center rounded-md border-2 border-dashed border-border bg-background px-6 pb-6 pt-5"
                   >
                     <div className="space-y-1 text-center">
                       <svg
-                        className="mx-auto h-12 w-12 text-gray-400"
+                        className="mx-auto h-12 w-12 text-copy-light"
                         stroke="currentColor"
                         fill="none"
                         viewBox="0 0 48 48"
@@ -584,10 +580,10 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                         />
                       </svg>
 
-                      <div className="flex text-sm text-gray-600">
+                      <div className="flex text-sm text-copy">
                         <label
                           htmlFor="file-upload"
-                          className="relative cursor-pointer rounded-md font-medium text-fabstir-hover-colour1 focus-within:outline-none focus-within:ring-2 focus-within:ring-fabstir-focus-colour1 focus-within:ring-offset-2 hover:text-fabstir-focus-colour1"
+                          className="relative cursor-pointer rounded-md font-medium text-primary-light focus-within:outline-none focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 hover:text-primary"
                         >
                           <span>Upload a file</span>
                           <Input
@@ -602,7 +598,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                         <p className="pl-1">or drag and drop</p>
                       </div>
 
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-copy-light">
                         PNG, JPG, GIF up to 10MB
                       </p>
                     </div>
@@ -613,10 +609,10 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
 
             <div className="pt-8">
               <div>
-                <h3 className="text-lg font-medium leading-6 text-fabstir-dark-gray">
+                <h3 className="text-lg font-medium leading-6 text-copy">
                   Personal Information
                 </h3>
-                <p className="mt-1 text-sm text-fabstir-dark-gray">
+                <p className="mt-1 text-sm text-copy">
                   Use a permanent address where you can receive mail.
                 </p>
               </div>
@@ -624,21 +620,21 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                 <div className="sm:col-span-3">
                   <label
                     htmlFor="firstName"
-                    className="block text-sm font-medium text-fabstir-dark-gray"
+                    className="block text-sm font-medium text-copy"
                   >
                     First name
                   </label>
-                  <div className="mt-1 rounded-md border-2 border-fabstir-gray">
+                  <div className="mt-1 rounded-md border-2 border-border">
                     <Input
                       type="text"
                       id="firstName"
                       autoComplete="given-name"
                       readOnly={inputReadOnly}
                       register={register('firstName')}
-                      className="block w-full rounded-md border-fabstir-gray bg-fabstir-white shadow-sm focus:border-fabstir-focus-colour1 focus:ring-fabstir-focus-colour1 sm:text-sm"
+                      className="block w-full rounded-md border-border bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                     />
                   </div>
-                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
+                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error">
                     {errors.firstName?.message}
                   </p>
                 </div>
@@ -646,21 +642,21 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                 <div className="sm:col-span-3">
                   <label
                     htmlFor="lastName"
-                    className="block text-sm font-medium text-fabstir-dark-gray"
+                    className="block text-sm font-medium text-copy"
                   >
                     Last name
                   </label>
-                  <div className="mt-1 rounded-md border-2 border-fabstir-gray text-black">
+                  <div className="mt-1 rounded-md border-2 border-border">
                     <Input
                       type="text"
                       id="lastName"
                       autoComplete="family-name"
                       readOnly={inputReadOnly}
                       register={register('lastName')}
-                      className="block w-full rounded-md bg-fabstir-white shadow-sm focus:border-fabstir-focus-colour1 focus:ring-fabstir-focus-colour1 sm:text-sm text-black"
+                      className="block w-full rounded-md bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm text-copy"
                     />
                   </div>
-                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
+                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error">
                     {errors.lastName?.message}
                   </p>
                 </div>
@@ -668,21 +664,21 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                 <div className="sm:col-span-5">
                   <label
                     htmlFor="company"
-                    className="block text-sm font-medium text-fabstir-dark-gray"
+                    className="block text-sm font-medium text-copy"
                   >
                     Company
                   </label>
-                  <div className="mt-1 rounded-md border-2 border-fabstir-gray">
+                  <div className="mt-1 rounded-md border-2 border-border">
                     <Input
                       type="text"
                       id="company"
                       autoComplete="company"
                       readOnly={inputReadOnly}
                       register={register('company')}
-                      className="block w-full rounded-md border-fabstir-gray bg-fabstir-white shadow-sm focus:border-fabstir-focus-colour1 focus:ring-fabstir-focus-colour1 sm:text-sm"
+                      className="block w-full rounded-md border-border bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                     />
                   </div>
-                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
+                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error">
                     {errors.company?.message}
                   </p>
                 </div>
@@ -690,65 +686,47 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                 <div className="sm:col-span-6">
                   <label
                     htmlFor="accountAddress"
-                    className="block text-sm font-medium text-fabstir-dark-gray"
+                    className="block text-sm font-medium text-copy"
                   >
                     Account
                   </label>
 
                   <div className="flex flex-1">
-                    <Code className="p-2 text-md px-2">
+                    <Code className="p-2 text-md px-2 text-copy">
                       {getValues(`accountAddress`)}
                     </Code>
-                    {/* <div className="mr-4 w-full">
-                      <div className="mt-1 rounded-md border-2 border-fabstir-gray bg-fabstir-white p-2 text-fabstir-dark-gray">
-                        {getValues(`accountAddress`)}
-                      </div>
-                    </div> */}
-
-                    {/* <div className="rounded-md border border-fabstir-gray bg-fabstir-white px-4 py-2 text-sm font-medium text-fabstir-dark-gray shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-fabstir-focus-colour1 focus:ring-offset-2">
-                      Use Wallet Address
-                    </div> */}
                   </div>
                 </div>
 
                 <div className="sm:col-span-6">
                   <label
                     htmlFor="userPub"
-                    className="block text-sm font-medium text-fabstir-dark-gray"
+                    className="block text-sm font-medium text-copy"
                   >
                     Public Key
                   </label>
 
-                  <Code className="p-2 text-md px-2">{userPub}</Code>
-
-                  {/* <div className="mr-4 mt-1 flex w-full flex-1 rounded-md border-2 border-fabstir-gray">
-                    <div
-                      className="block w-full truncate rounded-md border-fabstir-gray bg-fabstir-white p-2 text-fabstir-dark-gray shadow-sm focus:border-fabstir-focus-colour1 focus:ring-fabstir-focus-colour1 sm:text-sm"
-                      title={userPub} // Tooltip added here
-                    >
-                      {userPub}
-                    </div>
-                  </div> */}
+                  <Code className="p-2 text-md px-2 text-copy">{userPub}</Code>
                 </div>
 
                 <div className="sm:col-span-4">
                   <label
                     htmlFor="email"
-                    className="block text-sm font-medium text-fabstir-dark-gray"
+                    className="block text-sm font-medium text-copy"
                   >
                     Email address
                   </label>
-                  <div className="mt-1 rounded-md border-2 border-fabstir-gray">
+                  <div className="mt-1 rounded-md border-2 border-border">
                     <Input
                       id="email"
                       type="email"
                       autoComplete="email"
                       readOnly={inputReadOnly}
                       register={register('emailAddress')}
-                      className="block w-full rounded-md border-fabstir-gray bg-fabstir-white shadow-sm focus:border-fabstir-focus-colour1 focus:ring-fabstir-focus-colour1 sm:text-sm"
+                      className="block w-full rounded-md border-border bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                     />
                   </div>
-                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
+                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error">
                     {errors.emailAddress?.message}
                   </p>
                 </div>
@@ -756,7 +734,7 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                 <div className="sm:col-span-3">
                   <label
                     htmlFor="country"
-                    className="block text-sm font-medium text-fabstir-dark-gray"
+                    className="block text-sm font-medium text-copy"
                   >
                     Country
                   </label>
@@ -770,9 +748,9 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                       register={register('country')}
                       error={errors.country?.message}
                       className="block w-full rounded-md sm:text-sm"
-                    />{' '}
+                    />
                   </div>
-                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
+                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error">
                     {errors.country?.message}
                   </p>
                 </div>
@@ -780,21 +758,21 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                 <div className="col-start-1 sm:col-span-6">
                   <label
                     htmlFor="street-address"
-                    className="block text-sm font-medium text-fabstir-dark-gray"
+                    className="block text-sm font-medium text-copy"
                   >
                     Street address
                   </label>
-                  <div className="mt-1 rounded-md border-2 border-fabstir-gray">
+                  <div className="mt-1 rounded-md border-2 border-border">
                     <Input
                       type="text"
                       id="street-address"
                       autoComplete="street-address"
                       readOnly={inputReadOnly}
                       register={register('streetAddress')}
-                      className="block w-full rounded-md border-fabstir-gray bg-fabstir-white shadow-sm focus:border-fabstir-focus-colour1 focus:ring-fabstir-focus-colour1 sm:text-sm"
+                      className="block w-full rounded-md border-border bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                     />
                   </div>
-                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
+                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error">
                     {errors.streetAddress?.message}
                   </p>
                 </div>
@@ -802,20 +780,20 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                 <div className="sm:col-span-2">
                   <label
                     htmlFor="city"
-                    className="block text-sm font-medium text-fabstir-dark-gray"
+                    className="block text-sm font-medium text-copy"
                   >
                     City
                   </label>
-                  <div className="mt-1 rounded-md border-2 border-fabstir-gray">
+                  <div className="mt-1 rounded-md border-2 border-border">
                     <Input
                       id="city"
                       autoComplete="address-level2"
                       readOnly={inputReadOnly}
                       register={register('city')}
-                      className="block w-full rounded-md border-fabstir-gray bg-fabstir-white shadow-sm focus:border-fabstir-focus-colour1 focus:ring-fabstir-focus-colour1 sm:text-sm"
+                      className="block w-full rounded-md border-border bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                     />
                   </div>
-                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
+                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error">
                     {errors.city?.message}
                   </p>
                 </div>
@@ -823,21 +801,21 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                 <div className="sm:col-span-2">
                   <label
                     htmlFor="region"
-                    className="block text-sm font-medium text-fabstir-dark-gray"
+                    className="block text-sm font-medium text-copy"
                   >
                     State / Province
                   </label>
-                  <div className="mt-1 rounded-md border-2 border-fabstir-gray">
+                  <div className="mt-1 rounded-md border-2 border-border">
                     <Input
                       type="text"
                       id="region"
                       autoComplete="address-level1"
                       readOnly={inputReadOnly}
                       register={register('region')}
-                      className="block w-full rounded-md border-fabstir-gray bg-fabstir-white shadow-sm focus:border-fabstir-focus-colour1 focus:ring-fabstir-focus-colour1 sm:text-sm"
+                      className="block w-full rounded-md border-border bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                     />
                   </div>
-                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
+                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error">
                     {errors.region?.message}
                   </p>
                 </div>
@@ -845,21 +823,21 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                 <div className="sm:col-span-2">
                   <label
                     htmlFor="postal-code"
-                    className="block text-sm font-medium text-fabstir-dark-gray"
+                    className="block text-sm font-medium text-copy"
                   >
                     ZIP / Postal code
                   </label>
-                  <div className="mt-1 rounded-md border-2 border-fabstir-gray">
+                  <div className="mt-1 rounded-md border-2 border-border">
                     <Input
                       type="text"
                       id="postal-code"
                       autoComplete="postal-code"
                       readOnly={inputReadOnly}
                       register={register('zipPostcode')}
-                      className="block w-full rounded-md border-fabstir-gray bg-fabstir-white shadow-sm focus:border-fabstir-focus-colour1 focus:ring-fabstir-focus-colour1 sm:text-sm"
+                      className="block w-full rounded-md border-border bg-background shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                     />
                   </div>
-                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
+                  <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error">
                     {errors.zipPostcode?.message}
                   </p>
                 </div>

@@ -42,6 +42,11 @@ export type BlockchainContextType = {
     React.SetStateAction<Provider | null>
   >;
 
+  directProvider: JsonRpcProvider | null;
+  setDirectProvider: React.Dispatch<
+    React.SetStateAction<JsonRpcProvider | null>
+  >;
+
   connectedChainId: number | null;
   setConnectedChainId: React.Dispatch<React.SetStateAction<number | null>>;
 
@@ -58,6 +63,8 @@ const BlockchainContext = React.createContext<BlockchainContextType>({
   setSmartAccount: () => {},
   smartAccountProvider: null,
   setSmartAccountProvider: () => {},
+  directProvider: null,
+  setDirectProvider: () => {},
   providers: {},
   setProviders: () => {},
   connectedChainId: null,

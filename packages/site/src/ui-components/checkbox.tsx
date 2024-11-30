@@ -30,9 +30,9 @@ export const Checkbox: React.FC<CheckboxProps> = ({
               'appearance-none h-6 w-6 rounded',
               'border-2 border-border dark:border-dark-border',
               'bg-gray dark:bg-dark-foreground',
-              'checked:bg-gray dark:checked:bg-gray',
-              'checked:border-gray dark:checked:border-gray',
-              'focus:outline-none focus:ring-2 focus:ring-gray dark:focus:ring-gray',
+              'checked:bg-primary dark:checked:bg-primary',
+              'checked:border-primary dark:checked:border-primary',
+              'focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-primary',
               'disabled:opacity-50 disabled:cursor-not-allowed',
               error
                 ? 'border-error dark:border-dark-error'

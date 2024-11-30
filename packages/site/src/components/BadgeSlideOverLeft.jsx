@@ -10,6 +10,7 @@ import {
 import { Input } from '../ui-components/input';
 import { Select } from '../ui-components/select';
 import { Textarea } from '../ui-components/textarea';
+import { Checkbox } from '../ui-components/checkbox';
 
 const BadgeSlideOverLeft = ({
   userPub,
@@ -28,6 +29,7 @@ const BadgeSlideOverLeft = ({
     formState: { errors },
     getValues,
     setValue,
+    watch,
     reset,
   } = useFormContext();
 
@@ -50,6 +52,8 @@ const BadgeSlideOverLeft = ({
       setCurrentBadgeForm('');
     }
   }, []);
+
+  const watchCategory = watch('category');
 
   return (
     <form
@@ -184,11 +188,23 @@ const BadgeSlideOverLeft = ({
                 register={register('category')}
                 className="sm:text-md block w-full bg-fabstir-dark-gray"
                 error={errors.category?.message}
+                value={watchCategory}
               />
             </div>
             <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-fabstir-light-pink">
               {errors.category?.message}
             </p>
+          </div>
+
+          <div className="col-span-1 ml-2">
+            <Checkbox
+              id="deployed"
+              label="Deploy"
+              defaultChecked={false}
+              register={register('deployed')}
+              error={errors.deployed?.message}
+              className="items-center"
+            />
           </div>
 
           <div className="mt-8 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-3">

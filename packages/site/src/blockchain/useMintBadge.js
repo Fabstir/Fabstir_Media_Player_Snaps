@@ -1,5 +1,7 @@
+import { ethers } from 'ethers';
 import { useContext } from 'react';
 import { arrayify, splitSignature } from '@ethersproject/bytes';
+import { Web3Provider } from '@ethersproject/providers';
 import { pack } from '@ethersproject/solidity';
 import { verifyMessage } from '@ethersproject/wallet';
 import { AddressZero } from '@ethersproject/constants';
@@ -19,8 +21,12 @@ import useContractUtils from './useContractUtils';
 
 export default function useMintBadge() {
   const blockchainContext = useContext(BlockchainContext);
-  const { smartAccount, smartAccountProvider, connectedChainId } =
-    blockchainContext;
+  const {
+    smartAccount,
+    smartAccountProvider,
+    directProvider,
+    connectedChainId,
+  } = blockchainContext;
 
   const { processTransactionBundle } =
     useAccountAbstractionPayment(smartAccount);
@@ -56,7 +62,7 @@ export default function useMintBadge() {
         await fnftFactoryABTToken.populateTransaction.deploy(
           badge.name,
           badge.symbol,
-          userAuthProfile.eoaAddress,
+          userAuthProfile.accountAddress,
         ),
         fnftFactoryABTTokenAddress,
       ],
@@ -84,40 +90,62 @@ export default function useMintBadge() {
   };
 
   const getSignature = async (userPub, badge, userPubFrom) => {
-    const userProfile = await getUserProfile(userPub);
-    const userProfileFrom = await getUserProfile(userPubFrom);
+    try {
+      // First make sure smart account is initialized
+      // await smartAccount.init();
 
-    const abtToken = newReadOnlyContract(badge.address, ABTToken.abi);
-    console.log('useMintBadge: getSignature abtToken = ', abtToken);
-    console.log(
-      `useMintBadge: getSignature getHash active=${userProfile.accountAddress}, passive=${userProfileFrom.accountAddress}, tokenURI=${badge.uri}`,
-    );
+      const userProfile = await getUserProfile(userPub);
+      const userProfileFrom = await getUserProfile(userPubFrom);
 
-    const hash = await abtToken.getHash(
-      userProfile.accountAddress,
-      userProfileFrom.accountAddress,
-      badge.uri,
-    );
-    console.log('useMintBadge: getSignature hash = ', hash);
+      // Add these logs to check which addresses are being used
+      const wrappedSigner = smartAccountProvider.getSigner();
 
-    const signer = smartAccountProvider.getSigner();
-    const flatSig = await signer.signMessage(arrayify(hash));
+      console.log('Addresses:', {
+        directProviderAddress: await directProvider.selectedAddress, // EOA address
+        // wrappedSignerAddress: await wrappedSigner.getAddress(), // Should be smart account address
+        smartAccountAddress: await smartAccount.getAddress(),
+      });
 
-    console.log('useMintBadge: getSignature flatSig = ', flatSig);
+      const abtToken = new ethers.Contract(
+        getAddressFromChainIdAddress(badge.address),
+        ABTToken.abi,
+        smartAccountProvider.getSigner(),
+      );
 
-    let sig = splitSignature(flatSig);
-    const signature = pack(
-      ['bytes32', 'bytes32', 'uint8'],
-      [sig.r, sig.s, sig.v],
-    );
-    console.log('useMintBadge: getSignature signature = ', signature);
+      const hash = await abtToken.getHash(
+        userProfile.accountAddress,
+        userProfileFrom.accountAddress,
+        badge.uri,
+      );
 
-    // Recover the signer's address
-    const messageArray = arrayify(hash);
-    const recoveredAddress = verifyMessage(messageArray, flatSig);
-    console.log('useMintBadge: recoveredAddress = ', recoveredAddress);
+      const signer = smartAccountProvider.getSigner();
+      const flatSig = await signer.signMessage(arrayify(hash));
+      console.log('useMintBadge: getSignature flatSig = ', flatSig);
 
-    return signature;
+      return flatSig;
+
+      // // Try using the smart account provider directly for signing
+      // try {
+      //   // First attempt: Use smart account's provider directly
+      //   const flatSig = await smartAccount.provider.signMessage(hash);
+      //   return flatSig;
+      // } catch (signError) {
+      //   console.log('First signing attempt failed:', signError);
+
+      //   // Second attempt: Use wrapped provider
+      //   const signer = smartAccountProvider.getSigner();
+      //   const flatSig = await signer.signMessage(arrayify(hash));
+      //   return flatSig;
+      // }
+    } catch (error) {
+      console.error('Detailed error in getSignature:', {
+        error,
+        code: error.code,
+        message: error.message,
+        stack: error.stack,
+      });
+      throw error;
+    }
   };
 
   const giveBadge = async (badge) => {
@@ -142,7 +170,7 @@ export default function useMintBadge() {
     userOps.push([
       await abtToken.populateTransaction.setEOA(
         getAddressFromChainIdAddress(badge.to),
-        userProfileTo.eoaAddress,
+        userProfileTo.accountAddress,
       ),
       getChainIdAddressFromChainIdAndAddress(
         connectedChainId,
@@ -281,7 +309,7 @@ export default function useMintBadge() {
     userOps.push([
       await abtToken.populateTransaction.setEOA(
         getAddressFromChainIdAddress(badge.to),
-        userProfileTo.eoaAddress,
+        userProfileTo.accountAddress,
       ),
       getChainIdAddressFromChainIdAndAddress(
         connectedChainId,
@@ -377,7 +405,13 @@ export default function useMintBadge() {
     if (!isABTToken(badge)) return;
 
     const abtToken = newReadOnlyContract(badge.address, ABTToken.abi);
-    let minter = await abtToken.minter();
+    let minter;
+    try {
+      minter = await abtToken.minter();
+    } catch (error) {
+      console.error('Error fetching minter:', error);
+      minter = undefined;
+    }
 
     console.log(
       'useMintBadge: minterOf minter === ethers.constants.AddressZero = ',
@@ -443,6 +477,30 @@ export default function useMintBadge() {
     queryClient.getQueryData([userPub, 'badges to take']);
   };
 
+  const setEOA = async (badge, account, eoa) => {
+    if (!isABTToken(badge)) return;
+
+    const abtToken = newContract(
+      badge.address,
+      ABTToken.abi,
+      smartAccountProvider,
+    );
+
+    console.log(`useMintBadge: setEOA take=${badge.from}, uri=${badge.uri}`);
+
+    const { receipt } = await processTransactionBundle([
+      [
+        await abtToken.populateTransaction.setEOA(account, eoa),
+        getChainIdAddressFromChainIdAndAddress(
+          connectedChainId,
+          abtToken.address,
+        ),
+      ],
+    ]);
+
+    console.log('useMintBadge: setEOA receipt = ', receipt);
+  };
+
   return {
     getSignature,
     giveBadge,
@@ -460,5 +518,6 @@ export default function useMintBadge() {
     gettokenURI,
     isUsed,
     clearBadgesToTakeCache,
+    setEOA,
   };
 }

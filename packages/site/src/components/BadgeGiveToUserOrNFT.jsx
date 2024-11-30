@@ -1,5 +1,5 @@
 import { AddressZero } from '@ethersproject/constants';
-import { useForm } from 'react-hook-form';
+import { set, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useContext, useState } from 'react';
 import * as yup from 'yup';
@@ -20,7 +20,7 @@ const defaultFormValues = {
   nftTokenId: '',
 };
 
-export default function BadgeGiveToUserOrNFT({ badge }) {
+export default function BadgeGiveToUserOrNFT({ badge, setOpen }) {
   const blockchainContext = useContext(BlockchainContext);
   const { providers, connectedChainId } = blockchainContext;
 
@@ -28,7 +28,7 @@ export default function BadgeGiveToUserOrNFT({ badge }) {
 
   const [submitText, setSubmitText] = useState('Give');
 
-  const { minterOf, getSignature } = useMintBadge();
+  const { minterOf, getSignature, setEOA } = useMintBadge();
   const [getUserProfile] = useUserProfile();
 
   const setOpenBadgeToGiveForAccount = useSetRecoilState(
@@ -77,6 +77,22 @@ export default function BadgeGiveToUserOrNFT({ badge }) {
     resolver: yupResolver(giveBadgeSchema),
   });
 
+  /**
+   * Handles the process of giving a badge to a user's NFT.
+   *
+   * @async
+   * @function handleGiveBadgeToNFT
+   * @param {Object} badge - The badge object containing details of the badge to be given.
+   * @param {string} badge.id - The unique identifier of the badge.
+   * @param {string} badge.name - The name of the badge.
+   * @param {string} badge.description - The description of the badge.
+   * @param {string} badge.imageUrl - The URL of the badge image.
+   * @param {Object} nft - The NFT object containing details of the NFT to which the badge will be given.
+   * @param {string} nft.id - The unique identifier of the NFT.
+   * @param {string} nft.creator - The creator of the NFT.
+   * @returns {Promise<void>} A promise that resolves when the badge has been successfully given to the NFT.
+   * @throws {Error} If the process of giving the badge fails.
+   */
   const handleGiveBadgeToNFT = async (badge, nft) => {
     const minter = await minterOf(badge);
     const userAuthProfile = await getUserProfile(userAuthPub);
@@ -104,6 +120,13 @@ export default function BadgeGiveToUserOrNFT({ badge }) {
 
       console.log('BadgeDropdown: newBadge = ', newBadge);
 
+      // For account abstraction the EOA address needs to be given for smart account
+      await setEOA(
+        newBadge,
+        userAuthPubProfile.accountAddress,
+        userAuthProfile.eoaAddress,
+      );
+
       await createBadgeToTake({
         ...newBadge,
         signature,
@@ -112,12 +135,28 @@ export default function BadgeGiveToUserOrNFT({ badge }) {
         nftTokenId: nft.id,
       });
       setSubmitText('Given!');
-      setOpen(false);
+
+      setTimeout(() => {
+        setOpen(false);
+      }, process.env.NEXT_PUBLIC_SLIDEOVER_CLOSE_DELAY); // 2-second delay
     } else {
       setSubmitText('Error!');
     }
   };
 
+  /**
+   * Handles the process of giving a badge to a user's account.
+   *
+   * @async
+   * @function handleGiveBadgeToAccount
+   * @param {Object} badge - The badge object containing details of the badge to be given.
+   * @param {string} badge.id - The unique identifier of the badge.
+   * @param {string} badge.name - The name of the badge.
+   * @param {string} badge.description - The description of the badge.
+   * @param {string} badge.imageUrl - The URL of the badge image.
+   * @returns {Promise<void>} A promise that resolves when the badge has been successfully given to the account.
+   * @throws {Error} If the process of giving the badge fails.
+   */
   const handleGiveBadgeToAccount = async (badge) => {
     const minter = await minterOf(badge);
     const userAuthProfile = await getUserProfile(userAuthPub);
@@ -132,7 +171,7 @@ export default function BadgeGiveToUserOrNFT({ badge }) {
           ).toLowerCase())
     ) {
       setSubmitText('Giving...');
-      //        const userAuthPubProfile = await getUserProfile(userAuthPub)
+
       const uri = await createUri(badge);
 
       const newBadge = { ...badge, uri, taker: badge.taker };
@@ -144,15 +183,27 @@ export default function BadgeGiveToUserOrNFT({ badge }) {
 
       console.log('BadgeDropdown: newBadge = ', newBadge);
 
+      const userAuthPubProfile = await getUserProfile(userAuthPub);
+
+      // For account abstraction the EOA address needs to be given for smart account
+      await setEOA(
+        newBadge,
+        userAuthPubProfile.accountAddress,
+        userAuthProfile.eoaAddress,
+      );
+
       createBadgeToTake({
         ...newBadge,
         signature,
       });
       setSubmitText('Given!');
+
+      setTimeout(() => {
+        setOpen(false);
+      }, process.env.NEXT_PUBLIC_SLIDEOVER_CLOSE_DELAY);
     } else {
       setSubmitText('Error!');
     }
-    setOpenBadgeToGiveForAccount(false);
   };
 
   const handleGiveBadge = async (data) => {

@@ -93,12 +93,15 @@ export default function useContractUtils() {
    * @example
    * const readOnlyContract = newReadOnlyContract(chainIdAddress, abi);
    */
-  const newReadOnlyContract = (chainIdAddress, abi) => {
+  const newReadOnlyContract = (
+    chainIdAddress,
+    abi,
+    provider = getProviderFromChainIdAddress(chainIdAddress),
+  ) => {
     if (!chainIdAddress || !abi) {
       throw new Error('ChainIdAddress or ABI is not set');
     }
 
-    const provider = getProviderFromChainIdAddress(chainIdAddress);
     const address = getAddressFromChainIdAddress(chainIdAddress);
 
     if (!provider) {

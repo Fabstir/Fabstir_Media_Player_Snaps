@@ -118,6 +118,7 @@ const Index = () => {
     setSmartAccountProvider,
     smartAccount,
     setSmartAccount,
+    setDirectProvider,
     connectedChainId,
     setConnectedChainId,
   } = blockchainContext;
@@ -652,6 +653,7 @@ const Index = () => {
         const {
           smartAccount: biconomySmartAccount,
           web3Provider,
+          directProvider,
           userInfo,
           eoaAddress: eoaAddress1,
         } = await socialLogin();
@@ -668,6 +670,7 @@ const Index = () => {
         );
         setSmartAccount(biconomySmartAccount);
         setSmartAccountProvider(web3Provider);
+        setDirectProvider(directProvider);
 
         const chainId = await getConnectedChainId(biconomySmartAccount);
         setConnectedChainId(chainId);

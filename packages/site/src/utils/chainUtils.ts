@@ -86,3 +86,10 @@ export const getConnectedChainId = async (smartAccount: any) => {
 
   return chainId;
 };
+
+export async function getBaseSepolia() {
+  const { baseSepolia } = require('@particle-network/authkit/chains') as {
+    baseSepolia: any;
+  };
+  return baseSepolia;
+}

@@ -39,7 +39,14 @@ export default function useParticlePayment(smartAccount) {
       throw new Error(`handleAAPayment: smartAccount is undefined`);
 
     //get fee quotes with tx or txs
-    const feeQuotesResult = await smartAccount.getFeeQuotes(transactions);
+    let feeQuotesResult;
+    try {
+      feeQuotesResult = await smartAccount.getFeeQuotes(transactions);
+      console.log('Fee Quotes Result:', feeQuotesResult);
+    } catch (error) {
+      console.error('Error getting fee quotes:', error);
+      alert(`Error: ${error.message}`);
+    }
 
     // pay with ERC-20 tokens: fee quotes
     if (feeQuotesResult.tokenPaymaster) {

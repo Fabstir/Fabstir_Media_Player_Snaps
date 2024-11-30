@@ -157,7 +157,9 @@ export default function DeleteMarketNFT({
         setSubmitText('Cancelled');
       }
 
-      setOpen(false);
+      setTimeout(() => {
+        setOpen(false);
+      }, process.env.NEXT_PUBLIC_SLIDEOVER_CLOSE_DELAY);
     } catch (err) {
       alert(err.message);
     }

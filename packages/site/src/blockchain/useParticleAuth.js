@@ -1,10 +1,11 @@
+import { BrowserProvider } from 'ethers';
 import { Web3Provider } from '@ethersproject/providers';
 
 import {
   useEthereum,
   useConnect,
   useAuthCore,
-} from '@particle-network/auth-core-modal';
+} from '@particle-network/authkit';
 
 import {
   AAWrapProvider,
@@ -42,7 +43,7 @@ export default function useParticleAuth() {
     return { socialLogin: null };
 
   const { provider: particleProvider } = useEthereum();
-  const { connect, disconnect } = useConnect();
+  const { connect, disconnect, connected } = useConnect();
   const {
     userInfo,
     login: particleLogin,
@@ -125,13 +126,12 @@ export default function useParticleAuth() {
       'any',
     );
 
-    const signer = customProvider.getSigner();
-
     const result = {
       smartAccount,
-      web3Provider: signer,
+      web3Provider: customProvider,
       userInfo,
-      eoaAddress: null,
+      directProvider: particleProvider,
+      eoaAddress: smartAccount.provider.selectedAddress,
     };
 
     return result;
@@ -146,7 +146,7 @@ export default function useParticleAuth() {
    * @returns {Promise<Object>|undefined} A Promise that resolves with the user info object if the login is successful. If the user is already logged in, it returns the existing user info. If an error occurs during the login process, it returns undefined.
    */
   const login = async (isFresh = false) => {
-    if (!userInfo) {
+    if (!userInfo || !connected) {
       try {
         const chainInfo = getChainInfoFromChainId(
           connectedChainId || Number(process.env.NEXT_PUBLIC_DEFAULT_CHAIN_ID),
@@ -154,11 +154,13 @@ export default function useParticleAuth() {
         console.log('useParticleAuth: chainInfo = ', chainInfo);
         console.log('useParticleAuth: chainInfo = ', chainInfo);
 
-        const newUserInfo = await connect({
-          email: '',
-          code: '',
-          chain: chainInfo,
-        });
+        const newUserInfo = await connect({});
+
+        // const newUserInfo = await connect({
+        //   email: '',
+        //   code: '',
+        //   chain: chainInfo,
+        // });
 
         console.log('useParticleAuth: chainInfo = ', chainInfo);
         console.log('useParticleAuth: chainInfo = ', chainInfo);
@@ -183,6 +185,15 @@ export default function useParticleAuth() {
     console.log('logout');
   };
 
+  /**
+   * Handles social login for the application.
+   *
+   * @async
+   * @function socialLogin
+   * @param {boolean} [isFresh=false] - Indicates whether this is a fresh login attempt.
+   * @returns {Promise<void>} A promise that resolves when the login process is complete.
+   * @throws {Error} If the login process fails.
+   */
   const socialLogin = async (isFresh = false) => {
     if (process.env.NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK === 'Particle') {
       const userInfo = await login(isFresh);

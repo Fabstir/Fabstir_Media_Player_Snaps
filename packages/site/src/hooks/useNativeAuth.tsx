@@ -12,6 +12,7 @@ export default function useNativeAuth() {
   const {
     smartAccountProvider,
     setSmartAccountProvider,
+    setDirectProvider,
     smartAccount,
     setSmartAccount,
     connectedChainId,
@@ -40,9 +41,12 @@ export default function useNativeAuth() {
       if (!connectedChainId)
         throw new Error('index: connect: No connected chain id');
 
-      const signer = wallet.connect(getProviderFromChainId(connectedChainId));
+      const directProvider = getProviderFromChainId(connectedChainId);
+      const signer = wallet.connect(directProvider);
       setSmartAccount(signer as any);
       setSmartAccountProvider(signer as any);
+
+      setDirectProvider(directProvider as any);
 
       userAccountAddress = await signer.getAddress();
 
@@ -57,6 +61,7 @@ export default function useNativeAuth() {
 
       setSmartAccount(result.smartAccount);
       setSmartAccountProvider(result.web3Provider);
+      setDirectProvider(result.web3Provider);
 
       userAccountAddress = result.eoaAddress;
 
