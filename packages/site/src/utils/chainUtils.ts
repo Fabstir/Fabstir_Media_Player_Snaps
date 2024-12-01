@@ -1,4 +1,4 @@
-import { Web3Provider } from '@ethersproject/providers';
+import { Web3Provider, ExternalProvider } from '@ethersproject/providers';
 
 const chainList: { [key: number]: string } = {
   1: 'Ethereum',
@@ -68,7 +68,7 @@ export const getConnectedChainId = async (smartAccount: any) => {
     chainId = Number.parseInt(newChainIdHex, 16);
   } else if (process.env.NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK === 'Native') {
     // Native provider (MetaMask) extraction
-    provider = new Web3Provider(window.ethereum);
+    provider = new Web3Provider(window.ethereum as unknown as ExternalProvider);
 
     // Fetch the network information
     const network = await provider.getNetwork();

@@ -6,6 +6,7 @@ import {
   JsonRpcProvider,
   JsonRpcSigner,
   Provider,
+  ExternalProvider,
 } from '@ethersproject/providers';
 import { AuthType } from '@particle-network/auth-core';
 import type { AppProps } from 'next/app';
@@ -16,7 +17,7 @@ import { SmartAccount } from '@particle-network/aa';
 import { ToggleThemeContext } from '../src/Root';
 import { RecoilRoot } from 'recoil';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ParticleAuthModule } from '@biconomy/particle-auth';
+import type { UserInfo } from '@particle-network/auth-core';
 import { getSupportedChains, getBaseSepolia } from '../src/utils/chainUtils';
 import { ConfigContext } from '../state/configContext';
 import { Config } from '../state/types';
@@ -40,9 +41,7 @@ function MyApp({ Component, pageProps }: AppProps) {
     })();
   }, []);
 
-  const [userInfo, setUserInfo] = useState<ParticleAuthModule.UserInfo | null>(
-    null,
-  );
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [smartAccount, setSmartAccount] = useState<
     SmartAccount | JsonRpcSigner | null
   >(null);
@@ -105,14 +104,18 @@ function MyApp({ Component, pageProps }: AppProps) {
         setConnectedChainId(newChainId);
         console.log('_app: Connected chainId: ', newChainId);
 
-        const web3Provider = new Web3Provider(window.ethereum);
+        const web3Provider = new Web3Provider(
+          window.ethereum as unknown as ExternalProvider,
+        );
         const signer = web3Provider.getSigner();
         setSmartAccount(signer);
         setSmartAccountProvider(web3Provider);
         setDirectProvider(signer.provider);
       };
 
-      window.ethereum.on('chainChanged', handleChainChanged);
+      window.ethereum.on('chainChanged', (newChainIdHex: unknown) =>
+        handleChainChanged(newChainIdHex as string),
+      );
 
       return () => {
         window.ethereum.removeListener('chainChanged', handleChainChanged);

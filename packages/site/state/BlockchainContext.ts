@@ -6,7 +6,7 @@ import {
   Web3Provider,
   Provider,
 } from '@ethersproject/providers';
-import { ParticleAuthModule } from '@biconomy/particle-auth';
+import type { UserInfo } from '@particle-network/auth-core';
 
 /*
 BlockchainContextType is a TypeScript type definition for a context object in a React application that's related 
@@ -27,10 +27,8 @@ providers: An object mapping keys to JsonRpcProvider instances.
 setProviders: Function to set the providers object.
 */
 export type BlockchainContextType = {
-  userInfo: ParticleAuthModule.UserInfo | null;
-  setUserInfo: React.Dispatch<
-    React.SetStateAction<ParticleAuthModule.UserInfo | null>
-  >;
+  userInfo: UserInfo | null;
+  setUserInfo: React.Dispatch<React.SetStateAction<UserInfo | null>>;
 
   smartAccount: SmartAccount | JsonRpcSigner | null;
   setSmartAccount: React.Dispatch<

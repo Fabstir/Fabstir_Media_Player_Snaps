@@ -374,9 +374,10 @@ const NFTSlideOver = ({
 
     if (encKey) encKey.current = '';
 
-    methods.reset(initialValues);
+    setSubmitText('Created!');
 
     setTimeout(() => {
+      methods.reset(initialValues);
       setOpen(false);
     }, process.env.NEXT_PUBLIC_SLIDEOVER_CLOSE_DELAY);
   }

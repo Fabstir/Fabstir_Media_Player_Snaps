@@ -1,4 +1,6 @@
 import { ethers } from 'ethers';
+import { BigNumber } from '@ethersproject/bignumber';
+import { formatUnits } from '@ethersproject/units';
 import useFNFTMarketSale from '../blockchain/useFNFTMarketSale';
 import { fetchNFT } from './useNFT';
 import { constructNFTAddressId } from '../utils/nftUtils';
@@ -86,12 +88,12 @@ export default function useMarketNFTs(marketAddress) {
 
       const numOfDecimalPlaces = getDecimalPlaceFromCurrency(priceCurrency);
 
-      const startPriceCurrency = ethers.utils.formatUnits(
+      const startPriceCurrency = formatUnits(
         marketItem.startPrice,
         numOfDecimalPlaces,
       );
 
-      const reservePriceCurrency = ethers.utils.formatUnits(
+      const reservePriceCurrency = formatUnits(
         marketItem.reservePrice,
         numOfDecimalPlaces,
       );
@@ -106,8 +108,8 @@ export default function useMarketNFTs(marketAddress) {
         const nft = await fetchNFT(sellerPub, nftAddressId);
         if (
           nft &&
-          ethers.BigNumber.from(marketItem.startPrice).eq(
-            ethers.BigNumber.from(marketItem.reservePrice),
+          BigNumber.from(marketItem.startPrice).eq(
+            BigNumber.from(marketItem.reservePrice),
           )
         ) {
           const startTime =
@@ -169,12 +171,12 @@ export default function useMarketNFTs(marketAddress) {
 
       const numOfDecimalPlaces = getDecimalPlaceFromCurrency(priceCurrency);
 
-      const startPriceCurrency = ethers.utils.formatUnits(
+      const startPriceCurrency = formatUnits(
         marketItem.startPrice,
         numOfDecimalPlaces,
       );
 
-      const reservePriceCurrency = ethers.utils.formatUnits(
+      const reservePriceCurrency = formatUnits(
         marketItem.reservePrice,
         numOfDecimalPlaces,
       );
@@ -189,8 +191,8 @@ export default function useMarketNFTs(marketAddress) {
         const nft = await fetchNFT(sellerPub, nftAddressId);
         if (
           nft &&
-          ethers.BigNumber.from(marketItem.startPrice).ne(
-            ethers.BigNumber.from(marketItem.reservePrice),
+          BigNumber.from(marketItem.startPrice).ne(
+            BigNumber.from(marketItem.reservePrice),
           )
         ) {
           const startTime =
@@ -253,12 +255,12 @@ export default function useMarketNFTs(marketAddress) {
 
       const numOfDecimalPlaces = getDecimalPlaceFromCurrency(priceCurrency);
 
-      const startPriceCurrency = ethers.utils.formatUnits(
+      const startPriceCurrency = formatUnits(
         marketItemPending.startPrice,
         numOfDecimalPlaces,
       );
 
-      const reservePriceCurrency = ethers.utils.formatUnits(
+      const reservePriceCurrency = formatUnits(
         marketItemPending.reservePrice,
         numOfDecimalPlaces,
       );

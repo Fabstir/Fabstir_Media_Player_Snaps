@@ -142,6 +142,8 @@ const BadgeSlideOver = ({
       createBadge(badge.current);
       setCurrentBadge(badge.current);
 
+      setSubmitText('Created!');
+
       setTimeout(() => {
         methods.reset();
         setOpen(false);
