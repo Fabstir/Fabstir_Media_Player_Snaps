@@ -93,3 +93,10 @@ export async function getBaseSepolia() {
   };
   return baseSepolia;
 }
+
+export async function getPolygonAmoy() {
+  const { polygonAmoy } = require('@particle-network/authkit/chains') as {
+    polygonAmoy: any;
+  };
+  return polygonAmoy;
+}

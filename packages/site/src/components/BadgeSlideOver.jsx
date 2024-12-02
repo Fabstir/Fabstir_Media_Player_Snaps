@@ -2,10 +2,13 @@ import { Dialog, Transition } from '@headlessui/react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import React, { Fragment, useContext, useEffect, useRef } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useRecoilState, useRecoilValue } from 'recoil';
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import * as yup from 'yup';
 
-import { currentbadgemetadata } from '../atoms/badgeSlideOverAtom';
+import {
+  currentbadgemetadata,
+  rerenderbadgestogivestate,
+} from '../atoms/badgeSlideOverAtom';
 import { userpubstate } from '../atoms/userAtom';
 import { userauthpubstate } from '../atoms/userAuthAtom';
 import useMintBadge from '../blockchain/useMintBadge';
@@ -26,7 +29,7 @@ const defaultFormValues = {
   attributes: '',
   genres: '',
   image: '',
-  deployed: false,
+  deployed: true,
 };
 
 function classNames(...classes) {
@@ -101,6 +104,7 @@ const BadgeSlideOver = ({
   const userPub = useRecoilValue(userpubstate);
 
   const [currentBadge, setCurrentBadge] = useRecoilState(currentbadgemetadata);
+  const setRerenderBadgesToGive = useSetRecoilState(rerenderbadgestogivestate);
 
   const badge = useRef({});
 
@@ -145,8 +149,9 @@ const BadgeSlideOver = ({
       setSubmitText('Created!');
 
       setTimeout(() => {
-        methods.reset();
         setOpen(false);
+        methods.reset();
+        setRerenderBadgesToGive((prev) => prev + 1);
       }, process.env.NEXT_PUBLIC_SLIDEOVER_CLOSE_DELAY);
     } catch (err) {
       alert(err.message);

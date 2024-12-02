@@ -14,3 +14,8 @@ export const currentbadgecategories = atom({
   key: 'currentBadgeCategories',
   default: [''],
 });
+
+export const rerenderbadgestogivestate = atom({
+  key: 'rerenderBadgesToGiveState',
+  default: 0,
+});

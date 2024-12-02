@@ -65,6 +65,7 @@ import useCreateBadgeRequestedCompleted from '../../src/hooks/useCreateBadgeRequ
 import TransferNFT from '../../src/components/TransferNFT';
 import { transfernftslideoverstate } from '../../src/atoms/transferNFTOverAtom';
 import BadgeGiveToUserOrNFT from '../../src/components/BadgeGiveToUserOrNFT';
+import { rerenderbadgestogivestate } from '../../src/atoms/badgeSlideOverAtom';
 
 /**
  * Tailwind CSS style for title text.
@@ -166,7 +167,9 @@ export default function UserNFTs() {
   const [rerenderBadges, setRerenderBadges] = useState(0);
   const [rerenderBadgesToTake, setRerenderBadgesToTake] = useState(0);
   const [rerenderBadgesRequested, setRerenderBadgesRequested] = useState(0);
-  const [rerenderBadgesToGive, setRerenderBadgesToGive] = useState(0);
+  const [rerenderBadgesToGive, setRerenderBadgesToGive] = useRecoilState(
+    rerenderbadgestogivestate,
+  );
 
   /**
    * State to hold the current NFT metadata.
@@ -299,32 +302,21 @@ export default function UserNFTs() {
     currentbadgerequestingstate,
   );
 
-  const handleGiveBadgeForAccount = useCallback(
-    async (badge) => {
-      const minter = await minterOf(badge);
-      const userAuthProfile = await getUserProfile(userAuthPub);
+  const handleGiveBadgeForAccount = async (badge) => {
+    const minter = await minterOf(badge);
+    const userAuthProfile = await getUserProfile(userAuthPub);
 
-      if (
-        minter === AddressZero ||
-        userAuthProfile.accountAddress.toLowerCase() === minter.toLowerCase()
-      ) {
-        setUserPubGive(userPub);
-        setCurrentBadgeRequesting(badge);
-        setHandleGiveBadgeForAccountText('Give Pending....');
-      }
-      setOpenBadgeToGive(false);
-      alert('Choose User or NFT');
-    },
-    [
-      getUserProfile,
-      minterOf,
-      setCurrentBadgeRequesting,
-      setOpenBadgeToGive,
-      setUserPubGive,
-      userAuthPub,
-      userPub,
-    ],
-  );
+    if (
+      minter === AddressZero ||
+      userAuthProfile.accountAddress.toLowerCase() === minter.toLowerCase()
+    ) {
+      setUserPubGive(userPub);
+      setCurrentBadgeRequesting(badge);
+      setHandleGiveBadgeForAccountText('Give Pending....');
+    }
+    setOpenBadgeToGive(false);
+    alert('Choose User or NFT');
+  };
 
   const { mutate: createBadgeRequest, ...createBadgeRequestInfo } =
     useCreateBadgeRequest();
@@ -395,7 +387,11 @@ export default function UserNFTs() {
     await handleRequestBadge(badge, null);
 
     setHandleRequestBadgeText('Requested!');
-    setOpenBadgeToGive(false);
+    setRerenderBadgesRequested(rerenderBadgesRequested + 1);
+
+    setTimeout(() => {
+      setOpenBadgeToGive(false);
+    }, process.env.NEXT_PUBLIC_SLIDEOVER_CLOSE_DELAY);
   }
 
   const handleRequestBadgeForNFT = useCallback(
@@ -407,8 +403,14 @@ export default function UserNFTs() {
         setUserPubRequest(userPub);
         setCurrentBadgeRequesting(badge);
         setHandleRequestBadgeForNFTText('Request Pending....');
-      }
-      setOpenBadgeToGive(false);
+      } else setHandleRequestBadgeForNFTText('Request Completed!');
+
+      setRerenderBadgesToGive(rerenderBadgesToGive + 1);
+
+      setTimeout(() => {
+        setOpenBadgeToGive(false);
+      }, process.env.NEXT_PUBLIC_SLIDEOVER_CLOSE_DELAY);
+
       alert('Choose NFT');
     },
     [
@@ -428,70 +430,61 @@ export default function UserNFTs() {
 
   const [handleTakeBadgeText, setHandleTakeBadgeText] = useState('Take');
 
-  const handleTakeBadge = useCallback(
-    async (badge, nft) => {
-      const minter = await minterOf(badge);
-      const userAuthProfile = await getUserProfile(userAuthPub);
+  const handleTakeBadge = async (badge, nft) => {
+    const minter = await minterOf(badge);
+    const userAuthProfile = await getUserProfile(userAuthPub);
 
-      if (
-        userAuthProfile.accountAddress.toLowerCase() === minter.toLowerCase()
-      ) {
-        setHandleTakeBadgeText('Revoking...');
+    if (userAuthProfile.accountAddress.toLowerCase() === minter.toLowerCase()) {
+      setHandleTakeBadgeText('Revoking...');
 
-        try {
-          await revokeBadge(userAuthPub, userPub, badge); // ensure that badge can no longer be taken
-          //      deleteBadge(badge)
-          setHandleTakeBadgeText('Revoked!');
-        } catch (err) {
-          alert(err.message);
-          setHandleTakeBadgeText('Revoke');
-        }
-      } else {
-        setHandleTakeBadgeText('Taking...');
-        console.log('fetchBadges: before takeBadge');
-
-        try {
-          const newTokenId = await takeBadge(badge);
-          if (!newTokenId) return;
-
-          //        const tokenId = await getNextTokenId(badge)
-          const newBadge = {
-            ...badge,
-            tokenId: newTokenId.toString(),
-            taker: userAuthPub,
-          };
-          console.log('fetchBadges: before createBadge');
-          createBadge(newBadge);
-
-          clearBadgesToTakeCache(userAuthPub);
-
-          console.log('fetchBadges: after createBadge');
-
-          //    createBadge(badge) // JAB 20220716 fudge to allow React to run fetchBadges
-
-          setHandleTakeBadgeText('Taken!');
-
-          //        console.log('fetchBadges: tokenId = ', tokenId)
-          console.log('fetchBadges: newTokenId = ', newTokenId);
-        } catch (err) {
-          alert(err.message);
-          setHandleTakeBadgeText('Take');
-        }
+      try {
+        await revokeBadge(userAuthPub, userPub, badge); // ensure that badge can no longer be taken
+        //      deleteBadge(badge)
+        setHandleTakeBadgeText('Revoked!');
+      } catch (err) {
+        alert(err.message);
+        setHandleTakeBadgeText('Revoke');
       }
-      setOpenBadgeToTake(false);
-    },
-    [
-      createBadge,
-      //      getNextTokenId,
-      getUserProfile,
-      minterOf,
-      revokeBadge,
-      setOpenBadgeToTake,
-      takeBadge,
-      userAuthPub,
-      userPub,
-    ],
-  );
+    } else {
+      setHandleTakeBadgeText('Taking...');
+      console.log('fetchBadges: before takeBadge');
+
+      try {
+        const newTokenId = await takeBadge(badge);
+        console.log('fetchBadges: newTokenId', newTokenId);
+        if (!newTokenId) return;
+
+        //        const tokenId = await getNextTokenId(badge)
+        const newBadge = {
+          ...badge,
+          tokenId: newTokenId.toString(),
+          taker: userAuthPub,
+        };
+        console.log('fetchBadges: before createBadge');
+        createBadge(newBadge);
+
+        clearBadgesToTakeCache(userAuthPub);
+
+        console.log('fetchBadges: after createBadge');
+
+        //    createBadge(badge) // JAB 20220716 fudge to allow React to run fetchBadges
+
+        setHandleTakeBadgeText('Taken!');
+
+        setTimeout(() => {
+          setOpenBadgeToTake(false);
+          setRerenderBadgesToTake((prev) => prev + 1);
+          setRerenderBadges((prev) => prev + 1);
+        }, process.env.NEXT_PUBLIC_SLIDEOVER_CLOSE_DELAY);
+
+        //        console.log('fetchBadges: tokenId = ', tokenId)
+        console.log('fetchBadges: newTokenId = ', newTokenId);
+      } catch (err) {
+        alert(err.message);
+        setHandleTakeBadgeText('Take');
+      }
+    }
+  };
 
   useEffect(() => {
     if (createBadgeInfo.isError) setHandleTakeBadgeText('Error!');
@@ -686,7 +679,7 @@ export default function UserNFTs() {
               twTitleStyle="text-xs sm:text-xs md:text-xs lg:text-xs xl:text-xs 2xl:text-xs 3xl:text-sm"
               twTextStyle="text-xs sm:text-xs md:text-xs lg:text-xs xl:text-xs 2xl:text-xs 3xl:text-sm"
               handleBadgeOnClick={handleBadgeOnClick}
-              key={rerenderBadges}
+              rerenderBadges={rerenderBadges} // Pass rerenderBadges as a prop
             />
           )}
 
@@ -698,7 +691,7 @@ export default function UserNFTs() {
               twTitleStyle="text-xs sm:text-xs md:text-xs lg:text-xs xl:text-xs 2xl:text-xs 3xl:text-sm"
               twTextStyle="text-xs sm:text-xs md:text-xs lg:text-xs xl:text-xs 2xl:text-xs 3xl:text-sm"
               handleBadgeOnClick={handleTakeBadgeOnClick}
-              key={rerenderBadgesToTake}
+              rerenderBadges={rerenderBadgesToTake} // Pass rerenderBadgesToTake as a prop
             />
           )}
 
@@ -710,20 +703,20 @@ export default function UserNFTs() {
               twTitleStyle="text-xs sm:text-xs md:text-xs lg:text-xs xl:text-xs 2xl:text-xs 3xl:text-sm"
               twTextStyle="text-xs sm:text-xs md:text-xs lg:text-xs xl:text-xs 2xl:text-xs 3xl:text-sm"
               handleBadgeOnClick={handleBadgeRequestedOnClick}
-              key={rerenderBadgesRequested}
+              rerenderBadges={rerenderBadgesRequested} // Pass rerenderBadgesRequested as a prop
             />
           )}
 
           {!isBadgesViewClosed && (
             <UserBadgesToGiveSection
-              theTitle="Contracts/Certificates"
+              theTitle="Contracts/Certificates to Give"
               userPub={userPub}
               twStyle="grid grid-cols-4 gap-x-1 gap-y-10 sm:grid-cols-4 sm:gap-x-3 md:grid-cols-6 md:gap-x-5 lg:grid-cols-7 xl:gap-x-5 xl:grid-cols-6 2xl:grid-cols-7 2xl:gap-x-5 3xl:grid-cols-9"
               twTitleStyle="text-xs sm:text-xs md:text-xs lg:text-xs xl:text-xs 2xl:text-xs 3xl:text-sm"
               twTextStyle="text-xs sm:text-xs md:text-xs lg:text-xs xl:text-xs 2xl:text-xs 3xl:text-sm"
               openBadge={openBadgeCreate}
               setOpenBadge={setOpenBadgeCreate}
-              key={rerenderBadgesToGive}
+              rerenderBadges={rerenderBadgesToGive} // Pass rerenderBadgesToGive as a prop
             />
           )}
           <UserNFTsSection

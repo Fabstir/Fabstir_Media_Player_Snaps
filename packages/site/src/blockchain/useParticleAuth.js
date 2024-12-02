@@ -21,6 +21,7 @@ import { process_env } from '../utils/process_env';
 import useContractUtils from './useContractUtils';
 import { useConfig } from '../../state/configContext';
 import { fetchConfig } from '../fetchConfig';
+import { chain } from 'lodash';
 
 /* eslint-disable node/no-process-env */
 
@@ -42,7 +43,7 @@ export default function useParticleAuth() {
   if (process.env.NEXT_PUBLIC_ENABLE_OTHER_WALLET === 'true')
     return { socialLogin: null };
 
-  const { provider: particleProvider } = useEthereum();
+  const { provider: particleProvider, switchChain } = useEthereum();
   const { connect, disconnect, connected } = useConnect();
   const {
     userInfo,
@@ -63,9 +64,12 @@ export default function useParticleAuth() {
    * @returns {Promise<void>|Promise<Object>} A Promise that resolves when the chain change process is complete. If the default AA payment network is 'Particle', it returns a Promise that resolves with the newly created Particle smart account.
    */
   const handleChainChanged = async (newChainIdHex) => {
-    const chainId = Number.parseInt(newChainIdHex, 16);
-    setConnectedChainId(chainId);
-    console.log('useParticleAuth: Connected chain: ', chainId);
+    const newChainId = Number.parseInt(newChainIdHex, 16);
+
+    if (connectedChainId === newChainId) return;
+
+    setConnectedChainId(newChainId);
+    console.log('useParticleAuth: Connected chain: ', newChainId);
     if (process.env.NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK === 'Particle') {
       return await createAndSetParticleSmartAccount();
     }
@@ -130,7 +134,7 @@ export default function useParticleAuth() {
       smartAccount,
       web3Provider: customProvider,
       userInfo,
-      directProvider: particleProvider,
+      directProvider: new Web3Provider(particleProvider),
       eoaAddress: smartAccount.provider.selectedAddress,
     };
 
@@ -165,11 +169,15 @@ export default function useParticleAuth() {
         console.log('useParticleAuth: chainInfo = ', chainInfo);
         console.log('useParticleAuth: chainInfo = ', chainInfo);
 
+        await switchChain(Number(process.env.NEXT_PUBLIC_DEFAULT_CHAIN_ID));
         return newUserInfo;
       } catch (error) {
         console.error(error.message);
       }
     }
+
+    await switchChain(Number(process.env.NEXT_PUBLIC_DEFAULT_CHAIN_ID));
+
     return userInfo;
   };
 

@@ -101,7 +101,7 @@ export default function useMintBadge() {
       const wrappedSigner = smartAccountProvider.getSigner();
 
       console.log('Addresses:', {
-        directProviderAddress: await directProvider.selectedAddress, // EOA address
+        directProviderAddress: await directProvider.getSigner().selectedAddress, // EOA address
         // wrappedSignerAddress: await wrappedSigner.getAddress(), // Should be smart account address
         smartAccountAddress: await smartAccount.getAddress(),
       });
@@ -118,7 +118,7 @@ export default function useMintBadge() {
         badge.uri,
       );
 
-      const signer = smartAccountProvider.getSigner();
+      const signer = directProvider.getSigner();
       const flatSig = await signer.signMessage(arrayify(hash));
       console.log('useMintBadge: getSignature flatSig = ', flatSig);
 

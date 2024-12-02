@@ -33,7 +33,7 @@ export default function UserBadgesRequestedSection({
   twTitleStyle,
   twTextStyle,
   handleBadgeOnClick,
-  rerender,
+  rerenderBadges,
 }) {
   const userAuthPub = useRecoilValue(userauthpubstate);
   const [openBadgeCreate, setOpenBadgeCreate] = useRecoilState(
@@ -48,11 +48,6 @@ export default function UserBadgesRequestedSection({
   const badgesRequestedCompleted = useBadgesRequestedCompleted();
 
   const [badgesFiltered, setBadgesFiltered] = useState();
-  const [rerenderState, setRerenderState] = useState(0);
-
-  useEffect(() => {
-    setRerenderState((prev) => prev + 1);
-  }, [rerender]);
 
   useEffect(() => {
     console.log(
@@ -98,7 +93,7 @@ export default function UserBadgesRequestedSection({
     badgesRequestedCompleted.isSuccess,
     userPub,
     userAuthPub,
-    rerenderState,
+    rerenderBadges,
   ]);
 
   return (

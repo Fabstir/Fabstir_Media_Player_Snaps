@@ -18,7 +18,11 @@ import { ToggleThemeContext } from '../src/Root';
 import { RecoilRoot } from 'recoil';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { UserInfo } from '@particle-network/auth-core';
-import { getSupportedChains, getBaseSepolia } from '../src/utils/chainUtils';
+import {
+  getSupportedChains,
+  getBaseSepolia,
+  getPolygonAmoy,
+} from '../src/utils/chainUtils';
 import { ConfigContext } from '../state/configContext';
 import { Config } from '../state/types';
 import { fetchConfig } from '../src/fetchConfig';
@@ -33,6 +37,7 @@ queryClient.clear();
 function MyApp({ Component, pageProps }: AppProps) {
   const [config, setConfig] = useState<Config | null>(null);
   const [baseSepolia, setBaseSepolia] = useState<any>(null);
+  const [polygonAmoy, setPolygonAmoy] = useState<any>(null);
 
   useEffect(() => {
     (async () => {
@@ -61,6 +66,11 @@ function MyApp({ Component, pageProps }: AppProps) {
     (async () => {
       const baseSepolia = await getBaseSepolia();
       setBaseSepolia(baseSepolia);
+    })();
+
+    (async () => {
+      const polygonAmoy = await getPolygonAmoy();
+      setPolygonAmoy(polygonAmoy);
     })();
   }, []);
 
@@ -153,9 +163,13 @@ function MyApp({ Component, pageProps }: AppProps) {
     </ThemeProvider>
   );
 
-  if (!config || !baseSepolia) return <div>Loading...</div>;
+  if (!config || !baseSepolia || !polygonAmoy) return <div>Loading...</div>;
 
-  const chains: [typeof baseSepolia, ...(typeof baseSepolia)[]] = [baseSepolia];
+  const chains: [
+    typeof baseSepolia,
+    typeof polygonAmoy,
+    ...(typeof baseSepolia | typeof polygonAmoy)[],
+  ] = [baseSepolia, polygonAmoy];
 
   return (
     <BlockchainContext.Provider

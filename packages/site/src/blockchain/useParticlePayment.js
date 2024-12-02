@@ -1,6 +1,7 @@
 import { useContext } from 'react';
 import useContractUtils from './useContractUtils';
 import BlockchainContext from '../../state/BlockchainContext';
+import { parseUnits } from '@ethersproject/units';
 
 /**
  * Function to handle Biconomy payment for a given user operation with sponsorship.
@@ -52,7 +53,46 @@ export default function useParticlePayment(smartAccount) {
     if (feeQuotesResult.tokenPaymaster) {
       const tokenPaymasterAddress =
         feeQuotesResult.tokenPaymaster.tokenPaymasterAddress;
-      const tokenFeeQuotes = feeQuotesResult.tokenPaymaster.feeQuotes;
+
+      let tokenFeeQuotes;
+
+      // Conditionally override token information for USDC if connected to Polygon Amoy
+      // to try and overcome Particle Wallet API bug
+      if (
+        connectedChainId ===
+        Number(process.env.NEXT_PUBLIC_POLYGON_AMOY_CHAIN_ID)
+      ) {
+        // Find the DAI fee quote
+        const daiFeeQuote = feeQuotesResult.tokenPaymaster.feeQuotes.find(
+          (quote) => quote.tokenInfo.symbol === 'DAI',
+        );
+
+        if (!daiFeeQuote) {
+          throw new Error('handleAAPayment: DAI fee quote not found');
+        }
+
+        // Override token information for USDC
+        tokenFeeQuotes = feeQuotesResult.tokenPaymaster.feeQuotes.map(
+          (quote) => {
+            if (quote.tokenInfo.symbol === 'USDC') {
+              const adjustedFee = parseUnits(quote.fee, 18 - 6)
+                .mul(120)
+                .div(100);
+              return {
+                ...quote,
+                tokenInfo: {
+                  ...quote.tokenInfo,
+                  decimals: 18,
+                },
+                fee: adjustedFee.toString(), // Adjust the fee calculation
+              };
+            }
+            return quote;
+          },
+        );
+      } else {
+        tokenFeeQuotes = feeQuotesResult.tokenPaymaster.feeQuotes;
+      }
 
       const tokenFeeQuote = tokenFeeQuotes.find(
         (quote) =>

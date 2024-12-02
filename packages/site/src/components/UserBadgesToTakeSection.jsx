@@ -26,6 +26,7 @@ export default function UserBadgesToTakeSection({
   twTitleStyle,
   twTextStyle,
   handleBadgeOnClick,
+  rerenderBadges,
 }) {
   const userAuthPub = useRecoilValue(userauthpubstate);
   const [badgesFiltered, setBadgesFiltered] = useState();
@@ -72,6 +73,7 @@ export default function UserBadgesToTakeSection({
     badgesToGive.isSuccess,
     userPub,
     userAuthPub,
+    rerenderBadges,
   ]);
 
   return (

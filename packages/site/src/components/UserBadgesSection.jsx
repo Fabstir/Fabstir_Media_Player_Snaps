@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
-
-import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
+import { useSetRecoilState } from 'recoil';
 import { badgetoburnslideoverstate } from '../atoms/badgeDetailsSlideOverFunctions';
-import { userauthpubstate } from '../atoms/userAuthAtom';
 import useBadges from '../hooks/useBadges';
 import UserBadgesView from './UserBadgesView';
 
@@ -19,17 +17,15 @@ export default function UserBadgesSection({
   twTitleStyle,
   twTextStyle,
   handleBadgeOnClick,
+  rerenderBadges,
 }) {
   console.log('UserBadgesSection: userPub = ', userPub);
-  const badges = useBadges(userPub);
-
   const setOpenBadgeToBurn = useSetRecoilState(badgetoburnslideoverstate);
-
-  if (badges) console.log('MainBadges: badges.data = ', badges.data);
+  const fetchedBadges = useBadges(userPub);
 
   return (
     <div>
-      {badges?.data?.length > 0 && (
+      {rerenderBadges >= 0 && fetchedBadges.data?.length > 0 && (
         <main className="flex-1 rounded-sm">
           <div className="mx-auto px-4 sm:px-6 lg:px-8">
             <h1 className="flex-1 text-2xl font-bold text-fabstir-dark-gray">
@@ -39,7 +35,7 @@ export default function UserBadgesSection({
             <section className="" aria-labelledby="gallery-heading">
               <ul>
                 <UserBadgesView
-                  badges={badges.data}
+                  badges={fetchedBadges.data}
                   userPub={userPub}
                   twStyle={twStyle}
                   twTitleStyle={twTitleStyle}
