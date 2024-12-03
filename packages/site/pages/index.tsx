@@ -1,5 +1,4 @@
 import React, { useContext, useState, useEffect, useRef } from 'react';
-const Gun = require('gun');
 const SEA = require('gun/sea');
 
 import { Button } from '../src/ui-components/button';
