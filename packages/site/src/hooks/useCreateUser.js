@@ -6,6 +6,7 @@ import useUserPubsExt from './useUserPubsExt';
 import { userpubstate } from '../atoms/userAtom';
 import { userauthpubstate } from '../atoms/userAuthAtom';
 import { useSetRecoilState } from 'recoil';
+import useBiconomyAuth from '../blockchain/useBiconomyAuth';
 
 /**
  * Custom hook for managing user creation, login, and sign out.
@@ -18,6 +19,8 @@ import { useSetRecoilState } from 'recoil';
  */
 export default function useCreateUser() {
   const { logout } = useParticleAuth();
+  const { logout: logoutBiconomy } = useBiconomyAuth();
+
   const { putUserPub } = useUserPubsExt();
   const setUserAuthPub = useSetRecoilState(userauthpubstate);
   const setUserPub = useSetRecoilState(userpubstate);
@@ -116,7 +119,10 @@ export default function useCreateUser() {
   const signOut = async () => {
     user.leave();
 
-    if (process.env.NEXT_PUBLIC_ENABLE_OTHER_WALLET !== 'true') await logout();
+    if (process.env.NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK === 'Particle')
+      await logout();
+    else if (process.env.NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK === 'Biconomy')
+      await logoutBiconomy();
 
     // Clear the session storage
     sessionStorage.clear();

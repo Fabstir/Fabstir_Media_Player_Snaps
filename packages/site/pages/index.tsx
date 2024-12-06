@@ -52,7 +52,6 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import { getConnectedChainId } from '../src/utils/chainUtils';
 import useMintNFT from '../src/blockchain/useMintNFT';
-import useContractUtils from '../src/blockchain/useContractUtils';
 import useCreateUser from '../src/hooks/useCreateUser';
 import useNativeAuth from '../src/hooks/useNativeAuth';
 import { currentnftmetadata } from '../src/atoms/nftSlideOverAtom';
@@ -73,6 +72,8 @@ import UserProfile from './profile';
 import { useMintNestableERC1155NFT } from '../src/blockchain/useMintNestableERC1155NFT';
 import useNFTSale from '../src/hooks/useNFTSale';
 import { useConfig } from '../state/configContext';
+import useBiconomyAuth from '../src/blockchain/useBiconomyAuth';
+import useContractUtils from '../src/blockchain/useContractUtils';
 
 type Addresses = {
   [key: string]: any; // Replace `any` with the actual type of the values
@@ -120,6 +121,8 @@ const Index = () => {
     setDirectProvider,
     connectedChainId,
     setConnectedChainId,
+    providers,
+    setProviders,
   } = blockchainContext;
 
   const { getIsERC721Address } = useMintNFT();
@@ -154,7 +157,8 @@ const Index = () => {
 
   const [transak, setTransak] = useState<any>(undefined);
 
-  const { socialLogin, logout } = useParticleAuth() as ParticleAuth;
+  const { socialLogin } = useParticleAuth() as ParticleAuth;
+  const { socialLogin: socialLoginBiconomy } = useBiconomyAuth() as any;
   const { createUser, signOut, isUserExists, login } =
     useCreateUser() as CreateUser;
 
@@ -170,7 +174,7 @@ const Index = () => {
     getCalcDecimalPlacesFromCurrencies,
     getCalcContractAddressesFromCurrencies,
     getCalcCurrenciesFromContractAddresses,
-    getProviderFromChainId,
+    getRpcProviders,
   } = useContractUtils();
 
   const setDecimalPlacesFromCurrencies = useSetRecoilState(
@@ -296,12 +300,20 @@ const Index = () => {
   }, [userAuthPub, smartAccountProvider]);
 
   useEffect(() => {
+    (async () => {
+      if (!providers || Object.keys(providers).length === 0) {
+        const rpcProviders = await getRpcProviders();
+        setProviders(rpcProviders);
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
     /**
      * Handles adding a new address to the list of addresses.
      * If the NFT is a video, it ingests and transcodes it.
      */
     const handleAddAddresses = async () => {
-      const { providers } = blockchainContext;
       const addresses = await loadAddresses();
 
       if (!providers || Object.keys(providers).length === 0 || !smartAccount) {
@@ -648,7 +660,7 @@ const Index = () => {
       let userAccountAddress = null;
       let eoaAddress = '';
 
-      if (process.env.NEXT_PUBLIC_ENABLE_OTHER_WALLET !== 'true') {
+      if (process.env.NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK === 'Particle') {
         const {
           smartAccount: biconomySmartAccount,
           web3Provider,
@@ -656,6 +668,41 @@ const Index = () => {
           userInfo,
           eoaAddress: eoaAddress1,
         } = await socialLogin();
+
+        eoaAddress = eoaAddress1;
+
+        if (!(biconomySmartAccount && web3Provider))
+          throw new Error('index: connect: login failed');
+
+        userAccountAddress = await getSmartAccountAddress(biconomySmartAccount);
+        console.log(
+          'index: connect: userAccountAddress = ',
+          userAccountAddress,
+        );
+        setSmartAccount(biconomySmartAccount);
+        setSmartAccountProvider(web3Provider);
+        setDirectProvider(directProvider);
+
+        const chainId = await getConnectedChainId(biconomySmartAccount);
+        setConnectedChainId(chainId);
+
+        setUserInfo(userInfo);
+        setLoading(false);
+
+        setErrorsAddAddresses('');
+        setErrorsRemoveAddresses('');
+        setErrorsImportKeys('');
+        setErrorsExportKeys('');
+      } else if (
+        process.env.NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK === 'Biconomy'
+      ) {
+        const {
+          smartAccount: biconomySmartAccount,
+          web3Provider,
+          directProvider,
+          userInfo,
+          eoaAddress: eoaAddress1,
+        } = await socialLoginBiconomy();
 
         eoaAddress = eoaAddress1;
 

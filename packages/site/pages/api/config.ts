@@ -7,20 +7,31 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
   // If `chainId` is provided, retrieve the specific Biconomy API key for that chain
   if (chainId) {
-    const apiKey = process.env[`BICONOMY_PAYMASTER_API_KEY_${chainId}`];
+    const biconomyPaymasterApiKey =
+      process.env[`BICONOMY_PAYMASTER_API_KEY_${chainId}`];
+    const rpcProvider = process.env[`RPC_PROVIDER_${chainId}`];
+    const biconomyBundlerUrl = process.env[`BICONOMY_BUNDLER_URL_${chainId}`];
 
     console.log(
       `API handler: Retrieved API key for chainId ${chainId}:`,
-      apiKey,
+      biconomyPaymasterApiKey,
+    );
+    console.log(
+      `API handler: Retrieved RPC provider for chainId ${chainId}:`,
+      rpcProvider,
     );
 
-    if (!apiKey) {
+    if (!biconomyPaymasterApiKey) {
       return res
         .status(403)
         .json({ error: 'API key not found for this chain ID' });
     }
 
-    return res.status(200).json({ apiKey });
+    return res.status(200).json({
+      biconomyPaymasterApiKey,
+      rpcProvider,
+      biconomyBundlerUrl,
+    });
   }
 
   // Otherwise, return the general Particle and Pinata configurations

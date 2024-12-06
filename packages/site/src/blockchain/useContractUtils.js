@@ -1,8 +1,11 @@
+import axios from 'axios';
 import { Contract } from '@ethersproject/contracts';
 import { useContext } from 'react';
 import BlockchainContext from '../../state/BlockchainContext';
 import { process_env } from '../utils/process_env';
 import { PolygonAmoy, BaseSepolia } from '@particle-network/chains';
+import { JsonRpcProvider } from '@ethersproject/providers';
+
 /**
  * Custom hook to provide utility functions for interacting with contracts.
  *
@@ -305,6 +308,32 @@ export default function useContractUtils() {
     return interfaceId.toHexString();
   }
 
+  const getRpcProviders = async () => {
+    try {
+      const response = await axios.get('/api/getRpcProviders');
+
+      const rpcProviderUrls = response.data;
+      console.log('getRpcProviders: rpcProviders:', rpcProviderUrls);
+
+      const rpcProviders = rpcProviderUrls.rpcProviders?.reduce(
+        (acc, { chainId, rpcProviderUrl }) => {
+          const rpcProvider = new JsonRpcProvider(rpcProviderUrl);
+          acc[chainId] = rpcProvider;
+          return acc;
+        },
+        {},
+      );
+
+      return rpcProviders;
+    } catch (error) {
+      console.error(
+        'getRpcProviders: Error fetching default rpc providers:',
+        error,
+      );
+      throw new Error('Failed to fetch rpc providers');
+    }
+  };
+
   return {
     getChainIdFromChainIdAddress,
     getChainIdAddressFromChainIdAndAddress,
@@ -328,5 +357,6 @@ export default function useContractUtils() {
     getDefaultCurrencySymbolFromChainId,
     abbreviateAddress,
     calculateInterfaceId,
+    getRpcProviders,
   };
 }

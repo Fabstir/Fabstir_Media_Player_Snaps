@@ -2167,6 +2167,29 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@biconomy/account@npm:^4.5.7":
+  version: 4.6.3
+  resolution: "@biconomy/account@npm:4.6.3"
+  dependencies:
+    merkletreejs: ^0.4.0
+  peerDependencies:
+    typescript: ^5.5.3
+    viem: ^2
+  checksum: ae15afa6738d3cafda127870a3a9123bb4ac086105bcc31ffa32acb1a17041956ddabc70d47b66f4e6822d72f4afb03665a93da4ccd986190344d4a485159825
+  languageName: node
+  linkType: hard
+
+"@biconomy/particle-auth@npm:^3.1.4":
+  version: 3.1.4
+  resolution: "@biconomy/particle-auth@npm:3.1.4"
+  dependencies:
+    "@particle-network/auth": ^1.2.1
+    "@particle-network/biconomy": ^1.0.0
+    "@particle-network/provider": ^1.2.0
+  checksum: 4e6b6118d4f8c3447ff2e0c6bb80a2e222fe66a8c8a76a6ee75d14600b22a058f755906d13eb89c15c68c1464691eb3c93351c5cfa328d61fd0482a76f71fb52
+  languageName: node
+  linkType: hard
+
 "@chakra-ui/anatomy@npm:2.3.5, @chakra-ui/anatomy@npm:^2.1.1":
   version: 2.3.5
   resolution: "@chakra-ui/anatomy@npm:2.3.5"
@@ -6111,7 +6134,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@particle-network/analytics@npm:^1.0.2":
+"@particle-network/analytics@npm:^1.0.1, @particle-network/analytics@npm:^1.0.2":
   version: 1.0.2
   resolution: "@particle-network/analytics@npm:1.0.2"
   dependencies:
@@ -6148,6 +6171,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@particle-network/auth@npm:^1.2.1":
+  version: 1.3.1
+  resolution: "@particle-network/auth@npm:1.3.1"
+  dependencies:
+    "@particle-network/analytics": ^1.0.1
+    "@particle-network/chains": "*"
+    "@particle-network/crypto": ^1.0.1
+    buffer: ^6.0.3
+    draggabilly: ^3.0.0
+  checksum: 3c136df9e5514ac31be2fd28a3c12f2b5dbad389ff710a3356c70bd824b2273097e1c0b306e5ea9dd092557da4af17373a47b337279a08a29cca0a6f857b86b1
+  languageName: node
+  linkType: hard
+
 "@particle-network/authkit@npm:^2.0.19":
   version: 2.0.19
   resolution: "@particle-network/authkit@npm:2.0.19"
@@ -6178,6 +6214,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@particle-network/biconomy@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@particle-network/biconomy@npm:1.0.0"
+  dependencies:
+    axios: ^1.3.6
+    uuid: ^8.3.2
+  checksum: 3f725733d786964eb131e7f9663640a818dfadde8e26b924e5603eecc291354658f98bbbcebdb5f61981d8231710051bfe33ee99a287524adb0aa704e26f374d
+  languageName: node
+  linkType: hard
+
 "@particle-network/chains@npm:*":
   version: 1.14.15
   resolution: "@particle-network/chains@npm:1.14.15"
@@ -6185,7 +6231,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@particle-network/provider@npm:^1.3.2":
+"@particle-network/crypto@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "@particle-network/crypto@npm:1.0.1"
+  dependencies:
+    crypto-js: ^4.1.1
+    uuidv4: ^6.2.13
+  checksum: 45d871848119923c20c7b7fff4eb995c6f654ab9146b50dd915b83db5fdce05c2179fb7f24d64f2083a3cde2f1926ba37bf217483806ef296f0914a64c9c78a9
+  languageName: node
+  linkType: hard
+
+"@particle-network/provider@npm:^1.2.0, @particle-network/provider@npm:^1.3.2":
   version: 1.3.2
   resolution: "@particle-network/provider@npm:1.3.2"
   dependencies:
@@ -11443,7 +11499,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bignumber.js@npm:^8 || ^9":
+"bignumber.js@npm:^8 || ^9, bignumber.js@npm:^9.0.1":
   version: 9.1.2
   resolution: "bignumber.js@npm:9.1.2"
   checksum: 582c03af77ec9cb0ebd682a373ee6c66475db94a4325f92299621d544aa4bd45cb45fd60001610e94aef8ae98a0905fa538241d9638d4422d57abbeeac6fadaf
@@ -11843,6 +11899,13 @@ __metadata:
   version: 1.1.2
   resolution: "buffer-from@npm:1.1.2"
   checksum: 0448524a562b37d4d7ed9efd91685a5b77a50672c556ea254ac9a6d30e3403a517d8981f10e565db24e8339413b43c97ca2951f10e399c6125a0d8911f5679bb
+  languageName: node
+  linkType: hard
+
+"buffer-reverse@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "buffer-reverse@npm:1.0.1"
+  checksum: e350872a89b17af0a7e1bd7a73239a535164f3f010b0800add44f2e52bd0511548dc5b96c20309effba969868c385023d2d02a0add6155f6a76da7b3073b77bd
   languageName: node
   linkType: hard
 
@@ -12933,7 +12996,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"crypto-js@npm:^4.1.1":
+"crypto-js@npm:^4.1.1, crypto-js@npm:^4.2.0":
   version: 4.2.0
   resolution: "crypto-js@npm:4.2.0"
   checksum: f051666dbc077c8324777f44fbd3aaea2986f198fe85092535130d17026c7c2ccf2d23ee5b29b36f7a4a07312db2fae23c9094b644cc35f7858b1b4fcaf27774
@@ -14615,6 +14678,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ethereum-bloom-filters@npm:^1.0.6":
+  version: 1.2.0
+  resolution: "ethereum-bloom-filters@npm:1.2.0"
+  dependencies:
+    "@noble/hashes": ^1.4.0
+  checksum: 3a4d11495a5845483b78eca6455a915835d691df09a8c5754785c6bdfb5d18382d7e65b066a1c092493c1d87850c6a77243136996a231baec82f22c727e15258
+  languageName: node
+  linkType: hard
+
 "ethereum-cryptography@npm:^0.1.3":
   version: 0.1.3
   resolution: "ethereum-cryptography@npm:0.1.3"
@@ -14678,7 +14750,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ethjs-unit@npm:^0.1.6":
+"ethjs-unit@npm:0.1.6, ethjs-unit@npm:^0.1.6":
   version: 0.1.6
   resolution: "ethjs-unit@npm:0.1.6"
   dependencies:
@@ -18466,6 +18538,19 @@ __metadata:
   version: 1.4.1
   resolution: "merge2@npm:1.4.1"
   checksum: 7268db63ed5169466540b6fb947aec313200bcf6d40c5ab722c22e242f651994619bcd85601602972d3c85bd2cc45a358a4c61937e9f11a061919a1da569b0c2
+  languageName: node
+  linkType: hard
+
+"merkletreejs@npm:^0.4.0":
+  version: 0.4.0
+  resolution: "merkletreejs@npm:0.4.0"
+  dependencies:
+    bignumber.js: ^9.0.1
+    buffer-reverse: ^1.0.1
+    crypto-js: ^4.2.0
+    treeify: ^1.1.0
+    web3-utils: ^1.3.4
+  checksum: f093c3a1a048fb49547deb8e70d6946d7e0813ddbe2d431aec8d50037d75d5df1b01aa9f96aec1d16c04aa7c8f6f474d94b07e75b3b528e6fe670144f6d65b68
   languageName: node
   linkType: hard
 
@@ -22502,6 +22587,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "site@workspace:packages/site"
   dependencies:
+    "@biconomy/account": ^4.5.7
+    "@biconomy/particle-auth": ^3.1.4
     "@ethersproject/abi": ^5.7.0
     "@ethersproject/bignumber": ^5.7.0
     "@ethersproject/bytes": ^5.7.0
@@ -23719,6 +23806,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"treeify@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "treeify@npm:1.1.0"
+  checksum: aa00dded220c1dd052573bd6fc2c52862f09870851a284f0d3650d72bf913ba9b4f6b824f4f1ab81899bae29375f4266b07fe47cbf82343a1efa13cc09ce87af
+  languageName: node
+  linkType: hard
+
 "trough@npm:^1.0.0":
   version: 1.0.5
   resolution: "trough@npm:1.0.5"
@@ -24430,6 +24524,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"utf8@npm:3.0.0":
+  version: 3.0.0
+  resolution: "utf8@npm:3.0.0"
+  checksum: cb89a69ad9ab393e3eae9b25305b3ff08bebca9adc839191a34f90777eb2942f86a96369d2839925fea58f8f722f7e27031d697f10f5f39690f8c5047303e62d
+  languageName: node
+  linkType: hard
+
 "util-deprecate@npm:^1.0.1, util-deprecate@npm:^1.0.2, util-deprecate@npm:~1.0.1":
   version: 1.0.2
   resolution: "util-deprecate@npm:1.0.2"
@@ -24677,6 +24778,22 @@ __metadata:
   version: 3.3.3
   resolution: "web-streams-polyfill@npm:3.3.3"
   checksum: 21ab5ea08a730a2ef8023736afe16713b4f2023ec1c7085c16c8e293ee17ed085dff63a0ad8722da30c99c4ccbd4ccd1b2e79c861829f7ef2963d7de7004c2cb
+  languageName: node
+  linkType: hard
+
+"web3-utils@npm:^1.3.4":
+  version: 1.10.4
+  resolution: "web3-utils@npm:1.10.4"
+  dependencies:
+    "@ethereumjs/util": ^8.1.0
+    bn.js: ^5.2.1
+    ethereum-bloom-filters: ^1.0.6
+    ethereum-cryptography: ^2.1.2
+    ethjs-unit: 0.1.6
+    number-to-bn: 1.7.0
+    randombytes: ^2.1.0
+    utf8: 3.0.0
+  checksum: a1535817a4653f1b5cc868aa19305158122379078a41e13642e1ba64803f6f8e5dd2fb8c45c033612b8f52dde42d8008afce85296c0608276fe1513dece66a49
   languageName: node
   linkType: hard
 

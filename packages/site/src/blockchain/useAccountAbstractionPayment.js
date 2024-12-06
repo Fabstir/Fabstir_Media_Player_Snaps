@@ -1,6 +1,7 @@
 // Importing the required types from ethers.js
 import useParticlePayment from './useParticlePayment';
 import useNativePayment from './useNativePayment';
+import useBiconomyPayment from './useBiconomyPayment';
 
 // eslint-disable-next-line jsdoc/check-param-names
 /**
@@ -20,7 +21,7 @@ import useNativePayment from './useNativePayment';
  */
 export default function useAccountAbstractionPayment(smartAccount) {
   const particle = useParticlePayment(smartAccount);
-
+  const biconomy = useBiconomyPayment(smartAccount);
   const native = useNativePayment(smartAccount);
 
   if (!smartAccount) {
@@ -39,6 +40,15 @@ export default function useAccountAbstractionPayment(smartAccount) {
       createTransaction: particle.createTransaction,
       processTransactionBundle: particle.processTransactionBundle,
     };
+  } else if (
+    process.env.NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK === 'Biconomy'
+  ) {
+    return {
+      handleAAPayment: biconomy.handleAAPayment,
+      handleAAPaymentSponsor: biconomy.handleAAPaymentSponsor,
+      createTransaction: biconomy.createTransaction,
+      processTransactionBundle: biconomy.processTransactionBundle,
+    };
   } else if (process.env.NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK === 'Native') {
     return {
       handleAAPayment: native.handleAAPayment,
@@ -55,6 +65,8 @@ export default function useAccountAbstractionPayment(smartAccount) {
 export const getSmartAccountAddress = (smartAccount) => {
   if (process.env.NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK === 'Particle')
     return smartAccount.getAddress(smartAccount);
+  else if (process.env.NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK === 'Biconomy')
+    return smartAccount.getAccountAddress(smartAccount);
   else if (process.env.NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK === 'Native')
     return smartAccount.getAddress(smartAccount);
   else

@@ -88,26 +88,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       });
   }, []);
 
-  function getRpcProviders() {
-    const rpcProviders: { [key: string]: JsonRpcProvider } = {};
-
-    for (const [key, value] of Object.entries(process_env)) {
-      if (key.startsWith('NEXT_PUBLIC_RPC_PROVIDER_')) {
-        const chainId = Number(key.split('_').pop());
-
-        if (chainId !== undefined && !isNaN(chainId) && value !== undefined) {
-          rpcProviders[chainId] = new JsonRpcProvider(value);
-        }
-      }
-    }
-
-    return rpcProviders;
-  }
-
   useEffect(() => {
-    const rpcProviders = getRpcProviders();
-    setProviders(rpcProviders);
-
     if (window.ethereum) {
       const handleChainChanged = async (newChainIdHex: string) => {
         const newChainId = Number.parseInt(newChainIdHex, 16);
@@ -190,12 +171,12 @@ function MyApp({ Component, pageProps }: AppProps) {
     >
       <RecoilRoot>
         <ConfigContext.Provider value={config}>
-          {isParticleEnabled ? (
+          {isParticleEnabled && config && false ? (
             <DynamicAuthCoreContextProvider
               options={{
-                projectId: config.projectId || '',
-                clientKey: config.clientKey || '',
-                appId: config.appId || '',
+                projectId: config?.projectId || '',
+                clientKey: config?.clientKey || '',
+                appId: config?.appId || '',
                 chains,
                 authTypes: [AuthType.email, AuthType.google, AuthType.apple],
                 themeType: 'dark',
