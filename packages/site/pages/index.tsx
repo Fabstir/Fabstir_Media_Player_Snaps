@@ -157,8 +157,9 @@ const Index = () => {
 
   const [transak, setTransak] = useState<any>(undefined);
 
-  const { socialLogin } = useParticleAuth() as ParticleAuth;
-  const { socialLogin: socialLoginBiconomy } = useBiconomyAuth() as any;
+  const { socialLogin: socialLoginParticle } =
+    useParticleAuth() as ParticleAuth;
+  const { socialLogin } = useBiconomyAuth() as any;
   const { createUser, signOut, isUserExists, login } =
     useCreateUser() as CreateUser;
 
@@ -660,7 +661,7 @@ const Index = () => {
       let userAccountAddress = null;
       let eoaAddress = '';
 
-      if (process.env.NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK === 'Particle') {
+      if (process.env.NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK === 'Biconomy') {
         const {
           smartAccount: biconomySmartAccount,
           web3Provider,
@@ -694,7 +695,7 @@ const Index = () => {
         setErrorsImportKeys('');
         setErrorsExportKeys('');
       } else if (
-        process.env.NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK === 'Biconomy'
+        process.env.NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK === 'Particle'
       ) {
         const {
           smartAccount: biconomySmartAccount,
@@ -702,7 +703,7 @@ const Index = () => {
           directProvider,
           userInfo,
           eoaAddress: eoaAddress1,
-        } = await socialLoginBiconomy();
+        } = await socialLoginParticle();
 
         eoaAddress = eoaAddress1;
 
