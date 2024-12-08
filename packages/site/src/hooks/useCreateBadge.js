@@ -22,45 +22,29 @@ export default function useCreateBadge() {
       console.log('useCreateBadge: badge.address = ', badge.address);
     },
     {
-      onMutate: (newBadge) => {
-        console.log('useCreateBadge: onMutate newBadge = ', newBadge);
+      onMutate: async (newBadge) => {
+        await queryClient.cancelQueries([userAuthPub, 'badges']);
 
-        queryClient.cancelQueries([userAuthPub, 'badges']);
+        const previousBadges = queryClient.getQueryData([
+          userAuthPub,
+          'badges',
+        ]);
 
-        let oldBadges = queryClient.getQueryData([userAuthPub, 'badges']);
-        console.log('useCreateBadge oldBadges = ', oldBadges);
-
-        queryClient.setQueryData([userAuthPub, 'badges'], (old) => {
-          return old
-            ? [
-                ...old,
-                {
-                  ...newBadge,
-                  isPreview: true,
-                },
-              ]
-            : [
-                {
-                  ...newBadge,
-                  isPreview: true,
-                },
-              ];
+        queryClient.setQueryData([userAuthPub, 'badges'], (oldData) => {
+          return [...(oldData || []), newBadge];
         });
 
-        const newBadges = queryClient.getQueryData([userAuthPub, 'badges']);
-        console.log('useCreateBadge: newBadges = ', newBadges);
-
-        return () =>
-          queryClient.setQueryData([userAuthPub, 'badges'], oldBadges);
+        return { previousBadges };
       },
-      onError: (error, newBadge, rollback) => {
-        console.log('useCreateBadge: error = ', error);
-        rollback();
+      onError: (error, newBadge, context) => {
+        queryClient.setQueryData(
+          [userAuthPub, 'badges'],
+          context.previousBadges,
+        );
+        console.error('useCreateBadgeToGive: error = ', error);
       },
-      onSuccess: (data, newBadge) => {
+      onSettled: () => {
         queryClient.invalidateQueries([userAuthPub, 'badges']);
-        queryClient.getQueryData([userAuthPub, 'badges']);
-        console.log('useCreateBadge: invalidateQueries');
       },
     },
   );

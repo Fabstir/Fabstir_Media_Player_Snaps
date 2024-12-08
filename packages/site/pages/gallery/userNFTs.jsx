@@ -66,6 +66,7 @@ import TransferNFT from '../../src/components/TransferNFT';
 import { transfernftslideoverstate } from '../../src/atoms/transferNFTOverAtom';
 import BadgeGiveToUserOrNFT from '../../src/components/BadgeGiveToUserOrNFT';
 import { rerenderbadgestogivestate } from '../../src/atoms/badgeSlideOverAtom';
+import useRejectBadge from '../../src/hooks/useRejectBadge';
 
 /**
  * Tailwind CSS style for title text.
@@ -197,6 +198,8 @@ export default function UserNFTs() {
   const { mutate: createBadge, ...createBadgeInfo } = useCreateBadge();
   const { mutate: deleteBadge, ...deleteBadgeInfo } =
     useDeleteBadge(userAuthPub);
+  const { mutate: rejectBadge, ...rejectBadgeInfo } =
+    useRejectBadge(userAuthPub);
 
   const { mutate: createBadgeToTake, ...createBadgeToTakeInfo } =
     useCreateBadgeToTake();
@@ -429,6 +432,7 @@ export default function UserNFTs() {
   }, [createBadgeToTakeInfo.isError]);
 
   const [handleTakeBadgeText, setHandleTakeBadgeText] = useState('Take');
+  const [handleRejectBadgeText, setHandleRejectBadgeText] = useState('Reject');
 
   const handleTakeBadge = async (badge, nft) => {
     const minter = await minterOf(badge);
@@ -485,6 +489,43 @@ export default function UserNFTs() {
       }
     }
   };
+
+  const handleRejectBadge = useCallback(
+    async (badge) => {
+      const minter = await minterOf(badge);
+      const userAuthProfile = await getUserProfile(userAuthPub);
+
+      if (
+        userAuthProfile.accountAddress.toLowerCase() !== minter.toLowerCase()
+      ) {
+        setHandleRejectBadgeText('Rejecting...');
+
+        try {
+          await rejectBadge(badge); // ensure that badge can no longer be taken
+          //      deleteBadge(badge)
+          setHandleRejectBadgeText('Rejected!');
+        } catch (err) {
+          alert(err.message);
+          setHandleRejectBadgeText('Reject');
+        }
+      }
+
+      setTimeout(() => {
+        setOpenBadgeToTake(false);
+      }, process.env.NEXT_PUBLIC_SLIDEOVER_CLOSE_DELAY);
+    },
+    [
+      createBadge,
+      //      getNextTokenId,
+      getUserProfile,
+      minterOf,
+      rejectBadge,
+      setOpenBadgeToTake,
+      takeBadge,
+      userAuthPub,
+      userPub,
+    ],
+  );
 
   useEffect(() => {
     if (createBadgeInfo.isError) setHandleTakeBadgeText('Error!');
@@ -670,7 +711,7 @@ export default function UserNFTs() {
   return (
     <>
       <div className="grid grid-cols-2 p-4 bg-background dark:bg-dark-background text-copy dark:text-dark-copy">
-        <div className="flex flex-1 flex-col items-stretch overflow-hidden overflow-y-auto rounded-sm">
+        <div className="flex flex-1 flex-col items-stretch overflow-hidden overflow-y-auto rounded-sm space-y-6">
           {!isBadgesViewClosed && (
             <UserBadgesSection
               theTitle="My Contracts/Certificates"
@@ -802,6 +843,8 @@ export default function UserNFTs() {
           setOpen={setOpenBadgeToTake}
           badgeDetailsFunction1={handleTakeBadge}
           badgeDetailsFunction1Name={handleTakeBadgeText}
+          badgeDetailsFunction2={handleRejectBadge}
+          badgeDetailsFunction2Name={handleRejectBadgeText}
           setRerender1={setRerenderBadges}
           setRerender2={setRerenderBadgesToTake}
           width1="max-w-lg"

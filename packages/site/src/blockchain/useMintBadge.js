@@ -341,13 +341,15 @@ export default function useMintBadge() {
       ABTToken.abi,
       smartAccountProvider,
     );
-    await processTransactionBundle([
+
+    const { receipt } = await processTransactionBundle([
       [
-        [await abtToken.populateTransaction.unequip(badge.tokenId)],
-        abtToken.address,
+        await abtToken.populateTransaction.unequip(badge.tokenId),
+        badge.address,
       ],
     ]);
 
+    console.log('useMintBadge: unequip receipt = ', receipt);
     console.log('useMintBadge: unequip badge.tokenId = ', badge.tokenId);
   };
 

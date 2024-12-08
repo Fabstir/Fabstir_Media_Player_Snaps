@@ -74,31 +74,31 @@ export default function useMintNFT() {
     uploadFile: (file: File) => Promise<string>;
   };
 
-  if (
-    !providers ||
-    Object.keys(providers).length === 0 ||
-    !smartAccountProvider ||
-    !smartAccount
-  ) {
-    console.log(
-      'useMintNFT: smartAccountProvider or smartAccount is null or no providers',
-    );
-    return {
-      mintNFT: async () => {
-        throw new Error('Cannot mint NFT: smartAccount is not defined');
-      },
-      getIsERC721: async () => {
-        throw new Error(
-          'Cannot check if NFT is ERC721: smartAccount is not defined',
-        );
-      },
-      getIsERC721Address: async () => {
-        throw new Error(
-          'Cannot check if NFT address is ERC721: smartAccount is not defined',
-        );
-      },
-    };
-  }
+  // if (
+  //   !providers ||
+  //   Object.keys(providers).length === 0 ||
+  //   !smartAccountProvider ||
+  //   !smartAccount
+  // ) {
+  //   console.log(
+  //     'useMintNFT: smartAccountProvider or smartAccount is null or no providers',
+  //   );
+  //   return {
+  //     mintNFT: async () => {
+  //       throw new Error('Cannot mint NFT: smartAccount is not defined');
+  //     },
+  //     getIsERC721: async () => {
+  //       throw new Error(
+  //         'Cannot check if NFT is ERC721: smartAccount is not defined',
+  //       );
+  //     },
+  //     getIsERC721Address: async () => {
+  //       throw new Error(
+  //         'Cannot check if NFT address is ERC721: smartAccount is not defined',
+  //       );
+  //     },
+  //   };
+  // }
 
   type ExtendedBlobPropertyBag = BlobPropertyBag & {
     lastModified?: number;

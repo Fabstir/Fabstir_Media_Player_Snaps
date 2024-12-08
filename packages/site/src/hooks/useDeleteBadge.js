@@ -26,7 +26,8 @@ export default function useDeleteBadge(userAuthPub) {
       },
       onSuccess: (data, badge) => {
         // delete Badge cache
-        const previousBadges = queryClient.getQueryData([userPub, 'badges']);
+        const previousBadges =
+          queryClient.getQueryData([userPub, 'badges']) || [];
 
         const optimisticBadges = previousBadges.filter(
           (d) => d && d.address !== badge.address,

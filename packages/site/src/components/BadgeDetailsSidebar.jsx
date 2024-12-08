@@ -193,7 +193,7 @@ export default function BadgeDetailsSidebar({
         setUserAuthPubAddress(currentUserAuthProfile.accountAddress);
       }
     })();
-  }, []);
+  }, [userAuthPub, badge]);
 
   async function handleSubmit_Badge(data) {
     let newBadge;
@@ -401,11 +401,13 @@ export default function BadgeDetailsSidebar({
                     {badgeDetailsFunction1 &&
                       function1Name &&
                       (!badgeDetailsFilterAccountAddresses ||
-                        (badgeDetailsFilterAccountAddresses &&
-                          (userAuthPubAddress === owner ||
-                            minter === AddressZero ||
+                        (userAuthPubAddress &&
+                          badgeDetailsFilterAccountAddresses &&
+                          (userAuthPubAddress.toLowerCase() ===
+                            owner?.toLowerCase() ||
+                            minter?.toLowerCase() === AddressZero ||
                             userAuthPubAddress.toLowerCase() ===
-                              minter.toLowerCase()))) && (
+                              minter?.toLowerCase()))) && (
                         <Button
                           type="submit"
                           variant="primary"
@@ -421,11 +423,13 @@ export default function BadgeDetailsSidebar({
                     {badgeDetailsFunction1 &&
                       function1Name &&
                       (!badgeDetailsFilterAccountAddresses ||
-                        (badgeDetailsFilterAccountAddresses &&
-                          (userAuthPubAddress === owner ||
-                            minter === AddressZero ||
+                        (userAuthPubAddress &&
+                          badgeDetailsFilterAccountAddresses &&
+                          (userAuthPubAddress.toLowerCase() ===
+                            owner?.toLowerCase() ||
+                            minter?.toLowerCase() === AddressZero ||
                             userAuthPubAddress.toLowerCase() ===
-                              minter.toLowerCase()))) && (
+                              minter?.toLowerCase()))) && (
                         <Button
                           variant="primary"
                           size="medium"

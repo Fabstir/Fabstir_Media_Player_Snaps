@@ -3,6 +3,19 @@ import { useRecoilValue } from 'recoil';
 import { userauthpubstate } from '../atoms/userAuthAtom';
 import useMintBadge from '../blockchain/useMintBadge';
 import { dbClient, dbClientOnce, dbClientLoad } from '../GlobalOrbit';
+import { user } from '../user';
+
+const isBadgeRejected = async (badge) => {
+  const result = await dbClientOnce(
+    user.get('badges rejected').get(badge.signature),
+    process.env.NEXT_PUBLIC_GUN_WAIT_TIME,
+  );
+
+  const isResultRejected = !!result;
+  console.log('useBadgesToTake: isBadgeRejected = ', isResultRejected);
+
+  return isResultRejected;
+};
 
 const fetchBadges = async (userAuthPub, userPub, isUsed, gettokenURI) => {
   console.log('useBadgesToTake: fetchBadges initiated');
@@ -33,6 +46,8 @@ const fetchBadges = async (userAuthPub, userPub, isUsed, gettokenURI) => {
         } catch (err) {}
 
         if (used) continue;
+
+        if (await isBadgeRejected(result)) continue;
 
         console.log('useBadgesToTake: result = ', result);
 

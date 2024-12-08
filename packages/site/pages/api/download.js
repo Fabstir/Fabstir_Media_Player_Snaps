@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing CID parameter' });
   }
 
-  const url = `${process.env.NEXT_PUBLIC_IPFS_GATEWAY}/ipfs/${cid}`;
+  const url = `${process.env.IPFS_GATEWAY}/ipfs/${cid}`;
 
   try {
     const externalResponse = await fetch(url);

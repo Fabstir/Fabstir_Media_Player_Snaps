@@ -22,49 +22,29 @@ export default function useCreateBadgeToGive() {
       console.log('useCreateBadge: badge.address = ', badge.address);
     },
     {
-      onMutate: (newBadge) => {
-        console.log('useCreateBadge onMutate newBadge = ', newBadge);
+      onMutate: async (newBadge) => {
+        await queryClient.cancelQueries([userPub, 'badges to give']);
 
-        queryClient.cancelQueries([userPub, 'badges to give']);
+        const previousBadges = queryClient.getQueryData([
+          userPub,
+          'badges to give',
+        ]);
 
-        let oldBadges = queryClient.getQueryData([userPub, 'badges to give']);
-        console.log('useCreateBadge oldBadges = ', oldBadges);
-
-        queryClient.setQueryData([userPub, 'badges to give'], (old) => {
-          return old
-            ? [
-                ...old,
-                {
-                  ...newBadge,
-                  isPreview: true,
-                },
-              ]
-            : [
-                {
-                  ...newBadge,
-                  isPreview: true,
-                },
-              ];
+        queryClient.setQueryData([userPub, 'badges to give'], (oldData) => {
+          return [...(oldData || []), newBadge];
         });
 
-        const newBadges = queryClient.getQueryData([userPub, 'badges to give']);
-        console.log('useCreateBadge newBadges = ', newBadges);
-
-        const iter1 = () =>
-          queryClient.setQueryData([userPub, 'badges to give'], oldBadges);
-        console.log('useCreateBadge: iter1 = ', iter1);
-
-        return () =>
-          queryClient.setQueryData([userPub, 'badges to give'], oldBadges);
+        return { previousBadges };
       },
-      onError: (error, newBadge, rollback) => {
-        console.log('useCreateBadge: error = ', error);
-        rollback();
+      onError: (error, newBadge, context) => {
+        queryClient.setQueryData(
+          [userPub, 'badges to give'],
+          context.previousBadges,
+        );
+        console.error('useCreateBadgeToGive: error = ', error);
       },
-      onSuccess: (data, newBadge) => {
+      onSettled: () => {
         queryClient.invalidateQueries([userPub, 'badges to give']);
-
-        queryClient.getQueryData([userPub, 'badges to give']);
       },
     },
   );
