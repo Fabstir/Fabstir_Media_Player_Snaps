@@ -35,39 +35,13 @@ export default function useBiconomyAuth() {
   const particle = useRef(null);
 
   console.log(
-    'useParticleAuth: process.env.NEXT_PUBLIC_ENABLE_OTHER_WALLET = ',
+    'useBiconomyAuth: process.env.NEXT_PUBLIC_ENABLE_OTHER_WALLET = ',
     process.env.NEXT_PUBLIC_ENABLE_OTHER_WALLET,
   );
   if (process.env.NEXT_PUBLIC_ENABLE_OTHER_WALLET === 'true')
     return { socialLogin: null };
 
   const { getChainInfoFromChainId } = useContractUtils();
-
-  // /**
-  //  * Handles the event when the blockchain network chain has changed.
-  //  *
-  //  * @async
-  //  * @function
-  //  * @param {string} newChainIdHex - The new chain ID in hexadecimal format.
-  //  * @returns {Promise<void>|Promise<Object>} A Promise that resolves when the chain change process is complete. If the default AA payment network is 'Particle', it returns a Promise that resolves with the newly created Particle smart account.
-  //  */
-  // const handleChainChanged = async (newChainIdHex) => {
-  //   const newChainId = Number.parseInt(newChainIdHex, 16);
-
-  //   if (connectedChainId === newChainId) return;
-
-  //   setConnectedChainId(newChainId);
-  //   console.log('useParticleAuth: Connected chain: ', newChainId);
-
-  //   const supportedChains = getSupportedChains();
-
-  //   const chainId = supportedChains[0].id;
-  //   const config = await fetchConfig(chainId);
-
-  //   return await createAndSetBiconomySmartAccount(config, userInfo);
-  // };
-
-  // particleProvider.on('chainChanged', handleChainChanged);
 
   /**
    * Creates and sets up a Biconomy smart account.
@@ -80,26 +54,34 @@ export default function useBiconomyAuth() {
    * @throws {Error} If there is an error creating or setting up the smart account.
    */
   const createAndSetBiconomySmartAccount = async (config, userInfo) => {
+    console.log('useBiconomyAuth: createAndSetBiconomySmartAccount: 1');
     const supportedChains = getSupportedChains();
+    console.log('useBiconomyAuth: createAndSetBiconomySmartAccount: 2');
     if (!supportedChains || supportedChains.length === 0)
-      throw new Error('useParticleAuth: supportedChains is empty');
+      throw new Error('useBiconomyAuth: supportedChains is empty');
 
+    console.log('useBiconomyAuth: createAndSetBiconomySmartAccount: 4');
     if (
       supportedChains[0].id !== Number(process.env.NEXT_PUBLIC_DEFAULT_CHAIN_ID)
     )
       throw new Error(
-        'useParticleAuth: supportedChains[0].id must be default chain',
+        'useBiconomyAuth: supportedChains[0].id must be default chain',
       );
+    console.log('useBiconomyAuth: createAndSetBiconomySmartAccount: 4');
 
     const chainId =
       connectedChainId || Number(process.env.NEXT_PUBLIC_DEFAULT_CHAIN_ID);
+    console.log('useBiconomyAuth: createAndSetBiconomySmartAccount: 5');
 
     const particleProvider = new ParticleProvider(particle.current.auth);
+    console.log('useBiconomyAuth: createAndSetBiconomySmartAccount: 6');
 
     console.log({ particleProvider });
     const web3Provider = new Web3Provider(particleProvider, 'any');
+    console.log('useBiconomyAuth: createAndSetBiconomySmartAccount: 7');
 
     const signer = web3Provider.getSigner();
+    console.log('useBiconomyAuth: createAndSetBiconomySmartAccount: 8');
     const smartAccount = await createSmartAccountClient({
       signer,
       bundler: await createBundler({
@@ -110,6 +92,7 @@ export default function useBiconomyAuth() {
       rpcUrl: config.rpcProvider,
       chainId,
     });
+    console.log('useBiconomyAuth: createAndSetBiconomySmartAccount: 9');
     console.log(
       'createAndSetBiconomySmartAccount: smartAccount = ',
       smartAccount,
@@ -117,9 +100,11 @@ export default function useBiconomyAuth() {
 
     const smartContractAddress = await smartAccount.getAccountAddress();
     console.log('address: ', smartContractAddress);
+    console.log('useBiconomyAuth: createAndSetBiconomySmartAccount: 10');
 
     const eoaAddress = await particle.current.auth.getEVMAddress();
-    console.log('useParticleAuth: eoaAddress = ', eoaAddress);
+    console.log('useBiconomyAuth: createAndSetBiconomySmartAccount: 11');
+    console.log('useBiconomyAuth: eoaAddress = ', eoaAddress);
 
     return {
       smartAccount,
@@ -241,13 +226,18 @@ export default function useBiconomyAuth() {
    * @throws {Error} If the login process fails.
    */
   const socialLogin = async (isFresh = false) => {
+    console.log('useBiconomyAuth: socialLogin: 1');
     const supportedChains = getSupportedChains();
+    console.log('useBiconomyAuth: socialLogin: 2');
 
     const chainId = supportedChains[0].id;
+    console.log('useBiconomyAuth: socialLogin: 3');
     const config = await fetchConfig(chainId);
+    console.log('useBiconomyAuth: socialLogin: 4');
     console.log('socialLogin: Fetched config:', config);
 
     const userInfo = await login(isFresh);
+    console.log('useBiconomyAuth: socialLogin: 5');
 
     if (!userInfo) {
       return {
@@ -257,6 +247,7 @@ export default function useBiconomyAuth() {
         eoaAddress: null,
       };
     }
+    console.log('useBiconomyAuth: socialLogin: 6');
 
     return await createAndSetBiconomySmartAccount(config, userInfo);
   };
@@ -281,7 +272,7 @@ export default function useBiconomyAuth() {
       return transak;
     } catch (error) {
       throw new Error(
-        'useParticleAuth: handleFundYourSmartAccount: error received ',
+        'useBiconomyAuth: handleFundYourSmartAccount: error received ',
         error,
       );
     }
