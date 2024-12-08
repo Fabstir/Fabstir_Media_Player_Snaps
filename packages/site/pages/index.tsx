@@ -661,7 +661,8 @@ const Index = () => {
       let userAccountAddress = null;
       let eoaAddress = '';
 
-      if (process.env.NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK === 'Biconomy') {
+      if (process.env.NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK !== 'Native') {
+        console.log('index: Biconomy social login');
         const {
           smartAccount: biconomySmartAccount,
           web3Provider,
@@ -694,42 +695,44 @@ const Index = () => {
         setErrorsRemoveAddresses('');
         setErrorsImportKeys('');
         setErrorsExportKeys('');
-      } else if (
-        process.env.NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK === 'Particle'
-      ) {
-        const {
-          smartAccount: biconomySmartAccount,
-          web3Provider,
-          directProvider,
-          userInfo,
-          eoaAddress: eoaAddress1,
-        } = await socialLoginParticle();
+      }
+      //  else if (
+      //   process.env.NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK === 'Particle'
+      // ) {
+      //   const {
+      //     smartAccount: biconomySmartAccount,
+      //     web3Provider,
+      //     directProvider,
+      //     userInfo,
+      //     eoaAddress: eoaAddress1,
+      //   } = await socialLoginParticle();
 
-        eoaAddress = eoaAddress1;
+      //   eoaAddress = eoaAddress1;
 
-        if (!(biconomySmartAccount && web3Provider))
-          throw new Error('index: connect: login failed');
+      //   if (!(biconomySmartAccount && web3Provider))
+      //     throw new Error('index: connect: login failed');
 
-        userAccountAddress = await getSmartAccountAddress(biconomySmartAccount);
-        console.log(
-          'index: connect: userAccountAddress = ',
-          userAccountAddress,
-        );
-        setSmartAccount(biconomySmartAccount);
-        setSmartAccountProvider(web3Provider);
-        setDirectProvider(directProvider);
+      //   userAccountAddress = await getSmartAccountAddress(biconomySmartAccount);
+      //   console.log(
+      //     'index: connect: userAccountAddress = ',
+      //     userAccountAddress,
+      //   );
+      //   setSmartAccount(biconomySmartAccount);
+      //   setSmartAccountProvider(web3Provider);
+      //   setDirectProvider(directProvider);
 
-        const chainId = await getConnectedChainId(biconomySmartAccount);
-        setConnectedChainId(chainId);
+      //   const chainId = await getConnectedChainId(biconomySmartAccount);
+      //   setConnectedChainId(chainId);
 
-        setUserInfo(userInfo);
-        setLoading(false);
+      //   setUserInfo(userInfo);
+      //   setLoading(false);
 
-        setErrorsAddAddresses('');
-        setErrorsRemoveAddresses('');
-        setErrorsImportKeys('');
-        setErrorsExportKeys('');
-      } else if (!(smartAccount && smartAccountProvider)) {
+      //   setErrorsAddAddresses('');
+      //   setErrorsRemoveAddresses('');
+      //   setErrorsImportKeys('');
+      //   setErrorsExportKeys('');
+      // }
+      else if (!(smartAccount && smartAccountProvider)) {
         userAccountAddress = await loginNative();
         eoaAddress = userAccountAddress;
         setSmartAccountAddress(userAccountAddress);
