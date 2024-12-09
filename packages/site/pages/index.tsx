@@ -157,9 +157,8 @@ const Index = () => {
 
   const [transak, setTransak] = useState<any>(undefined);
 
-  const { socialLogin: socialLoginParticle } =
-    useParticleAuth() as ParticleAuth;
-  const { socialLogin } = useBiconomyAuth() as any;
+  const { socialLogin } = useParticleAuth() as ParticleAuth;
+  const { socialLogin: socialLoginBiconomy } = useBiconomyAuth() as any;
   const { createUser, signOut, isUserExists, login } =
     useCreateUser() as CreateUser;
 
@@ -661,8 +660,7 @@ const Index = () => {
       let userAccountAddress = null;
       let eoaAddress = '';
 
-      if (process.env.NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK !== 'Native') {
-        console.log('index: Biconomy social login');
+      if (process.env.NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK === 'Particle') {
         const {
           smartAccount: biconomySmartAccount,
           web3Provider,
@@ -695,44 +693,42 @@ const Index = () => {
         setErrorsRemoveAddresses('');
         setErrorsImportKeys('');
         setErrorsExportKeys('');
-      }
-      //  else if (
-      //   process.env.NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK === 'Particle'
-      // ) {
-      //   const {
-      //     smartAccount: biconomySmartAccount,
-      //     web3Provider,
-      //     directProvider,
-      //     userInfo,
-      //     eoaAddress: eoaAddress1,
-      //   } = await socialLoginParticle();
+      } else if (
+        process.env.NEXT_PUBLIC_DEFAULT_AA_PAYMENT_NETWORK === 'Biconomy'
+      ) {
+        const {
+          smartAccount: biconomySmartAccount,
+          web3Provider,
+          directProvider,
+          userInfo,
+          eoaAddress: eoaAddress1,
+        } = await socialLoginBiconomy();
 
-      //   eoaAddress = eoaAddress1;
+        eoaAddress = eoaAddress1;
 
-      //   if (!(biconomySmartAccount && web3Provider))
-      //     throw new Error('index: connect: login failed');
+        if (!(biconomySmartAccount && web3Provider))
+          throw new Error('index: connect: login failed');
 
-      //   userAccountAddress = await getSmartAccountAddress(biconomySmartAccount);
-      //   console.log(
-      //     'index: connect: userAccountAddress = ',
-      //     userAccountAddress,
-      //   );
-      //   setSmartAccount(biconomySmartAccount);
-      //   setSmartAccountProvider(web3Provider);
-      //   setDirectProvider(directProvider);
+        userAccountAddress = await getSmartAccountAddress(biconomySmartAccount);
+        console.log(
+          'index: connect: userAccountAddress = ',
+          userAccountAddress,
+        );
+        setSmartAccount(biconomySmartAccount);
+        setSmartAccountProvider(web3Provider);
+        setDirectProvider(directProvider);
 
-      //   const chainId = await getConnectedChainId(biconomySmartAccount);
-      //   setConnectedChainId(chainId);
+        const chainId = await getConnectedChainId(biconomySmartAccount);
+        setConnectedChainId(chainId);
 
-      //   setUserInfo(userInfo);
-      //   setLoading(false);
+        setUserInfo(userInfo);
+        setLoading(false);
 
-      //   setErrorsAddAddresses('');
-      //   setErrorsRemoveAddresses('');
-      //   setErrorsImportKeys('');
-      //   setErrorsExportKeys('');
-      // }
-      else if (!(smartAccount && smartAccountProvider)) {
+        setErrorsAddAddresses('');
+        setErrorsRemoveAddresses('');
+        setErrorsImportKeys('');
+        setErrorsExportKeys('');
+      } else if (!(smartAccount && smartAccountProvider)) {
         userAccountAddress = await loginNative();
         eoaAddress = userAccountAddress;
         setSmartAccountAddress(userAccountAddress);
