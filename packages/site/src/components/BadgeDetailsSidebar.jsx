@@ -55,6 +55,32 @@ const twStyle = 'ml-8 grid gap-y-6 grid-cols-6 gap-x-5';
 const twTitleStyle = 'text-xs';
 const twTextStyle = 'invisible';
 
+/**
+ * BadgeDetailsSidebar component.
+ *
+ * This component renders the sidebar with details about a specific badge.
+ * Including displaying its image. It also provides a form to submit the badge.
+ *
+ * @component
+ * @param {Object} props - The properties passed to the component.
+ * @param {boolean} props.isFileDrop - Indicates if the file drop area should be displayed.
+ * @param {Function} props.handleSubmit - Function to handle form submission.
+ * @param {Function} props.handleSubmit_Badge - Function to handle badge submission.
+ * @param {Object} props.badgeDetailsFunction1 - Details for the first badge function.
+ * @param {string} props.function1Name - Name of the first badge function.
+ * @param {boolean} props.badgeDetailsFilterAccountAddresses - Indicates if account addresses should be filtered.
+ * @param {string} props.userAuthPubAddress - The authenticated user's public address.
+ * @param {string} props.owner - The owner's address.
+ * @param {string} props.minter - The minter's address.
+ * @param {Function} props.setOpenBadgeToTake - Function to set the state of the badge to take.
+ * @param {Function} props.setHandleRejectBadgeText - Function to set the text for handling badge rejection.
+ * @param {Function} props.rejectBadge - Function to reject a badge.
+ * @param {Function} props.getUserProfile - Function to get the user's profile.
+ * @param {Function} props.minterOf - Function to get the minter of a badge.
+ * @param {Function} props.createBadge - Function to create a badge.
+ * @param {Function} props.takeBadge - Function to take a badge.
+ * @returns {React.Element} The rendered BadgeDetailsSidebar component.
+ */
 export default function BadgeDetailsSidebar({
   setOpen,
   badgeDetailsFunction1,
