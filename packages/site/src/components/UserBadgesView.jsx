@@ -1,3 +1,4 @@
+// UserBadgesView.js
 import React, { useEffect, useState } from 'react';
 import UserBadgeView from './UserBadgeView';
 
@@ -27,14 +28,11 @@ export default function UserBadgesView({
   }, [badges, handleBadgeOnClick]);
 
   return (
-    <div className={twStyle}>
+    <div className={`flex flex-row flex-wrap gap-4 ${twStyle}`}>
       {theBadges
         ?.filter((badge) => badge !== null)
         .map((badge, index) => (
-          <li
-            key={index}
-            className="mr-4 items-center hover:text-fabstir-light-gray"
-          >
+          <div key={index} className="flex-shrink-0">
             <UserBadgeView
               badge={badge}
               userPub={userPub}
@@ -43,7 +41,7 @@ export default function UserBadgesView({
               setOpenBadge={setOpenBadgeDetails}
               handleBadgeOnClick={handleBadgeOnClick}
             />
-          </li>
+          </div>
         ))}
     </div>
   );
