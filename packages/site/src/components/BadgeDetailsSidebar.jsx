@@ -1,6 +1,8 @@
 import { AddressZero } from '@ethersproject/constants';
 import { ChevronDoubleDownIcon } from 'heroiconsv1/solid';
 import React, { useEffect, useState } from 'react';
+import Tippy from '@tippyjs/react';
+import 'tippy.js/dist/tippy.css';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { saveAs } from 'file-saver';
@@ -21,6 +23,7 @@ import BadgeContextMenu from './BadgeContextMenu';
 import DropFile from './DropFile';
 import { Button } from '../ui-components/button';
 import BadgeGiveToUserOrNFT from './BadgeGiveToUserOrNFT';
+import NFTFileUrls from './NFTFileUrls';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -339,9 +342,40 @@ export default function BadgeDetailsSidebar({
                         {key}
                         {'\u00A0'}
                       </dt>
-                      <dd className="truncate text-fabstir-light-gray">
-                        <div>{badgeInfoDecorated[key]}</div>
-                      </dd>
+                      {key.toLowerCase().endsWith('urls') ||
+                      key.toLowerCase().endsWith('uri') ? (
+                        <dd className="truncate text-fabstir-light-gray">
+                          <NFTFileUrls
+                            field={key}
+                            fileUrls={badgeInfoDecorated[key]}
+                            handle_DownloadFile={handle_DownloadFile}
+                          />
+                        </dd>
+                      ) : (
+                        <Tippy
+                          content={badgeInfoDecorated[key]}
+                          interactive={true}
+                          maxWidth={500}
+                          popperOptions={{
+                            strategy: 'fixed',
+                          }}
+                          style={{
+                            backgroundColor: '#333',
+                            padding: '8px',
+                            borderRadius: '4px',
+                            whiteSpace: 'pre-wrap',
+                            wordBreak: 'break-word',
+                          }}
+                        >
+                          {/* Truncate the URL if it's longer than 30 characters for display purposes.
+                          Add ellipsis to indicate truncation*/}
+                          <dd className="truncate text-fabstir-light-gray">
+                            {badgeInfoDecorated[key].length > 30
+                              ? `${badgeInfoDecorated[key].slice(0, 25)}...${badgeInfoDecorated[key].slice(-5)}`
+                              : badgeInfoDecorated[key]}
+                          </dd>
+                        </Tippy>
+                      )}
                     </div>
                   ))}
               </dl>
@@ -412,7 +446,6 @@ export default function BadgeDetailsSidebar({
                 </div>
               </div>
             </div>
-
             {badgeDetailsFunction1Name && childComponent ? (
               <>
                 <BadgeGiveToUserOrNFT badge={badge} setOpen={setOpen} />

@@ -244,7 +244,9 @@ export default function UserNFTs() {
       setCurrentBadgeRequesting(null);
       setUserPubRequest(null);
 
-      setOpenBadgeToGiveToNFT(false);
+      setTimeout(() => {
+        setOpenBadgeToGiveToNFT(false);
+      }, process.env.NEXT_PUBLIC_SLIDEOVER_CLOSE_DELAY);
     },
     [
       createBadgeToTake,
@@ -286,8 +288,11 @@ export default function UserNFTs() {
       } else {
         setHandleGiveBadgeText('Error!');
       }
-      setOpenBadgeToGiveForAccount(false);
+
       setUserPubGive(null);
+      setTimeout(() => {
+        setOpenBadgeToGiveForAccount(false);
+      }, process.env.NEXT_PUBLIC_SLIDEOVER_CLOSE_DELAY);
     },
     [
       createBadgeToTake,
@@ -317,7 +322,10 @@ export default function UserNFTs() {
       setCurrentBadgeRequesting(badge);
       setHandleGiveBadgeForAccountText('Give Pending....');
     }
-    setOpenBadgeToGive(false);
+    setTimeout(() => {
+      setOpenBadgeToGive(false);
+    }, process.env.NEXT_PUBLIC_SLIDEOVER_CLOSE_DELAY);
+
     alert('Choose User or NFT');
   };
 
@@ -552,7 +560,9 @@ export default function UserNFTs() {
           setHandleBurnBadgeText('Revoked!');
         else setHandleBurnBadgeText('Burnt!');
 
-        setOpenBadgeToBurn(false);
+        setTimeout(() => {
+          setOpenBadgeToBurn(false);
+        }, process.env.NEXT_PUBLIC_SLIDEOVER_CLOSE_DELAY);
       } catch (err) {
         alert(err.message);
 
@@ -646,7 +656,9 @@ export default function UserNFTs() {
           }
         }
       }
-      setOpenBadgeRequested(false);
+      setTimeout(() => {
+        setOpenBadgeRequested(false);
+      }, process.env.NEXT_PUBLIC_SLIDEOVER_CLOSE_DELAY);
     },
     [
       createBadgeRequested,
@@ -679,7 +691,9 @@ export default function UserNFTs() {
           setHandleRequestedBadgeText('Deleted!');
         }
       }
-      setOpenBadgeRequested(false);
+      setTimeout(() => {
+        setOpenBadgeRequested(false);
+      }, process.env.NEXT_PUBLIC_SLIDEOVER_CLOSE_DELAY);
     },
     [
       getUserProfile,

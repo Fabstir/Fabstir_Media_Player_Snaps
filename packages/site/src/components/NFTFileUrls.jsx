@@ -1,4 +1,5 @@
 import React from 'react';
+import Tippy from '@tippyjs/react';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -27,21 +28,42 @@ export default function NFTFileUrls({ field, fileUrls, handle_DownloadFile }) {
       {field.toLowerCase().endsWith('urls') ? (
         <>
           {fileUrls?.map((fileUrl, idx) => (
-            <p>
-              {getFileName(fileUrl)}{' '}
+            <p key={idx}>
+              ({getFileName(fileUrl)}){' '}
               <a
+                className="cursor-pointer text-blue-500 hover:underline"
                 onClick={(e) => {
                   e.preventDefault();
                   handle_DownloadFile(field, fileUrl);
                 }}
               >
-                {`[${getUrl(fileUrl)}]`}
+                {/* Truncate the URL if it's longer than 30 characters for display purposes.
+                 Add ellipsis to indicate truncation*/}
+                {(() => {
+                  const url = getUrl(fileUrl);
+                  const displayUrl =
+                    url.length > 30
+                      ? `[${url.slice(0, 25)}...${url.slice(-5)}]`
+                      : `[${url}]`;
+                  return (
+                    <Tippy
+                      content={url}
+                      interactive={true}
+                      maxWidth="none"
+                      className="bg-gray-800 p-2 rounded text-white whitespace-pre-wrap break-words"
+                      placement="top"
+                    >
+                      <span>{displayUrl}</span>
+                    </Tippy>
+                  );
+                })()}
               </a>
             </p>
           ))}
         </>
       ) : (
         <a
+          className="cursor-pointer text-blue-500 hover:underline"
           onClick={(e) => {
             e.preventDefault();
             handle_DownloadFile(field, fileUrls);
