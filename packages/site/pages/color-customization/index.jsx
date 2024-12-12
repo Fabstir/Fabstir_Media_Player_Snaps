@@ -14,27 +14,17 @@ import useUserProfile from '../../src/hooks/useUserProfile';
 import { Button } from '../../src/ui-components/button';
 import { Input } from '../../src/ui-components/input';
 import useColorCustomization from '../../src/hooks/useColorCustomization';
-//import { color } from '../../src/colors';
 
-const defaultColors = {
-  light: {
-    background: '#e5e5e5',
-    foreground: '#fbfbfb',
-    border: '#dfdfdf',
-    copy: '#262626',
-    copyLight: '#666666',
-    copyLighter: '#8c8c8c',
-  },
-  dark: {
-    background: '#1a1a1a',
-    foreground: '#262626',
-    border: '#404040',
-    copy: '#fbfbfb',
-    copyLight: '#d9d9d9',
-    copyLighter: '#a6a6a6',
-  },
-};
-
+/**
+ * Color component.
+ *
+ * This component handles the color customization for the application.
+ * It allows users to import, export, and save color customizations.
+ * The component also loads default colors for new users who haven't defined their color customization yet.
+ *
+ * @component
+ * @returns {React.Element} The rendered Color component.
+ */
 const Color = () => {
   const router = useRouter();
   const userAuthPub = useRecoilValue(userauthpubstate);
@@ -42,6 +32,12 @@ const Color = () => {
   const blockchainContext = useContext(BlockchainContext);
   const { setSmartAccount, setConnectedChainId } = blockchainContext;
   const { signOut, putUserColor } = useCreateUser();
+  const {
+    saveColorCustomization,
+    loadColorCustomization,
+    importColorCustomization,
+    exportColorCustomization,
+  } = useColorCustomization();
   const [showPicker, setShowPicker] = useState(false);
   const [showPickerSecondary, setShowPickerSecondary] = useState(false);
   const [showNeutralPicker, setShowNeutralPicker] = useState(false);
@@ -49,31 +45,43 @@ const Color = () => {
   const [colorMode, setColorMode] = useState('light'); // 'light' or 'dark'
   const [saturation, setSaturation] = useState(0); // Default saturation value
   const [loader, setLoader] = useState(true);
-  const [primaryColorState, setPrimaryColorState] = useState({
-    primaryColor: '#4699eb',
-    primaryContentColor: '#05192d',
-    primaryLightColor: '#74b2f0',
-    primaryDarkColor: '#1980e5',
-  });
-  const [secondaryColorState, setSecondaryColorState] = useState({
-    secondaryColor: '#eb9846',
-    secondaryContentColor: '#2d1905',
-    secondaryLightColor: '#f0b274',
-    secondaryDarkColor: '#e57e19',
-  });
-  const [utilityColors, setUtilityColors] = useState({
-    successColor: '#46eb46',
-    warningColor: '#ebeb46',
-    errorColor: '#eb4646',
-    successContentColor: '#052d05',
-    warningContentColor: '#2d2d05',
-    errorContentColor: '#ffffff',
-  });
-  const [neutralsColorState, setNeutralsColorState] = useState(defaultColors);
-  const [neutralsColorStateOrigin, setNeutralsColorStateOrigin] =
-    useState(defaultColors);
-  const { saveColorCustomization, loadColorCustomization } =
-    useColorCustomization();
+  const [primaryColorState, setPrimaryColorState] = useState({});
+  const [secondaryColorState, setSecondaryColorState] = useState({});
+  const [utilityColors, setUtilityColors] = useState({});
+  const [neutralsColorState, setNeutralsColorState] = useState({});
+  const [neutralsColorStateOrigin, setNeutralsColorStateOrigin] = useState({});
+  const [defaultColors, setDefaultColors] = useState({});
+
+  useEffect(() => {
+    (async () => {
+      const response = await fetch(
+        '/settings/fabstir-default-color-customization.json',
+      );
+      const defaultColors = await response.json();
+      setDefaultColors(defaultColors);
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (userAuthPub) {
+      fetchColor();
+    } else {
+      loadDefaultColors();
+    }
+  }, [userAuthPub]);
+
+  const loadDefaultColors = async () => {
+    try {
+      await importColorCustomization(defaultColors);
+      setPrimaryColorState(defaultColors.primaryColor);
+      setSecondaryColorState(defaultColors.secondaryColor);
+      setUtilityColors(defaultColors.utilityColors);
+      setNeutralsColorState(defaultColors.neutralsColor);
+      setNeutralsColorStateOrigin(defaultColors.neutralsColor);
+    } catch (error) {
+      console.error('Error loading default colors:', error);
+    }
+  };
 
   useEffect(() => {
     if (userAuthPub) {
@@ -171,60 +179,64 @@ const Color = () => {
     setNeutralsColorState({
       light: {
         foreground: blendWithPrimary(
-          defaultColors.light.foreground,
+          defaultColors.neutralsColor.light.foreground,
           2,
           updatedPrimaryColor,
         ),
         background: blendWithPrimary(
-          defaultColors.light.background,
+          defaultColors.neutralsColor.light.background,
           2,
           updatedPrimaryColor,
         ),
         border: blendWithPrimary(
-          defaultColors.light.border,
+          defaultColors.neutralsColor.light.border,
           2,
           updatedPrimaryColor,
         ),
         copy: blendWithPrimary(
-          defaultColors.light.copy,
+          defaultColors.neutralsColor.light.copy,
           1,
           updatedPrimaryColor,
         ),
         copyLight: blendWithPrimary(
-          defaultColors.light.copyLight,
+          defaultColors.neutralsColor.light.copyLight,
           2,
           updatedPrimaryColor,
         ),
         copyLighter: blendWithPrimary(
-          defaultColors.light.copyLighter,
+          defaultColors.neutralsColor.light.copyLighter,
           5,
           updatedPrimaryColor,
         ),
       },
       dark: {
         foreground: blendWithPrimary(
-          defaultColors.dark.foreground,
+          defaultColors.neutralsColor.dark.foreground,
           2,
           updatedPrimaryColor,
         ),
         background: blendWithPrimary(
-          defaultColors.dark.background,
+          defaultColors.neutralsColor.dark.background,
           2,
           updatedPrimaryColor,
         ),
         border: blendWithPrimary(
-          defaultColors.dark.border,
+          defaultColors.neutralsColor.dark.border,
           2,
           updatedPrimaryColor,
         ),
-        copy: blendWithPrimary(defaultColors.dark.copy, 1, updatedPrimaryColor),
+        copy: blendWithPrimary(
+          defaultColors.neutralsColor.dark.copy,
+          1,
+          updatedPrimaryColor,
+        ),
         copyLight: blendWithPrimary(
-          defaultColors.dark.copyLight,
+          defaultColors.neutralsColor.dark.copyLight,
           2,
           updatedPrimaryColor,
         ),
         copyLighter: blendWithPrimary(
-          defaultColors.dark.copyLighter,
+          defaultColors.neutralsColor.dark.copyLighter,
           5,
           updatedPrimaryColor,
         ),
@@ -233,60 +245,64 @@ const Color = () => {
     setNeutralsColorStateOrigin({
       light: {
         foreground: blendWithPrimary(
-          defaultColors.light.foreground,
+          defaultColors.neutralsColor.light.foreground,
           2,
           updatedPrimaryColor,
         ),
         background: blendWithPrimary(
-          defaultColors.light.background,
+          defaultColors.neutralsColor.light.background,
           2,
           updatedPrimaryColor,
         ),
         border: blendWithPrimary(
-          defaultColors.light.border,
+          defaultColors.neutralsColor.light.border,
           2,
           updatedPrimaryColor,
         ),
         copy: blendWithPrimary(
-          defaultColors.light.copy,
+          defaultColors.neutralsColor.light.copy,
           1,
           updatedPrimaryColor,
         ),
         copyLight: blendWithPrimary(
-          defaultColors.light.copyLight,
+          defaultColors.neutralsColor.light.copyLight,
           2,
           updatedPrimaryColor,
         ),
         copyLighter: blendWithPrimary(
-          defaultColors.light.copyLighter,
+          defaultColors.neutralsColor.light.copyLighter,
           5,
           updatedPrimaryColor,
         ),
       },
       dark: {
         foreground: blendWithPrimary(
-          defaultColors.dark.foreground,
+          defaultColors.neutralsColor.dark.foreground,
           2,
           updatedPrimaryColor,
         ),
         background: blendWithPrimary(
-          defaultColors.dark.background,
+          defaultColors.neutralsColor.dark.background,
           2,
           updatedPrimaryColor,
         ),
         border: blendWithPrimary(
-          defaultColors.dark.border,
+          defaultColors.neutralsColor.dark.border,
           2,
           updatedPrimaryColor,
         ),
-        copy: blendWithPrimary(defaultColors.dark.copy, 1, updatedPrimaryColor),
+        copy: blendWithPrimary(
+          defaultColors.neutralsColor.dark.copy,
+          1,
+          updatedPrimaryColor,
+        ),
         copyLight: blendWithPrimary(
-          defaultColors.dark.copyLight,
+          defaultColors.neutralsColor.dark.copyLight,
           2,
           updatedPrimaryColor,
         ),
         copyLighter: blendWithPrimary(
-          defaultColors.dark.copyLighter,
+          defaultColors.neutralsColor.dark.copyLighter,
           5,
           updatedPrimaryColor,
         ),
@@ -381,6 +397,23 @@ const Color = () => {
     // .saturate(color, saturation * amount) // Increase saturation only for the color
     // .brighten(saturation / 10) // Lighten the color based on saturation level
     // .hex(); // Return the hex value
+  };
+
+  const handleExport = () => {
+    exportColorCustomization();
+  };
+
+  const handleImport = async (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const json = JSON.parse(e.target.result);
+        await importColorCustomization(json);
+        fetchColor();
+      };
+      reader.readAsText(file);
+    }
   };
 
   const onSubmit = async () => {
@@ -1000,16 +1033,38 @@ const Color = () => {
               ))}
             </div>
           </div>
-          <div className="w-full text-right py-5 border-t-2 border-slate-200">
+          <div className="w-full text-right py-5 border-t-2 border-slate-200 flex justify-end space-x-4">
+            <input
+              type="file"
+              id="import-file"
+              className="hidden"
+              onChange={handleImport}
+            />
+            <label
+              htmlFor="import-file"
+              className="bg-primary text-primary-content hover:bg-primary-light 
+          active:bg-primary-dark focus:ring-2 focus:ring-primary-dark 
+          disabled:bg-primary-light/50 shadow-md rounded px-4 py-3 text-lg font-medium cursor-pointer"
+            >
+              Import
+            </label>
             <Button
-              className=" bg-primary text-primary-content hover:bg-primary-light 
-        active:bg-primary-dark focus:ring-2 focus:ring-primary-dark 
-        disabled:bg-primary-light/50 shadow-md rounded px-4 py-3 text-lg font-medium"
-              onClick={() => onSubmit()}
+              className="bg-primary text-primary-content hover:bg-primary-light 
+          active:bg-primary-dark focus:ring-2 focus:ring-primary-dark 
+          disabled:bg-primary-light/50 shadow-md rounded px-4 py-3 text-lg font-medium"
+              onClick={handleExport}
+            >
+              Export
+            </Button>
+            <Button
+              className="bg-primary text-primary-content hover:bg-primary-light 
+          active:bg-primary-dark focus:ring-2 focus:ring-primary-dark 
+          disabled:bg-primary-light/50 shadow-md rounded px-4 py-3 text-lg font-medium"
+              onClick={onSubmit}
             >
               Save Changes
             </Button>
-          </div>
+          </div>{' '}
         </div>
       )}
     </div>

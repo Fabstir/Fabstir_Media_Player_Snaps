@@ -57,6 +57,16 @@ const defaultColors = {
   darkAllowShadow: false,
 };
 
+/**
+ * ColorCustomization component.
+ *
+ * This component handles the color customization for the application.
+ * It allows users to import, export, and save color customizations.
+ * The component also loads default colors for new users who haven't defined their color customization yet.
+ *
+ * @component
+ * @returns {React.Element} The rendered ColorCustomization component.
+ */
 export default function ColorCustomization() {
   const router = useRouter();
   const [smartAccountAddress, setSmartAccountAddress] = useState('');

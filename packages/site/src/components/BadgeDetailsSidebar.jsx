@@ -133,7 +133,7 @@ export default function BadgeDetailsSidebar({
   const [getUserProfile] = useUserProfile();
 
   const { unequip } = useMintBadge();
-  const { mutate: deleteBadge, deleteBadgeInfo } = useDeleteBadge();
+  const { mutate: deleteBadge, ...deleteBadgeInfo } = useDeleteBadge();
 
   const onDelete = async (nft) => {
     console.log(`DetailsSidebar deleteBadge: nft=${badge?.address}`);

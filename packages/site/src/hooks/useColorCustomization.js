@@ -1,6 +1,19 @@
 import { dbClient } from '../GlobalOrbit';
 import { user } from '../user';
 
+/**
+ * Custom hook to handle color customization.
+ *
+ * This hook provides functions to save, load, import, and export color customizations.
+ * It interacts with the user's profile to store and retrieve color settings.
+ *
+ * @returns {Object} An object containing functions for color customization:
+ * - saveColorCustomization: Saves the color customization to the user's profile.
+ * - loadColorCustomization: Loads the color customization from the user's profile.
+ * - deleteColorCustomization: Deletes the color customization from the user's profile.
+ * - exportColorCustomization: Exports the color customization to a JSON file.
+ * - importColorCustomization: Imports the color customization from a JSON file.
+ */
 export default function useColorCustomization() {
   const saveColorCustomization = async (colorCustomization) => {
     if (!colorCustomization)
@@ -53,9 +66,30 @@ export default function useColorCustomization() {
     });
   };
 
+  const exportColorCustomization = async () => {
+    const colorCustomization = await loadColorCustomization(user.is.pub);
+    if (!colorCustomization) return;
+
+    const blob = new Blob([JSON.stringify(colorCustomization, null, 2)], {
+      type: 'application/json',
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'color-customization.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const importColorCustomization = async (json) => {
+    await saveColorCustomization(json);
+  };
+
   return {
     saveColorCustomization,
     loadColorCustomization,
     deleteColorCustomization,
+    exportColorCustomization,
+    importColorCustomization,
   };
 }

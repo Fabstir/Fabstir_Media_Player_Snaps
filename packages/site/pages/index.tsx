@@ -825,77 +825,87 @@ const Index = () => {
       // handleError(error);
     }
   };
-
-  const setDefaultColors = () => {
-    const defaultColors = {
-      light: {
-        '--primary-color': '#4699eb',
-        '--primary-content-color': '#05192d',
-        '--primary-dark-color': '#1980e5',
-        '--primary-light-color': '#74b2f0',
-
-        '--secondary-color': '#eb9846',
-        '--secondary-content-color': '#2d1905',
-        '--secondary-dark-color': '#e57e19',
-        '--secondary-light-color': '#f0b274',
-
-        '--success-color': '#46eb46',
-        '--success-content-color': '#052d05',
-
-        '--warning-color': '#ebeb46',
-        '--warning-content-color': '#2d2d05',
-
-        '--error-color': '#eb4646',
-        '--error-content-color': '#ffffff',
-
-        '--light-foreground': '#fafbfd',
-        '--light-background': '#eaf0f5',
-        '--light-border': '#d4dfea',
-
-        '--light-copy': '#192634',
-        '--light-copy-light': '#42668a',
-        '--light-copy-lighter': '#648cb4',
-      },
-      dark: {
-        '--primary-color': '#4699eb',
-        '--primary-content-color': '#05192d',
-        '--primary-dark-color': '#1980e5',
-        '--primary-light-color': '#74b2f0',
-
-        '--secondary-color': '#eb9846',
-        '--secondary-content-color': '#2d1905',
-        '--secondary-dark-color': '#e57e19',
-        '--secondary-light-color': '#f0b274',
-
-        '--success-color': '#46eb46',
-        '--success-content-color': '#052d05',
-
-        '--warning-color': '#ebeb46',
-        '--warning-content-color': '#2d2d05',
-
-        '--error-color': '#eb4646',
-        '--error-content-color': '#ffffff',
-
-        '--dark-foreground': '#192634',
-        '--dark-background': '#111a22',
-        '--dark-border': '#294056',
-
-        '--dark-copy': '#fafbfd',
-        '--dark-copy-light': '#cbd9e6',
-        '--dark-copy-lighter': '#87a6c5',
-      },
+  const mapColorsToCSSVariables = (colors: any, prefix: string = '') => {
+    const colorMapping: { [key: string]: string } = {
+      primaryColor: '--primary-color',
+      primaryContentColor: '--primary-content-color',
+      primaryLightColor: '--primary-light-color',
+      primaryDarkColor: '--primary-dark-color',
+      secondaryColor: '--secondary-color',
+      secondaryContentColor: '--secondary-content-color',
+      secondaryLightColor: '--secondary-light-color',
+      secondaryDarkColor: '--secondary-dark-color',
+      successColor: '--success-color',
+      successContentColor: '--success-content-color',
+      warningColor: '--warning-color',
+      warningContentColor: '--warning-content-color',
+      errorColor: '--error-color',
+      errorContentColor: '--error-content-color',
+      foreground: '--foreground',
+      background: '--background',
+      border: '--border',
+      copy: '--copy',
+      copyLight: '--copy-light',
+      copyLighter: '--copy-lighter',
     };
 
-    // Set light mode colors
-    Object.entries(defaultColors.light).forEach(([key, value]) => {
-      document.documentElement.style.setProperty(key, value as string);
-    });
-
-    // Set dark mode colors
-    Object.entries(defaultColors.dark).forEach(([key, value]) => {
-      document.documentElement.style.setProperty(key, value as string);
+    Object.entries(colors).forEach(([key, value]) => {
+      const cssVariableName = colorMapping[key];
+      if (cssVariableName) {
+        document.documentElement.style.setProperty(
+          `${prefix}${cssVariableName}`,
+          value as string,
+        );
+      }
     });
   };
+
+  const setDefaultColors = async () => {
+    try {
+      const response = await fetch(
+        '/settings/fabstir-default-color-customization.json',
+      );
+      const defaultColors = await response.json();
+
+      // Set light mode colors
+      mapColorsToCSSVariables(defaultColors.primaryColor);
+      mapColorsToCSSVariables(defaultColors.secondaryColor);
+      mapColorsToCSSVariables(defaultColors.utilityColors);
+      mapColorsToCSSVariables(defaultColors.neutralsColor.light, 'light-');
+
+      // Set dark mode colors
+      mapColorsToCSSVariables(defaultColors.neutralsColor.dark, 'dark-');
+    } catch (error) {
+      console.error('Error loading default colors:', error);
+    }
+  };
+
+  const fetchDefaultColors = async () => {
+    try {
+      const response = await fetch('/fabstir-default-color-customization.json');
+      const defaultColors = await response.json();
+
+      // Set light mode colors
+      Object.entries(defaultColors.light).forEach(([key, value]) => {
+        document.documentElement.style.setProperty(key, value as string);
+      });
+
+      // Set dark mode colors
+      Object.entries(defaultColors.dark).forEach(([key, value]) => {
+        document.documentElement.style.setProperty(key, value as string);
+      });
+    } catch (error) {
+      console.error('Error loading default colors:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (smartAccountAddress) {
+      fetchColor();
+    } else {
+      fetchDefaultColors();
+    }
+  }, [smartAccountAddress]);
 
   useEffect(() => {
     if (smartAccountAddress) {
