@@ -44,6 +44,18 @@ const defaultProfile = {
   image: defaultAvatarImage,
 };
 
+/**
+ * UserProfile component.
+ *
+ * This component handles the user profile form, allowing users to view and edit their profile information.
+ * It uses react-hook-form for form management and validation.
+ * The component also supports country selection with a custom Select component.
+ *
+ * @component
+ * @param {Object} props - The component props.
+ * @param {Object} props.initialProfile - The initial profile data to populate the form.
+ * @returns {React.Element} The rendered UserProfile component.
+ */
 export default function UserProfile({ initialProfile = defaultProfile }) {
   let { userPub } = useParams();
 
