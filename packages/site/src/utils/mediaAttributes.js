@@ -56,131 +56,131 @@ export const languages = [
   'tr-TR', // Turkish (Turkey)
   'vi-VN', // Vietnamese (Vietnam)
   'Other',
-]
+];
 
 export const countries = [
-  'AF', // Afghanistan
-  'AL', // Albania
-  'DZ', // Algeria
-  'AR', // Argentina
-  'AM', // Armenia
-  'AU', // Australia
-  'AT', // Austria
-  'AZ', // Azerbaijan
-  'BH', // Bahrain
-  'BD', // Bangladesh
-  'BY', // Belarus
-  'BE', // Belgium
-  'BO', // Bolivia
-  'BA', // Bosnia and Herzegovina
-  'BR', // Brazil
-  'BG', // Bulgaria
-  'KH', // Cambodia
-  'CA', // Canada
-  'CL', // Chile
-  'CN', // China
-  'CO', // Colombia
-  'CR', // Costa Rica
-  'HR', // Croatia
-  'CU', // Cuba
-  'CY', // Cyprus
-  'CZ', // Czech Republic
-  'DK', // Denmark
-  'DO', // Dominican Republic
-  'EC', // Ecuador
-  'EG', // Egypt
-  'SV', // El Salvador
-  'EE', // Estonia
-  'FI', // Finland
-  'FR', // France
-  'GE', // Georgia
-  'DE', // Germany
-  'GH', // Ghana
-  'GR', // Greece
-  'GT', // Guatemala
-  'HN', // Honduras
-  'HK', // Hong Kong
-  'HU', // Hungary
-  'IS', // Iceland
-  'IN', // India
-  'ID', // Indonesia
-  'IR', // Iran
-  'IQ', // Iraq
-  'IE', // Ireland
-  'IL', // Israel
-  'IT', // Italy
-  'JM', // Jamaica
-  'JP', // Japan
-  'JO', // Jordan
-  'KZ', // Kazakhstan
-  'KE', // Kenya
-  'KW', // Kuwait
-  'KG', // Kyrgyzstan
-  'LV', // Latvia
-  'LB', // Lebanon
-  'LY', // Libya
-  'LT', // Lithuania
-  'LU', // Luxembourg
-  'MY', // Malaysia
-  'MT', // Malta
-  'MX', // Mexico
-  'MD', // Moldova
-  'MC', // Monaco
-  'MN', // Mongolia
-  'ME', // Montenegro
-  'MA', // Morocco
-  'NP', // Nepal
-  'NL', // Netherlands
-  'NZ', // New Zealand
-  'NI', // Nicaragua
-  'NG', // Nigeria
-  'KP', // North Korea
-  'MK', // North Macedonia
-  'NO', // Norway
-  'OM', // Oman
-  'PK', // Pakistan
-  'PS', // Palestine
-  'PA', // Panama
-  'PY', // Paraguay
-  'PE', // Peru
-  'PH', // Philippines
-  'PL', // Poland
-  'PT', // Portugal
-  'PR', // Puerto Rico
-  'QA', // Qatar
-  'RO', // Romania
-  'RU', // Russia
-  'SA', // Saudi Arabia
-  'RS', // Serbia
-  'SG', // Singapore
-  'SK', // Slovakia
-  'SI', // Slovenia
-  'ZA', // South Africa
-  'KR', // South Korea
-  'ES', // Spain
-  'LK', // Sri Lanka
-  'SE', // Sweden
-  'CH', // Switzerland
-  'SY', // Syria
-  'TW', // Taiwan
-  'TJ', // Tajikistan
-  'TZ', // Tanzania
-  'TH', // Thailand
-  'TN', // Tunisia
-  'TR', // Turkey
-  'TM', // Turkmenistan
-  'UA', // Ukraine
-  'AE', // United Arab Emirates
-  'GB', // United Kingdom
-  'US', // United States
-  'UY', // Uruguay
-  'UZ', // Uzbekistan
-  'VE', // Venezuela
-  'VN', // Vietnam
-  'YE', // Yemen
-  'ZW', // Zimbabwe
-  'Other',
-]
+  { value: 'AF', label: 'Afghanistan' },
+  { value: 'AL', label: 'Albania' },
+  { value: 'DZ', label: 'Algeria' },
+  { value: 'AR', label: 'Argentina' },
+  { value: 'AM', label: 'Armenia' },
+  { value: 'AU', label: 'Australia' },
+  { value: 'AT', label: 'Austria' },
+  { value: 'AZ', label: 'Azerbaijan' },
+  { value: 'BH', label: 'Bahrain' },
+  { value: 'BD', label: 'Bangladesh' },
+  { value: 'BY', label: 'Belarus' },
+  { value: 'BE', label: 'Belgium' },
+  { value: 'BO', label: 'Bolivia' },
+  { value: 'BA', label: 'Bosnia and Herzegovina' },
+  { value: 'BR', label: 'Brazil' },
+  { value: 'BG', label: 'Bulgaria' },
+  { value: 'KH', label: 'Cambodia' },
+  { value: 'CA', label: 'Canada' },
+  { value: 'CL', label: 'Chile' },
+  { value: 'CN', label: 'China' },
+  { value: 'CO', label: 'Colombia' },
+  { value: 'CR', label: 'Costa Rica' },
+  { value: 'HR', label: 'Croatia' },
+  { value: 'CU', label: 'Cuba' },
+  { value: 'CY', label: 'Cyprus' },
+  { value: 'CZ', label: 'Czech Republic' },
+  { value: 'DK', label: 'Denmark' },
+  { value: 'DO', label: 'Dominican Republic' },
+  { value: 'EC', label: 'Ecuador' },
+  { value: 'EG', label: 'Egypt' },
+  { value: 'SV', label: 'El Salvador' },
+  { value: 'EE', label: 'Estonia' },
+  { value: 'FI', label: 'Finland' },
+  { value: 'FR', label: 'France' },
+  { value: 'GE', label: 'Georgia' },
+  { value: 'DE', label: 'Germany' },
+  { value: 'GH', label: 'Ghana' },
+  { value: 'GR', label: 'Greece' },
+  { value: 'GT', label: 'Guatemala' },
+  { value: 'HN', label: 'Honduras' },
+  { value: 'HK', label: 'Hong Kong' },
+  { value: 'HU', label: 'Hungary' },
+  { value: 'IS', label: 'Iceland' },
+  { value: 'IN', label: 'India' },
+  { value: 'ID', label: 'Indonesia' },
+  { value: 'IR', label: 'Iran' },
+  { value: 'IQ', label: 'Iraq' },
+  { value: 'IE', label: 'Ireland' },
+  { value: 'IL', label: 'Israel' },
+  { value: 'IT', label: 'Italy' },
+  { value: 'JM', label: 'Jamaica' },
+  { value: 'JP', label: 'Japan' },
+  { value: 'JO', label: 'Jordan' },
+  { value: 'KZ', label: 'Kazakhstan' },
+  { value: 'KE', label: 'Kenya' },
+  { value: 'KW', label: 'Kuwait' },
+  { value: 'KG', label: 'Kyrgyzstan' },
+  { value: 'LV', label: 'Latvia' },
+  { value: 'LB', label: 'Lebanon' },
+  { value: 'LY', label: 'Libya' },
+  { value: 'LT', label: 'Lithuania' },
+  { value: 'LU', label: 'Luxembourg' },
+  { value: 'MY', label: 'Malaysia' },
+  { value: 'MT', label: 'Malta' },
+  { value: 'MX', label: 'Mexico' },
+  { value: 'MD', label: 'Moldova' },
+  { value: 'MC', label: 'Monaco' },
+  { value: 'MN', label: 'Mongolia' },
+  { value: 'ME', label: 'Montenegro' },
+  { value: 'MA', label: 'Morocco' },
+  { value: 'NP', label: 'Nepal' },
+  { value: 'NL', label: 'Netherlands' },
+  { value: 'NZ', label: 'New Zealand' },
+  { value: 'NI', label: 'Nicaragua' },
+  { value: 'NG', label: 'Nigeria' },
+  { value: 'KP', label: 'North Korea' },
+  { value: 'MK', label: 'North Macedonia' },
+  { value: 'NO', label: 'Norway' },
+  { value: 'OM', label: 'Oman' },
+  { value: 'PK', label: 'Pakistan' },
+  { value: 'PS', label: 'Palestine' },
+  { value: 'PA', label: 'Panama' },
+  { value: 'PY', label: 'Paraguay' },
+  { value: 'PE', label: 'Peru' },
+  { value: 'PH', label: 'Philippines' },
+  { value: 'PL', label: 'Poland' },
+  { value: 'PT', label: 'Portugal' },
+  { value: 'PR', label: 'Puerto Rico' },
+  { value: 'QA', label: 'Qatar' },
+  { value: 'RO', label: 'Romania' },
+  { value: 'RU', label: 'Russia' },
+  { value: 'SA', label: 'Saudi Arabia' },
+  { value: 'RS', label: 'Serbia' },
+  { value: 'SG', label: 'Singapore' },
+  { value: 'SK', label: 'Slovakia' },
+  { value: 'SI', label: 'Slovenia' },
+  { value: 'ZA', label: 'South Africa' },
+  { value: 'KR', label: 'South Korea' },
+  { value: 'ES', label: 'Spain' },
+  { value: 'LK', label: 'Sri Lanka' },
+  { value: 'SE', label: 'Sweden' },
+  { value: 'CH', label: 'Switzerland' },
+  { value: 'SY', label: 'Syria' },
+  { value: 'TW', label: 'Taiwan' },
+  { value: 'TJ', label: 'Tajikistan' },
+  { value: 'TZ', label: 'Tanzania' },
+  { value: 'TH', label: 'Thailand' },
+  { value: 'TN', label: 'Tunisia' },
+  { value: 'TR', label: 'Turkey' },
+  { value: 'TM', label: 'Turkmenistan' },
+  { value: 'UA', label: 'Ukraine' },
+  { value: 'AE', label: 'United Arab Emirates' },
+  { value: 'GB', label: 'United Kingdom' },
+  { value: 'US', label: 'United States' },
+  { value: 'UY', label: 'Uruguay' },
+  { value: 'UZ', label: 'Uzbekistan' },
+  { value: 'VE', label: 'Venezuela' },
+  { value: 'VN', label: 'Vietnam' },
+  { value: 'YE', label: 'Yemen' },
+  { value: 'ZW', label: 'Zimbabwe' },
+  { value: 'Other', label: 'Other' },
+];
 
 export const musicGenres = [
   'Acapella',
@@ -212,7 +212,7 @@ export const musicGenres = [
   'Rock',
   'Rhythm & Blues',
   'World Music',
-]
+];
 
 export const videoGenres = [
   'Action',
@@ -243,7 +243,7 @@ export const videoGenres = [
   'Thriller',
   'War',
   'Western',
-]
+];
 
 export const defaultVideoAttributes = [
   { key: 'adult', value: ['No', 'Yes'] },
@@ -270,7 +270,7 @@ export const defaultVideoAttributes = [
   { key: 'runtime', value: '' },
   { key: 'vote_average', value: '' },
   { key: 'vote_count', value: '' },
-]
+];
 
 export const defaultAudioAttributes = [
   {
@@ -303,7 +303,7 @@ export const defaultAudioAttributes = [
   { key: 'record_label', value: '' },
   { key: 'release_date', value: '', type: 'date' },
   { key: 'track_number', value: '' },
-]
+];
 
 export const defaultImageAttributes = [
   {
@@ -357,7 +357,7 @@ export const defaultImageAttributes = [
     ],
   }, // array of strings: primary subject matter of the image
   { key: 'tags', value: '' }, // string: tags or keywords associated with the image
-]
+];
 
 export const defaultOtherAttributes = [
   {
@@ -415,4 +415,4 @@ export const defaultOtherAttributes = [
   { key: 'resolution', value: '' }, // string: resolution, mainly for digital art or documents
   { key: 'size', value: '' }, // string: file size (could be in mb or gb)
   { key: 'tags', value: '' }, // string: tags or keywords associated with the item
-]
+];

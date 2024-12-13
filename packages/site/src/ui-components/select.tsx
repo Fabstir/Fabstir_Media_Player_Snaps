@@ -81,26 +81,13 @@ export const Select: React.FC<SelectProps> = ({
     setSelectedOptions(newSelectedOptions);
 
     const newValue = multiple
-    ? newSelectedOptions.map((o) => o.value)
-    : newSelectedOptions[0].value;
+      ? newSelectedOptions.map((o) => o.value)
+      : newSelectedOptions[0].value;
 
     if (onChange) {
-      // onChange(
-      //   multiple
-      //     ? newSelectedOptions.map((o) => o.value)
-      //     : newSelectedOptions[0].value,
-      // );
       onChange(newValue);
     }
     if (register && register.onChange) {
-      // const event = {
-      //   target: {
-      //     name: register.name,
-      //     value: multiple
-      //       ? newSelectedOptions.map((o) => o.value)
-      //       : newSelectedOptions[0].value,
-      //   },
-      // } as React.ChangeEvent<HTMLSelectElement>;
       const event = {
         target: {
           name: register.name,

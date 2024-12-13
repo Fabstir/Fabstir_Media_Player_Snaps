@@ -929,6 +929,9 @@ const Index = () => {
           size="medium"
           onClick={handleConnectClick}
           className="p-1 h-8 col-span-1 mb-2"
+          disabled={
+            isDisabled || process.env.NEXT_PUBLIC_IS_USE_SNAPS !== 'true'
+          }
         >
           Connect Snap
         </Button>

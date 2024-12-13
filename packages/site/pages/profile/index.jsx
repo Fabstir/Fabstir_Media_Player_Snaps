@@ -739,15 +739,18 @@ export default function UserProfile({ initialProfile = defaultProfile }) {
                     Country
                   </label>
                   <div className="mt-1 rounded-md border-2">
-                    <Select
-                      id="country"
-                      options={countries.map((country) => ({
-                        value: country,
-                        label: country,
-                      }))}
-                      register={register('country')}
-                      error={errors.country?.message}
-                      className="block w-full rounded-md sm:text-sm"
+                    <Controller
+                      name="country"
+                      control={control}
+                      defaultValue={initialProfile?.country || ''}
+                      render={({ field }) => (
+                        <Select
+                          {...field}
+                          options={countries}
+                          error={errors.country?.message}
+                          className="block w-full rounded-md sm:text-sm"
+                        />
+                      )}
                     />
                   </div>
                   <p className="mt-2 animate-[pulse_1s_ease-in-out_infinite] text-error">
