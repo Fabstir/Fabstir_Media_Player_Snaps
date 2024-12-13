@@ -15,16 +15,24 @@ function classNames(...classes) {
  * @param {boolean} props.enabled - The current state of the toggle, where `true` means enabled.
  * @param {Function} props.setEnabled - The function to call when the toggle is clicked, which should handle updating the `enabled` state.
  * @param {string} props.toggleText - Text for screen readers, describing the purpose of the toggle.
+ * @param {boolean} [props.disabled=false] - Whether the toggle is disabled.
  * @returns {React.ReactElement} The rendered toggle switch component.
  */
-export default function SimpleToggle({ enabled, setEnabled, toggleText }) {
+export default function SimpleToggle({
+  enabled,
+  setEnabled,
+  toggleText,
+  disabled = false,
+}) {
   return (
     <Switch
       checked={enabled}
       onChange={setEnabled}
+      disabled={disabled}
       className={classNames(
         enabled ? 'bg-fabstir-light-purple' : 'bg-fabstir-gray',
-        'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent shadow-[inset_0_-1px_0px_hsla(0,0%,100%,0.15),inset_0_1px_1px_hsla(0,0%,0%,0.15)] transition-colors duration-200 ease-in-out focus:outline-none  focus:ring-2 focus:ring-fabstir-focus-colour1',
+        disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
+        'relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent shadow-[inset_0_-1px_0px_hsla(0,0%,100%,0.15),inset_0_1px_1px_hsla(0,0%,0%,0.15)] transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-fabstir-focus-colour1',
       )}
     >
       <span className="sr-only">{toggleText}</span>

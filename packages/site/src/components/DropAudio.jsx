@@ -6,6 +6,7 @@ import usePortal from '../hooks/usePortal';
 import {
   getKeyFromEncryptedCid,
   removeKeyFromEncryptedCid,
+  removeExtensionFromCid,
 } from '../utils/s5EncryptCIDHelper';
 import { Input } from '../ui-components/input';
 import useNFTMedia from '../hooks/useNFTMedia';
@@ -40,6 +41,7 @@ const ProgressBar = ({ progressPercentage }) => {
  * @param {string} props.encKey - Encryption key for securing the audio files.
  * @param {Array<string>} props.audioFormats - List of supported audio formats (e.g., ['mp3', 'wav']).
  * @param {string} [props.storageNetwork=process.env.NEXT_PUBLIC_S5] - The storage network to use, defaults to the value of `NEXT_PUBLIC_S5` environment variable.
+ * @returns {React.ReactElement} The DropAudio component.
  */
 const DropAudio = ({
   field,
@@ -102,12 +104,13 @@ const DropAudio = ({
       // await putMetadata(key, cidWithoutKey, []);
       setValue(field, cidWithoutKey, true);
     } else {
-      encKey.current = '';
+      const sourceCIDWithoutExtension = removeExtensionFromCid(sourceCID);
+      setValue(field, sourceCIDWithoutExtension, false);
 
-      // await putMetadata(null, sourceCID, []);
-      setValue(field, sourceCID, false);
-
-      console.log('DropAudio: sourceCID = ', sourceCID);
+      console.log(
+        'DropAudio: sourceCIDWithoutExtension = ',
+        sourceCIDWithoutExtension,
+      );
     }
 
     console.log('DropAudio: field = ', field);

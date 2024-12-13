@@ -15,6 +15,7 @@ import { Button } from '../ui-components/button';
 import {
   currentnftcategories,
   currentnftformstate,
+  currentnfttypes,
 } from '../atoms/nftSlideOverAtom';
 import SimpleToggle from './SimpleToggle';
 import { teamsstate } from '../atoms/teamsAtom';
@@ -64,6 +65,7 @@ const NFTSlideOverLeft = ({
   const [teams, setTeams] = useRecoilState(teamsstate);
   const [permissions, setPermissions] = useRecoilState(permissionsstate);
 
+  const currentNFTTypes = useRecoilValue(currentnfttypes);
   const currentNFTCategories = useRecoilValue(currentnftcategories);
 
   const userViewStyle = 'relative mx-auto grid gap-x-4 gap-y-8 grid-cols-6';
@@ -80,7 +82,7 @@ const NFTSlideOverLeft = ({
     console.log('NFTSlideOverLeft: type = ', watch('type'));
   }, []);
 
-  const watchType = watch('type');
+  const watchType = watch('type1');
   const watchCategory = watch('category');
 
   return (
@@ -102,6 +104,7 @@ const NFTSlideOverLeft = ({
               <SimpleToggle
                 enabled={watch('isPublic')}
                 setEnabled={() => setValue('isPublic', !watch('isPublic'))}
+                disabled={true}
               />
               <label>{watch('isPublic') ? 'Public' : 'Private'}</label>
             </div>
@@ -212,13 +215,11 @@ const NFTSlideOverLeft = ({
               <Select
                 id="type"
                 label="Type"
-                options={[
-                  { value: 'audio', label: 'audio' },
-                  { value: 'image', label: 'image' },
-                  { value: 'video', label: 'video' },
-                  { value: 'other', label: 'other' },
-                ]}
-                register={register('type')}
+                options={currentNFTTypes.map((type) => ({
+                  value: type,
+                  label: type,
+                }))}
+                register={register('type1')}
                 error={errors.type?.message}
                 className="mt-1"
                 value={watchType}

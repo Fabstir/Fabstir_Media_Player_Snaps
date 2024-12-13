@@ -49,14 +49,14 @@ const NFTSlideOverRight = ({ isPublic, encKey }) => {
 
   useEffect(() => {
     const subscription = watch((value, { name }) => {
-      if (name === 'type') {
-        setWatchType(value.type);
+      if (name === 'type1') {
+        setWatchType(value.type1);
       }
     });
 
     // Delay the initial type value retrieval
     setTimeout(() => {
-      setWatchType(getValues('type'));
+      setWatchType(getValues('type1'));
     }, 0);
 
     return () => subscription.unsubscribe();
@@ -67,7 +67,7 @@ const NFTSlideOverRight = ({ isPublic, encKey }) => {
     const handleRouteChange = () => {
       // Delay the type value retrieval on route change
       setTimeout(() => {
-        setWatchType(getValues('type'));
+        setWatchType(getValues('type1'));
       }, 0);
     };
 

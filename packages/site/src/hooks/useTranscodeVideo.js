@@ -26,7 +26,7 @@ export default function useTranscodeVideo() {
     console.log('useTranscodeVideo: url = ', url);
 
     try {
-      const response = await fetch(url, { method: 'GET' });
+      const response = await fetch(url, { method: 'POST' });
       const data = await response.json();
       console.log('useTranscodeVideo: data =', data);
 

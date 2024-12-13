@@ -33,3 +33,8 @@ export const currentnftcategories = atom({
   key: 'currentNFTCategories',
   default: [''],
 });
+
+export const currentnfttypes = atom({
+  key: 'currentNFTTypes',
+  default: [''],
+});

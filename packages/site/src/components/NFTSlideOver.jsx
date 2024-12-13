@@ -51,8 +51,9 @@ let defaultFormValues = {
   multiToken: false,
   tokenise: false,
   deployed: false,
-  isPublic: false,
+  isPublic: true,
   isNestable: false,
+  type1: '',
 };
 
 /**
@@ -132,7 +133,7 @@ const NFTSlideOver = ({
         `Description length is up to ${descriptionMax} characters`,
       )
       .required('Description required'),
-    type: yup.string().oneOf(typeValues).required('Valid type required'),
+    type1: yup.string().oneOf(typeValues).required('Valid type required'),
 
     category: yup
       .string()
@@ -260,8 +261,13 @@ const NFTSlideOver = ({
    *
    * @param {Object} data - The form data.
    */
-  async function handleSubmit_NFT(data) {
+  async function handleSubmit_NFT(dataInput) {
     console.log('NFTSlideOver: inside');
+
+    const { type1, ...rest } = dataInput;
+
+    // Create a new object with type and the rest of the properties
+    const data = { type: type1, ...rest };
 
     setSubmitText('Creating...');
 

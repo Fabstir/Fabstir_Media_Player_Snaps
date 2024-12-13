@@ -33,6 +33,7 @@ import {
 } from '../src/atoms/currenciesAtom';
 import {
   currentnftcategories,
+  currentnfttypes,
   nftslideoverstate,
 } from '../src/atoms/nftSlideOverAtom';
 
@@ -131,6 +132,7 @@ const Index = () => {
   const nfts = useNFTs(userPub);
 
   const [currentNFT, setCurrentNFT] = useRecoilState(currentnftmetadata);
+  const [currentNFTTypes, setCurrentNFTTypes] = useRecoilState(currentnfttypes);
   const [currentNFTCategories, setCurrentNFTCategories] =
     useRecoilState(currentnftcategories);
 
@@ -247,6 +249,9 @@ const Index = () => {
       'ticket',
     ];
     setCurrentNFTCategories(theCurrentNFTCategories);
+
+    const theCurrentNFTTypes = ['audio', 'image', 'video', 'other'];
+    setCurrentNFTTypes(theCurrentNFTTypes);
 
     setCurrenciesLogoUrl({
       USDC: 'assets/coins/usd-coin-stablecoin-logo.svg',
@@ -791,6 +796,21 @@ const Index = () => {
     );
   };
 
+  // Function to set CSS variables
+  const setCSSVariables = (colorObj: any, prefix = '') => {
+    if (!colorObj) {
+      setDefaultColors();
+      return;
+    }
+
+    Object.keys(colorObj).forEach((key) => {
+      const cssVariableName = `--${prefix}${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
+      const cssValue = colorObj[key];
+      // Set the CSS variable dynamically
+      document.documentElement.style.setProperty(cssVariableName, cssValue);
+    });
+  };
+
   const fetchColor = async () => {
     try {
       const colors = await getUserColor(userAuthPub);
@@ -802,17 +822,6 @@ const Index = () => {
         saturationNumber,
       } = colors ?? {};
 
-      // Function to set CSS variables
-      const setCSSVariables = (colorObj: any, prefix = '') => {
-        if (!colorObj) return;
-
-        Object.keys(colorObj).forEach((key) => {
-          const cssVariableName = `--${prefix}${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
-          const cssValue = colorObj[key];
-          // Set the CSS variable dynamically
-          document.documentElement.style.setProperty(cssVariableName, cssValue);
-        });
-      };
       // Set CSS variables for colors
       setCSSVariables(primaryColor, '');
       setCSSVariables(secondaryColor, '');
@@ -820,44 +829,18 @@ const Index = () => {
       setCSSVariables(neutralsColor?.light, 'light-');
       setCSSVariables(neutralsColor?.dark, 'dark-');
 
+      // Log the RGB values of the --light-background and --dark-background CSS variables
+      const root = document.documentElement;
+      const lightBackground =
+        getComputedStyle(root).getPropertyValue('--light-background');
+      const darkBackground =
+        getComputedStyle(root).getPropertyValue('--dark-background');
+      console.log('colors: RGB value of --light-background:', lightBackground);
+      console.log('colors: RGB value of --dark-background:', darkBackground);
       // Save colors to state
     } catch (error) {
       // handleError(error);
     }
-  };
-  const mapColorsToCSSVariables = (colors: any, prefix: string = '') => {
-    const colorMapping: { [key: string]: string } = {
-      primaryColor: '--primary-color',
-      primaryContentColor: '--primary-content-color',
-      primaryLightColor: '--primary-light-color',
-      primaryDarkColor: '--primary-dark-color',
-      secondaryColor: '--secondary-color',
-      secondaryContentColor: '--secondary-content-color',
-      secondaryLightColor: '--secondary-light-color',
-      secondaryDarkColor: '--secondary-dark-color',
-      successColor: '--success-color',
-      successContentColor: '--success-content-color',
-      warningColor: '--warning-color',
-      warningContentColor: '--warning-content-color',
-      errorColor: '--error-color',
-      errorContentColor: '--error-content-color',
-      foreground: '--foreground',
-      background: '--background',
-      border: '--border',
-      copy: '--copy',
-      copyLight: '--copy-light',
-      copyLighter: '--copy-lighter',
-    };
-
-    Object.entries(colors).forEach(([key, value]) => {
-      const cssVariableName = colorMapping[key];
-      if (cssVariableName) {
-        document.documentElement.style.setProperty(
-          `${prefix}${cssVariableName}`,
-          value as string,
-        );
-      }
-    });
   };
 
   const setDefaultColors = async () => {
@@ -868,13 +851,22 @@ const Index = () => {
       const defaultColors = await response.json();
 
       // Set light mode colors
-      mapColorsToCSSVariables(defaultColors.primaryColor);
-      mapColorsToCSSVariables(defaultColors.secondaryColor);
-      mapColorsToCSSVariables(defaultColors.utilityColors);
-      mapColorsToCSSVariables(defaultColors.neutralsColor.light, 'light-');
+      setCSSVariables(defaultColors.primaryColor);
+      setCSSVariables(defaultColors.secondaryColor);
+      setCSSVariables(defaultColors.utilityColors);
+      setCSSVariables(defaultColors.neutralsColor.light, 'light-');
 
       // Set dark mode colors
-      mapColorsToCSSVariables(defaultColors.neutralsColor.dark, 'dark-');
+      setCSSVariables(defaultColors.neutralsColor.dark, 'dark-');
+
+      // Log the RGB values of the --light-background and --dark-background CSS variables
+      const root = document.documentElement;
+      const lightBackground =
+        getComputedStyle(root).getPropertyValue('--light-background');
+      const darkBackground =
+        getComputedStyle(root).getPropertyValue('--dark-background');
+      console.log('colors: RGB value of --light-background:', lightBackground);
+      console.log('colors: RGB value of --dark-background:', darkBackground);
     } catch (error) {
       console.error('Error loading default colors:', error);
     }
@@ -882,7 +874,9 @@ const Index = () => {
 
   const fetchDefaultColors = async () => {
     try {
-      const response = await fetch('/fabstir-default-color-customization.json');
+      const response = await fetch(
+        '/settings/fabstir-default-color-customization.json',
+      );
       const defaultColors = await response.json();
 
       // Set light mode colors
