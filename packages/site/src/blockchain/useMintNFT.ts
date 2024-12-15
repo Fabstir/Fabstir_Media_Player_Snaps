@@ -212,7 +212,7 @@ export default function useMintNFT() {
         );
 
       console.log(
-        'useMintNFT: process_env.TIPERC721_ADDRESS',
+        'useMintNFT: process.env.NEXT_PUBLIC_TIPERC721_ADDRESS',
         process.env.NEXT_PUBLIC_TIPERC721_ADDRESS,
       );
       console.log('useMintNFT: nftAddress = ', nftAddress);

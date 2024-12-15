@@ -29,7 +29,6 @@ import { fetchConfig } from '../src/fetchConfig';
 import { ThemeProvider } from '../src/components/ThemeContext';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { process_env } from '../src/utils/process_env';
 
 export const queryClient = new QueryClient();
 queryClient.clear();

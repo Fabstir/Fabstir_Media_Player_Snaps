@@ -106,7 +106,8 @@ export default function useBiconomyPayment(smartAccount) {
     }
 
     try {
-      const tokenSymbol = process_env['DEFAULT_CURRENCY_' + connectedChainId];
+      const tokenSymbol =
+        process_env['NEXT_PUBLIC_DEFAULT_CURRENCY_' + connectedChainId];
 
       let paymasterServiceData = {
         mode: PaymasterMode.SPONSORED, // - mandatory // now we know chosen fee token and requesting paymaster and data for it
@@ -179,7 +180,7 @@ export default function useBiconomyPayment(smartAccount) {
    */
   async function processTransactionBundle(
     transactions,
-    isSponsored = process_env.DEFAULT_ALLOW_AA_SPONSORED,
+    isSponsored = process.env.NEXT_PUBLIC_DEFAULT_ALLOW_AA_SPONSORED,
   ) {
     const createdTransactions = [];
 

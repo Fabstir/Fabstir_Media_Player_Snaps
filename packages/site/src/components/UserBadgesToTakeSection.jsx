@@ -37,23 +37,11 @@ export default function UserBadgesToTakeSection({
   console.log('UserBadgesToTakeSection: inside');
 
   useEffect(() => {
-    console.log('UserBadgesToTakeSection: useEffect');
     if (badgesToTake.isSuccess) {
-      console.log('UserBadgesToTakeSection: inside loop');
-      //      badges.data.forEach((e) => badgeAddresses.add(e.address))
-
       if (badgesToTake.data) {
-        // let theBadges = badgesToTake.data.filter(
-        //   (x) => !badgeAddresses.has(x.address)
-        // )
         let theBadges = badgesToTake.data;
-        console.log(
-          'UserBadgesToTakeSection: badgesToTake.data = ',
-          badgesToTake.data,
-        );
-        console.log('UserBadgesToTakeSection: theBadges = ', theBadges);
 
-        if (userPub !== userAuthPub && badgesToGive?.data) {
+        if (userPub !== userAuthPub && badgesToGive.isSuccess) {
           const badgeToGiveAddresses = new Set(
             badgesToGive.data.map((e) => e.address),
           );
@@ -61,16 +49,16 @@ export default function UserBadgesToTakeSection({
             badgeToGiveAddresses.has(x.address),
           );
         }
-        console.log('UserBadgesToTakeSection: after theBadges = ', theBadges);
         setBadgesFiltered(theBadges);
-      } else setBadgesFiltered([]);
+      } else {
+        setBadgesFiltered([]);
+      }
     }
   }, [
-    badgesToTake.data,
-    badgesToTake.isLoading,
     badgesToTake.isSuccess,
-    badgesToGive.data,
+    badgesToTake.data,
     badgesToGive.isSuccess,
+    badgesToGive.data,
     userPub,
     userAuthPub,
     rerenderBadges,

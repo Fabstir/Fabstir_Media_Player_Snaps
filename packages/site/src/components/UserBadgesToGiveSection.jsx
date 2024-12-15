@@ -35,14 +35,7 @@ export default function UserBadgesToGiveSection({
   const userAuthPub = useRecoilValue(userauthpubstate);
   const setOpenBadgeToGive = useSetRecoilState(badgetogiveslideoverstate);
 
-  const [theBadges, setTheBadges] = useState();
   const { data: badges, refetch } = useBadgesToGive(userPub);
-
-  useEffect(() => {
-    setTheBadges(badges);
-    console.log('UserBadgesToGiveSection: badges = ', badges);
-    console.log('UserBadgesToGiveSection: openBadge = ', openBadge);
-  }, [badges, openBadge, setOpenBadge]);
 
   useEffect(() => {
     refetch(); // Manually trigger a refetch when rerenderBadges changes
@@ -94,14 +87,14 @@ export default function UserBadgesToGiveSection({
             </div>
 
             {/* Gallery */}
-            {theBadges?.length > 0 && (
+            {badges?.length > 0 && (
               <section className="pb-8" aria-labelledby="gallery-heading">
                 <h1 id="gallery-heading" className="sr-only">
                   Badges to Give
                 </h1>
                 <ul>
                   <UserBadgesView
-                    badges={theBadges}
+                    badges={badges}
                     twStyle={twStyle}
                     twTitleStyle={twTitleStyle}
                     twTextStyle={twTextStyle}

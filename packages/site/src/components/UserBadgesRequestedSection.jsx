@@ -50,49 +50,27 @@ export default function UserBadgesRequestedSection({
   const [badgesFiltered, setBadgesFiltered] = useState();
 
   useEffect(() => {
-    console.log(
-      'UserBadgesRequestedSection: badgesRequestedCompleted = ',
-      badgesRequestedCompleted,
-    );
-    console.log(
-      'UserBadgesRequestedSection: badgesRequestedCompleted.isSuccess = ',
-      badgesRequestedCompleted.isSuccess,
-    );
-    console.log('UserBadgesRequestedSection: useEffect');
+    // Only run when both queries are successful
     if (badgesRequested.isSuccess && badgesRequestedCompleted.isSuccess) {
-      console.log('UserBadgesRequestedSection: inside loop');
-      const badgeAddresses = new Set(
-        badgesRequestedCompleted?.data?.map((e) => e.address),
+      const completedAddresses = new Set(
+        badgesRequestedCompleted.data?.map((badge) => badge.address) || [],
       );
-      //      badgesRequested.data.forEach((e) => badgeAddresses.add(e.address))
 
-      if (badgesRequested?.data) {
-        let theBadges = badgesRequested.data.filter(
-          (x) => !badgeAddresses.has(x.address),
-        );
-        console.log(
-          'UserBadgesRequestedSection: badgesRequested.data = ',
-          badgesRequested.data,
-        );
-        console.log(
-          'UserBadgesRequestedSection: badgesRequestedCompleted.data = ',
-          badgesRequestedCompleted.data,
-        );
+      // Filter out completed requests
+      const pendingBadges =
+        badgesRequested.data?.filter(
+          (badge) => !completedAddresses.has(badge.address),
+        ) || [];
 
-        console.log('UserBadgesRequestedSection: theBadges = ', theBadges);
-
-        setBadgesFiltered(theBadges);
-      } else setBadgesFiltered([]);
+      setBadgesFiltered(pendingBadges);
     }
   }, [
-    badgesRequested.data,
-    badgesRequested.isLoading,
+    // Only depend on data and success states that affect filtering
     badgesRequested.isSuccess,
-    badgesRequestedCompleted.data,
-    badgesRequestedCompleted.isLoading,
     badgesRequestedCompleted.isSuccess,
-    userPub,
-    userAuthPub,
+    badgesRequested.data,
+    badgesRequestedCompleted.data,
+    // Keep rerenderState if needed for manual updates
     rerenderBadges,
   ]);
 

@@ -12,7 +12,6 @@ import { Button } from '../ui-components/button';
 import useMarketAddress from '../hooks/useMarketAddress';
 import BlockchainContext from '../../state/BlockchainContext';
 import usePortal from '../hooks/usePortal';
-import { process_env } from '../utils/process_env';
 import {
   bigNumberToFloat,
   abbreviateAddress2,
@@ -72,7 +71,7 @@ export default function PermissionUserView({
   const blockchainContext = useContext(BlockchainContext);
   const { connectedChainId } = blockchainContext;
 
-  const { getChainIdAddressFromChainIdAndAddress } = useContractUtils();
+  const { getDefaultCurrencySymbolFromChainId } = useContractUtils();
 
   const [permissionedUser, setPermissionedUser] = useState();
   const [creatorFeePercentage, setCreatorFeePercentage] = useState(0);
@@ -118,9 +117,7 @@ export default function PermissionUserView({
 
   const { epsilon } = useMaths();
 
-  const defaultCurrencySymbolName =
-    'NEXT_PUBLIC_DEFAULT_CURRENCY_' + connectedChainId;
-  const defaultCurrency = process_env[defaultCurrencySymbolName];
+  const defaultCurrency = getDefaultCurrencySymbolFromChainId(connectedChainId);
 
   const farFutureDate = new Date('3000-01-01T00:00:00Z');
 
