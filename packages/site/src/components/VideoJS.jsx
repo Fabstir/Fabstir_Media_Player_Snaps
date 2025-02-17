@@ -979,10 +979,23 @@ const VideoJS = ({
   //   }
   // }, [isPlayClicked, audioMainSrc, audioTrailerSrc, isMuted])
   useEffect(() => {
-    if (isPlayClicked && videoRef.current) {
+    if (!isAudio && isPlayClicked && videoRef.current) {
       videoRef.current.removeAttribute('poster');
     }
   }, [isPlayClicked]);
+
+  useEffect(() => {
+    if (isPlayClicked && isAudio && playerRef.current) {
+      playerRef.current.one('play', () => {
+        // Reapply the poster image when playing audio
+        playerRef.current.poster(options?.poster);
+        // Also update the video element attribute, just in case
+        if (videoRef.current) {
+          videoRef.current.setAttribute('poster', options?.poster);
+        }
+      });
+    }
+  }, [isPlayClicked, isAudio, options]);
 
   return (
     <div data-vjs-player className="relative">

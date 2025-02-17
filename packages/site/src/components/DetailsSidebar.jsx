@@ -215,9 +215,13 @@ export default function DetailsSidebar({
   const [encKey, setEncKey] = useState();
   const [mediaMetadata, setMediaMetadata] = useState();
 
-  const { getMetadataFromUser, getMediaResumeState, putMediaResumeState } =
-    useNFTMedia();
-  const [playerCurrentTime, setPlayerCurrentTime] = useState(0);
+  const {
+    getMetadataFromUser,
+    getMediaResumeState,
+    putMediaResumeState,
+    getPlaylistLastPlayedNFT,
+  } = useNFTMedia();
+  const [player, setPlayer] = useState(null);
   const [nftToPlay, setNFTToPlay] = useState();
   const { mutate: deleteNFT, ...deleteNFTInfo } = useDeleteNFT(userAuthPub);
 
@@ -311,7 +315,7 @@ export default function DetailsSidebar({
             encKey,
             cidWithoutKey,
           );
-          setMediaMetadata(mediaMetadata);
+          setMediaMetadata({ nft, mediaMetadata });
           console.log(
             'checkIfUserSubscribedToNFT: mediaMetadata = ',
             mediaMetadata,
@@ -426,11 +430,28 @@ export default function DetailsSidebar({
     // if (mediaMetadata && mediaMetadata.length > 0) {
 
     if (currentNFT?.playlist?.length > 0) {
-      playlistNFT.current = currentNFT;
-      playlistCurrentIndex.current = 0;
+      (async () => {
+        playlistNFT.current = currentNFT;
 
-      const playlistChildNFT = currentNFT.playlist[0];
-      setNFTToPlay(playlistChildNFT);
+        const lastPlayedNFTObj = await getPlaylistLastPlayedNFT(currentNFT);
+
+        let index;
+
+        if (
+          lastPlayedNFTObj?.lastplayedNFTAddressId !== undefined &&
+          lastPlayedNFTObj?.lastplayedNFTAddressId !== null
+        ) {
+          index = currentNFT?.playlist.findIndex(
+            (nft) =>
+              getUniqueKeyFromNFT(nft).toLowerCase() ===
+              lastPlayedNFTObj.lastplayedNFTAddressId.toLowerCase(),
+          );
+        }
+        playlistCurrentIndex.current = index ?? 0;
+
+        const playlistChildNFT = currentNFT.playlist[0];
+        setNFTToPlay(playlistChildNFT);
+      })();
     } else {
       if (
         currentNFT?.playlistNFT &&
@@ -756,6 +777,7 @@ export default function DetailsSidebar({
     if (!(playlistNFT?.current?.playlist?.length > 0)) {
       setIsPlayClicked(false);
       setIsPlay(false);
+      setMediaMetadata(null);
       return;
     }
 
@@ -766,21 +788,19 @@ export default function DetailsSidebar({
       playlistNFT.current.playlist[playlistCurrentIndex.current],
     );
 
-    if (playlistNFT.current.playlist[playlistCurrentIndex.current])
-      await putMediaResumeState(
-        playlistNFT.current.playlist[playlistCurrentIndex.current],
-        0,
-        0,
-        resumeState?.isFinished,
-      );
-
     if (playlistCurrentIndex.current >= playlistNFT.current.playlist.length) {
       playlistCurrentIndex.current = 0;
       setIsPlayClicked(false);
       setIsPlay(false);
       setNFT(playlistNFT.current);
       console.log('Reached end of playlist.');
-    }
+    } else
+      await putMediaResumeState(
+        playlistNFT.current.playlist[playlistCurrentIndex.current],
+        0,
+        0,
+        resumeState?.isFinished,
+      );
   };
 
   const handlePrev = () => {
@@ -890,6 +910,9 @@ export default function DetailsSidebar({
           )}
 
           {nft?.video &&
+            mediaMetadata?.nft &&
+            getUniqueKeyFromNFT(mediaMetadata.nft) ===
+              getUniqueKeyFromNFT(nft) &&
             (encKey === null ||
               (typeof encKey === 'string' && encKey.trim() !== '')) && (
               <div>
@@ -903,7 +926,7 @@ export default function DetailsSidebar({
                         encKey={encKey}
                         isPlayClicked={isPlayClicked}
                         setIsPlayClicked={setIsPlayClicked}
-                        metadata={mediaMetadata}
+                        metadata={mediaMetadata.mediaMetadata}
                         handleNext={
                           playlistNFT.current?.playlist?.length > 0
                             ? handleNext
@@ -941,6 +964,9 @@ export default function DetailsSidebar({
             )}
 
           {nft?.audio &&
+            mediaMetadata?.nft &&
+            getUniqueKeyFromNFT(mediaMetadata.nft) ===
+              getUniqueKeyFromNFT(nft) &&
             (encKey === null ||
               (typeof encKey === 'string' && encKey.trim() !== '')) && (
               <div>
@@ -954,8 +980,19 @@ export default function DetailsSidebar({
                         encKey={encKey}
                         isPlayClicked={isPlayClicked}
                         setIsPlayClicked={setIsPlayClicked}
-                        metadata={mediaMetadata}
-                        setPlayerCurrentTime={setPlayerCurrentTime}
+                        metadata={mediaMetadata.mediaMetadata}
+                        setPlayer={setPlayer}
+                        handleNext={
+                          playlistNFT.current?.playlist?.length > 0
+                            ? handleNext
+                            : null
+                        }
+                        handlePrev={
+                          playlistNFT.current?.playlist?.length > 0
+                            ? handlePrev
+                            : null
+                        }
+                        playlistNFT={playlistNFT.current}
                       />
                     ) : (
                       <img
@@ -977,10 +1014,7 @@ export default function DetailsSidebar({
                       </div>
                     )}
                   </div>
-                  <NFTAudioLyrics
-                    nft={nft}
-                    playerCurrentTime={playerCurrentTime}
-                  />
+                  <NFTAudioLyrics nft={nft} player={player} />
                 </div>
               </div>
             )}
@@ -1107,35 +1141,7 @@ export default function DetailsSidebar({
             <TeamsView teams={nft?.teams} />
           </div>
 
-          {nft?.playlist && (
-            <div>
-              <div className="relative z-0 mx-4 mb-4 mt-8 flex items-center justify-between pt-8">
-                <span className="text-fabstir-white justify-start whitespace-nowrap pr-3 text-lg font-semibold tracking-wide">
-                  Playlist NFTs
-                </span>
-                <div className="border-fabstir-divide-color1 w-full border-t" />
-                <div className="ml-4">Public</div>
-              </div>
-
-              <div className="bg-fabstir-medium-dark-gray relative z-0 rounded-lg p-4 pb-4 shadow-lg">
-                <PlaylistsView
-                  nfts={nft.playlist.map((aNFT) => ({
-                    ...aNFT,
-                    playlistNFT: nft,
-                  }))}
-                  // setNFTs={updateNFTPlaylist}
-                  userAccountAddress={userAuthProfile?.accountAddress}
-                  twStyle={twPlaylistStyle}
-                  twTitleStyle={twPlaylistTitleStyle}
-                  twTextStyle={twPlaylistTextStyle}
-                  disableNavigation={false}
-                  scale={110}
-                />
-              </div>
-            </div>
-          )}
-
-          {playlistNFT.current?.playlist && (
+          {playlistNFT.current?.playlist?.length > 0 ? (
             <div>
               <div className="relative z-0 mx-4 mb-4 mt-8 flex items-center justify-between pt-8">
                 <span className="text-fabstir-white justify-start whitespace-nowrap pr-3 text-lg font-semibold tracking-wide">
@@ -1161,7 +1167,33 @@ export default function DetailsSidebar({
                 />
               </div>
             </div>
-          )}
+          ) : nft?.playlist?.length > 0 ? (
+            <div>
+              <div className="relative z-0 mx-4 mb-4 mt-8 flex items-center justify-between pt-8">
+                <span className="text-fabstir-white justify-start whitespace-nowrap pr-3 text-lg font-semibold tracking-wide">
+                  Playlist NFTs
+                </span>
+                <div className="border-fabstir-divide-color1 w-full border-t" />
+                <div className="ml-4">Public</div>
+              </div>
+
+              <div className="bg-fabstir-medium-dark-gray relative z-0 rounded-lg p-4 pb-4 shadow-lg">
+                <PlaylistsView
+                  nfts={nft.playlist.map((aNFT) => ({
+                    ...aNFT,
+                    playlistNFT: nft,
+                  }))}
+                  // setNFTs={updateNFTPlaylist}
+                  userAccountAddress={userAuthProfile?.accountAddress}
+                  twStyle={twPlaylistStyle}
+                  twTitleStyle={twPlaylistTitleStyle}
+                  twTextStyle={twPlaylistTextStyle}
+                  disableNavigation={false}
+                  scale={110}
+                />
+              </div>
+            </div>
+          ) : null}
 
           <div className="mt-2">
             <h2 className="text-2xl font-semibold tracking-tight text-fabstir-dark-gray sm:text-xl mt-6">

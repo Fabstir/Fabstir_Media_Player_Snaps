@@ -1,6 +1,7 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import 'video.js/dist/video-js.css';
 import usePortal from '../hooks/usePortal';
+import throttle from 'lodash.throttle';
 
 /**
  * @param {object} object - object with sorted integer keys
@@ -35,9 +36,9 @@ function classNames(...classes) {
  */
 export const NFTAudioLyrics = ({
   nft,
-  playerCurrentTime,
   bgColourLyrics = 'bg-fabstir-black',
   highlightColourLyrics = 'bg-fabstir-white',
+  player,
 }) => {
   const { downloadFile } = usePortal();
 
@@ -46,6 +47,7 @@ export const NFTAudioLyrics = ({
   const [lyrics, setLyrics] = useState();
 
   const scrollable = useRef(null);
+  const [playerCurrentTime, setPlayerCurrentTime] = useState(0);
 
   React.useEffect(() => {
     (async () => {
@@ -87,6 +89,44 @@ export const NFTAudioLyrics = ({
     })();
   }, []);
 
+  useEffect(() => {
+    // If player is falsy, do nothing
+    if (!player) return;
+    if (typeof player.on !== 'function') return;
+
+    // Capture the current player instance
+    const currentPlayer = player;
+
+    const throttleTimeUpdate = throttle((time) => {
+      setPlayerCurrentTime(time);
+    }, 250);
+
+    const onTimeUpdate = () => {
+      // Double-check currentPlayer is valid before calling currentTime
+      if (currentPlayer && typeof currentPlayer.currentTime === 'function') {
+        throttleTimeUpdate(currentPlayer.currentTime());
+      }
+    };
+
+    // Use a try/catch when setting the listener
+    try {
+      currentPlayer.on('timeupdate', onTimeUpdate);
+    } catch (error) {
+      console.error('Error adding timeupdate listener:', error);
+    }
+
+    return () => {
+      throttleTimeUpdate.cancel();
+      try {
+        if (currentPlayer && typeof currentPlayer.off === 'function') {
+          currentPlayer.off('timeupdate', onTimeUpdate);
+        }
+      } catch (error) {
+        console.error('Error removing timeupdate listener:', error);
+      }
+    };
+  }, [player]);
+
   React.useEffect(() => {
     if (lyrics) {
       const idx = getValueForLowestKey(lyricsKeys, playerCurrentTime);
@@ -117,7 +157,7 @@ export const NFTAudioLyrics = ({
                 'absolute top-1/2 h-12 w-full -translate-y-1/2 mix-blend-overlay blur-md',
               )}
             ></div>
-            <pre className="font-open-sans scroll-hidden ref={scrollable} h-full overflow-auto text-center tracking-wide text-dark-gray scrollbar-hide">
+            <pre className="font-open-sans scroll-hidden ref={scrollable} h-full overflow-auto text-center tracking-wide text-light-gray scrollbar-hide">
               <div>
                 {lyricsIndexDisplay?.map((key, index) => (
                   <p key={`${key}-${index}`}>{lyrics[key]}</p>

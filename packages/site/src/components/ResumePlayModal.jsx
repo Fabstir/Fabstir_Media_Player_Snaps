@@ -6,6 +6,7 @@ export default function ResumePlayModal({
   onResume,
   onRestart,
   onClose,
+  contentName,
 }) {
   const formatTime = (seconds) => {
     const hrs = Math.floor(seconds / 3600);
@@ -23,8 +24,8 @@ export default function ResumePlayModal({
           Resume Playback?
         </h3>
         <p className="mb-4 text-light-gray">
-          Would you like to resume from {formatTime(resumeTime)} or start from
-          the beginning?
+          Would you like to resume {contentName} from {formatTime(resumeTime)}{' '}
+          or start from the beginning?
         </p>
         <div className="flex justify-end space-x-4">
           <Button

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { PlayIcon } from 'heroiconsv2/24/solid';
 import ResumePlayModal from './ResumePlayModal';
 import useNFTMedia from '../hooks/useNFTMedia';
@@ -85,6 +85,36 @@ const MediaCaption = ({
     }
   };
 
+  const [contentName, setContentName] = useState('');
+
+  useEffect(() => {
+    if (nft?.playlist?.length > 0) {
+      (async () => {
+        const playlistLastPlayedNFTAddressId =
+          await getPlaylistLastPlayedNFT(nft);
+
+        let currentIndex;
+        if (playlistLastPlayedNFTAddressId?.lastplayedNFTAddressId) {
+          currentIndex = nft?.playlist?.findIndex(
+            (nft) =>
+              getUniqueKeyFromNFT(nft).toLowerCase() ===
+              playlistLastPlayedNFTAddressId.lastplayedNFTAddressId.toLowerCase(),
+          );
+        }
+
+        const playlistChildNFT =
+          currentIndex !== undefined && currentIndex !== null
+            ? nft.playlist[currentIndex]
+            : null;
+        setContentName(
+          `${playlistChildNFT?.title || playlistChildNFT?.name} from playlist ${nft?.title || nft?.name}`,
+        );
+      })();
+    } else {
+      setContentName(nft?.title || nft?.name);
+    }
+  }, [nft]);
+
   return (
     <div className="text-white dark:text-white">
       <div
@@ -111,6 +141,7 @@ const MediaCaption = ({
             {showResumeModal && (
               <ResumePlayModal
                 resumeTime={resumeTime}
+                contentName={contentName}
                 onResume={async () => {
                   if (nft?.playlist?.length > 0) {
                     const playlistLastPlayedNFTAddressId =
@@ -141,9 +172,6 @@ const MediaCaption = ({
                 }}
                 onRestart={async () => {
                   if (nft?.playlist?.length > 0) {
-                    const playlistLastPlayedNFTAddressId =
-                      await getPlaylistLastPlayedNFT(nft);
-
                     await putPlaylistLastPlayedNFT(nft, nft.playlist[0]);
                     setPlaylistCurrentIndex(0);
 

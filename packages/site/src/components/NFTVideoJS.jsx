@@ -47,8 +47,6 @@ export const NFTVideoJS = ({
   const [trailerSubtitleTracks, setTrailerSubtitleTracks] = useState([]);
   const [mainSubtitleTracks, setMainSubtitleTracks] = useState([]);
 
-  const [duration, setDuration] = useState(0);
-  const [currentTime, setCurrentTime] = useState(0);
   const [killswitch, setKillswitch] = useState(false);
 
   const hasExecutedRef = useRef(false);
@@ -138,11 +136,6 @@ export const NFTVideoJS = ({
       });
     }
 
-    // player.on('ended', () => {
-    //   handleNext?.();
-    //   console.log('player ended');
-    // });
-
     player.on('timeupdate', function (event) {
       //chrome fix
       if (
@@ -178,10 +171,6 @@ export const NFTVideoJS = ({
 
     player.on('resolutionchange', function () {
       console.info('Source changed to %s', player.src());
-    });
-
-    player.on('loadedmetadata', () => {
-      setDuration(player.duration());
     });
 
     // player.on('*', function (event) {

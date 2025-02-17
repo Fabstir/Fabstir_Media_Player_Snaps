@@ -3,6 +3,8 @@ import 'video.js/dist/video-js.css';
 import usePortal from '../hooks/usePortal';
 import VideoJS from './VideoJS';
 import useAudioLink from '../hooks/useAudioLink';
+import useNFTMedia from '../hooks/useNFTMedia';
+import { ArrowLeftIcon, ArrowRightIcon } from 'heroiconsv2/24/outline';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -15,7 +17,10 @@ export const NFTAudioJS = ({
   isPlayClicked,
   setIsPlayClicked,
   metadata,
-  setPlayerCurrentTime,
+  setPlayer,
+  handleNext,
+  handlePrev,
+  playlistNFT,
 }) => {
   const getAudioLink = useAudioLink();
 
@@ -26,8 +31,65 @@ export const NFTAudioJS = ({
 
   const scrollable = useRef(null);
 
+  const {
+    getMediaResumeState,
+    putMediaResumeState,
+    putPlaylistLastPlayedNFT,
+    getPlaylistLastPlayedNFT,
+  } = useNFTMedia();
+
+  // Add ref to track current nft
+  const nftRef = useRef(nft);
+
+  async function handlePlayerResume(player) {
+    const resumeState = await getMediaResumeState(nftRef.current);
+    if (resumeState?.resumeTime) player.currentTime(resumeState.resumeTime);
+  }
+
+  async function handlePlayerSaveResumeTime(player) {
+    if (!player) return;
+
+    const currentTime = player.currentTime() || 0;
+
+    const duration = player.duration();
+    const resumeTimePercent = (currentTime / duration) * 100;
+
+    const resumeState = await getMediaResumeState(nftRef.current);
+
+    await putMediaResumeState(
+      nftRef.current,
+      currentTime,
+      resumeTimePercent,
+      resumeState?.isFinished ||
+        resumeTimePercent >= process.env.NEXT_PUBLIC_FINISHED_PERCENT_THRESHOLD,
+    );
+
+    if (playlistNFT?.playlist?.length > 0)
+      await putPlaylistLastPlayedNFT(playlistNFT, nftRef.current);
+  }
+
+  async function handlePlayerEnd(player) {
+    const currentTime = player.currentTime() || 0;
+    const resumeState = await getMediaResumeState(nftRef.current);
+
+    const duration = player.duration();
+    const resumeTimePercent = (currentTime / duration) * 100;
+
+    await putMediaResumeState(
+      nftRef.current,
+      0,
+      0,
+      resumeState?.isFinished ||
+        resumeTimePercent >= process.env.NEXT_PUBLIC_FINISHED_PERCENT_THRESHOLD,
+    );
+
+    if (playlistNFT?.playlist?.length > 0)
+      await putPlaylistLastPlayedNFT(playlistNFT, playlistNFT.playlist[0]);
+  }
+
   const handlePlayerReady = (player) => {
     console.log('test: ScreenView handlePlayerReady');
+    setPlayer(player);
 
     // you can handle player events here
     player.on('waiting', () => {
@@ -39,12 +101,21 @@ export const NFTAudioJS = ({
         setIsPlay(true);
       });
 
-      player.on('pause', () => {
-        setIsPlay(false);
-      });
+      player.on('timeupdate', function (event) {
+        //chrome fix
+        if (
+          player.duration() > 0 &&
+          player.currentTime() >= player.duration() - 0.1
+        ) {
+          console.log(
+            `NFTVideoJS: player.currentTime() = ${player.currentTime()}`,
+          );
+          console.log(`NFTVideoJS: player.duration() = ${player.duration()}`);
+          if (handleNext) player.currentTime(0);
 
-      player.on('ended', () => {
-        setIsPlay(false);
+          handleNext?.();
+          console.log('video ended');
+        }
       });
     }
 
@@ -58,11 +129,11 @@ export const NFTAudioJS = ({
       player.bigPlayButton.hide();
     });
 
-    if (setPlayerCurrentTime) {
-      player.on('timeupdate', () => {
-        setPlayerCurrentTime(player.currentTime());
-      });
-    }
+    // if (setPlayerCurrentTime) {
+    //   player.on('timeupdate', () => {
+    //     setPlayerCurrentTime(player.currentTime());
+    //   });
+    // }
 
     player.on('dispose', () => {
       console.log('player will dispose');
@@ -87,13 +158,16 @@ export const NFTAudioJS = ({
   };
 
   React.useEffect(() => {
+    // Update ref when nft changes
+    nftRef.current = nft;
+
     if (!nft && !encKey && !metadata) return;
 
-    setIsPlayClicked(false);
+    //    setIsPlayClicked(false);
     (async () => {
       const mainAudioData = await getAudioLink({
         key: encKey,
-        cidWithoutKey: nft.audio,
+        cidWithoutKey: nftRef.current.audio,
         metadata,
       });
 
@@ -104,10 +178,10 @@ export const NFTAudioJS = ({
         // if (setMainSubtitleTracks) setMainSubtitleTracks(subtitleTracks);
       }
 
-      if (nft.animation_url) {
+      if (nftRef.current.animation_url) {
         const trailerData = await getAudioLink({
           key: null,
-          cidWithoutKey: nft.animation_url,
+          cidWithoutKey: nftRef.current.animation_url,
         });
 
         if (trailerData) {
@@ -120,7 +194,8 @@ export const NFTAudioJS = ({
       } else setTrailerSource(null);
 
       let nftImage;
-      if (nft && nft.image) nftImage = await getBlobUrl(nft.image);
+      if (nftRef.current?.image)
+        nftImage = await getBlobUrl(nftRef.current.image);
       else nftImage = null;
 
       const theOptions = {
@@ -134,32 +209,48 @@ export const NFTAudioJS = ({
         width: 1920,
         playbackRates: [0.5, 1, 1.5, 2],
         poster: nftImage,
-        posterImage: false,
+        posterImage: true,
         userActions: { hotkeys: true },
         html5: {
           vhs: {
             withCredentials: true,
           },
         },
-        portalType: getPortalType(nft.audio),
+        portalType: getPortalType(nftRef.current.audio),
         preload: 'none',
       };
       setOptions(theOptions);
     })();
-  }, [nft]);
+  }, [nft?.address, nft?.id]);
 
   return (
     <div>
       {options && (
-        <VideoJS
-          options={options}
-          trailerSource={trailerSource}
-          mainSource={mainSource}
-          onReady={handlePlayerReady}
-          isPlayClicked={isPlayClicked}
-          setIsPlayClicked={setIsPlayClicked}
-          isAudio={true}
-        />
+        <>
+          <VideoJS
+            options={options}
+            trailerSource={trailerSource}
+            mainSource={mainSource}
+            onReady={handlePlayerReady}
+            isPlayClicked={isPlayClicked}
+            setIsPlayClicked={setIsPlayClicked}
+            isAudio={true}
+            handlePlayerPlay={handlePlayerResume}
+            handlePlayerPause={handlePlayerSaveResumeTime}
+            handlePlayerEnd={handlePlayerEnd}
+            handlePlayerDispose={handlePlayerSaveResumeTime}
+            isPlaylist={playlistNFT?.playlist?.length > 0}
+          />
+
+          <div style={{ marginTop: '10px', display: 'flex', gap: '1rem' }}>
+            <button onClick={() => handlePrev?.()} aria-label="Previous Video">
+              <ArrowLeftIcon size={24} />
+            </button>
+            <button onClick={() => handleNext?.()} aria-label="Next Video">
+              <ArrowRightIcon size={24} />
+            </button>
+          </div>
+        </>
       )}
     </div>
   );
