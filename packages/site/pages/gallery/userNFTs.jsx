@@ -189,7 +189,6 @@ export default function UserNFTs() {
   const [openNFT, setOpenNFT] = useRecoilState(nftslideoverstate);
   const [submitText, setSubmitText] = useState('Create NFT');
 
-  const [isPlayClicked, setIsPlayClicked] = useState(false);
   const [rerenderUserNFTs, setRerenderUserNFTs] = useState(0);
 
   const [openTransferNFTSliderOver, setOpenTransferNFTSliderOver] =
@@ -783,10 +782,7 @@ export default function UserNFTs() {
           />
         </div>
         <div className="mx-auto w-full">
-          <DetailsSidebar
-            isPlayClicked={isPlayClicked}
-            setIsPlayClicked={setIsPlayClicked}
-          />
+          <DetailsSidebar />
         </div>
 
         <BadgeDetailsSlideOver

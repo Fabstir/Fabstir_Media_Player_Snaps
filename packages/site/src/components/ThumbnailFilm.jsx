@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { MinusIcon, PlusIcon } from '@heroicons/react/24/solid';
 import Image from 'next/image';
 import { forwardRef } from 'react';
 import { useRecoilState } from 'recoil';
 import { currentnftmetadata } from '../atoms/nftSlideOverAtom';
+import useNFTMedia from '../hooks/useNFTMedia';
 
 /**
  * A utility function to concatenate class names.
@@ -49,9 +50,43 @@ const ThumbnailFilm = forwardRef(
      * @type {[Object, Function]}
      */
     const [currentNFT, setCurrentNFT] = useRecoilState(currentnftmetadata);
+    const { getMediaResumeState } = useNFTMedia();
+    const [resumeState, setResumeState] = useState({
+      resumeTimePercent: 0,
+      isFinished: false,
+    });
+
+    useEffect(() => {
+      (async () => {
+        try {
+          const state = await getMediaResumeState(nft);
+          setResumeState({
+            resumeTimePercent: state?.resumeTimePercent || 0,
+            isFinished: state?.isFinished || false,
+          });
+        } catch (err) {
+          console.error('Error getting media resume state:', err);
+        }
+      })();
+    }, [nft]);
 
     return (
       <div ref={ref} className="group transform cursor-pointer p-2">
+        <div
+          className={`absolute left-0 top-0 z-10 h-1 ${
+            resumeState.isFinished ? 'bg-secondary-light' : 'bg-secondary'
+          }`}
+          style={{
+            width: `${
+              resumeState.isFinished
+                ? resumeState.resumeTimePercent === 0
+                  ? 100
+                  : resumeState.resumeTimePercent
+                : resumeState.resumeTimePercent
+            }%`,
+          }}
+        />
+
         <div className="shadow-lg shadow-fabstir-dark-purple md:shadow-lg lg:shadow-xl xl:shadow-xl 2xl:shadow-xl 3xl:shadow-2xl">
           <Image
             layout="responsive"

@@ -12,7 +12,7 @@ import { userauthpubstate } from '../atoms/userAuthAtom';
 import useEncKey from './useEncKey';
 import useMintNFT from '../blockchain/useMintNFT';
 import useCreateNFT from './useCreateNFT';
-import { getNFTAddressId, constructNFTAddressId } from '../utils/nftUtils';
+import { getUniqueKeyFromNFT, constructNFTAddressId } from '../utils/nftUtils';
 import useUploadEncKey from './useUploadEncKey';
 import useContractUtils from '../blockchain/useContractUtils';
 import { useContext } from 'react';
@@ -631,6 +631,156 @@ export default function useNFTMedia() {
     }
   };
 
+  async function putMediaResumeState(
+    nft,
+    resumeTime,
+    resumeTimePercent,
+    isFinished = false,
+  ) {
+    if (!nft) throw new Error('Missing media required data for resuming');
+
+    const resumeState = { resumeTime, resumeTimePercent, isFinished };
+
+    const resumeStateScrambled = await SEA.encrypt(resumeState, user._.sea);
+
+    return new Promise((resolve, reject) => {
+      user
+        .get('resume times')
+        .get(getUniqueKeyFromNFT(nft))
+        .put(resumeStateScrambled, (ack) => {
+          if (ack.err) {
+            console.error('putMediaResumeState: error = ', ack.err);
+            reject(ack.err);
+          } else {
+            console.log(
+              'putMediaResumeState: resume time saved successfully resumeState = ',
+              resumeState,
+            );
+            console.log('putMediaResumeState: nft = ', nft);
+
+            resolve();
+          }
+        });
+    });
+  }
+
+  async function getMediaResumeState(nft) {
+    if (!nft) return;
+
+    try {
+      const resultScrambled = await new Promise((resolve, reject) => {
+        user
+          .get('resume times')
+          .get(getUniqueKeyFromNFT(nft))
+          .once((final_value) => {
+            if (final_value === undefined) {
+              resolve(undefined);
+            } else {
+              resolve(final_value);
+            }
+          });
+      });
+
+      if (resultScrambled === undefined) {
+        return undefined;
+      }
+
+      const result = await SEA.decrypt(resultScrambled, user._.sea);
+      return result;
+    } catch (error) {
+      console.error('Error in getMediaResumeState:', error);
+      return undefined;
+    }
+  }
+
+  async function putMediaResumeIsFinished(nft, isFinished) {
+    if (!nft) throw new Error('Missing media required data for resuming');
+
+    const resumeState = await getMediaResumeState(nft);
+    const resumeStateScrambled = await SEA.encrypt(
+      { ...resumeState, isFinished },
+      user._.sea,
+    );
+
+    return new Promise((resolve, reject) => {
+      user
+        .get('resume times')
+        .get(getUniqueKeyFromNFT(nft))
+        .put(resumeStateScrambled, (ack) => {
+          if (ack.err) {
+            console.error('putMediaResumeIsFinished: error = ', ack.err);
+            reject(ack.err);
+          } else {
+            console.log(
+              'putMediaResumeIsFinished: resume time saved successfully isFinished = ',
+              isFinished,
+            );
+            resolve();
+          }
+        });
+    });
+  }
+
+  async function putPlaylistLastPlayedNFT(playlistNFT, nft) {
+    if (!playlistNFT || !nft)
+      throw new Error('Missing media required data for resuming playlist');
+
+    const lastplayedNFTAddressId = getUniqueKeyFromNFT(nft);
+    const lastplayedNFTScrambled = await SEA.encrypt(
+      { lastplayedNFTAddressId },
+      user._.sea,
+    );
+
+    return new Promise((resolve, reject) => {
+      user
+        .get('last played NFT')
+        .get(getUniqueKeyFromNFT(playlistNFT))
+        .put(lastplayedNFTScrambled, (ack) => {
+          if (ack.err) {
+            console.error('putPlaylistLastPlayedNFT: error = ', ack.err);
+            reject(ack.err);
+          } else {
+            console.log(
+              'putPlaylistLastPlayedNFT: playlist last played nft address id saved successfully isFinished = ',
+            );
+            resolve();
+          }
+        });
+    });
+  }
+
+  async function getPlaylistLastPlayedNFT(playlistNFT) {
+    if (!playlistNFT) return;
+
+    try {
+      const resultScrambled = await new Promise((resolve, reject) => {
+        user
+          .get('last played NFT')
+          .get(getUniqueKeyFromNFT(playlistNFT))
+          .once((final_value) => {
+            if (final_value === undefined) {
+              resolve(undefined);
+            } else {
+              resolve(final_value);
+            }
+          });
+      });
+
+      if (resultScrambled === undefined) {
+        return undefined;
+      }
+
+      const result = await SEA.decrypt(resultScrambled, user._.sea);
+      return result;
+    } catch (error) {
+      console.error(
+        'getPlaylistLastPlayedNFT: Error in getPlaylistLastPlayedNFT:',
+        error,
+      );
+      return undefined;
+    }
+  }
+
   return {
     getMetadata,
     putMetadata,
@@ -649,5 +799,10 @@ export default function useNFTMedia() {
     getMetadataFromUser,
     unlockVideoFromController,
     unlockNestableKeysFromController,
+    putMediaResumeState,
+    getMediaResumeState,
+    putMediaResumeIsFinished,
+    putPlaylistLastPlayedNFT,
+    getPlaylistLastPlayedNFT,
   };
 }

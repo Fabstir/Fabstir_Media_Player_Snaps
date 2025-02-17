@@ -1,5 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { PlayIcon } from 'heroiconsv2/24/solid';
+import ResumePlayModal from './ResumePlayModal';
+import useNFTMedia from '../hooks/useNFTMedia';
+import { getUniqueKeyFromNFT } from '../utils/nftUtils';
 
 /**
  * Renders a media caption component for an NFT, including its title, overview, media type, and release date.
@@ -13,10 +16,74 @@ import { PlayIcon } from 'heroiconsv2/24/solid';
  * @param {number} [props.nftQuantity] - The quantity of the NFT, optional.
  * @returns {React.ReactElement} The MediaCaption component.
  */
-const MediaCaption = ({ nft, setIsPlayClicked, nftQuantity }) => {
+const MediaCaption = ({
+  nft,
+  setIsPlayClicked,
+  nftQuantity,
+  playlistNFT,
+  setPlaylistCurrentIndex,
+}) => {
+  const {
+    getMediaResumeState,
+    putMediaResumeState,
+    putPlaylistLastPlayedNFT,
+    getPlaylistLastPlayedNFT,
+  } = useNFTMedia();
+  const [resumeTime, setResumeTime] = useState(0);
+  const [showResumeModal, setShowResumeModal] = useState(false);
+
   function handlePlay() {
     setIsPlayClicked(true);
   }
+
+  const handlePlayClick = async () => {
+    console.log('test44: handlePlayClick called'); //
+
+    if (nft?.playlist?.length > 0) {
+      const playlistLastPlayedNFTAddressId =
+        await getPlaylistLastPlayedNFT(nft);
+
+      const currentIndex =
+        !playlistLastPlayedNFTAddressId?.lastplayedNFTAddressId
+          ? 0
+          : nft?.playlist?.findIndex(
+              (nft) =>
+                getUniqueKeyFromNFT(nft).toLowerCase() ===
+                playlistLastPlayedNFTAddressId.lastplayedNFTAddressId.toLowerCase(),
+            );
+      setPlaylistCurrentIndex(currentIndex);
+
+      //      if (currentIndex>0)
+      if (currentIndex === undefined || currentIndex === null) handlePlay();
+      else {
+        const playlistLastPlayedNFT = nft.playlist[currentIndex];
+
+        const mediaResumeState = await getMediaResumeState(
+          playlistLastPlayedNFT,
+        );
+        const time = mediaResumeState?.resumeTime
+          ? mediaResumeState?.resumeTime
+          : 0;
+        if (time && time > 0) {
+          setResumeTime(time);
+          setShowResumeModal(true);
+        } else {
+          handlePlay();
+        }
+      }
+    } else {
+      const mediaResumeState = await getMediaResumeState(nft);
+      const time = mediaResumeState?.resumeTime
+        ? mediaResumeState?.resumeTime
+        : 0;
+      if (time && time > 0) {
+        setResumeTime(time);
+        setShowResumeModal(true);
+      } else {
+        handlePlay();
+      }
+    }
+  };
 
   return (
     <div className="text-white dark:text-white">
@@ -30,15 +97,85 @@ const MediaCaption = ({ nft, setIsPlayClicked, nftQuantity }) => {
         </h2>
 
         {setIsPlayClicked && (
-          <button
-            onClick={() => {
-              console.log('MediaCaption: Button was clicked');
-              handlePlay();
-            }}
-            className="h-10 w-10 transform transition-transform hover:scale-110"
-          >
-            <PlayIcon />
-          </button>
+          <>
+            <button
+              onClick={() => {
+                console.log('MediaCaption: Button was clicked');
+                handlePlayClick();
+              }}
+              className="h-10 w-10 transform transition-transform hover:scale-110"
+            >
+              <PlayIcon />
+            </button>
+
+            {showResumeModal && (
+              <ResumePlayModal
+                resumeTime={resumeTime}
+                onResume={async () => {
+                  if (nft?.playlist?.length > 0) {
+                    const playlistLastPlayedNFTAddressId =
+                      await getPlaylistLastPlayedNFT(nft);
+
+                    const currentIndex = nft?.playlist?.findIndex(
+                      (nft) =>
+                        getUniqueKeyFromNFT(nft).toLowerCase() ===
+                        playlistLastPlayedNFTAddressId.lastplayedNFTAddressId.toLowerCase(),
+                    );
+                    setPlaylistCurrentIndex(currentIndex);
+
+                    setShowResumeModal(false);
+                    handlePlay();
+                  } else {
+                    const playlistLastPlayedNFTAddressId =
+                      await getPlaylistLastPlayedNFT(playlistNFT);
+                    const currentIndex = playlistNFT?.playlist?.findIndex(
+                      (nft) =>
+                        getUniqueKeyFromNFT(nft).toLowerCase() ===
+                        playlistLastPlayedNFTAddressId.lastplayedNFTAddressId.toLowerCase(),
+                    );
+                    setPlaylistCurrentIndex(currentIndex);
+
+                    setShowResumeModal(false);
+                    handlePlay();
+                  }
+                }}
+                onRestart={async () => {
+                  if (nft?.playlist?.length > 0) {
+                    const playlistLastPlayedNFTAddressId =
+                      await getPlaylistLastPlayedNFT(nft);
+
+                    await putPlaylistLastPlayedNFT(nft, nft.playlist[0]);
+                    setPlaylistCurrentIndex(0);
+
+                    const resumeState = await getMediaResumeState(
+                      nft.playlist[0],
+                    );
+                    await putMediaResumeState(
+                      nft.playlist[0],
+                      0,
+                      0,
+                      resumeState.isFinished,
+                    );
+
+                    setShowResumeModal(false);
+                    handlePlay();
+                  } else {
+                    const resumeState = await getMediaResumeState(nft);
+                    await putMediaResumeState(
+                      nft,
+                      0,
+                      0,
+                      resumeState.isFinished,
+                    );
+
+                    setShowResumeModal(false);
+                    handlePlay();
+                  }
+                }}
+                onClose={() => setShowResumeModal(false)}
+              />
+            )}
+          </>
         )}
 
         <p className="line-clamp-4 text-xs @md:line-clamp-5 @md:text-sm @lg:text-sm @xl:text-base @2xl:text-lg @3xl:text-xl">

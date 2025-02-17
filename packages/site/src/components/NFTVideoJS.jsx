@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import 'video.js/dist/video-js.css';
 import usePortal from '../hooks/usePortal';
-import useVideoLink from '../hooks/useVideoLink';
 import VideoJS from './VideoJS';
 import videojs from 'video.js';
+import useContractUtils from '../blockchain/useContractUtils';
+import useVideoLinkS5 from '../hooks/useVideoLink';
+import useNFTMedia from '../hooks/useNFTMedia';
+import { ArrowLeftIcon, ArrowRightIcon } from 'heroiconsv2/24/outline';
 
 /**
  * A React component that integrates VideoJS for NFT video playback.
@@ -19,19 +22,20 @@ import videojs from 'video.js';
  */
 export const NFTVideoJS = ({
   nft,
-  onReady,
   setIsPlay,
   encKey,
   isPlayClicked,
   setIsPlayClicked,
   metadata,
+  handleNext,
+  handlePrev,
+  playlistNFT,
 }) => {
-  console.log('NFTVideoJS: nft.name useEffect');
   console.log('test: NFTVideoJS');
 
   window.videojs = videojs;
 
-  const getVideoLink = useVideoLink();
+  const getVideoLink = useVideoLinkS5();
 
   const { getBlobUrl, getPortalType } = usePortal();
   const [options, setOptions] = useState();
@@ -42,6 +46,80 @@ export const NFTVideoJS = ({
   const [mainAudioTracks, setMainAudioTracks] = useState([]);
   const [trailerSubtitleTracks, setTrailerSubtitleTracks] = useState([]);
   const [mainSubtitleTracks, setMainSubtitleTracks] = useState([]);
+
+  const [duration, setDuration] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [killswitch, setKillswitch] = useState(false);
+
+  const hasExecutedRef = useRef(false);
+
+  const { getAddressFromChainIdAddress } = useContractUtils();
+
+  const {
+    getMediaResumeState,
+    putMediaResumeState,
+    putPlaylistLastPlayedNFT,
+    getPlaylistLastPlayedNFT,
+  } = useNFTMedia();
+
+  // Add ref to track current nft
+  const nftRef = useRef(nft);
+
+  const stopVideo = (playerRef) => {
+    setMainSource([]);
+    setMainAudioTracks([]);
+    setIsPlayClicked(false);
+    if (setIsPlay) {
+      setIsPlay(false);
+    }
+    setKillswitch(true);
+  };
+
+  async function handlePlayerResume(player) {
+    const resumeState = await getMediaResumeState(nftRef.current);
+    if (resumeState?.resumeTime) player.currentTime(resumeState.resumeTime);
+  }
+
+  async function handlePlayerSaveResumeTime(player) {
+    if (!player) return;
+
+    const currentTime = player.currentTime() || 0;
+
+    const duration = player.duration();
+    const resumeTimePercent = (currentTime / duration) * 100;
+
+    const resumeState = await getMediaResumeState(nftRef.current);
+
+    await putMediaResumeState(
+      nftRef.current,
+      currentTime,
+      resumeTimePercent,
+      resumeState?.isFinished ||
+        resumeTimePercent >= process.env.NEXT_PUBLIC_FINISHED_PERCENT_THRESHOLD,
+    );
+
+    if (playlistNFT?.playlist?.length > 0)
+      await putPlaylistLastPlayedNFT(playlistNFT, nftRef.current);
+  }
+
+  async function handlePlayerEnd(player) {
+    const currentTime = player.currentTime() || 0;
+    const resumeState = await getMediaResumeState(nftRef.current);
+
+    const duration = player.duration();
+    const resumeTimePercent = (currentTime / duration) * 100;
+
+    await putMediaResumeState(
+      nftRef.current,
+      0,
+      0,
+      resumeState?.isFinished ||
+        resumeTimePercent >= process.env.NEXT_PUBLIC_FINISHED_PERCENT_THRESHOLD,
+    );
+
+    if (playlistNFT?.playlist?.length > 0)
+      await putPlaylistLastPlayedNFT(playlistNFT, playlistNFT.playlist[0]);
+  }
 
   const handlePlayerReady = (player) => {
     console.log('test: ScreenView handlePlayerReady');
@@ -56,13 +134,31 @@ export const NFTVideoJS = ({
       });
 
       player.on('pause', () => {
-        setIsPlay(false);
-      });
-
-      player.on('ended', () => {
-        setIsPlay(false);
+        //   setIsPlay(false);
       });
     }
+
+    // player.on('ended', () => {
+    //   handleNext?.();
+    //   console.log('player ended');
+    // });
+
+    player.on('timeupdate', function (event) {
+      //chrome fix
+      if (
+        player.duration() > 0 &&
+        player.currentTime() >= player.duration() - 0.1
+      ) {
+        console.log(
+          `NFTVideoJS: player.currentTime() = ${player.currentTime()}`,
+        );
+        console.log(`NFTVideoJS: player.duration() = ${player.duration()}`);
+        if (handleNext) player.currentTime(0);
+
+        handleNext?.();
+        console.log('video ended');
+      }
+    });
 
     player.on('mouseover', () => {
       player.controlBar.show();
@@ -82,6 +178,10 @@ export const NFTVideoJS = ({
 
     player.on('resolutionchange', function () {
       console.info('Source changed to %s', player.src());
+    });
+
+    player.on('loadedmetadata', () => {
+      setDuration(player.duration());
     });
 
     // player.on('*', function (event) {
@@ -115,24 +215,31 @@ export const NFTVideoJS = ({
     return { videoSources, audioTracks, subtitleTracks };
   };
 
+  const isEmptyObject = (obj) => {
+    return obj && Object.keys(obj).length === 0 && obj.constructor === Object;
+  };
+
   useEffect(() => {
-    if (!nft && !encKey && !metadata) return;
+    // Update ref when nft changes
+    nftRef.current = nft;
 
-    setIsPlayClicked(false);
+    if (!nftRef.current && !encKey && !metadata) return;
+
+    //setIsPlayClicked(false);
     (async () => {
-      console.log('NFTVideoJS: nft.name useEffect getEncKey');
+      console.log('NFTVideoJS: nftRef.current.name useEffect getEncKey');
 
-      console.log('NFTVideoJS: nft = ', nft);
+      console.log('NFTVideoJS: nftRef.current = ', nftRef.current);
       console.log('NFTVideoJS: encKey = ', encKey);
       console.log('NFTVideoJS: metadata = ', metadata);
 
-      console.log('NFTVideoJS: nft.video = ', nft.video);
+      console.log('NFTVideoJS: nftRef.current.video = ', nftRef.current.video);
 
-      if (!nft.video) return;
+      if (!nftRef.current.video) return;
 
-      const mainVideoData = await getVideoLink({
+      let mainVideoData = await getVideoLink({
         key: encKey,
-        cidWithoutKey: nft.video,
+        cidWithoutKey: nftRef.current.video,
         metadata,
       });
 
@@ -148,10 +255,10 @@ export const NFTVideoJS = ({
         setMainSubtitleTracks(null);
       }
 
-      if (nft.animation_url) {
+      if (nftRef.current.animation_url) {
         const trailerData = await getVideoLink({
           key: null,
-          cidWithoutKey: nft.animation_url,
+          cidWithoutKey: nftRef.current.animation_url,
         });
 
         let videoSources = null;
@@ -172,16 +279,18 @@ export const NFTVideoJS = ({
         setTrailerSubtitleTracks(null);
       }
 
-      console.log('NFTVideoJS: nft.name useEffect getVideoLink');
+      console.log('NFTVideoJS: nftRef.current.name useEffect getVideoLink');
       console.log('NFTVideoJS: mainSource = ', mainSource);
       console.log('NFTVideoJS: trailerSource = ', trailerSource);
 
       let nftImage;
-      if (nft?.backdropImage) nftImage = await getBlobUrl(nft.backdropImage);
-      else if (nft?.image) nftImage = await getBlobUrl(nft.image);
+      if (nftRef.current?.backdropImage)
+        nftImage = await getBlobUrl(nftRef.current.backdropImage);
+      else if (nftRef.current?.image)
+        nftImage = await getBlobUrl(nftRef.current.image);
       else nftImage = null;
 
-      console.log('NFTVideoJS: nft.name useEffect getBlobUrl');
+      console.log('NFTVideoJS: nftRef.current.name useEffect getBlobUrl');
 
       const theOptions = {
         autoplay: false,
@@ -192,7 +301,7 @@ export const NFTVideoJS = ({
         height: 1080,
         width: 1920,
         playbackRates: [0.5, 1, 1.5, 2],
-        poster: nftImage,
+        poster: !isPlayClicked ? nftImage : '',
         posterImage: false,
         userActions: { hotkeys: true },
         html5: {
@@ -200,12 +309,12 @@ export const NFTVideoJS = ({
             withCredentials: true,
           },
         },
-        portalType: getPortalType(nft.video),
+        portalType: getPortalType(nftRef.current.video),
         preload: 'none',
       };
 
-      console.log('NFTVideoJS: nft = ', nft);
-      console.log('NFTVideoJS: nft.name = ', nft.name);
+      console.log('NFTVideoJS: nftRef.current = ', nftRef.current);
+      console.log('NFTVideoJS: nftRef.current.name = ', nftRef.current.name);
       console.log('NFTVideoJS: theOptions = ', theOptions);
       setOptions(theOptions);
     })();
@@ -219,18 +328,35 @@ export const NFTVideoJS = ({
   return (
     <>
       {options && (
-        <VideoJS
-          options={options}
-          trailerSource={trailerSource}
-          mainSource={mainSource}
-          onReady={handlePlayerReady}
-          isPlayClicked={isPlayClicked}
-          setIsPlayClicked={setIsPlayClicked}
-          trailerAudioTracks={trailerAudioTracks}
-          mainAudioTracks={mainAudioTracks}
-          trailerSubtitleTracks={trailerSubtitleTracks}
-          mainSubtitleTracks={mainSubtitleTracks}
-        />
+        <>
+          <VideoJS
+            options={options}
+            trailerSource={trailerSource}
+            mainSource={mainSource}
+            onReady={handlePlayerReady}
+            isPlayClicked={isPlayClicked}
+            setIsPlayClicked={setIsPlayClicked}
+            trailerAudioTracks={trailerAudioTracks}
+            mainAudioTracks={mainAudioTracks}
+            trailerSubtitleTracks={trailerSubtitleTracks}
+            mainSubtitleTracks={mainSubtitleTracks}
+            killswitch={killswitch}
+            handlePlayerPlay={handlePlayerResume}
+            handlePlayerPause={handlePlayerSaveResumeTime}
+            handlePlayerEnd={handlePlayerEnd}
+            handlePlayerDispose={handlePlayerSaveResumeTime}
+            isPlaylist={playlistNFT?.playlist?.length > 0}
+          />
+
+          <div style={{ marginTop: '10px', display: 'flex', gap: '1rem' }}>
+            <button onClick={() => handlePrev?.()} aria-label="Previous Video">
+              <ArrowLeftIcon size={24} />
+            </button>
+            <button onClick={() => handleNext?.()} aria-label="Next Video">
+              <ArrowRightIcon size={24} />
+            </button>
+          </div>
+        </>
       )}
     </>
   );

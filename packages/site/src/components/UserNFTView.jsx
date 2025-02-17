@@ -114,7 +114,8 @@ export default function UserNFTView({
 
   return (
     <div
-      className="transform transition duration-100 ease-in hover:scale-115 relative"
+      className={`transform transition duration-100 ease-in hover:scale-115 relative
+      ${nft === currentNFT || nft === currentNFT?.playlistNFT ? 'border-2 border-secondary' : ''}`}
       onDoubleClick={handleDoubleClick}
     >
       <div>
@@ -157,7 +158,7 @@ export default function UserNFTView({
       </div>
       {nft?.isNestable && (
         <div className="absolute -top-8 right-0 p-1">
-          <ArrowLongRightIcon className="h-8 w-8 text-fabstir-dark-gray" />
+          <ArrowLongRightIcon className="h-8 w-8 text-dark-gray" />
         </div>
       )}
     </div>

@@ -54,6 +54,13 @@ import {
 import { stringifyArrayProperties } from '../utils/stringifyProperties';
 import TeamsView from './TeamsView';
 import { Button } from '../ui-components/button';
+import PlaylistsView from './PlaylistsView';
+import {
+  isplayclickedstate,
+  isplaystate,
+  playlistcurrentindexstate,
+  playlistnftstate,
+} from '../atoms/playlistAtom';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -91,6 +98,7 @@ const nftInformationDecorator = (information) => {
         key !== 'holders' &&
         key !== 'enc_key' &&
         key !== 'teams' &&
+        key !== 'playlistNFT' &&
         key !== 'isPreview',
     )
     .forEach((key) => {
@@ -137,8 +145,6 @@ export default function DetailsSidebar({
   setIsTheatreMode,
   isScreenViewClosed,
   setIsScreenViewClosed,
-  isPlayClicked,
-  setIsPlayClicked,
 }) {
   const userAuthPub = useRecoilValue(userauthpubstate);
   const userPub = useRecoilValue(userpubstate);
@@ -156,6 +162,7 @@ export default function DetailsSidebar({
   const setRefetchNFTsCount = useSetRecoilState(refetchnftscountstate);
 
   const [teams, setTeams] = useRecoilState(teamsstate);
+  const [isPlayClicked, setIsPlayClicked] = useRecoilState(isplayclickedstate);
 
   console.log('UserNFTView: inside DetailsSidebar');
   console.log('DetailsSidebar: nft = ', nft);
@@ -203,12 +210,13 @@ export default function DetailsSidebar({
   const [selectedNFTs, setSelectedNFTs] = useRecoilState(nftsselectedaschild);
 
   const getEncKey = useEncKey();
-  const [isPlay, setIsPlay] = useState(false);
+  const [isPlay, setIsPlay] = useRecoilState(isplaystate);
   const [nftQuantity, setNFTQuantity] = useState();
   const [encKey, setEncKey] = useState();
   const [mediaMetadata, setMediaMetadata] = useState();
 
-  const { getMetadataFromUser } = useNFTMedia();
+  const { getMetadataFromUser, getMediaResumeState, putMediaResumeState } =
+    useNFTMedia();
   const [playerCurrentTime, setPlayerCurrentTime] = useState(0);
   const [nftToPlay, setNFTToPlay] = useState();
   const { mutate: deleteNFT, ...deleteNFTInfo } = useDeleteNFT(userAuthPub);
@@ -222,7 +230,19 @@ export default function DetailsSidebar({
     updatenftwithteamsstate,
   );
   const [isUpdateTeams, setIsUpdateTeams] = useRecoilState(isupdateteamsstate);
+  const [userAuthProfile, setUserAuthProfile] = useState();
+
+  const playlistCurrentIndex = useRef(0);
   const router = useRouter();
+  const playlistNFT = useRef(null);
+
+  const twPlaylistStyle =
+    'ml-8 grid grid-cols-1 gap-4 auto-rows-max' +
+    ' grid-cols-[repeat(auto-fill,minmax(150px,1fr))]';
+  const twPlaylistTitleStyle =
+    'text-sm sm:text-sm md:text-md lg:text-md xl:text-lg 2xl:text-lg';
+  const twPlaylistTextStyle =
+    'text-xs sm:text-xs md:text-sm lg:text-sm xl:text-md 2xl:text-md group-hover:scale-110';
 
   useEffect(() => {
     (async () => {
@@ -404,9 +424,44 @@ export default function DetailsSidebar({
 
   useEffect(() => {
     // if (mediaMetadata && mediaMetadata.length > 0) {
-    setNFTToPlay(nft);
+
+    if (currentNFT?.playlist?.length > 0) {
+      playlistNFT.current = currentNFT;
+      playlistCurrentIndex.current = 0;
+
+      const playlistChildNFT = currentNFT.playlist[0];
+      setNFTToPlay(playlistChildNFT);
+    } else {
+      if (
+        currentNFT?.playlistNFT &&
+        playlistNFT.current &&
+        getUniqueKeyFromNFT(currentNFT?.playlistNFT).toLowerCase() ===
+          getUniqueKeyFromNFT(playlistNFT.current).toLowerCase()
+      ) {
+        const index = playlistNFT.current?.playlist.findIndex(
+          (nft) =>
+            getUniqueKeyFromNFT(currentNFT).toLowerCase() ===
+            getUniqueKeyFromNFT(nft).toLowerCase(),
+        );
+
+        playlistCurrentIndex.current = index;
+      } else playlistNFT.current = null;
+
+      setNFTToPlay(currentNFT);
+    }
+
+    setIsPlay(false);
+    setIsPlayClicked(false);
+
     // }
-  }, [nft]);
+  }, [currentNFT]);
+
+  useEffect(() => {
+    (async () => {
+      const userAuthProfile = await getUserProfile(userAuthPub);
+      setUserAuthProfile(userAuthProfile);
+    })();
+  }, [userAuthPub]);
 
   /**
    * Function to handle downloading a file from a given URI.
@@ -689,6 +744,75 @@ export default function DetailsSidebar({
     router.push(`/permissions/${addressId}`);
   };
 
+  const playVideo = (index) => {
+    if (index >= 0 && index < playlistNFT.current.playlist.length) {
+      setNFTToPlay(playlistNFT.current.playlist[index]);
+      setNFT(playlistNFT.current.playlist[index]);
+      setIsPlayClicked(true);
+    }
+  };
+
+  const handleNext = async () => {
+    if (!(playlistNFT?.current?.playlist?.length > 0)) {
+      setIsPlayClicked(false);
+      setIsPlay(false);
+      return;
+    }
+
+    playlistCurrentIndex.current = playlistCurrentIndex.current + 1;
+    playVideo(playlistCurrentIndex.current);
+
+    const resumeState = await getMediaResumeState(
+      playlistNFT.current.playlist[playlistCurrentIndex.current],
+    );
+
+    if (playlistNFT.current.playlist[playlistCurrentIndex.current])
+      await putMediaResumeState(
+        playlistNFT.current.playlist[playlistCurrentIndex.current],
+        0,
+        0,
+        resumeState?.isFinished,
+      );
+
+    if (playlistCurrentIndex.current >= playlistNFT.current.playlist.length) {
+      playlistCurrentIndex.current = 0;
+      setIsPlayClicked(false);
+      setIsPlay(false);
+      setNFT(playlistNFT.current);
+      console.log('Reached end of playlist.');
+    }
+  };
+
+  const handlePrev = () => {
+    if (playlistCurrentIndex.current <= 0) {
+      setIsPlayClicked(false);
+      setIsPlay(false);
+
+      return;
+    }
+
+    playlistCurrentIndex.current = playlistCurrentIndex.current - 1;
+    playVideo(playlistCurrentIndex.current);
+  };
+
+  useEffect(() => {
+    if (isPlayClicked && nft?.playlist?.length > 0) {
+      if (
+        playlistCurrentIndex.current >= 0 &&
+        playlistCurrentIndex.current < playlistNFT.current.playlist.length
+      ) {
+        setNFTToPlay(
+          playlistNFT.current.playlist[playlistCurrentIndex.current],
+        );
+        setNFT(playlistNFT.current.playlist[playlistCurrentIndex.current]);
+      }
+    }
+  }, [isPlayClicked, nft, playlistCurrentIndex.current]);
+
+  const setPlaylistCurrentIndex = (playlistIndex) => {
+    playlistCurrentIndex.current = playlistIndex;
+  };
+
   return (
     <aside
       className={classNames(
@@ -740,11 +864,23 @@ export default function DetailsSidebar({
                   />
 
                   {/* overlay */}
-                  {nft && nftImage && (
+                  {nft && nftImage && nft?.playlist?.length > 0 ? (
+                    <div className="absolute bottom-0 left-0 z-20 m-5 w-fit bg-black bg-opacity-50 text-fabstir-white">
+                      <MediaCaption
+                        nft={nft}
+                        setIsPlayClicked={setIsPlayClicked}
+                        nftQuantity={nftQuantity?.toString()}
+                        playlistNFT={playlistNFT.current}
+                        setPlaylistCurrentIndex={setPlaylistCurrentIndex}
+                      />
+                    </div>
+                  ) : (
                     <div className="pointer-events-none absolute bottom-0 left-0 z-20 m-5 w-fit bg-black bg-opacity-50 text-fabstir-white">
                       <MediaCaption
                         nft={nft}
                         nftQuantity={nftQuantity?.toString()}
+                        playlistNFT={playlistNFT.current}
+                        setPlaylistCurrentIndex={setPlaylistCurrentIndex}
                       />
                     </div>
                   )}
@@ -768,6 +904,17 @@ export default function DetailsSidebar({
                         isPlayClicked={isPlayClicked}
                         setIsPlayClicked={setIsPlayClicked}
                         metadata={mediaMetadata}
+                        handleNext={
+                          playlistNFT.current?.playlist?.length > 0
+                            ? handleNext
+                            : null
+                        }
+                        handlePrev={
+                          playlistNFT.current?.playlist?.length > 0
+                            ? handlePrev
+                            : null
+                        }
+                        playlistNFT={playlistNFT.current}
                       />
                     ) : (
                       <img
@@ -783,6 +930,8 @@ export default function DetailsSidebar({
                           nft={nft}
                           setIsPlayClicked={setIsPlayClicked}
                           nftQuantity={nftQuantity?.toString()}
+                          playlistNFT={playlistNFT.current}
+                          setPlaylistCurrentIndex={setPlaylistCurrentIndex}
                         />
                       </div>
                     )}
@@ -822,6 +971,8 @@ export default function DetailsSidebar({
                           nft={nft}
                           setIsPlayClicked={setIsPlayClicked}
                           nftQuantity={nftQuantity?.toString()}
+                          playlistNFT={playlistNFT.current}
+                          setPlaylistCurrentIndex={setPlaylistCurrentIndex}
                         />
                       </div>
                     )}
@@ -955,6 +1106,62 @@ export default function DetailsSidebar({
 
             <TeamsView teams={nft?.teams} />
           </div>
+
+          {nft?.playlist && (
+            <div>
+              <div className="relative z-0 mx-4 mb-4 mt-8 flex items-center justify-between pt-8">
+                <span className="text-fabstir-white justify-start whitespace-nowrap pr-3 text-lg font-semibold tracking-wide">
+                  Playlist NFTs
+                </span>
+                <div className="border-fabstir-divide-color1 w-full border-t" />
+                <div className="ml-4">Public</div>
+              </div>
+
+              <div className="bg-fabstir-medium-dark-gray relative z-0 rounded-lg p-4 pb-4 shadow-lg">
+                <PlaylistsView
+                  nfts={nft.playlist.map((aNFT) => ({
+                    ...aNFT,
+                    playlistNFT: nft,
+                  }))}
+                  // setNFTs={updateNFTPlaylist}
+                  userAccountAddress={userAuthProfile?.accountAddress}
+                  twStyle={twPlaylistStyle}
+                  twTitleStyle={twPlaylistTitleStyle}
+                  twTextStyle={twPlaylistTextStyle}
+                  disableNavigation={false}
+                  scale={110}
+                />
+              </div>
+            </div>
+          )}
+
+          {playlistNFT.current?.playlist && (
+            <div>
+              <div className="relative z-0 mx-4 mb-4 mt-8 flex items-center justify-between pt-8">
+                <span className="text-fabstir-white justify-start whitespace-nowrap pr-3 text-lg font-semibold tracking-wide">
+                  Playlist NFTs
+                </span>
+                <div className="border-fabstir-divide-color1 w-full border-t" />
+                <div className="ml-4">Public</div>
+              </div>
+
+              <div className="bg-fabstir-medium-dark-gray relative z-0 rounded-lg p-4 pb-4 shadow-lg">
+                <PlaylistsView
+                  nfts={playlistNFT.current.playlist.map((nft) => ({
+                    ...nft,
+                    playlistNFT: playlistNFT.current,
+                  }))}
+                  userAccountAddress={userAuthProfile?.accountAddress}
+                  twStyle={twPlaylistStyle}
+                  twTitleStyle={twPlaylistTitleStyle}
+                  twTextStyle={twPlaylistTextStyle}
+                  disableNavigation={false}
+                  scale={110}
+                  playlistCurrentIndex={playlistCurrentIndex.current}
+                />
+              </div>
+            </div>
+          )}
 
           <div className="mt-2">
             <h2 className="text-2xl font-semibold tracking-tight text-fabstir-dark-gray sm:text-xl mt-6">

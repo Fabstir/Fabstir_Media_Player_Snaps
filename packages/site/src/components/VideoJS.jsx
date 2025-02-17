@@ -4,6 +4,8 @@ import 'video.js/dist/video-js.css';
 import { SpeakerXMarkIcon, SpeakerWaveIcon } from '@heroicons/react/24/outline';
 import { trailermutestate } from '../atoms/nftPlayerAtom';
 import { useRecoilState } from 'recoil';
+import { Button } from '../ui-components/button';
+import { isplayclickedstate } from '../atoms/playlistAtom';
 
 /**
  * `VideoJS` is a React component that renders a VideoJS player with configurable options. This component integrates VideoJS
@@ -37,6 +39,11 @@ const VideoJS = ({
   mainAudioTracks,
   trailerSubtitleTracks,
   mainSubtitleTracks,
+  handlePlayerPlay,
+  handlePlayerPause,
+  handlePlayerEnd,
+  handlePlayerDispose,
+  isPlaylist,
 }) => {
   const videoRef = useRef(null);
   const playerRef = useRef(null);
@@ -65,13 +72,26 @@ const VideoJS = ({
    * @returns {string} The URL of the video source to be used.
    */
   const chooseSource = (isPlayClicked, mainSource, trailerSource) => {
-    return mainSource && trailerSource
-      ? isPlayClicked
-        ? mainSource
-        : trailerSource
-      : mainSource
-        ? mainSource
-        : trailerSource;
+    const source =
+      mainSource && trailerSource
+        ? isPlayClicked
+          ? mainSource
+          : trailerSource
+        : mainSource
+          ? mainSource
+          : trailerSource;
+    console.log('VideoJS: chooseSource: VideoJS: source', source);
+
+    // const source2 = [
+    //   {
+    //     label: source[0].label,
+    //     src: '/uJh_BcVuH9TVWmG3Nz5Bbfxp3bFRsyVyrlqusm4wV4kAX1hEbWQ',
+    //     type: source[0].type,
+    //   },
+    // ]
+    // console.log('VideoJS: chooseSource: VideoJS: source2', source2)
+
+    return source;
   };
 
   const chooseSubtitleTracks = (isPlayClicked, mainTracks, trailerTracks) => {
@@ -247,7 +267,7 @@ const VideoJS = ({
 
     player.on('audiotrackchange', (event, changedTrack) => {
       console.log('Audio track changed to:', changedTrack.label);
-      if (player?.controlBar) {
+      if (player?.controlBar?.getChild) {
         const audioTrackButton =
           player.controlBar.getChild('AudioTrackButton') ?? undefined;
         if (audioTrackButton) {
@@ -271,12 +291,34 @@ const VideoJS = ({
 
     // Force an update of the button title after a short delay
     setTimeout(() => {
-      if (player?.controlBar) {
-        const audioTrackButton =
-          player.controlBar.getChild('AudioTrackButton') ?? undefined;
-        if (audioTrackButton) {
+      try {
+        // Check player and controlBar exist
+        if (!player || !player.controlBar) {
+          console.log('Player or controlBar not initialized');
+          return;
+        }
+
+        // Check getChild is a function
+        if (typeof player.controlBar.getChild !== 'function') {
+          console.log('getChild is not a function');
+          return;
+        }
+
+        // Safely try to get AudioTrackButton
+        let audioTrackButton;
+        try {
+          audioTrackButton = player.controlBar.getChild('AudioTrackButton');
+        } catch (e) {
+          console.log('Error getting AudioTrackButton:', e);
+          return;
+        }
+
+        // Only update if button exists
+        if (audioTrackButton?.updateButtonTitle) {
           audioTrackButton.updateButtonTitle();
         }
+      } catch (error) {
+        console.log('Error in audioTrackButton setup:', error);
       }
     }, 100);
   };
@@ -348,7 +390,7 @@ const VideoJS = ({
           this.updateButtonText();
         },
         createItems: function () {
-          return mainSource?.map((source) => {
+          return player.options_.sources?.map((source) => {
             return new ResolutionMenuItem(player, {
               label: source.label || source.res,
               src: source.src,
@@ -440,6 +482,33 @@ const VideoJS = ({
 
       playerRef.current = player;
 
+      player.pause();
+      // player.currentTime(0);
+      player.src(chooseSource(isPlayClicked, mainSource, trailerSource));
+      player.load();
+
+      if (isPlayClicked) {
+        playerRef.current.one('loadeddata', () => {
+          playerRef.current
+            .play()
+            .catch((err) =>
+              console.error('VideoJS: play error (loadeddata)', err),
+            );
+        });
+
+        // Fallback: if loadeddata doesn't fire within 1 second, try to play anyway.
+        setTimeout(() => {
+          if (playerRef.current && playerRef.current.paused()) {
+            console.log('VideoJS: Fallback play after 1s');
+            playerRef.current
+              .play()
+              .catch((err) =>
+                console.error('VideoJS: play error (fallback)', err),
+              );
+          }
+        }, 1000);
+      }
+
       player.ready(() => {
         console.log('VideoJS: Player is ready');
 
@@ -522,14 +591,28 @@ const VideoJS = ({
     };
 
     if (playerRef.current) {
-      playerRef.current.on('play', () => {
+      playerRef.current.on('play', async () => {
         console.log('VideoJS1: play');
+
+        if (isPlayClicked) await handlePlayerPlay(playerRef.current);
       });
 
-      playerRef.current.on('end', () => {
+      playerRef.current.on('ended', async () => {
         console.log('VideoJS1: end');
         audioRef.current.pause();
-        audioRef.current.currentTime = audioRef.current.duration;
+
+        audioRef.current.currentTime = Math.round(
+          playerRef.current.currentTime() * 1000,
+        );
+
+        if (isPlayClicked) await handlePlayerEnd(playerRef.current);
+      });
+
+      playerRef.current.on('dispose', async () => {
+        console.log('VideoJS1: dispose');
+
+        if (isPlayClicked && !playerRef.current.paused())
+          await handlePlayerDispose();
       });
 
       playerRef.current.on('play', () => {
@@ -546,9 +629,11 @@ const VideoJS = ({
           .catch((e) => console.error('VideoJS: Audio play failed:', e));
       });
 
-      playerRef.current.on('pause', () => {
+      playerRef.current.on('pause', async () => {
         console.log('VideoJS: Video paused');
         audioRef.current.pause();
+
+        if (isPlayClicked) await handlePlayerPause(playerRef.current);
       });
 
       playerRef.current.on('seeking', () => {
@@ -696,11 +781,36 @@ const VideoJS = ({
       playerRef.current.src(newSource);
       updateSubtitleTracks(newTracks);
 
+      playerRef.current.pause();
+      // playerRef.current.currentTime(0);
+      playerRef.current.load();
+
       if (isPlayClicked) {
         console.log('VideoJS1: play damn mainSource', mainSource);
         console.log('VideoJS1: play2');
         playerRef.current.muted(isMainMuted);
-        playerRef.current.play();
+
+        // Listen for loadeddata to ensure the video has loaded enough for playback.
+        playerRef.current.one('loadeddata', () => {
+          // Now that data is loaded, start playback.
+          playerRef.current
+            .play()
+            .catch((err) =>
+              console.error('VideoJS: play error (loadeddata)', err),
+            );
+        });
+
+        // Fallback: if loadeddata doesn't fire within 1 second, try to play anyway.
+        setTimeout(() => {
+          if (playerRef.current && playerRef.current.paused()) {
+            console.log('VideoJS: Fallback play after 1s');
+            playerRef.current
+              .play()
+              .catch((err) =>
+                console.error('VideoJS: play error (fallback)', err),
+              );
+          }
+        }, 1000);
       }
     }
   }, [
@@ -737,26 +847,26 @@ const VideoJS = ({
     }
   }, [isPlayClicked, options]);
 
-  useEffect(() => {
-    if (!trailerSource) return;
+  // useEffect(() => {
+  //   if (!trailerSource) return;
 
-    if (playerRef.current) {
-      playerRef.current.on('ended', () => {
-        if (isPlayClicked) {
-          playerRef.current.poster(options?.poster);
-          setIsPlayClicked(false);
-          playerRef.current.src(trailerSource);
-          updateSubtitleTracks(trailerSubtitleTracks);
-        }
-      });
-    }
+  //   if (playerRef.current) {
+  //     playerRef.current.on('ended', () => {
+  //       if (isPlayClicked) {
+  //         playerRef.current.poster(options?.poster);
+  //         // setIsPlayClicked(false);
+  //         playerRef.current.src(trailerSource);
+  //         updateSubtitleTracks(trailerSubtitleTracks);
+  //       }
+  //     });
+  //   }
 
-    return () => {
-      if (playerRef.current) {
-        playerRef.current.off('ended');
-      }
-    };
-  }, [isPlayClicked, trailerSource, setIsPlayClicked, trailerSubtitleTracks]);
+  //   return () => {
+  //     if (playerRef.current) {
+  //       playerRef.current.off('ended');
+  //     }
+  //   };
+  // }, [isPlayClicked, trailerSource, setIsPlayClicked, trailerSubtitleTracks]);
 
   useEffect(() => {
     if (playerRef.current && isPlayClicked) {
@@ -765,8 +875,8 @@ const VideoJS = ({
   }, [isPlayClicked]);
 
   const UnmuteButton = ({ isMuted }) => (
-    <div className="absolute top-7 right-6 z-20">
-      <button
+    <div className="absolute bottom-7 right-6 z-20">
+      <Button
         id="unmute-button"
         style={{
           display: 'flex',
@@ -805,7 +915,7 @@ const VideoJS = ({
         ) : (
           <SpeakerWaveIcon className="text-fabstir-light-gray-300 h-6 w-6" />
         )}
-      </button>
+      </Button>
     </div>
   );
 
@@ -816,13 +926,13 @@ const VideoJS = ({
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
       playerRef.current.poster(options?.poster);
-      setIsPlayClicked(false);
+      if (!isPlaylist) setIsPlayClicked(false);
     }
   };
 
   useEffect(() => {
     playerRef.current.poster(options?.poster);
-    setIsPlayClicked(false);
+    if (!isPlaylist) setIsPlayClicked(false);
 
     return () => {
       stopVideo();
@@ -868,13 +978,18 @@ const VideoJS = ({
   //     console.log('Current audio src:', audioRef.current.src)
   //   }
   // }, [isPlayClicked, audioMainSrc, audioTrailerSrc, isMuted])
+  useEffect(() => {
+    if (isPlayClicked && videoRef.current) {
+      videoRef.current.removeAttribute('poster');
+    }
+  }, [isPlayClicked]);
 
   return (
     <div data-vjs-player className="relative">
       <video
         ref={videoRef}
         className="video-js vjs-big-play-centered h-full w-full"
-        poster={options?.poster}
+        poster={!isPlayClicked ? options?.poster : ''}
       ></video>
       <audio
         ref={audioRef}
