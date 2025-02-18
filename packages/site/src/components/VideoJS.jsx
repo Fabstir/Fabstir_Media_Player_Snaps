@@ -643,15 +643,18 @@ const VideoJS = ({
 
       playerRef.current.on('volumechange', handleVolumeChange);
 
+      // In your resolutionchange event listener in VideoJS.jsx:
       playerRef.current.on('resolutionchange', (event, newResolution) => {
         console.log('Resolution changed to:', newResolution);
         setCurrentResolution(newResolution);
-        const resolutionButton = playerRef.current.controlBar.getChild(
-          'ResolutionMenuButton',
-        );
-        if (resolutionButton) {
-          resolutionButton.updateButtonText();
-        }
+        setTimeout(() => {
+          const resolutionButton = playerRef.current.controlBar.getChild(
+            'ResolutionMenuButton',
+          );
+          if (resolutionButton) {
+            resolutionButton.updateButtonText();
+          }
+        }, 0);
       });
     }
 

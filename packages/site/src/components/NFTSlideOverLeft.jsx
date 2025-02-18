@@ -333,12 +333,16 @@ const NFTSlideOverLeft = ({
         </section>
 
         <div className="mt-10 border-t border-white pt-8 sm:flex sm:items-center sm:justify-between">
-          <Input
-            type="submit"
-            className="w-full rounded-md border border-transparent px-2 py-2 text-sm font-medium shadow-sm hover: focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50 sm:mr-6 bg-slate-800"
-            value={submitText}
-          />
-          <p className="mt-4 text-center text-sm  sm:mt-0 sm:text-left">
+          <div className="w-full border-8 border-gray rounded-md font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50 sm:mr-6">
+            <Button
+              type="submit"
+              className="w-full text-sm px-2 py-2 rounded-sm"
+              color="fabstir-purple"
+            >
+              {submitText}
+            </Button>
+          </div>
+          <p className="mt-4 text-center text-sm sm:mt-0 sm:text-left">
             You won't be charged until the next step.
           </p>
         </div>

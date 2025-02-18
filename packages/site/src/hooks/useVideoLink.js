@@ -175,7 +175,6 @@ export default function useVideoLink() {
     // If video media has no metadata, fetch metadata
     if (!hasVideoMedia(metadata)) {
       metadata = await getMetadata(key, cidWithoutKey);
-
       console.log('useVideoLink: metadata =', metadata);
 
       if (!hasVideoMedia(metadata)) {
@@ -183,10 +182,8 @@ export default function useVideoLink() {
           'useVideoLink: const transcodedMetadata = await getTranscodedMetadata(cid)',
         );
         console.log('useVideoLink: cid = ', cid);
-
         const transcodePending = await getTranscodePending(cidWithoutKey);
         console.log('useVideoLink: transcodePending =', transcodePending);
-
         if (transcodePending?.taskId) {
           const transcodedMetadata = await getTranscodedMetadata(
             transcodePending.taskId,
@@ -194,14 +191,13 @@ export default function useVideoLink() {
           console.log('useVideoLink: transcodedMetadata =', transcodedMetadata);
           if (transcodedMetadata) {
             metadata = [...(transcodedMetadata || []), ...(metadata || [])];
-
             console.log('useVideoLink: ttranscodedMetadata key =', key);
             console.log(
-              'useVideoLink: ttranscodedMetadata cidWithoutKey =',
+              'useVideoLink: transcodedMetadata cidWithoutKey =',
               cidWithoutKey,
             );
             console.log(
-              'useVideoLink: ttranscodedMetadata metadata =',
+              'useVideoLink: transcodedMetadata metadata =',
               metadata,
             );
             await putMetadata(key, cidWithoutKey, metadata);
@@ -211,10 +207,15 @@ export default function useVideoLink() {
         }
       }
 
-      // Update with urls to transcoded videos
-      if (hasVideoMedia(metadata)) videoUrl = getPlayerSources(metadata);
+      // Prepend the original video info
+      if (hasVideoMedia(metadata)) {
+        // Insert at the beginning an object representing the original video (without src)
+        //metadata.unshift({ label: 'orig', type: 'video/mp4', cid });
+        videoUrl = getPlayerSources(metadata);
+      }
     } else {
-      // Update with urls to transcoded videos
+      // Prepend the original video info
+      //metadata.unshift({ label: 'orig', type: 'video/mp4', cid });
       videoUrl = getPlayerSources(metadata);
     }
 
