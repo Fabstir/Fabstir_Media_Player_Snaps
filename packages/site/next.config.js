@@ -8,6 +8,7 @@ module.exports = withSvgr({
         fs: false,
         net: false,
         tls: false,
+        ox: false,
         'ox/BlockOverrides': false,
         'ox/AbiConstructor': false,
         'ox/AbiFunction': false,
