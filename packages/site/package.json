@@ -43,7 +43,7 @@
     "clsx": "^2.1.0",
     "eslint-config-next": "^13.4.19",
     "eslint-plugin-react": "latest",
-    "ethers": "6.12.1",
+    "ethers": "5.7.2",
     "fabstirdb-lib": "./fabstirdb-lib-v1.0.147.tgz",
     "file-saver": "^2.0.5",
     "gun": "^0.2020.1240",
