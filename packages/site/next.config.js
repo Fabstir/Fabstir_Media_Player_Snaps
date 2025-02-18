@@ -3,17 +3,15 @@ const withSvgr = require('next-svgr');
 module.exports = withSvgr({
   // reactStrictMode: true,
   webpack: (config, { isServer }) => {
-    if (!isServer) {
-      config.resolve.fallback = {
-        fs: false,
-        net: false,
-        tls: false,
-        ox: false,
-        'ox/BlockOverrides': false,
-        'ox/AbiConstructor': false,
-        'ox/AbiFunction': false,
-      };
-    }
+    config.resolve.fallback = {
+      fs: false,
+      net: false,
+      tls: false,
+      ox: false,
+      'ox/BlockOverrides': false,
+      'ox/AbiConstructor': false,
+      'ox/AbiFunction': false,
+    };
     return config;
   },
   async headers() {
