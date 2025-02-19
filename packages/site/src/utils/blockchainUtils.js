@@ -52,6 +52,17 @@ export function getAddressFromContractEvent(
   return contractAddress;
 }
 
+/**
+ * Logs all events parsed from a transaction receipt.
+ *
+ * This function iterates through the logs in the provided transaction receipt, attempts to
+ * parse each log using the supplied ABI, and logs the event name along with each argument.
+ * If a log cannot be parsed (for example, if it doesn't match any event in the ABI), an error message is logged.
+ *
+ * @param {Object} receipt - The transaction receipt containing an array of log objects.
+ * @param {Array|Object} abi - The ABI (Application Binary Interface) used to parse the logs.
+ * @returns {void}
+ */
 export function logAllEventsFromReceipt(receipt, abi) {
   const iface = new Interface(abi);
   receipt.logs.forEach((log) => {
