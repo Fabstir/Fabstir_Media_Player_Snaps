@@ -7,21 +7,17 @@ import { BigNumber } from '@ethersproject/bignumber';
  *
  * This function parses the logs from a given transaction receipt using the provided ABI
  * and searches for an event with a name that matches `eventName`. Once the event is found,
- * it retrieves the event argument specified by `eventArgName` (typically representing a contract address).
+ * it retrieves the event argument specified by `eventArg` (which can be either the argument name
+ * or its index) and returns its value, typically representing a contract address.
  *
  * @param {Object} receipt - The transaction receipt containing an array of log objects.
  * @param {Array|Object} abi - The ABI (Application Binary Interface) used to parse the logs.
  * @param {string} eventName - The name of the event to find in the logs.
- * @param {string} eventArgName - The key of the event argument whose value will be extracted.
+ * @param {string|number} eventArg - The key or index of the event argument whose value will be extracted.
  * @returns {string} The extracted contract address.
  * @throws {Error} Throws an error if the specified event is not found in the receipt logs.
  */
-export function getAddressFromContractEvent(
-  receipt,
-  abi,
-  eventName,
-  eventArgName,
-) {
+export function getAddressFromContractEvent(receipt, abi, eventName, eventArg) {
   const iface = new Interface(abi);
   const parsedLogs = receipt.logs.map((log) => {
     try {
@@ -36,7 +32,7 @@ export function getAddressFromContractEvent(
 
   let contractAddress;
   if (transferLog) {
-    contractAddress = transferLog.args[eventArgName];
+    contractAddress = transferLog.args[eventArg];
 
     console.log(
       'getAddressFromContractEvent: contractAddress:',
