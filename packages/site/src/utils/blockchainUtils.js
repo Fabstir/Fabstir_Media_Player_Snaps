@@ -125,6 +125,16 @@ export function bigNumberToFloat(bigNumberString, decimalPlaces = 18) {
   return floatNumber;
 }
 
+/**
+ * Abbreviates a blockchain address.
+ *
+ * This function takes a full address string and returns a shortened version that shows the
+ * first 6 and last 4 characters separated by an ellipsis (...). If the address is shorter than
+ * the sum of these segments, it returns the original address.
+ *
+ * @param {string} address - The full blockchain address to abbreviate.
+ * @returns {string} The abbreviated address.
+ */
 export function abbreviateAddress(address) {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
