@@ -51,7 +51,7 @@ let defaultFormValues = {
   multiToken: false,
   tokenise: false,
   deployed: false,
-  isPublic: true,
+  isPublic: false,
   isNestable: false,
   type1: '',
 };
