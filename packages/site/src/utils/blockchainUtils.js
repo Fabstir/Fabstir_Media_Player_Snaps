@@ -2,6 +2,20 @@ import { Interface } from '@ethersproject/abi';
 import { formatUnits, parseUnits } from '@ethersproject/units';
 import { BigNumber } from '@ethersproject/bignumber';
 
+/**
+ * Extracts a contract address from a specified event in a transaction receipt.
+ *
+ * This function parses the logs from a given transaction receipt using the provided ABI
+ * and searches for an event with a name that matches `eventName`. Once the event is found,
+ * it retrieves the event argument specified by `eventArgName` (typically representing a contract address).
+ *
+ * @param {Object} receipt - The transaction receipt containing an array of log objects.
+ * @param {Array|Object} abi - The ABI (Application Binary Interface) used to parse the logs.
+ * @param {string} eventName - The name of the event to find in the logs.
+ * @param {string} eventArgName - The key of the event argument whose value will be extracted.
+ * @returns {string} The extracted contract address.
+ * @throws {Error} Throws an error if the specified event is not found in the receipt logs.
+ */
 export function getAddressFromContractEvent(
   receipt,
   abi,
