@@ -210,18 +210,20 @@ export default function useVideoLink() {
       // Prepend the original video info
       if (hasVideoMedia(metadata)) {
         // Insert at the beginning an object representing the original video (without src)
-        //metadata.unshift({ label: 'orig', type: 'video/mp4', cid });
+        metadata.unshift({ label: 'orig', type: 'video/mp4', cid });
         videoUrl = getPlayerSources(metadata);
       }
     } else {
       // Prepend the original video info
-      //metadata.unshift({ label: 'orig', type: 'video/mp4', cid });
+      metadata.unshift({ label: 'orig', type: 'video/mp4', cid });
       videoUrl = getPlayerSources(metadata);
     }
 
     if (isUpdatedMetadataToWrite)
       // Ensure that any audio tracks that have been transcoded are written to storage
       await putMetadata(key, cidWithoutKey, metadata);
+
+    console.log('useVideoLink: videoUrl = ', videoUrl);
 
     return videoUrl;
   }
