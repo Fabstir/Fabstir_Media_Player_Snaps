@@ -84,6 +84,17 @@ export function logAllEventsFromReceipt(receipt, abi) {
   });
 }
 
+/**
+ * Truncates a given address by showing a specified number of characters at the start and end,
+ * with a break character in between.
+ *
+ * If the address length is less than or equal to the number of characters to show, the original address is returned.
+ *
+ * @param {string} address - The full address string to be truncated.
+ * @param {number} [charsToShow=6] - The number of characters to display at both the beginning and the end of the address.
+ * @param {string} [breakChar='...'] - The string to insert between the beginning and ending parts of the address.
+ * @returns {string} The truncated address string.
+ */
 export function truncateAddress(address, charsToShow = 6, breakChar = '...') {
   const len = address.length;
   if (len <= charsToShow) {
