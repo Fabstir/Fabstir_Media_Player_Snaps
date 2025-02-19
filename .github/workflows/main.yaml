@@ -40,7 +40,7 @@ jobs:
           
           ## cleanup
           rm -rf ./public ./contracts
-          rm contracts.zip public.zip fabstirdb-lib-v1.0.147.tgz
+          rm contracts.zip public.zip fabstirdb-lib.tgz
 
       - name: Set env
         run: | 
