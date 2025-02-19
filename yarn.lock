@@ -14877,15 +14877,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fabstirdb-lib@file:./fabstirdb-lib-v1.0.147.tgz::locator=site%40workspace%3Apackages%2Fsite":
-  version: 1.0.147
-  resolution: "fabstirdb-lib@file:./fabstirdb-lib-v1.0.147.tgz::locator=site%40workspace%3Apackages%2Fsite"
+"fabstirdb-lib@file:./fabstirdb-lib-v1.0.149.tgz::locator=site%40workspace%3Apackages%2Fsite":
+  version: 1.0.149
+  resolution: "fabstirdb-lib@file:./fabstirdb-lib-v1.0.149.tgz::locator=site%40workspace%3Apackages%2Fsite"
   dependencies:
     bcryptjs: ^2.4.3
     crypto: ^1.0.1
     dotenv: ^16.4.5
     libsodium-wrappers: ^0.7.13
-  checksum: d57393d3bd3564a00205da569de44e407b876885a3366bc87516cc7fc924b8b80a07544800ab4d0094d967b95b969539dde204249a34dac92107455ad1f0e7f1
+  checksum: 17f89d4b34ecc45fb6bb1b07ecbb917677da6729f6e56e75c97410ea3ba48fc6793467e0467104f3eccb7b005a39b6bd3210a640de12f8678075d5abc0a134a4
   languageName: node
   linkType: hard
 
@@ -22698,7 +22698,7 @@ __metadata:
     eslint-plugin-prettier: ^5.0.0
     eslint-plugin-react: latest
     ethers: 5.7.2
-    fabstirdb-lib: ./fabstirdb-lib-v1.0.147.tgz
+    fabstirdb-lib: ./fabstirdb-lib-v1.0.149.tgz
     file-saver: ^2.0.5
     gun: ^0.2020.1240
     heroiconsv1: "npm:@heroicons/react@^1.0.6"
