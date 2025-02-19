@@ -27,8 +27,8 @@ jobs:
       - name: Setting required folders to packages/site
         run: |
           sudo apt update -y && sudo apt install curl unzip
-          curl -L "${{secrets.FABSTIR_LIB_URL}}" --output fabstirdb-lib-v1.0.147.tgz
-          cp ./fabstirdb-lib-v1.0.147.tgz ./packages/site/
+          curl -L "${{secrets.FABSTIR_LIB_URL}}" --output fabstirdb-lib.tgz
+          cp ./fabstirdb-lib.tgz ./packages/site/
           
           curl -L "${{secrets.PUBLIC_ASSETS_URL}}" --output public.zip
           unzip public.zip
