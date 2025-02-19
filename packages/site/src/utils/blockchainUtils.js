@@ -103,6 +103,18 @@ export function truncateAddress(address, charsToShow = 6, breakChar = '...') {
   );
 }
 
+/**
+ * Converts a BigNumber string into a floating point number.
+ *
+ * This function uses ethers.js's BigNumber to parse the input string, then converts
+ * it to a floating point number using the specified number of decimal places. This
+ * conversion leverages `formatUnits` to accurately handle the decimal scaling
+ * and avoid precision loss.
+ *
+ * @param {string} bigNumberString - The string representation of the BigNumber.
+ * @param {number} [decimalPlaces=18] - The number of decimal places to use for the conversion.
+ * @returns {number} The resulting floating point number.
+ */
 export function bigNumberToFloat(bigNumberString, decimalPlaces = 18) {
   // Parse the Big Number string
   const bigNumber = BigNumber.from(bigNumberString);
