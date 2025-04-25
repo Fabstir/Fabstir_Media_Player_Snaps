@@ -19,7 +19,15 @@ export default function useAudioLink() {
 
   const { removeIPFSPrefix } = useIPFS();
 
-  const portNumber = parseInt(window.location.port, 10);
+  const portNumber = (() => {
+    let port = parseInt(window.location.port, 10);
+
+    if (isNaN(port)) {
+      port = '';
+    }
+
+    return port;
+  })();
 
   const {
     getMetadata,
