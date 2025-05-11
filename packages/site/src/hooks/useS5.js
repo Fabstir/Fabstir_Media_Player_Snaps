@@ -1,6 +1,5 @@
 import { S5Client } from '../../../../node_modules/s5client-js/dist/mjs/index';
 import { useConfig } from '../../state/configContext';
-
 import {
   getKeyFromEncryptedCid,
   combineKeytoEncryptedCid,
@@ -10,6 +9,8 @@ import {
 } from '../utils/s5EncryptCIDHelper';
 import mime from 'mime/lite';
 
+//require('gun/lib/load.js')
+
 /**
  * A custom React hook that returns the S5 network object.
  *
@@ -18,9 +19,7 @@ import mime from 'mime/lite';
 export default function useS5net() {
   const config = useConfig();
 
-  const headers = {
-    'Content-Type': 'text/plain; charset=UTF-8',
-  };
+  const headers = {};
   const customClientOptions = {
     authToken: config.portalAuthToken,
     headers,
@@ -141,7 +140,7 @@ export default function useS5net() {
       } else cidReq = cid;
 
       console.log('downloadFile: metadata = ', cidReq);
-      const url = await client.getCidUrl(cidReq);
+      const url = await getDownloadUrl(cidReq);
       console.log('downloadFile: url = ', url);
 
       const response = await fetch(url, {
@@ -159,12 +158,32 @@ export default function useS5net() {
     }
   }
 
+  async function getDownloadUrl(cid) {
+    try {
+      // Get the URL from the client
+      let url = await client.getCidUrl(cid);
+
+      // Remove the `?auth_token` and everything after it
+      url = url.split('?auth_token')[0];
+
+      // Insert `s5/blob/` after the first `/`
+      const parts = url.split('/');
+      parts.splice(3, 0, 's5/blob'); // Insert after the protocol and domain
+      url = parts.join('/');
+
+      return url;
+    } catch (error) {
+      console.error('Failed to generate download URL:', error);
+      throw error;
+    }
+  }
+
   async function downloadFileAsArrayBuffer(cid) {
     try {
       cid = removeS5Prefix(cid);
 
       // console.log('downloadFileAsArrayBuffer:', cid)
-      const url = await client.getCidUrl(cid);
+      const url = await getDownloadUrl(cid);
       // console.log('downloadFileAsArrayBuffer:', url)
 
       const response = await fetch(url, {
@@ -223,7 +242,7 @@ export default function useS5net() {
     try {
       cid = removeS5Prefix(cid);
 
-      const url = await client.getCidUrl(cid);
+      const url = await getDownloadUrl(cid);
       const headers = {};
 
       if (byteRange) {
@@ -266,8 +285,8 @@ export default function useS5net() {
       console.log('getPortalLinkUrl: metadata = ', metadata);
 
       const cid2 = metadata?.paths[customOptions.path]?.cid;
-      url = await client.getCidUrl(cid2);
-    } else url = await client.getCidUrl(cid);
+      url = await getDownloadUrl(cid2);
+    } else url = await getDownloadUrl(cid);
 
     return url;
   }

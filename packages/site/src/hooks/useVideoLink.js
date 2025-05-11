@@ -207,15 +207,10 @@ export default function useVideoLink() {
         }
       }
 
-      // Prepend the original video info
       if (hasVideoMedia(metadata)) {
-        // Insert at the beginning an object representing the original video (without src)
-        metadata.unshift({ label: 'orig', type: 'video/mp4', cid });
         videoUrl = getPlayerSources(metadata);
       }
     } else {
-      // Prepend the original video info
-      metadata.unshift({ label: 'orig', type: 'video/mp4', cid });
       videoUrl = getPlayerSources(metadata);
     }
 

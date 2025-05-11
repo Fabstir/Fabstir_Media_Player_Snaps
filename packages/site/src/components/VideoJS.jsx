@@ -59,6 +59,9 @@ const VideoJS = ({
 
   console.log('test: VideoJS: isPlayClicked', isPlayClicked);
 
+  const playDelay1 = 200;
+  const playDelay2 = 1000;
+
   /**
    * Chooses the video source based on the play button click status.
    *
@@ -371,6 +374,8 @@ const VideoJS = ({
 
             player.trigger('resolutionchange', this.options_.label);
           } else {
+            player.src(null);
+
             console.error(
               'No matching source found for resolution:',
               this.options_.label,
@@ -468,6 +473,8 @@ const VideoJS = ({
    * behaves as expected in different scenarios, such as switching between the trailer and the main content.
    */
   const setupPlayer = () => {
+    console.log('TRACE: setupPlayer called, isPlayClicked =', isPlayClicked);
+
     if (videoRef.current && !playerRef.current) {
       const videoElement = videoRef.current;
       if (!videoElement) return;
@@ -488,25 +495,31 @@ const VideoJS = ({
       player.load();
 
       if (isPlayClicked) {
-        playerRef.current.one('loadeddata', () => {
-          playerRef.current
-            .play()
-            .catch((err) =>
-              console.error('VideoJS: play error (loadeddata)', err),
-            );
-        });
+        setTimeout(() => {
+          if (playerRef.current) {
+            console.log('VideoJS: Setting up delayed loadeddata handler');
+            playerRef.current.one('loadeddata', () => {
+              console.log('VideoJS: loadeddata event fired, playing now');
+              playerRef.current
+                .play()
+                .catch((err) =>
+                  console.error('VideoJS: play error (loadeddata)', err),
+                );
+            });
+          }
+        }, playDelay1);
 
-        // Fallback: if loadeddata doesn't fire within 1 second, try to play anyway.
+        // Keep the fallback as a safety net with longer timeout
         setTimeout(() => {
           if (playerRef.current && playerRef.current.paused()) {
-            console.log('VideoJS: Fallback play after 1s');
+            console.log('VideoJS: Fallback play after 2s');
             playerRef.current
               .play()
               .catch((err) =>
                 console.error('VideoJS: play error (fallback)', err),
               );
           }
-        }, 1000);
+        }, playDelay2);
       }
 
       player.ready(() => {
@@ -592,13 +605,13 @@ const VideoJS = ({
 
     if (playerRef.current) {
       playerRef.current.on('play', async () => {
-        console.log('VideoJS1: play');
+        console.log('VideoJS: play');
 
         if (isPlayClicked) await handlePlayerPlay(playerRef.current);
       });
 
       playerRef.current.on('ended', async () => {
-        console.log('VideoJS1: end');
+        console.log('VideoJS: end');
         audioRef.current.pause();
 
         audioRef.current.currentTime = Math.round(
@@ -609,7 +622,7 @@ const VideoJS = ({
       });
 
       playerRef.current.on('dispose', async () => {
-        console.log('VideoJS1: dispose');
+        console.log('VideoJS: dispose');
 
         if (isPlayClicked && !playerRef.current.paused())
           await handlePlayerDispose();
@@ -692,7 +705,7 @@ const VideoJS = ({
 
     if (!isPlayClicked && videoElement) {
       const playTrailer = () => {
-        console.log('VideoJS1: playTrailer called');
+        console.log('VideoJS: playTrailer called');
         hoverTimeout = setTimeout(() => {
           if (!isPlayClicked && playerRef.current) {
             const currentSource = playerRef.current.src();
@@ -711,12 +724,12 @@ const VideoJS = ({
             audioRef.current.play();
             playerRef.current.play();
           }
-        }, 400);
+        }, playDelay1);
       };
 
       const pauseTrailer = () => {
         if (!isPlayClicked) {
-          console.log('VideoJS1: pauseTrailer called');
+          console.log('VideoJS: pauseTrailer called');
           clearTimeout(hoverTimeout);
           if (
             !isMouseOverUnmute.current &&
@@ -724,7 +737,7 @@ const VideoJS = ({
             playerRef.current
           ) {
             console.log(
-              'VideoJS1: pauseTrailer: currentTime',
+              'VideoJS: pauseTrailer: currentTime',
               playerRef.current.currentTime(),
             );
             playerRef.current.pause();
@@ -773,47 +786,82 @@ const VideoJS = ({
   };
 
   useEffect(() => {
+    console.log(
+      'TRACE: Source change useEffect, isPlayClicked =',
+      isPlayClicked,
+    );
+
     if (playerRef.current) {
       const newSource = chooseSource(isPlayClicked, mainSource, trailerSource);
+      console.log('TRACE: - Sources when changing:', {
+        isPlayClicked,
+        mainSource,
+        trailerSource,
+        selectedSource: newSource,
+        currentPlayerSrc: playerRef.current.currentSrc(),
+      });
+      console.log('VideoJS: newSource', newSource);
+
+      // Stop any current playback completely
+      playerRef.current.pause();
+
+      // Clear any existing event handlers
+      playerRef.current.off('loadedmetadata');
+      playerRef.current.off('loadeddata');
+
+      // Set new source and load ONCE
+      playerRef.current.src(newSource);
+      playerRef.current.load();
+
+      // Exit if no source
+      if (!newSource) return;
+
+      // Update tracks AFTER setting source
       const newTracks = chooseSubtitleTracks(
         isPlayClicked,
         mainSubtitleTracks,
         trailerSubtitleTracks,
       );
-
-      playerRef.current.src(newSource);
       updateSubtitleTracks(newTracks);
 
-      playerRef.current.pause();
-      // playerRef.current.currentTime(0);
-      playerRef.current.load();
+      // Set muted state before playing
+      playerRef.current.muted(isPlayClicked ? isMainMuted : isMuted);
 
+      // Add delayed play mechanism
+      // Replace the delayed play mechanism with this more robust approach:
       if (isPlayClicked) {
-        console.log('VideoJS1: play damn mainSource', mainSource);
-        console.log('VideoJS1: play2');
-        playerRef.current.muted(isMainMuted);
-
-        // Listen for loadeddata to ensure the video has loaded enough for playback.
-        playerRef.current.one('loadeddata', () => {
-          // Now that data is loaded, start playback.
-          playerRef.current
-            .play()
-            .catch((err) =>
-              console.error('VideoJS: play error (loadeddata)', err),
-            );
-        });
-
-        // Fallback: if loadeddata doesn't fire within 1 second, try to play anyway.
+        // Verify source is set correctly before playing
         setTimeout(() => {
-          if (playerRef.current && playerRef.current.paused()) {
-            console.log('VideoJS: Fallback play after 1s');
+          if (playerRef.current) {
+            // Get the expected source again to ensure it's correct
+            const expectedSource = chooseSource(
+              true,
+              mainSource,
+              trailerSource,
+            );
+            const currentSource = playerRef.current.currentSrc();
+
+            console.log('Before play - Source check:', {
+              expectedSource,
+              currentSource,
+            });
+
+            // Force source update if needed
+            if (!currentSource.includes(expectedSource[0]?.src)) {
+              console.log('Fixing source before play');
+              playerRef.current.src(expectedSource);
+              playerRef.current.load();
+            }
+
+            // Now play with the correct source
+            console.log('Playing video after delay');
             playerRef.current
               .play()
               .catch((err) =>
-                console.error('VideoJS: play error (fallback)', err),
+                console.error('Play error after source change:', err),
               );
           }
-        }, 1000);
+        }, playDelay1);
       }
     }
   }, [
@@ -929,13 +977,13 @@ const VideoJS = ({
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
       playerRef.current.poster(options?.poster);
-      if (!isPlaylist) setIsPlayClicked(false);
+      if (!isPlaylist && setIsPlayClicked) setIsPlayClicked(false);
     }
   };
 
   useEffect(() => {
     playerRef.current.poster(options?.poster);
-    if (!isPlaylist) setIsPlayClicked(false);
+    if (!isPlaylist && setIsPlayClicked) setIsPlayClicked(false);
 
     return () => {
       stopVideo();

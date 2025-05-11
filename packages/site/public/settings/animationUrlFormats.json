@@ -1,0 +1,15 @@
+[
+  {
+    "id": 33,
+    "type": "video/mp4",
+    "ext": "mp4",
+    "vcodec": "av1_nvenc",
+    "preset": "medium",
+    "profile": "main",
+    "ch": 2,
+    "vf": "scale=1920x1080",
+    "b_v": "3.5M",
+    "ar": "48k",
+    "gpu": true
+  }
+]

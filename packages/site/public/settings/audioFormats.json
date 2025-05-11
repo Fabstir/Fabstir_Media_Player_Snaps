@@ -1,0 +1,24 @@
+[
+  {
+    "id": 15,
+    "label": "135k",
+    "type": "audio/opus",
+    "ext": "opus",
+    "ch": 2,
+    "b:a": "135k",
+    "acodec": "libopus",
+    "ar": "48k",
+    "gpu": true
+  },
+  {
+    "id": 16,
+    "label": "1600k",
+    "type": "audio/flac",
+    "ext": "flac",
+    "ch": 2,
+    "b:a": "1600k",
+    "acodec": "flac",
+    "ar": "48k",
+    "gpu": true
+  }
+]

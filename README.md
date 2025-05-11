@@ -1,78 +1,106 @@
-# @metamask/template-snap-monorepo
+# Fabstir Media Player Snaps Monorepo
 
-This repository demonstrates how to develop a snap with TypeScript. For detailed instructions, see [the MetaMask documentation](https://docs.metamask.io/guide/snaps.html#serving-a-snap-to-your-local-environment).
+This monorepo contains two core packages that together power the Fabstir Media Player:
 
-MetaMask Snaps is a system that allows anyone to safely expand the capabilities of MetaMask. A _snap_ is a program that we run in an isolated environment that can customize the wallet experience.
+- **MetaMask Snap** (`packages/snap`): A secure Snap for storing NFT references, encryption keys, and CIDs in MetaMask’s isolated environment.
+- **Web Application** (`packages/site`): A React‑based front end for browsing, minting, and playing NFT media using the Snap.
 
-## Snaps is pre-release software
+---
 
-To interact with (your) Snaps, you will need to install [MetaMask Flask](https://metamask.io/flask/), a canary distribution for developers that provides access to upcoming features.
+## 🗂️ Packages
 
-## Getting Started
+| Package | Directory       | Description                                                      | Docs                                |
+| ------- | --------------- | ---------------------------------------------------------------- | ----------------------------------- |
+| Snap    | `packages/snap` | The MetaMask Snaps package. Implements secure storage & logic.   | [README](./packages/snap/README.md) |
+| Site    | `packages/site` | React application for interacting with the Snap in your browser. | [README](./packages/site/README.md) |
 
-Clone the template-snap repository [using this template](https://github.com/MetaMask/template-snap-monorepo/generate) and setup the development environment:
+---
 
-```shell
-yarn install && yarn start
+## 🚀 Getting Started
+
+```bash
+# 1. Clone the repo
+git clone https://github.com/Fabstir/Fabstir_Media_Player_Snaps.git
+cd Fabstir_Media_Player_Snaps
+
+# 2. Install dependencies (monorepo root)
+yarn install
 ```
 
-## Cloning
+**Step 3: Apply Particle Network patch**
+A known installation bug in `@particle-network` causes a mismatched `viem` import. To fix it on Windows, run the included batch script:
 
-This repository contains GitHub Actions that you may find useful, see `.github/workflows` and [Releasing & Publishing](https://github.com/MetaMask/template-snap-monorepo/edit/main/README.md#releasing--publishing) below for more information.
+```powershell
+.iem-to-particle-fix.bat
+```
 
-If you clone or create this repository outside the MetaMask GitHub organization, you probably want to run `./scripts/cleanup.sh` to remove some files that will not work properly outside the MetaMask GitHub organization.
+This updates the `node_modules/@particle-network` package in-place to prevent build failures.
 
-Note that the `action-publish-release.yml` workflow contains a step that publishes the frontend of this snap (contained in the `public/` directory) to GitHub pages. If you do not want to publish the frontend to GitHub pages, simply remove the step named "Publish to GitHub Pages" in that workflow.
+### Running Locally
 
-If you don't wish to use any of the existing GitHub actions in this repository, simply delete the `.github/workflows` directory.
+You will need [MetaMask Flask](https://metamask.io/flask/) to load the Snap.
 
-## Contributing
+#### 1. Start the Snap
 
-### Testing and Linting
+```bash
+cd packages/snap
+yarn start
+```
 
-Run `yarn test` to run the tests once.
+This serves your Snap at `http://localhost:8080` by default.
 
-Run `yarn lint` to run the linter, or run `yarn lint:fix` to run the linter and fix any automatically fixable issues.
+#### 2. Start the Web App
 
-### Releasing & Publishing
+```bash
+cd packages/site
+yarn dev
+```
 
-The project follows the same release process as the other libraries in the MetaMask organization. The GitHub Actions [`action-create-release-pr`](https://github.com/MetaMask/action-create-release-pr) and [`action-publish-release`](https://github.com/MetaMask/action-publish-release) are used to automate the release process; see those repositories for more information about how they work.
+Open your browser at `http://localhost:3000` (or the port shown) to view the media player.
 
-1. Choose a release version.
+> **Tip:** If you prefer, you can run both with yarn workspaces:
+>
+> ```bash
+>
+> ```
 
-- The release version should be chosen according to SemVer. Analyze the changes to see whether they include any breaking changes, new features, or deprecations, then choose the appropriate SemVer version. See [the SemVer specification](https://semver.org/) for more information.
+yarn workspace @fabstir/media-player-snap start
+yarn workspace site dev
 
-2. If this release is backporting changes onto a previous release, then ensure there is a major version branch for that version (e.g. `1.x` for a `v1` backport release).
+```
 
-- The major version branch should be set to the most recent release with that major version. For example, when backporting a `v1.0.2` release, you'd want to ensure there was a `1.x` branch that was set to the `v1.0.1` tag.
+---
 
-3. Trigger the [`workflow_dispatch`](https://docs.github.com/en/actions/reference/events-that-trigger-workflows#workflow_dispatch) event [manually](https://docs.github.com/en/actions/managing-workflow-runs/manually-running-a-workflow) for the `Create Release Pull Request` action to create the release PR.
+## 🛠️ Development
 
-- For a backport release, the base branch should be the major version branch that you ensured existed in step 2. For a normal release, the base branch should be the main branch for that repository (which should be the default value).
-- This should trigger the [`action-create-release-pr`](https://github.com/MetaMask/action-create-release-pr) workflow to create the release PR.
+- **Testing**:  `yarn test`
+- **Linting**:  `yarn lint`
+- **Auto‑fix lint**:  `yarn lint:fix`
+- **Build (Site)**: `cd packages/site && yarn build`
 
-4. Update the changelog to move each change entry into the appropriate change category ([See here](https://keepachangelog.com/en/1.0.0/#types) for the full list of change categories, and the correct ordering), and edit them to be more easily understood by users of the package.
+---
 
-- Generally any changes that don't affect consumers of the package (e.g. lockfile changes or development environment changes) are omitted. Exceptions may be made for changes that might be of interest despite not having an effect upon the published package (e.g. major test improvements, security improvements, improved documentation, etc.).
-- Try to explain each change in terms that users of the package would understand (e.g. avoid referencing internal variables/concepts).
-- Consolidate related changes into one change entry if it makes it easier to explain.
-- Run `yarn auto-changelog validate --rc` to check that the changelog is correctly formatted.
+## 📦 Releasing & Publishing
 
-5. Review and QA the release.
+This project uses GitHub Actions to automate Snap releases and site deployments. For Snap release guidelines, see the [MetaMask template docs](https://github.com/MetaMask/template-snap-monorepo/blob/main/README.md#releasing--publishing).
 
-- If changes are made to the base branch, the release branch will need to be updated with these changes and review/QA will need to restart again. As such, it's probably best to avoid merging other PRs into the base branch while review is underway.
+---
 
-6. Squash & Merge the release.
+## 🤝 Contributing
 
-- This should trigger the [`action-publish-release`](https://github.com/MetaMask/action-publish-release) workflow to tag the final release commit and publish the release on GitHub.
+Contributions are welcome! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines on pull requests, branching strategy, and code standards.
 
-7. Publish the release on npm.
+---
 
-- Be very careful to use a clean local environment to publish the release, and follow exactly the same steps used during CI.
-- Use `npm publish --dry-run` to examine the release contents to ensure the correct files are included. Compare to previous releases if necessary (e.g. using `https://unpkg.com/browse/[package name]@[package version]/`).
-- Once you are confident the release contents are correct, publish the release using `npm publish`.
+## 📖 Learn More
 
-## Notes
+- [MetaMask Snaps Guide](https://docs.metamask.io/guide/snaps.html#serving-a-snap-to-your-local-environment)
+- [React Documentation](https://reactjs.org/docs/getting-started.html)
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Tailwind CSS](https://tailwindcss.com/docs)
 
-- Babel is used for transpiling TypeScript to JavaScript, so when building with the CLI,
-  `transpilationMode` must be set to `localOnly` (default) or `localAndDeps`. 
+---
+
+<p align="center">Built with 💜 by Fabstir</p>
+
+```
