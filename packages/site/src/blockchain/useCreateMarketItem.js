@@ -14,8 +14,6 @@ import BlockchainContext from '../../state/BlockchainContext';
 import useUserProfile from '../hooks/useUserProfile';
 
 import FNFTMarketCreateFacet from '../../contracts/FNFTMarketCreateFacet.json';
-import FNFTTokenDepositFacet from '../../contracts/FNFTTokenDepositFacet.json';
-import FNFTTokenWithdrawFacet from '../../contracts/FNFTTokenWithdrawFacet.json';
 
 import { userauthpubstate } from '../atoms/userAuthAtom';
 import useAccountAbstractionPayment from './useAccountAbstractionPayment';
@@ -66,90 +64,6 @@ export default function useCreateMarketItem() {
 
   const { createMediaSEAPair, putMediaKey, submitEncryptedMediaKey } =
     useMarketKeys();
-
-  // Add fractional token to marketplace for auction
-  const createMarketDAOItem = async (
-    marketAddress,
-    dao,
-    howMuchTokens,
-    startPrice,
-    reservePrice,
-    startTime,
-    endTime,
-    cancelTime,
-  ) => {
-    const fnftMarketCreateFacet = newContract(
-      marketAddress,
-      FNFTMarketCreateFacet.abi,
-      smartAccountProvider,
-    );
-
-    const fnftTokenDepositFacet = newReadOnlyContract(
-      getChainIdAddressFromChainIdAndAddress(connectedChainId, dao.address),
-      FNFTTokenDepositFacet.abi,
-    );
-
-    const fnftTokenId = await fnftTokenDepositFacet.index();
-
-    const fnftTokenWithdrawFacet = newContract(
-      dao.address,
-      FNFTTokenWithdrawFacet.abi,
-      smartAccountProvider,
-    );
-
-    const tokenName = await fnftTokenWithdrawFacet.name();
-    console.log('useCreateMarketItem: token name = ', tokenName);
-
-    const userOps = [];
-
-    userOps.push([
-      await fnftTokenWithdrawFacet.populateTransaction.approve(
-        getAddressFromChainIdAddress(marketAddress),
-        howMuchTokens,
-      ),
-      dao.address,
-    ]);
-
-    const marketItemInput = {
-      tokenId: fnftTokenId,
-      seller: AddressZero,
-      fnftToken: dao.address,
-      baseToken: getContractAddressFromCurrency(dao.currency),
-      amount: howMuchTokens,
-      startPrice,
-      reservePrice,
-      startTime,
-      endTime,
-      cancelTime,
-      creator: Zero,
-      resellerFeeRatio: Zero,
-      creatorFeeRatio: Zero,
-      holders: [],
-      holdersRatio: [],
-    };
-
-    userOps.push([
-      await fnftMarketCreateFacet.populateTransaction.createMarketItem(
-        marketItemInput,
-      ),
-      fnftMarketCreateFacet.address,
-    ]);
-
-    const { receipt } = await processTransactionBundle(userOps, 3);
-
-    const marketItemCreatedEvent = getAddressFromContractEvent(
-      receipt,
-      FNFTMarketCreateFacet.abi,
-      'MarketItemCreated',
-      0,
-    );
-    console.log(
-      'useCreateDAO: createMarketDAOItem: marketItemCreatedEvent = ',
-      marketItemCreatedEvent,
-    );
-
-    return { marketItemCreatedEvent };
-  };
 
   // Adds a ERC-721 to marketplace for auction
   const createMarketNFT721Item = async (
@@ -586,7 +500,6 @@ export default function useCreateMarketItem() {
   };
 
   return {
-    createMarketDAOItem,
     createMarketNFT721Item,
     createMarketNFT1155Item,
     deleteMarketItemPending,
