@@ -36,6 +36,27 @@ A known installation bug in `@particle-network` causes a mismatched `viem` impor
 
 This updates the `node_modules/@particle-network` package in-place to prevent build failures.
 
+**Step 4: Generate `fabstirdb-lib.tgz`**
+The site depends on a local build of `fabstirdb-lib`. To produce and install it:
+
+```bash
+# a. Clone and pack the fabstirdb library
+git clone https://github.com/Fabstir/fabstirdb.git
+cd fabstirdb
+npm pack
+# This creates a file like fabstirdb-lib-1.2.3.tgz
+
+# b. Move the tarball into the site package
+mv fabstirdb-lib-*.tgz ../Fabstir_Media_Player_Snaps/packages/site/fabstirdb-lib.tgz
+
+# c. Return to the monorepo and install it
+git checkout -  # go back to the monorepo root
+cd Fabstir_Media_Player_Snaps/packages/site
+yarn add file:fabstirdb-lib.tgz
+```
+
+Once complete, you’re ready to run the web app locally.
+
 ### Running Locally
 
 You will need [MetaMask Flask](https://metamask.io/flask/) to load the Snap.
