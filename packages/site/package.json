@@ -115,6 +115,7 @@
     "eslint": "9.3.0",
     "eslint-config-prettier": "9.0.0",
     "eslint-plugin-jsdoc": "48.2.6",
-    "eslint-plugin-prettier": "5.0.0"
+    "eslint-plugin-prettier": "5.0.0",
+    "@c4312/blake3-internal": "3.0.0"
   }
 }

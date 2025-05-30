@@ -1,11 +1,14 @@
-'use strict'
+'use strict';
 
 // ! S5 web proxy service worker (version 11)
 
 // ! WASM bindings (generated) START
 let wasm;
 
-const cachedTextDecoder = new TextDecoder('utf-8', { ignoreBOM: true, fatal: true });
+const cachedTextDecoder = new TextDecoder('utf-8', {
+  ignoreBOM: true,
+  fatal: true,
+});
 
 cachedTextDecoder.decode();
 
@@ -44,11 +47,11 @@ function getArrayU8FromWasm0(ptr, len) {
   return getUint8Memory0().subarray(ptr / 1, ptr / 1 + len);
 }
 /**
-* @param {Uint8Array} key
-* @param {Uint8Array} nonce
-* @param {Uint8Array} ciphertext
-* @returns {Uint8Array}
-*/
+ * @param {Uint8Array} key
+ * @param {Uint8Array} nonce
+ * @param {Uint8Array} ciphertext
+ * @returns {Uint8Array}
+ */
 function decrypt_xchacha20poly1305(key, nonce, ciphertext) {
   try {
     const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
@@ -70,9 +73,9 @@ function decrypt_xchacha20poly1305(key, nonce, ciphertext) {
 }
 
 /**
-* @param {Uint8Array} input
-* @returns {Uint8Array}
-*/
+ * @param {Uint8Array} input
+ * @returns {Uint8Array}
+ */
 function hash_blake3(input) {
   try {
     const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
@@ -90,13 +93,18 @@ function hash_blake3(input) {
 }
 
 /**
-* @param {Uint8Array} chunk_bytes
-* @param {bigint} offset
-* @param {Uint8Array} bao_outboard_bytes
-* @param {Uint8Array} blake3_hash
-* @returns {number}
-*/
-function verify_integrity(chunk_bytes, offset, bao_outboard_bytes, blake3_hash) {
+ * @param {Uint8Array} chunk_bytes
+ * @param {bigint} offset
+ * @param {Uint8Array} bao_outboard_bytes
+ * @param {Uint8Array} blake3_hash
+ * @returns {number}
+ */
+function verify_integrity(
+  chunk_bytes,
+  offset,
+  bao_outboard_bytes,
+  blake3_hash,
+) {
   const ptr0 = passArray8ToWasm0(chunk_bytes, wasm.__wbindgen_malloc);
   const len0 = WASM_VECTOR_LEN;
   const ptr1 = passArray8ToWasm0(bao_outboard_bytes, wasm.__wbindgen_malloc);
@@ -112,11 +120,12 @@ async function load(module, imports) {
     if (typeof WebAssembly.instantiateStreaming === 'function') {
       try {
         return await WebAssembly.instantiateStreaming(module, imports);
-
       } catch (e) {
         if (module.headers.get('Content-Type') != 'application/wasm') {
-          console.warn("`WebAssembly.instantiateStreaming` failed because your server does not serve wasm with `application/wasm` MIME type. Falling back to `WebAssembly.instantiate` which is slower. Original error:\n", e);
-
+          console.warn(
+            '`WebAssembly.instantiateStreaming` failed because your server does not serve wasm with `application/wasm` MIME type. Falling back to `WebAssembly.instantiate` which is slower. Original error:\n',
+            e,
+          );
         } else {
           throw e;
         }
@@ -125,13 +134,11 @@ async function load(module, imports) {
 
     const bytes = await module.arrayBuffer();
     return await WebAssembly.instantiate(bytes, imports);
-
   } else {
     const instance = await WebAssembly.instantiate(module, imports);
 
     if (instance instanceof WebAssembly.Instance) {
       return { instance, module };
-
     } else {
       return instance;
     }
@@ -148,16 +155,13 @@ function getImports() {
   return imports;
 }
 
-function initMemory(imports, maybe_memory) {
-
-}
+function initMemory(imports, maybe_memory) {}
 
 function finalizeInit(instance, module) {
   wasm = instance.exports;
   init.__wbindgen_wasm_module = module;
   cachedInt32Memory0 = null;
   cachedUint8Memory0 = null;
-
 
   return wasm;
 }
@@ -182,7 +186,11 @@ async function init(input) {
   }
   const imports = getImports();
 
-  if (typeof input === 'string' || (typeof Request === 'function' && input instanceof Request) || (typeof URL === 'function' && input instanceof URL)) {
+  if (
+    typeof input === 'string' ||
+    (typeof Request === 'function' && input instanceof Request) ||
+    (typeof URL === 'function' && input instanceof URL)
+  ) {
     input = fetch(input);
   }
 
@@ -218,14 +226,18 @@ async function getStreamingLocation(hash, types) {
 
   // TODO Expiry
 
-  console.debug('fetch', 'https://s5.cx/api/locations/' + hash + '?types=' + types)
-  const res = await fetch('https://s5.cx/api/locations/' + hash + '?types=' + types);
+  console.debug(
+    'fetch',
+    'https://s5.cx/api/locations/' + hash + '?types=' + types,
+  );
+  const res = await fetch(
+    'https://s5.cx/api/locations/' + hash + '?types=' + types,
+  );
   const parts = (await res.json())['locations'][0]['parts'];
 
   streamingUrlCache[hash] = parts;
 
   return parts;
-
 }
 
 // ! Default cache limit: ~ 512 MB
@@ -233,16 +245,16 @@ async function runCacheCleaner(cache, keys) {
   let additionalKeys = await cache.keys();
 
   for (const akeyRaw of additionalKeys) {
-    const akey = (new URL(akeyRaw.url)).pathname.substr(1)
+    const akey = new URL(akeyRaw.url).pathname.substr(1);
     if (!keys.includes(akey)) {
       keys.unshift(akey);
     }
   }
-  console.debug('CacheCleaner', 'length', keys.length)
+  console.debug('CacheCleaner', 'length', keys.length);
   while (keys.length > 2048) {
     let key = keys.shift();
     cache.delete(key);
-    console.debug('CacheCleaner', 'delete', key)
+    console.debug('CacheCleaner', 'delete', key);
   }
 }
 
@@ -263,19 +275,19 @@ function equal(buf1, buf2) {
 const nonceBytes = 24;
 
 function numberToArrayBuffer(value) {
-  const view = new DataView(new ArrayBuffer(nonceBytes))
-  for (var index = (nonceBytes - 1); index >= 0; --index) {
-    view.setUint8(nonceBytes - 1 - index, value % 256)
+  const view = new DataView(new ArrayBuffer(nonceBytes));
+  for (var index = nonceBytes - 1; index >= 0; --index) {
+    view.setUint8(nonceBytes - 1 - index, value % 256);
     value = value >> 8;
   }
-  return view.buffer
+  return view.buffer;
 }
 
 function hashToBase64UrlNoPadding(hashBytes) {
   return btoa(String.fromCharCode.apply(null, hashBytes))
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
-    .replace(/\=/g, '')
+    .replace(/\=/g, '');
 }
 
 function safeDivision(start, chunkSize) {
@@ -284,427 +296,462 @@ function safeDivision(start, chunkSize) {
   return Number((startN - (startN % chunkSizeN)) / chunkSizeN);
 }
 
+// ============= START OF REPLACEMENT CODE =============
+// Replace the entire openRead function and add these helper functions
+
+// Simplified openRead function with better error handling and state management
 function openRead(cid, start, end, totalSize, limit, encryptionMetadata) {
-  console.debug('openRead', cid, start, end, totalSize, limit, encryptionMetadata)
-  // ! end is exclusive
+  console.debug('openRead', {
+    cid,
+    start,
+    end,
+    totalSize,
+    limit,
+    isEncrypted: !!encryptionMetadata,
+  });
 
   const isEncrypted = encryptionMetadata !== undefined;
+  const chunkSize = encryptionMetadata?.chunkSize || 262144;
 
-  const hashBytes =
-    _base64ToUint8Array(cid.substring(1).replace(/-/g, '+')
-      .replace(/_/g, '/')).slice(1, 34);
+  const hashBytes = _base64ToUint8Array(
+    cid.substring(1).replace(/-/g, '+').replace(/_/g, '/'),
+  ).slice(1, 34);
+
+  const hash_b64 = hashToBase64UrlNoPadding(
+    isEncrypted ? encryptionMetadata.hash : hashBytes,
+  );
+
+  // For small files, handle them separately
+  if (totalSize <= chunkSize && !isEncrypted) {
+    return handleSmallFile(cid, hash_b64, hashBytes, start, end);
+  }
 
   return new ReadableStream({
-    // TODO Test if type pull works better
-    // type: 'bytes',
     async start(controller) {
-      const hash_b64 = hashToBase64UrlNoPadding(isEncrypted ? encryptionMetadata.hash : hashBytes);
+      const streamState = {
+        currentPosition: start,
+        targetEnd: end,
+        downloadedData: new Uint8Array(),
+        isDownloading: false,
+        httpReader: null,
+        abortController: new AbortController(),
+      };
 
-      if (totalSize <= 262144 && !isEncrypted) {
-        let parts = await getStreamingLocation(hash_b64, '3,5');
-        let url = parts[0];
+      try {
+        await streamLargeFile(controller, streamState, {
+          cid,
+          hash_b64,
+          hashBytes,
+          chunkSize,
+          totalSize,
+          isEncrypted,
+          encryptionMetadata,
+          limit,
+        });
+      } catch (error) {
+        console.error('openRead error:', error);
+        controller.error(error);
+      } finally {
+        // Cleanup
+        streamState.abortController.abort();
+        if (streamState.httpReader) {
+          await streamState.httpReader.cancel();
+        }
+      }
+    },
+  });
+}
 
+async function handleSmallFile(cid, hash_b64, hashBytes, start, end) {
+  return new ReadableStream({
+    async start(controller) {
+      try {
         const s5Cache = await caches.open('s5-small-files');
-        console.debug('openRead', 'small file')
 
-        let cachedBytes = await s5Cache.match(cid);
-
-        if (cachedBytes !== undefined) {
-          const bytes = new Uint8Array(await cachedBytes.arrayBuffer());
-          if (start === 0) {
-            if (end === bytes.length) {
-              controller.enqueue(bytes);
-            } else {
-              controller.enqueue(bytes.slice(0, end));
-            }
-          } else {
-            controller.enqueue(bytes.slice(start, end));
-          }
-
+        // Check cache first
+        const cachedResponse = await s5Cache.match(cid);
+        if (cachedResponse) {
+          const bytes = new Uint8Array(await cachedResponse.arrayBuffer());
+          controller.enqueue(bytes.slice(start, end));
           controller.close();
           return;
         }
 
-        if (Math.random() < 0.01) {
-          runCacheCleaner(s5Cache, smallFileCacheKeys);
-        }
+        // Download file
+        const parts = await getStreamingLocation(hash_b64, '3,5');
+        const response = await fetch(parts[0]);
+        const bytes = new Uint8Array(await response.arrayBuffer());
 
-        console.debug('fetch', 'small file', url);
-        const res = await fetch(url);
-        const bytes = new Uint8Array(await res.arrayBuffer())
-
+        // Verify integrity
         const bytes_b3_hash = hash_blake3(bytes);
-
-        const isValid = equal(hashBytes.slice(1), bytes_b3_hash);
-
-        if (isValid !== true) {
-          throw 'File integrity check failed (BLAKE3 with WASM)'
+        if (!equal(hashBytes.slice(1), bytes_b3_hash)) {
+          throw new Error('File integrity check failed (BLAKE3)');
         }
 
-        if (start === 0) {
-          if (end === bytes.length) {
-            controller.enqueue(bytes);
-          } else {
-            controller.enqueue(bytes.slice(0, end));
-          }
-        } else {
-          controller.enqueue(bytes.slice(start, end));
-        }
+        // Cache and serve
+        await s5Cache.put(cid, new Response(bytes));
+        controller.enqueue(bytes.slice(start, end));
         controller.close();
-
-        s5Cache.put(cid, new Response(bytes))
-
-        smallFileCacheKeys.push(cid);
-
-        return;
-
+      } catch (error) {
+        controller.error(error);
       }
-
-      let chunkSize = 262144; // TODO Support custom chunk sizes
-
-      let chunk = safeDivision(start, chunkSize);
-
-      let offset = start % chunkSize;
-
-      let downloadedEncData = new Uint8Array();
-
-      let downloadStarted = false;
-
-      const s5Cache = await caches.open(isEncrypted ? 's5-large-files-encrypted' : 's5-large-files');
-
-      let lockedChunks = [];
-
-      console.log('limit', limit);
-      if (limit) {
-        if ((end - start) > chunkSize * 64) {
-          end = start + chunkSize * 64;
-        }
-      }
-
-      let isFirstLoop = true;
-
-      while (start < end) {
-        if (!isFirstLoop) {
-          chunk = safeDivision(start, chunkSize);
-        }
-
-        isFirstLoop = false;
-        /* if (limit) {
-          servedChunkCount++;
-          if (servedChunkCount > (64)) {
-            controller.close();
-            console.log('openPlaintextRead stop (limit)')
-            // TODO Check if empty
-            downloadedEncData = new Uint8Array();
-            return;
-          }
-        } */
-
-        let chunkCacheKey = '0/' + hash_b64 + '/' + chunk.toString();
-
-        let chunkRes = await s5Cache.match(chunkCacheKey);
-
-        if (chunkRes !== undefined) {
-          console.debug('serve', 'cache', chunk);
-
-          const bytes = new Uint8Array(await chunkRes.arrayBuffer());
-
-          if (bytes.length == 0) {
-            s5Cache.delete(chunkCacheKey);
-            throw 'Invalid chunk cache';
-          }
-
-          if (offset === 0) {
-            if ((start + bytes.length) > end) {
-              controller.enqueue(bytes.slice(0, (end % chunkSize)));
-            } else {
-              controller.enqueue(bytes);
-            }
-          } else {
-            if (((start - offset) + bytes.length) > end) {
-              controller.enqueue(bytes.slice(offset, (end % chunkSize)));
-            } else {
-              controller.enqueue(bytes.slice(offset));
-            }
-          }
-          // console.debug('serve', 'cache done', start, bytes.length, offset);
-          start += bytes.length - offset;
-
-
-          // console.debug('serve', 'cache done');
-
-        } else {
-          const chunkLockKey = '0/' + hash_b64 + '/' + chunk.toString();
-          if (downloadingChunkLock[chunkLockKey] === true && !lockedChunks.includes(chunkLockKey)) {
-            console.debug('[chunk] wait for ' + chunk);
-            // sub?.cancel();
-            while (downloadingChunkLock[chunkLockKey] === true) {
-              // TODO Risk for infinite loop, add timeout
-              await new Promise(r => setTimeout(r, 10));
-            }
-
-            let chunkRes = await s5Cache.match(chunkCacheKey);
-
-            const bytes = new Uint8Array(await chunkRes.arrayBuffer());
-
-            if (offset === 0) {
-              if ((start + bytes.length) > end) {
-                controller.enqueue(bytes.slice(0, (end % chunkSize)));
-              } else {
-                controller.enqueue(bytes);
-              }
-            } else {
-              if (((start - offset) + bytes.length) > end) {
-                controller.enqueue(bytes.slice(offset, (end % chunkSize)));
-              } else {
-                controller.enqueue(bytes.slice(offset));
-              }
-            }
-            start += bytes.length - offset;
-
-          } else {
-
-            const parts = await getStreamingLocation(hash_b64, isEncrypted ? '3,5' : '5');
-
-            function lockChunk(index) {
-              const chunkLockKey = '0/' + hash_b64 + '/' + index.toString();
-              downloadingChunkLock[chunkLockKey] = true;
-              lockedChunks.push(chunkLockKey);
-            }
-
-            lockChunk(chunk);
-
-            let url = parts[0];
-
-            let baoOutboardBytesUrl;
-
-            if (parts[1] !== undefined) {
-              baoOutboardBytesUrl = parts[1];
-            } else {
-              baoOutboardBytesUrl = parts[0] + '.obao';
-            }
-
-            if (Math.random() < 0.1) {
-              runCacheCleaner(s5Cache, chunkCacheKeys);
-            }
-
-            if (!isEncrypted && bao_outboard_bytes_cache[baoOutboardBytesUrl] === undefined) {
-              const baoLockKey = '0/' + hash_b64 + '/bao';
-              if (downloadingChunkLock[baoLockKey] === true) {
-                while (downloadingChunkLock[baoLockKey] === true) {
-                  // TODO Risk for infinite loop, add timeout
-                  await new Promise(r => setTimeout(r, 10));
-                }
-              } else {
-                downloadingChunkLock[baoLockKey] = true;
-                lockedChunks.push(baoLockKey);
-
-                console.debug('fetch', 'bao', baoOutboardBytesUrl);
-                const res = await fetch(baoOutboardBytesUrl);
-
-                bao_outboard_bytes_cache[baoOutboardBytesUrl] = new Uint8Array(await res.arrayBuffer())
-
-                delete downloadingChunkLock[baoLockKey];
-              }
-            }
-            let chunkBytes;
-            let retryCount = 0;
-
-            while (true) {
-              try {
-                console.debug('[chunk] download ' + chunk);
-
-                const startByte = chunk * chunkSize;
-
-                let encStartByte = isEncrypted ?
-                  chunk * (chunkSize + 16) :
-                  startByte;
-
-                let encChunkSize = isEncrypted ?
-                  chunkSize + 16 :
-                  chunkSize;
-
-                let hasDownloadError = false;
-
-                if (downloadStarted === false) {
-                  // TODO: limit range by available cache
-                  let rangeHeader;
-
-                  if (end < (startByte + chunkSize)) {
-                    if ((startByte + chunkSize) > totalSize) {
-                      rangeHeader = 'bytes=' + encStartByte + '-';
-                    } else {
-                      rangeHeader = 'bytes=' + encStartByte + '-' + (encStartByte + encChunkSize - 1);
-                    }
-                  } else {
-
-                    const downloadUntilChunkExclusive = safeDivision(end, chunkSize) + 1;
-
-                    for (let ci = chunk + 1; ci < downloadUntilChunkExclusive; ci++) {
-                      lockChunk(ci);
-                    }
-
-                    const length = encChunkSize * (downloadUntilChunkExclusive - chunk);
-
-                    if ((encStartByte + length) > totalSize) {
-                      rangeHeader = 'bytes=' + encStartByte + '-';
-                    } else {
-                      rangeHeader = 'bytes=' + encStartByte + '-' + (encStartByte + length - 1);
-                    }
-                  }
-                  console.debug('fetch', 'range', rangeHeader, url);
-
-                  const res = await fetch(url, {
-                    headers: {
-                      'range': rangeHeader,
-                    }
-                  });
-
-                  downloadStarted = true;
-
-                  const reader = res.body.getReader();
-
-                  function push() {
-                    reader.read().then(
-                      ({ done, value }) => {
-                        if (done) {
-                          console.debug('fetch', 'range', 'http reader done');
-                          // isDone = true;
-                          return;
-                        }
-                        // console.log('[debug] http reader', value.length);
-                        let mergedArray = new Uint8Array(downloadedEncData.length + value.length);
-                        mergedArray.set(downloadedEncData);
-                        mergedArray.set(value, downloadedEncData.length);
-
-                        downloadedEncData = mergedArray;
-                        // console.log('addencdata', done, value);
-
-                        push();
-                      },
-                      () => {
-                        hasDownloadError = true;
-                      }
-                    );
-                  }
-                  push();
-                }
-                let isLastChunk = (startByte + chunkSize) > (totalSize);
-
-                if (isLastChunk) {
-                  while (downloadedEncData.length < (totalSize - encStartByte)) {
-                    if (hasDownloadError) throw 'Download HTTP request failed';
-                    await new Promise(r => setTimeout(r, 10));
-
-                  }
-                } else {
-                  while (downloadedEncData.length < encChunkSize) {
-                    if (hasDownloadError) throw 'Download HTTP request failed';
-                    await new Promise(r => setTimeout(r, 10));
-                  }
-                }
-
-                chunkBytes = isLastChunk
-                  ? downloadedEncData
-                  : downloadedEncData.slice(0, encChunkSize);
-
-                if (isEncrypted) {
-                  let nonce = new Uint8Array(numberToArrayBuffer(chunk));
-                  
-                  chunkBytes = decrypt_xchacha20poly1305(
-                    encryptionMetadata.key,
-                    nonce,
-                    chunkBytes,
-                  );
-                  if (isLastChunk && encryptionMetadata.padding > 0) {
-                    chunkBytes = chunkBytes.slice(0, chunkBytes.length - encryptionMetadata.padding)
-                  }
-                  if (chunkBytes.length === 0) {
-                    throw 'Chunk is empty!';
-                  }
-                } else {
-                  let integrity_res = verify_integrity(
-                    chunkBytes,
-                    BigInt(chunk * chunkSize),
-                    bao_outboard_bytes_cache[baoOutboardBytesUrl],
-                    hashBytes.slice(1),
-                  );
-
-                  if (integrity_res != 42) {
-                    throw "File integrity check failed (BLAKE3-BAO with WASM)";
-                  }
-                }
-
-                if (isLastChunk) {
-                  await s5Cache.put(chunkCacheKey, new Response(chunkBytes,))
-                  chunkCacheKeys.push(chunkCacheKey);
-                  downloadedEncData = new Uint8Array();
-                } else {
-
-                  await s5Cache.put(chunkCacheKey, new Response(chunkBytes))
-                  chunkCacheKeys.push(chunkCacheKey);
-                  downloadedEncData = downloadedEncData.slice(encChunkSize);
-                }
-
-                try {
-                  if (offset === 0) {
-                    if ((start + chunkBytes.length) > end) {
-                      controller.enqueue(chunkBytes.slice(0, (end % chunkSize)));
-                    } else {
-                      controller.enqueue(chunkBytes);
-                    }
-                  } else {
-                    if (((start - offset) + chunkBytes.length) > end) {
-                      controller.enqueue(chunkBytes.slice(offset, (end % chunkSize)));
-                    } else {
-                      controller.enqueue(chunkBytes.slice(offset));
-                    }
-                  }
-                } catch (e) {
-                  for (const key of lockedChunks) {
-                    delete downloadingChunkLock[key];
-                  }
-                  console.warn(e);
-                  if (downloadedEncData.length == 0) {
-                    return;
-                  }
-                }
-                start += chunkBytes.length - offset;
-
-                delete downloadingChunkLock[chunkLockKey];
-                break;
-              } catch (e) {
-                console.error(e);
-                retryCount++;
-                if (retryCount > 10) {
-                  complete();
-                  for (const key of lockedChunks) {
-                    delete downloadingChunkLock[key];
-                  }
-                  throw new Error('Too many retries. ($e)' + e);
-                }
-
-                downloadedEncData = new Uint8Array();
-                downloadStarted = false;
-
-                console.error('[chunk] download error for chunk ' + chunk + ' (try #' + retryCount + ')');
-                await new Promise(r => setTimeout(r, 1000));
-              }
-            }
-          }
-        }
-        offset = 0;
-      }
-      controller.close();
-    }
+    },
   });
 }
 
+async function streamLargeFile(controller, state, params) {
+  const {
+    cid,
+    hash_b64,
+    hashBytes,
+    chunkSize,
+    totalSize,
+    isEncrypted,
+    encryptionMetadata,
+    limit,
+  } = params;
+
+  const s5Cache = await caches.open(
+    isEncrypted ? 's5-large-files-encrypted' : 's5-large-files',
+  );
+
+  // Load BAO outboard bytes if not encrypted
+  let baoOutboardBytes;
+  if (!isEncrypted) {
+    baoOutboardBytes = await loadBaoOutboardBytes(hash_b64);
+  }
+
+  // Apply limit for video streaming
+  if (
+    limit &&
+    !isEncrypted &&
+    state.targetEnd - state.currentPosition > chunkSize * 64
+  ) {
+    state.targetEnd = state.currentPosition + chunkSize * 64;
+  }
+
+  while (state.currentPosition < state.targetEnd) {
+    if (state.abortController.signal.aborted) break;
+
+    const chunk = Math.floor(state.currentPosition / chunkSize);
+    const offset = state.currentPosition % chunkSize;
+    const chunkCacheKey = `0/${hash_b64}/${chunk}`;
+
+    try {
+      // Try to get from cache
+      const cachedChunk = await getCachedChunk(s5Cache, chunkCacheKey);
+
+      if (cachedChunk) {
+        const bytesToSend = sliceChunkForRange(
+          cachedChunk,
+          offset,
+          state.currentPosition,
+          state.targetEnd,
+          chunkSize,
+        );
+        controller.enqueue(bytesToSend);
+        state.currentPosition += bytesToSend.length;
+        continue;
+      }
+
+      // Download chunk(s)
+      await downloadAndProcessChunk(controller, state, s5Cache, {
+        chunk,
+        offset,
+        chunkCacheKey,
+        hash_b64,
+        hashBytes,
+        chunkSize,
+        totalSize,
+        isEncrypted,
+        encryptionMetadata,
+        baoOutboardBytes,
+      });
+    } catch (error) {
+      console.error(`Error processing chunk ${chunk}:`, error);
+      throw error;
+    }
+  }
+
+  controller.close();
+}
+
+async function getCachedChunk(cache, key) {
+  const response = await cache.match(key);
+  if (!response) return null;
+
+  const bytes = new Uint8Array(await response.arrayBuffer());
+  if (bytes.length === 0) {
+    await cache.delete(key);
+    return null;
+  }
+
+  return bytes;
+}
+
+async function downloadAndProcessChunk(controller, state, cache, params) {
+  const {
+    chunk,
+    offset,
+    chunkCacheKey,
+    hash_b64,
+    hashBytes,
+    chunkSize,
+    totalSize,
+    isEncrypted,
+    encryptionMetadata,
+    baoOutboardBytes,
+  } = params;
+
+  // Check if another request is already downloading this chunk
+  const lockKey = chunkCacheKey;
+  if (downloadingChunkLock[lockKey]) {
+    await waitForChunkDownload(lockKey, cache, chunkCacheKey);
+    const cachedChunk = await getCachedChunk(cache, chunkCacheKey);
+    if (cachedChunk) {
+      const bytesToSend = sliceChunkForRange(
+        cachedChunk,
+        offset,
+        state.currentPosition,
+        state.targetEnd,
+        chunkSize,
+      );
+      controller.enqueue(bytesToSend);
+      state.currentPosition += bytesToSend.length;
+      return;
+    }
+  }
+
+  // Lock and download
+  downloadingChunkLock[lockKey] = true;
+
+  try {
+    const parts = await getStreamingLocation(
+      hash_b64,
+      isEncrypted ? '3,5' : '5',
+    );
+    const url = parts[0];
+
+    // Calculate download range
+    const startByte = chunk * chunkSize;
+    const encStartByte = isEncrypted ? chunk * (chunkSize + 16) : startByte;
+    const encChunkSize = isEncrypted ? chunkSize + 16 : chunkSize;
+
+    // Download with retry logic
+    let chunkData = await downloadChunkWithRetry(
+      url,
+      encStartByte,
+      encChunkSize,
+      totalSize,
+      state.abortController,
+    );
+
+    // Process chunk (decrypt if needed)
+    if (isEncrypted) {
+      chunkData = await decryptChunk(
+        chunkData,
+        chunk,
+        encryptionMetadata,
+        totalSize,
+        startByte,
+      );
+    } else {
+      // Verify integrity
+      const integrityResult = verify_integrity(
+        chunkData,
+        BigInt(startByte),
+        baoOutboardBytes,
+        hashBytes.slice(1),
+      );
+      if (integrityResult !== 42) {
+        throw new Error('Chunk integrity verification failed');
+      }
+    }
+
+    // Cache the chunk
+    await cache.put(chunkCacheKey, new Response(chunkData));
+    chunkCacheKeys.push(chunkCacheKey);
+
+    // Send to stream
+    const bytesToSend = sliceChunkForRange(
+      chunkData,
+      offset,
+      state.currentPosition,
+      state.targetEnd,
+      chunkSize,
+    );
+    controller.enqueue(bytesToSend);
+    state.currentPosition += bytesToSend.length;
+  } finally {
+    delete downloadingChunkLock[lockKey];
+  }
+}
+
+async function downloadChunkWithRetry(
+  url,
+  startByte,
+  chunkSize,
+  totalSize,
+  abortController,
+  maxRetries = 3,
+) {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const isLastChunk = startByte + chunkSize > totalSize;
+      const rangeEnd = isLastChunk ? '' : startByte + chunkSize - 1;
+      const rangeHeader = `bytes=${startByte}-${rangeEnd}`;
+
+      const response = await fetch(url, {
+        headers: { Range: rangeHeader },
+        signal: abortController.signal,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      return new Uint8Array(await response.arrayBuffer());
+    } catch (error) {
+      console.error(`Download attempt ${attempt + 1} failed:`, error);
+      if (attempt === maxRetries - 1) throw error;
+      if (abortController.signal.aborted) throw new Error('Download aborted');
+
+      // Wait before retry with exponential backoff
+      await new Promise((resolve) =>
+        setTimeout(resolve, Math.pow(2, attempt) * 1000),
+      );
+    }
+  }
+}
+
+async function decryptChunk(
+  encryptedData,
+  chunkIndex,
+  encryptionMetadata,
+  totalSize,
+  startByte,
+) {
+  const nonce = new Uint8Array(numberToArrayBuffer(chunkIndex));
+  let decrypted = decrypt_xchacha20poly1305(
+    encryptionMetadata.key,
+    nonce,
+    encryptedData,
+  );
+
+  // Handle padding for last chunk
+  const isLastChunk = startByte + encryptionMetadata.chunkSize > totalSize;
+  if (isLastChunk && encryptionMetadata.padding > 0) {
+    decrypted = decrypted.slice(
+      0,
+      decrypted.length - encryptionMetadata.padding,
+    );
+  }
+
+  if (decrypted.length === 0) {
+    throw new Error('Decrypted chunk is empty');
+  }
+
+  return decrypted;
+}
+
+async function loadBaoOutboardBytes(hash_b64) {
+  const parts = await getStreamingLocation(hash_b64, '5');
+  const baoUrl = parts[1] || `${parts[0]}.obao`;
+
+  if (bao_outboard_bytes_cache[baoUrl]) {
+    return bao_outboard_bytes_cache[baoUrl];
+  }
+
+  const response = await fetch(baoUrl);
+  const bytes = new Uint8Array(await response.arrayBuffer());
+  bao_outboard_bytes_cache[baoUrl] = bytes;
+  return bytes;
+}
+
+async function waitForChunkDownload(lockKey, cache, cacheKey, timeout = 30000) {
+  const startTime = Date.now();
+
+  while (downloadingChunkLock[lockKey]) {
+    if (Date.now() - startTime > timeout) {
+      throw new Error('Timeout waiting for chunk download');
+    }
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+}
+
+function sliceChunkForRange(
+  chunkData,
+  offset,
+  currentPos,
+  targetEnd,
+  chunkSize,
+) {
+  const chunkEnd = currentPos - offset + chunkData.length;
+
+  if (chunkEnd > targetEnd) {
+    return chunkData.slice(offset, offset + (targetEnd - currentPos));
+  } else {
+    return offset > 0 ? chunkData.slice(offset) : chunkData;
+  }
+}
+
+// Add request timeout handling
+function addTimeoutToFetch() {
+  const originalFetch = self.fetch;
+
+  self.fetch = function (url, options = {}) {
+    const timeout = options.timeout || 30000; // 30 second default
+    const controller = new AbortController();
+
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+    return originalFetch(url, {
+      ...options,
+      signal: options.signal || controller.signal,
+    }).finally(() => {
+      clearTimeout(timeoutId);
+    });
+  };
+}
+
+// Initialize timeout handling
+addTimeoutToFetch();
+
+// Monitor for network changes
+function addConnectionMonitoring() {
+  // Monitor for network changes that might affect downloads
+  if ('connection' in navigator) {
+    navigator.connection.addEventListener('change', () => {
+      console.log(
+        'Network connection changed:',
+        navigator.connection.effectiveType,
+      );
+      // Clear any stuck download locks on network change
+      Object.keys(downloadingChunkLock).forEach((key) => {
+        if (downloadingChunkLock[key] === true) {
+          console.warn('Clearing stuck download lock:', key);
+          delete downloadingChunkLock[key];
+        }
+      });
+    });
+  }
+
+  // Add periodic health check
+  setInterval(() => {
+    const now = Date.now();
+    Object.keys(downloadingChunkLock).forEach((key) => {
+      if (downloadingChunkLock[key] === true) {
+        console.warn('Long-running download detected:', key);
+      }
+    });
+  }, 10000);
+}
+
+// ============= END OF REPLACEMENT CODE =============
+
 function decodeBase64(base64String) {
-  var padding = '='.repeat((4 - base64String.length % 4) % 4);
-  var base64 = (base64String + padding)
-    .replace(/\-/g, '+')
-    .replace(/_/g, '/');
+  var padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  var base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
 
   var rawData = atob(base64);
   var outputArray = new Uint8Array(rawData.length);
@@ -719,137 +766,142 @@ function decodeEndian(bytes) {
   let total = 0n;
 
   for (let i = 0; i < bytes.length; i++) {
-    total += BigInt(bytes[i]) * (256n ** BigInt(i));
+    total += BigInt(bytes[i]) * 256n ** BigInt(i);
   }
 
   return Number(total);
 }
 
-
+// 5. Enhanced error handling for the respond function
 async function respond(url, req) {
-  // TODO maybe use custom path for encryption with keys
-  if (url.pathname.startsWith('/s5/blob/')) {
+  console.log('🔍 SW: Request received:', url.pathname);
 
-    if (wasm === undefined) {
-      await init();
-    }
+  try {
+    if (url.pathname.startsWith('/s5/blob/')) {
+      console.log('✅ SW: Processing S5 blob request');
 
-    const fullCID = url.pathname.substr(9)
-
-    let cid = fullCID.split('.')[0]
-
-    // TODO Support base58, base32 and base16 CIDs
-    if (!cid.startsWith('u')) {
-      throw 'Invalid CID format';
-    }
-
-    let bytes = decodeBase64(cid.substr(1));
-
-    let encryptionMetadata;
-
-    if (bytes[0] == 0xae) {
-      if (bytes[1] != 0xa6) {
-        throw 'Encryption algorithm not supported';
+      if (wasm === undefined) {
+        console.log('⚡ SW: Initializing WASM...');
+        await init();
+        console.log('✅ SW: WASM initialized');
       }
-      encryptionMetadata = {
-        algorithm: bytes[1],
-        chunkSize: Math.pow(2, bytes[2]),
-        hash: bytes.subarray(3, 36),
-        key: bytes.subarray(36, 68),
-        padding: decodeEndian(bytes.subarray(68, 72)),
+
+      const fullCID = url.pathname.substr(9);
+      let cid = fullCID.split('.')[0];
+
+      console.log('🔍 SW: CID:', cid);
+
+      if (!cid.startsWith('u')) {
+        console.error('❌ SW: Invalid CID format:', cid);
+        throw new Error('Invalid CID format');
       }
-      bytes = bytes.subarray(72);
-      cid = 'u' + hashToBase64UrlNoPadding(bytes);
-    }
 
-    let totalSize = decodeEndian(bytes.subarray(34));
-    const urlParams = new URLSearchParams(url.search);
+      let bytes = decodeBase64(cid.substr(1));
+      let encryptionMetadata;
 
-    const mediaType = urlParams.get('mediaType') || 'text/plain';
-
-    let contentDisposition = 'inline';
-
-    if (urlParams.get('filename')) {
-      contentDisposition = 'attachment; filename="' + urlParams.get('filename') + '"';
-    }
-
-    const resOpt = {
-      headers: {
-        'Content-Type': mediaType,
-        'Content-Disposition': contentDisposition,
-      },
-    }
-
-    resOpt.headers['accept-ranges'] = 'bytes';
-
-    var start = 0;
-    var end = totalSize;
-
-    const range = req.headers.get('range')
-
-    if (range) {
-      const m = range.match(/bytes=(\d+)-(\d*)/)
-      if (m) {
-        const size = totalSize
-        start = +m[1]
-        if (m[2]) {
-          end = (+m[2] + 1)
-        } else {
-          end = size
+      // Handle encrypted files
+      if (bytes[0] == 0xae) {
+        console.log('🔒 SW: Encrypted file detected');
+        if (bytes[1] != 0xa6) {
+          throw new Error('Encryption algorithm not supported');
         }
-
-        resOpt.status = 206
-        resOpt.headers['content-range'] = `bytes ${start}-${end - 1}/${size}`
+        encryptionMetadata = {
+          algorithm: bytes[1],
+          chunkSize: Math.pow(2, bytes[2]),
+          hash: bytes.subarray(3, 36),
+          key: bytes.subarray(36, 68),
+          padding: decodeEndian(bytes.subarray(68, 72)),
+        };
+        bytes = bytes.subarray(72);
+        cid = 'u' + hashToBase64UrlNoPadding(bytes);
       }
+
+      const totalSize = decodeEndian(bytes.subarray(34));
+      console.log('📊 SW: File size:', totalSize, 'bytes');
+
+      const urlParams = new URLSearchParams(url.search);
+      const mediaType = urlParams.get('mediaType') || 'video/mp4'; // Default to video/mp4
+
+      console.log('🎬 SW: Media type:', mediaType);
+
+      let contentDisposition = 'inline';
+      if (urlParams.get('filename')) {
+        contentDisposition =
+          'attachment; filename="' + urlParams.get('filename') + '"';
+      }
+
+      const resOpt = {
+        headers: {
+          'Content-Type': mediaType,
+          'Content-Disposition': contentDisposition,
+          'Accept-Ranges': 'bytes',
+          'Cache-Control': 'public, max-age=31536000',
+        },
+      };
+
+      let start = 0;
+      let end = totalSize;
+
+      const range = req.headers.get('range');
+      if (range) {
+        console.log('📍 SW: Range request:', range);
+        const m = range.match(/bytes=(\d+)-(\d*)/);
+        if (m) {
+          start = +m[1];
+          end = m[2] ? +m[2] + 1 : totalSize;
+
+          resOpt.status = 206;
+          resOpt.headers['Content-Range'] =
+            `bytes ${start}-${end - 1}/${totalSize}`;
+
+          console.log(
+            '📍 SW: Serving range:',
+            start,
+            '-',
+            end - 1,
+            '/',
+            totalSize,
+          );
+        }
+      } else {
+        console.log('📍 SW: Serving entire file:', totalSize, 'bytes');
+      }
+
+      resOpt.headers['Content-Length'] = end - start;
+
+      console.log('🚀 SW: Creating response stream...');
+
+      const stream = openRead(
+        cid,
+        start,
+        end,
+        totalSize,
+        mediaType.startsWith('video/'),
+        encryptionMetadata,
+      );
+
+      console.log('✅ SW: Response created successfully');
+      return new Response(stream, resOpt);
     }
 
-    resOpt.headers['content-length'] = end - start;
-
-    return new Response(openRead(cid, start, end, totalSize, mediaType.startsWith('video/'), encryptionMetadata), resOpt)
-
-
+    console.log('❌ SW: Not an S5 blob request');
+    return;
+  } catch (error) {
+    console.error('💥 SW: Error in respond function:', error);
+    return new Response(`Service Worker Error: ${error.message}`, {
+      status: 500,
+    });
   }
-  return;
-
-  /*   let directoryFile = availableDirectoryFiles[url.pathname];
-  
-    const resOpt = {
-      headers: {
-        'Content-Type': directoryFile.mimeType || 'text/plain',
-      },
-    }
-  
-  
-    var start = 0;
-    var totalSize = directoryFile.file.size;
-  
-    const range = req.headers.get('range')
-  
-    if (range) {
-      const m = range.match(/bytes=(\d+)-(\d*)/)
-      if (m) {
-        const size = directoryFile.file.size
-        const begin = +m[1]
-        const end = +m[2] || size
-  
-        start = begin;
-        totalSize = end;
-  
-        resOpt.status = 206
-        resOpt.headers['content-range'] = `bytes ${begin}-${end - 1}/${size}`
-      }
-    }
-  
-    resOpt.headers['content-length'] = directoryFile.file.size - start - (directoryFile.file.size - totalSize)
-    return new Response(openReadOld(directoryFile, start, totalSize), resOpt) */
 }
 
+addConnectionMonitoring();
+
 onfetch = (e) => {
-  const req = e.request
-  const url = new URL(req.url)
+  const req = e.request;
+  const url = new URL(req.url);
 
   if (url.origin !== location.origin) {
-    return
+    return;
   }
 
   if (url.pathname.startsWith('/s5/blob/')) {
@@ -864,7 +916,7 @@ onfetch = (e) => {
    }
  
    e.respondWith(respond(url, req)) */
-}
+};
 
 // TODO Migrate to S5 encryption
 onmessage = (e) => {
@@ -900,8 +952,8 @@ onmessage = (e) => {
         e.source.postMessage({ 'success': true })
       }
     } */
-}
+};
 
 onactivate = () => {
-  clients.claim()
-}
+  clients.claim();
+};
