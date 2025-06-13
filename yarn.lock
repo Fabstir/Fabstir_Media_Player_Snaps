@@ -9968,6 +9968,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/file-saver@npm:^2.0.7":
+  version: 2.0.7
+  resolution: "@types/file-saver@npm:2.0.7"
+  checksum: c3d1cd80eab1214767922cabac97681f3fb688e82b74890450d70deaca49537949bbc96d80d363d91e8f0a4752c7164909cc8902d9721c5c4809baafc42a3801
+  languageName: node
+  linkType: hard
+
 "@types/filesystem@npm:*":
   version: 0.0.36
   resolution: "@types/filesystem@npm:0.0.36"
@@ -23296,6 +23303,7 @@ __metadata:
     "@testing-library/user-event": ^13.5.0
     "@tippyjs/react": ^4.2.6
     "@transak/transak-sdk": ^1.4.1
+    "@types/file-saver": ^2.0.7
     "@types/jest": ^27.5.2
     "@types/lodash": ^4.17.13
     "@types/react": ^18.0.15

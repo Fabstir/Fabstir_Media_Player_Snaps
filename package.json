@@ -28,8 +28,7 @@
     "test": "echo \"TODO\""
   },
   "resolutions": {
-    "@c4312/blake3-internal": "^3.0.0",
-    "s5client-js": "git+https://github.com/julesl23/s5client-js.git#fabstir/combined-fixes"
+    "@c4312/blake3-internal": "^3.0.0"
   },
   "overrides": {
     "@c4312/blake3-internal": "^3.0.0"
