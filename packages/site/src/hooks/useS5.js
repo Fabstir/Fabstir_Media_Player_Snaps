@@ -1,4 +1,4 @@
-import { S5Client } from '../../../../node_modules/s5client-js/dist/mjs/index';
+import { S5Client } from 's5client-js';
 import { useConfig } from '../../state/configContext';
 import {
   getKeyFromEncryptedCid,

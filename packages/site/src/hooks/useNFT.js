@@ -4,7 +4,6 @@ import { queryClient } from '../../pages/_app.tsx';
 import { parseArrayProperties } from '../utils/stringifyProperties';
 import TipERC721 from '../../contracts/TipERC721.json';
 import TipERC1155 from '../../contracts/TipERC1155.json';
-import { S5Client } from '../../../../node_modules/s5client-js/dist/mjs/index';
 import BlockchainContext from '../../state/BlockchainContext';
 import { useContext } from 'react';
 import usePortal from './usePortal.js';
