@@ -13274,6 +13274,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"cookie@npm:^1.0.1":
+  version: 1.0.2
+  resolution: "cookie@npm:1.0.2"
+  checksum: 2c5a6214147ffa7135ce41860c781de17e93128689b0d080d3116468274b3593b607bcd462ac210d3a61f081db3d3b09ae106e18d60b1f529580e95cf2db8a55
+  languageName: node
+  linkType: hard
+
 "copy-to-clipboard@npm:3.3.3, copy-to-clipboard@npm:^3.2.0, copy-to-clipboard@npm:^3.3.1":
   version: 3.3.3
   resolution: "copy-to-clipboard@npm:3.3.3"
@@ -22066,6 +22073,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-router-dom@npm:^7.6.2":
+  version: 7.6.2
+  resolution: "react-router-dom@npm:7.6.2"
+  dependencies:
+    react-router: 7.6.2
+  peerDependencies:
+    react: ">=18"
+    react-dom: ">=18"
+  checksum: 944f87d4d62eddbd517b9cbd39c9282200b172b31309cdb0eca3803f768c2b29466d852db7ce4a997ae1818d8103a1d1322e7fca4d6d4d846757b0e00b931c90
+  languageName: node
+  linkType: hard
+
 "react-router@npm:6.30.1":
   version: 6.30.1
   resolution: "react-router@npm:6.30.1"
@@ -22074,6 +22093,22 @@ __metadata:
   peerDependencies:
     react: ">=16.8"
   checksum: cab6c2ef3e4bc2b7d92c17f9de30d56f169ffe10a082de52a5842a335289d798aec91ff7bc39dfe7d73f6c50ae56e9e5d1597e8edfcdd80910b93383138a7525
+  languageName: node
+  linkType: hard
+
+"react-router@npm:7.6.2":
+  version: 7.6.2
+  resolution: "react-router@npm:7.6.2"
+  dependencies:
+    cookie: ^1.0.1
+    set-cookie-parser: ^2.6.0
+  peerDependencies:
+    react: ">=18"
+    react-dom: ">=18"
+  peerDependenciesMeta:
+    react-dom:
+      optional: true
+  checksum: 6d3c931043dcbc3dd16dc431e3a7701403c2a786068968154374d1bbcb7476b8ae7ae9279ed81cc9c36ce537b8d7355c13d126045cd52c98decc3bd1194cc4f9
   languageName: node
   linkType: hard
 
@@ -23062,6 +23097,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"set-cookie-parser@npm:^2.6.0":
+  version: 2.7.1
+  resolution: "set-cookie-parser@npm:2.7.1"
+  checksum: 2ef8b351094712f8f7df6d63ed4b10350b24a5b515772690e7dec227df85fcef5bc451c7765f484fd9f36694ece5438d1456407d017f237d0d3351d7dbbd3587
+  languageName: node
+  linkType: hard
+
 "set-function-length@npm:^1.2.2":
   version: 1.2.2
   resolution: "set-function-length@npm:1.2.2"
@@ -23359,6 +23401,7 @@ __metadata:
     react-dropzone: ^14.2.3
     react-hook-form: ^7.57.0
     react-is: ^18.2.0
+    react-router-dom: ^7.6.2
     react-toastify: ^10.0.6
     recoil: ^0.7.7
     recoil-persist: ^5.1.0

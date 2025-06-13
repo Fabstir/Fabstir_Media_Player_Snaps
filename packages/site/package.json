@@ -67,6 +67,7 @@
     "react-dropzone": "^14.2.3",
     "react-hook-form": "^7.57.0",
     "react-is": "^18.2.0",
+    "react-router-dom": "^7.6.2",
     "react-toastify": "^10.0.6",
     "recoil": "^0.7.7",
     "recoil-persist": "^5.1.0",
