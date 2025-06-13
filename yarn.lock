@@ -22779,9 +22779,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"s5client-js@portal:/E:/dev/Fabstir/partners/Sia/GitHub/s5client-js::locator=%40metamask%2Ftemplate-snap-monorepo%40workspace%3A.":
-  version: 0.0.0-use.local
-  resolution: "s5client-js@portal:/E:/dev/Fabstir/partners/Sia/GitHub/s5client-js::locator=%40metamask%2Ftemplate-snap-monorepo%40workspace%3A."
+"s5client-js@git+https://github.com/julesl23/s5client-js.git#fabstir/combined-fixes":
+  version: 0.6.0-beta01
+  resolution: "s5client-js@https://github.com/julesl23/s5client-js.git#commit=213d9976e6dbf9fd95e61448ee5d50df60192d93"
   dependencies:
     "@babel/runtime": ^7.17.8
     "@c4312/blake3-internal": ^3.0.0
@@ -22796,8 +22796,9 @@ __metadata:
     tus-js-client: ^3.1.0
     url-join: ^4.0.1
     url-parse: ^1.5.1
+  checksum: 243b845f2975298ad24d92d608addb1825f2a52703caf15ad5b4421c84b4e38b2194400435c8370d0e6fd61a91da05523e1f3ea0225f9353489f58c795b994ea
   languageName: node
-  linkType: soft
+  linkType: hard
 
 "safaridriver@npm:^0.1.0":
   version: 0.1.2
@@ -23344,7 +23345,7 @@ __metadata:
     recoil: ^0.7.7
     recoil-persist: ^5.1.0
     rimraf: ^3.0.2
-    s5client-js: "file:../s5client-js"
+    s5client-js: "git+https://github.com/julesl23/s5client-js.git#fabstir/combined-fixes"
     strip-json-comments: ^5.0.1
     tailwind-merge: ^2.2.0
     tailwindcss: 3.4.17

@@ -2,6 +2,23 @@ const withSvgr = require('next-svgr');
 
 module.exports = withSvgr({
   // reactStrictMode: true,
+
+  // Add transpilePackages to handle ES modules
+  transpilePackages: [
+    's5client-js',
+    's5-encryptWasm',
+    's5-utils-js',
+    'url-join',
+    // Add more s5-related packages as needed
+    's5-fs-api',
+    's5-crypto-js',
+  ],
+
+  // Add experimental config for ES module support
+  experimental: {
+    esmExternals: true,
+  },
+
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
