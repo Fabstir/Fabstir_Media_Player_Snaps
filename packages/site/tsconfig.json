@@ -1,8 +1,14 @@
 {
-  "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "declaration": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
     "module": "esnext",
-    "target": "es2017",
+    "moduleResolution": "node",
+    "target": "ES2017",
+    "useUnknownInCatchVariables": false,
+    "sourceMap": true,
+    "strict": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
@@ -11,10 +17,13 @@
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
-    "incremental": true,
-    "sourceMap": true,
-    "moduleResolution": "node"
+    "incremental": true
   },
   "include": [".eslintrc.js", "src", "pages", "globals.ts", "types/*.ts"],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "**/__snapshots__/**",
+    "**/test/**",
+    "**/*.test.ts",
+    "node_modules"
+  ]
 }
