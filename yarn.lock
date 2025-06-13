@@ -15957,6 +15957,28 @@ __metadata:
   languageName: node
   linkType: hard
 
+"framer-motion@npm:^12.18.1":
+  version: 12.18.1
+  resolution: "framer-motion@npm:12.18.1"
+  dependencies:
+    motion-dom: ^12.18.1
+    motion-utils: ^12.18.1
+    tslib: ^2.4.0
+  peerDependencies:
+    "@emotion/is-prop-valid": "*"
+    react: ^18.0.0 || ^19.0.0
+    react-dom: ^18.0.0 || ^19.0.0
+  peerDependenciesMeta:
+    "@emotion/is-prop-valid":
+      optional: true
+    react:
+      optional: true
+    react-dom:
+      optional: true
+  checksum: a07259ee22cee91138677d9fe89cc9e20b7ad85310f33945c695e67255a975c7546dc2ccf70cf047b893aea19c08a777e57589f5fc549d0e5af42009409cba3e
+  languageName: node
+  linkType: hard
+
 "framesync@npm:6.1.2":
   version: 6.1.2
   resolution: "framesync@npm:6.1.2"
@@ -19515,10 +19537,26 @@ __metadata:
   languageName: node
   linkType: hard
 
+"motion-dom@npm:^12.18.1":
+  version: 12.18.1
+  resolution: "motion-dom@npm:12.18.1"
+  dependencies:
+    motion-utils: ^12.18.1
+  checksum: d080403855d2afb73d0d120e67eb6e27f425e4c03ab3dbdaa21fe4096c81c70be4c2e4687f2fa219d4b9d2f90293345708272f64a53698eb078bb460666feaee
+  languageName: node
+  linkType: hard
+
 "motion-utils@npm:^11.18.1":
   version: 11.18.1
   resolution: "motion-utils@npm:11.18.1"
   checksum: e8789e50dce6e952226608e8f7eb8e03779332849f38c70cc9e1fbd5e34f2e6d0efb2d565091de999135ec3a3d4a0df1a796833cccd8f6a2313f81445c6e5b83
+  languageName: node
+  linkType: hard
+
+"motion-utils@npm:^12.18.1":
+  version: 12.18.1
+  resolution: "motion-utils@npm:12.18.1"
+  checksum: 789a10c6ddadaa0bcac9e49ecaad88b7543f25d11ac2362ac0d480a378bee2aa28ce27dfb0fe98d3cd95dc9df428b95eb0974c5821dd5981016e76d40022f50a
   languageName: node
   linkType: hard
 
@@ -23383,6 +23421,7 @@ __metadata:
     ethers: 5.7.2
     fabstirdb-lib: ./fabstirdb-lib.tgz
     file-saver: ^2.0.5
+    framer-motion: ^12.18.1
     gun: ^0.2020.1240
     heroiconsv1: "npm:@heroicons/react@^1.0.6"
     heroiconsv2: "npm:@heroicons/react@^2.0.11"
