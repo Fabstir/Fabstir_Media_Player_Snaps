@@ -30,9 +30,6 @@
   "resolutions": {
     "@c4312/blake3-internal": "^3.0.0"
   },
-  "overrides": {
-    "@c4312/blake3-internal": "^3.0.0"
-  },
   "dependencies": {
     "lodash": "^4.17.21",
     "lodash.get": "^4.4.2"
