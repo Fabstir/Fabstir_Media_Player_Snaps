@@ -39,6 +39,22 @@ export default function useVideoLink() {
     hasVideoMedia,
   } = useNFTMedia();
 
+  const getSubtitleMimeType = (filename) => {
+    // Extract file extension
+    const extension = filename.split('.').pop().toLowerCase();
+
+    // Map extensions to MIME types
+    const mimeTypeMap = {
+      vtt: 'text/vtt',
+      srt: 'application/x-subrip',
+      ttml: 'application/ttml+xml',
+      dfxp: 'application/ttaf+xml',
+      // Add more subtitle formats as needed
+    };
+
+    return mimeTypeMap[extension] || 'text/plain'; // Fallback to text/plain if unknown
+  };
+
   const getPlayerSources = (metadata) => {
     if (!Array.isArray(metadata)) {
       return;
@@ -87,7 +103,10 @@ export default function useVideoLink() {
           src = `${config.ipfsGateway}/ipfs/${src}`;
         } else {
           src = removeS5Prefix(videoFormat.cid);
-          src = `${config.s5PortalStreamingUrlL}:${portNumber}/s5/blob/${src}?mediaType=text%2Fplain`;
+
+          // Determine correct MIME type based on file extension
+          const mimeType = getSubtitleMimeType(videoFormat.cid);
+          src = `${config.s5PortalUrl}/s5/blob/${src}?mediaType=${encodeURIComponent(mimeType)}`;
         }
 
         let source = {
